@@ -475,7 +475,7 @@ bool P165_data_struct::plugin_webform_load(struct EventStruct *event) {
                         numberPlan);
       totalPixels += grpOffs;
 
-      const uint8_t strt = grpStart + grpGstrt << 1;
+      const uint8_t strt = grpStart + (grpGstrt << 1);
       addRowLabel(F("Starting segment"));
       addSelector(concat(F("strt"), grp10),
                   NR_ELEMENTS(startPixelOptions),
