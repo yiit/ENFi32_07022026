@@ -91,7 +91,7 @@ void run_compiletime_checks() {
   check_size<NotificationSettingsStruct,            1000u>();
   #endif // if FEATURE_NOTIFIER
   check_size<ExtraTaskSettingsStruct,               536u>();
-  #if ESP_IDF_VERSION_MAJOR > 3
+  #ifdef ESP32  // ESP_IDF_VERSION_MAJOR > 3
   // String class has increased with 4 bytes
   check_size<EventStruct,                           124u>(); // Is not stored
   #else
@@ -101,7 +101,7 @@ void run_compiletime_checks() {
 
   // LogStruct is mainly dependent on the number of lines.
   // Has to be round up to multiple of 4.
-  #if ESP_IDF_VERSION_MAJOR > 3
+  #ifdef ESP32  // ESP_IDF_VERSION_MAJOR > 3
   // String class has increased with 4 bytes
   const unsigned int LogStructSize = ((13u + 24 * LOG_STRUCT_MESSAGE_LINES) + 3) & ~3;
   #else

@@ -15,6 +15,9 @@
 #include <IPAddress.h>
 #include <WiFiSTA.h>
 #include <WiFi.h>
+#include <WiFiType.h>
+
+
 class WiFi_Access_Static_IP : public WiFiSTAClass {
 public:
 
@@ -28,12 +31,7 @@ void setUseStaticIP(bool enabled);
 // Functions called on events.
 // Make sure not to call anything in these functions that result in delay() or yield()
 // ********************************************************************************
- #if ESP_IDF_VERSION_MAJOR > 3
-  #include <WiFiType.h>
-  void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
- #else
-  void WiFiEvent(system_event_id_t event, system_event_info_t info);
- #endif
+void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
 
 #endif
 

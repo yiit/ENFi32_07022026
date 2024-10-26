@@ -251,7 +251,6 @@ void handle_hardware() {
 # if CONFIG_ETH_USE_ESP32_EMAC
       toString(EthPhyType_t::LAN8720),			  
       toString(EthPhyType_t::TLK110),				  
-#if ESP_IDF_VERSION_MAJOR > 3
       toString(EthPhyType_t::RTL8201),				
 #if ETH_TYPE_JL1101_SUPPORTED
       toString(EthPhyType_t::JL1101),				  
@@ -259,7 +258,6 @@ void handle_hardware() {
       toString(EthPhyType_t::DP83848),				
       toString(EthPhyType_t::KSZ8041),				
       toString(EthPhyType_t::KSZ8081),				
-#endif
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
 
 #if ESP_IDF_VERSION_MAJOR >= 5
@@ -280,7 +278,6 @@ void handle_hardware() {
 # if CONFIG_ETH_USE_ESP32_EMAC
       static_cast<int>(EthPhyType_t::LAN8720),			  
       static_cast<int>(EthPhyType_t::TLK110),				  
-#if ESP_IDF_VERSION_MAJOR > 3
       static_cast<int>(EthPhyType_t::RTL8201),			
 #if ETH_TYPE_JL1101_SUPPORTED	
       static_cast<int>(EthPhyType_t::JL1101),				  
@@ -288,7 +285,6 @@ void handle_hardware() {
       static_cast<int>(EthPhyType_t::DP83848),				
       static_cast<int>(EthPhyType_t::KSZ8041),				
       static_cast<int>(EthPhyType_t::KSZ8081),				
-#endif
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
 
 #if ESP_IDF_VERSION_MAJOR >= 5

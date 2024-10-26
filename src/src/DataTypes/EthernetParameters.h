@@ -24,8 +24,6 @@ enum class EthPhyType_t : uint8_t {
 #if CONFIG_ETH_USE_ESP32_EMAC
   LAN8720 = 0,
   TLK110  = 1,
-#if ESP_IDF_VERSION_MAJOR > 3
-
   RTL8201 = 2,
 #if ETH_TYPE_JL1101_SUPPORTED
   JL1101 = 3, 
@@ -33,7 +31,6 @@ enum class EthPhyType_t : uint8_t {
   DP83848 = 4, 
   KSZ8041 = 5, 
   KSZ8081 = 6,
-#endif
 #endif
 #if ESP_IDF_VERSION_MAJOR >= 5
 #if CONFIG_ETH_SPI_ETHERNET_DM9051

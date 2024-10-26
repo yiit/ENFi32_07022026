@@ -40,7 +40,6 @@ bool isValid(EthPhyType_t phyType) {
 #if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:
     case EthPhyType_t::TLK110:
-# if ESP_IDF_VERSION_MAJOR > 3
     case EthPhyType_t::RTL8201:
 #if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:
@@ -48,7 +47,6 @@ bool isValid(EthPhyType_t phyType) {
     case EthPhyType_t::DP83848:
     case EthPhyType_t::KSZ8041:
     case EthPhyType_t::KSZ8081:
-# endif // if ESP_IDF_VERSION_MAJOR > 3
       return true;
 #endif // if CONFIG_ETH_USE_ESP32_EMAC
 
@@ -94,7 +92,6 @@ eth_phy_type_t to_ESP_phy_type(EthPhyType_t phyType)
 # if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:  return ETH_PHY_LAN8720;
     case EthPhyType_t::TLK110:   return ETH_PHY_TLK110;
-#  if ESP_IDF_VERSION_MAJOR > 3
     case EthPhyType_t::RTL8201:  return ETH_PHY_RTL8201;
 #   if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:   return ETH_PHY_JL1101;
@@ -102,7 +99,6 @@ eth_phy_type_t to_ESP_phy_type(EthPhyType_t phyType)
     case EthPhyType_t::DP83848:  return ETH_PHY_DP83848;
     case EthPhyType_t::KSZ8041:  return ETH_PHY_KSZ8041;
     case EthPhyType_t::KSZ8081:  return ETH_PHY_KSZ8081;
-#  endif // if ESP_IDF_VERSION_MAJOR > 3
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
 
 # if ESP_IDF_VERSION_MAJOR >= 5
@@ -130,7 +126,6 @@ const __FlashStringHelper* toString(EthPhyType_t phyType) {
 #if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:  return F("LAN8710/LAN8720");
     case EthPhyType_t::TLK110:   return F("TLK110");
-# if ESP_IDF_VERSION_MAJOR > 3
     case EthPhyType_t::RTL8201:  return F("RTL8201");
 #if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:   return F("JL1101");
@@ -138,7 +133,6 @@ const __FlashStringHelper* toString(EthPhyType_t phyType) {
     case EthPhyType_t::DP83848:  return F("DP83848");
     case EthPhyType_t::KSZ8041:  return F("KSZ8041");
     case EthPhyType_t::KSZ8081:  return F("KSZ8081");
-# endif // if ESP_IDF_VERSION_MAJOR > 3
 #endif // if CONFIG_ETH_USE_ESP32_EMAC
 
 #if ESP_IDF_VERSION_MAJOR >= 5

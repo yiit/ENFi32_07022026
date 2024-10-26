@@ -17,11 +17,7 @@
 
 #include <ETH.h>
 #include <lwip/dns.h>
-#if ESP_IDF_VERSION_MAJOR > 3
- #include <esp_eth_phy.h>
-#else
- #include <eth_phy/phy.h>
-#endif
+#include <esp_eth_phy.h>
 
 #include <WiFi.h>
 
@@ -114,11 +110,7 @@ MAC_address ETHMacAddress() {
   if(!EthEventData.ethInitSuccess) {
     addLog(LOG_LEVEL_ERROR, F("Call NetworkMacAddress() only on connected Ethernet!"));
   } else {
-    #if ESP_IDF_VERSION_MAJOR > 3
     ETH.macAddress(mac.mac);
-    #else
-    esp_eth_get_mac(mac.mac);
-    #endif
   }
   return mac;
 }

@@ -15,8 +15,6 @@
 
 #  include <WiFi.h>
 
-
-#  if ESP_IDF_VERSION_MAJOR > 3
 void EthEvent(WiFiEvent_t event, arduino_event_info_t info) {
   switch (event) {
     case ARDUINO_EVENT_ETH_START:
@@ -42,11 +40,7 @@ void EthEvent(WiFiEvent_t event, arduino_event_info_t info) {
     case ARDUINO_EVENT_ETH_STOP:
 //      addLog(LOG_LEVEL_INFO, F("ETH event: Stopped"));
       break;
-    #   if ESP_IDF_VERSION_MAJOR > 3
     case ARDUINO_EVENT_ETH_GOT_IP6:
-    #   else // if ESP_IDF_VERSION_MAJOR > 3
-    case ARDUINO_EVENT_GOT_IP6:
-    #   endif // if ESP_IDF_VERSION_MAJOR > 3
     #if FEATURE_USE_IPV6
     {
       ip_event_got_ip6_t * event = static_cast<ip_event_got_ip6_t*>(&info.got_ip6);
@@ -64,8 +58,6 @@ void EthEvent(WiFiEvent_t event, arduino_event_info_t info) {
     }
   }
 }
-
-#  endif // if ESP_IDF_VERSION_MAJOR > 3
 
 # endif // if FEATURE_ETHERNET
 

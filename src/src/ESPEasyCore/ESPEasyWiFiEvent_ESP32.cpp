@@ -39,7 +39,6 @@ void setUseStaticIP(bool enabled) {
 
 static bool ignoreDisconnectEvent = false;
 
-# if ESP_IDF_VERSION_MAJOR > 3
 void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
   switch (event) {
     case ARDUINO_EVENT_WIFI_READY:
@@ -104,55 +103,31 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       break;
 
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
-      #  if ESP_IDF_VERSION_MAJOR > 3
       WiFiEventData.setAuthMode(info.wifi_sta_authmode_change.new_mode);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.setAuthMode(info.auth_change.new_mode);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
       break;
 
     case ARDUINO_EVENT_WIFI_STA_CONNECTED:
     {
       char ssid_copy[33]; // Ensure space for maximum len SSID (32) plus trailing 0
-      #  if ESP_IDF_VERSION_MAJOR > 3
       memcpy(ssid_copy, info.wifi_sta_connected.ssid, info.wifi_sta_connected.ssid_len);
       ssid_copy[32] = 0;  // Potentially add 0-termination if none present earlier
       WiFiEventData.markConnected((const char *)ssid_copy, info.wifi_sta_connected.bssid, info.wifi_sta_connected.channel);
       WiFiEventData.setAuthMode(info.wifi_sta_connected.authmode);
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event WIFI_STA_CONNECTED"));
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      memcpy(ssid_copy, info.connected.ssid, info.connected.ssid_len);
-      ssid_copy[32] = 0; // Potentially add 0-termination if none present earlier
-      WiFiEventData.markConnected((const char *)ssid_copy, info.connected.bssid, info.connected.channel);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
       break;
     }
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
 
       if (!ignoreDisconnectEvent) {
         ignoreDisconnectEvent = true;
-        #  if ESP_IDF_VERSION_MAJOR > 3
         WiFiEventData.markDisconnect(static_cast<WiFiDisconnectReason>(info.wifi_sta_disconnected.reason));
 
         if (info.wifi_sta_disconnected.reason == WIFI_REASON_AUTH_EXPIRE) {
           // See: https://github.com/espressif/arduino-esp32/issues/8877#issuecomment-1807677897
-          #   if ESP_IDF_VERSION_MAJOR >= 5
-
           // FIXME TD-er: Should no longer be needed.
           WiFi.STA._setStatus(WL_CONNECTION_LOST);
-          #   else // if ESP_IDF_VERSION_MAJOR >= 5
-          WiFiSTAClass::_setStatus(WL_CONNECTION_LOST);
-          #   endif // if ESP_IDF_VERSION_MAJOR >= 5
         }
-        #  else // if ESP_IDF_VERSION_MAJOR > 3
-        WiFiEventData.markDisconnect(static_cast<WiFiDisconnectReason>(info.disconnected.reason));
-
-        if (info.disconnected.reason == WIFI_REASON_AUTH_EXPIRE) {
-          // See: https://github.com/espressif/arduino-esp32/issues/8877#issuecomment-1807677897
-          WiFiSTAClass::_setStatus(WL_CONNECTION_LOST);
-        }
-        #  endif // if ESP_IDF_VERSION_MAJOR > 3
         WiFi.persistent(false);
         WiFi.disconnect(true);
       }
@@ -174,18 +149,10 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       break;
     #  endif // if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
-      #  if ESP_IDF_VERSION_MAJOR > 3
       WiFiEventData.markConnectedAPmode(info.wifi_ap_staconnected.mac);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markConnectedAPmode(info.sta_connected.mac);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
       break;
     case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
-      #  if ESP_IDF_VERSION_MAJOR > 3
       WiFiEventData.markDisconnectedAPmode(info.wifi_ap_stadisconnected.mac);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markDisconnectedAPmode(info.sta_disconnected.mac);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
       break;
     case ARDUINO_EVENT_WIFI_SCAN_DONE:
       WiFiEventData.processedScanDone = false;
@@ -196,11 +163,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     case ARDUINO_EVENT_ETH_GOT_IP:
     case ARDUINO_EVENT_ETH_DISCONNECTED:
     case ARDUINO_EVENT_ETH_STOP:
-    #   if ESP_IDF_VERSION_MAJOR > 3
     case ARDUINO_EVENT_ETH_GOT_IP6:
-    #   else // if ESP_IDF_VERSION_MAJOR > 3
-    case ARDUINO_EVENT_GOT_IP6:
-    #   endif // if ESP_IDF_VERSION_MAJOR > 3
 
       // Handled in EthEvent
       break;
@@ -213,157 +176,4 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
   }
 }
 
-# else // if ESP_IDF_VERSION_MAJOR > 3
-void WiFiEvent(system_event_id_t event, system_event_info_t info) {
-  switch (event) {
-    case SYSTEM_EVENT_WIFI_READY:
-      // ESP32 WiFi ready
-      break;
-    case SYSTEM_EVENT_STA_START:
-    #  ifndef BUILD_NO_DEBUG
-
-      // addLog(LOG_LEVEL_INFO, F("WiFi : Event STA Started"));
-    #  endif // ifndef BUILD_NO_DEBUG
-      break;
-    case SYSTEM_EVENT_STA_STOP:
-    #  ifndef BUILD_NO_DEBUG
-
-      // addLog(LOG_LEVEL_INFO, F("WiFi : Event STA Stopped"));
-    #  endif // ifndef BUILD_NO_DEBUG
-      break;
-    case SYSTEM_EVENT_AP_START:
-    #  ifndef BUILD_NO_DEBUG
-
-      // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP Started"));
-    #  endif // ifndef BUILD_NO_DEBUG
-      break;
-    case SYSTEM_EVENT_AP_STOP:
-    #  ifndef BUILD_NO_DEBUG
-
-      // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP Stopped"));
-    #  endif // ifndef BUILD_NO_DEBUG
-      break;
-    case SYSTEM_EVENT_STA_LOST_IP:
-      // ESP32 station lost IP and the IP is reset to 0
-      #  if FEATURE_ETHERNET
-
-      if (active_network_medium == NetworkMedium_t::Ethernet) {
-        EthEventData.markLostIP();
-      }
-      else
-      #  endif // if FEATURE_ETHERNET
-      WiFiEventData.markLostIP();
-      #  ifndef BUILD_NO_DEBUG
-
-      /*
-         addLog(LOG_LEVEL_INFO,
-         active_network_medium == NetworkMedium_t::Ethernet ?
-         F("ETH : Event Lost IP") : F("WiFi : Event Lost IP"));
-       */
-      #  endif // ifndef BUILD_NO_DEBUG
-      break;
-
-    case SYSTEM_EVENT_AP_PROBEREQRECVED:
-      // Receive probe request packet in soft-AP interface
-      // TODO TD-er: Must implement like onProbeRequestAPmode for ESP8266
-      #  ifndef BUILD_NO_DEBUG
-
-      // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP got probed"));
-      #  endif // ifndef BUILD_NO_DEBUG
-      break;
-
-    case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:
-      #  if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.setAuthMode(info.wifi_sta_authmode_change.new_mode);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.setAuthMode(info.auth_change.new_mode);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
-      break;
-
-    case SYSTEM_EVENT_STA_CONNECTED:
-    {
-      char ssid_copy[33] = { 0 }; // Ensure space for maximum len SSID (32) plus trailing 0
-      #  if ESP_IDF_VERSION_MAJOR > 3
-      memcpy(ssid_copy, info.wifi_sta_connected.ssid, info.wifi_sta_connected.ssid_len);
-      ssid_copy[32] = 0;          // Potentially add 0-termination if none present earlier
-      WiFiEventData.markConnected((const char *)ssid_copy, info.wifi_sta_connected.bssid, info.wifi_sta_connected.channel);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      memcpy(ssid_copy, info.connected.ssid, info.connected.ssid_len);
-      ssid_copy[32] = 0; // Potentially add 0-termination if none present earlier
-      WiFiEventData.markConnected((const char *)ssid_copy, info.connected.bssid, info.connected.channel);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
-      break;
-    }
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-
-      if (!ignoreDisconnectEvent) {
-        ignoreDisconnectEvent = true;
-        #  if ESP_IDF_VERSION_MAJOR > 3
-        WiFiEventData.markDisconnect(static_cast<WiFiDisconnectReason>(info.wifi_sta_disconnected.reason));
-        #  else // if ESP_IDF_VERSION_MAJOR > 3
-        WiFiEventData.markDisconnect(static_cast<WiFiDisconnectReason>(info.disconnected.reason));
-        #  endif // if ESP_IDF_VERSION_MAJOR > 3
-        WiFi.persistent(false);
-        WiFi.disconnect(true);
-      }
-      break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-      ignoreDisconnectEvent = false;
-      WiFiEventData.markGotIP();
-      break;
-    case SYSTEM_EVENT_AP_STACONNECTED:
-      #  if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markConnectedAPmode(info.wifi_ap_staconnected.mac);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markConnectedAPmode(info.sta_connected.mac);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
-      break;
-    case SYSTEM_EVENT_AP_STADISCONNECTED:
-      #  if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markDisconnectedAPmode(info.wifi_ap_stadisconnected.mac);
-      #  else // if ESP_IDF_VERSION_MAJOR > 3
-      WiFiEventData.markDisconnectedAPmode(info.sta_disconnected.mac);
-      #  endif // if ESP_IDF_VERSION_MAJOR > 3
-      break;
-    case SYSTEM_EVENT_SCAN_DONE:
-      WiFiEventData.processedScanDone = false;
-      break;
-#  if FEATURE_ETHERNET
-    case SYSTEM_EVENT_ETH_START:
-
-      if (ethPrepare()) {
-        // addLog(LOG_LEVEL_INFO, F("ETH event: Started"));
-      } else {
-        // addLog(LOG_LEVEL_ERROR, F("ETH event: Could not prepare ETH!"));
-      }
-      break;
-    case SYSTEM_EVENT_ETH_CONNECTED:
-      // addLog(LOG_LEVEL_INFO, F("ETH event: Connected"));
-      EthEventData.markConnected();
-      break;
-    case SYSTEM_EVENT_ETH_GOT_IP:
-      EthEventData.markGotIP();
-
-      // addLog(LOG_LEVEL_INFO, F("ETH event: Got IP"));
-      break;
-    case SYSTEM_EVENT_ETH_DISCONNECTED:
-      // addLog(LOG_LEVEL_ERROR, F("ETH event: Disconnected"));
-      EthEventData.markDisconnect();
-      break;
-    case SYSTEM_EVENT_ETH_STOP:
-      // addLog(LOG_LEVEL_INFO, F("ETH event: Stopped"));
-      break;
-    case SYSTEM_EVENT_GOT_IP6:
-      // addLog(LOG_LEVEL_INFO, F("ETH event: Got IP6"));
-      break;
-#  endif // FEATURE_ETHERNET
-    default:
-    {
-      // addLogMove(LOG_LEVEL_ERROR, concat(F("UNKNOWN WIFI/ETH EVENT: "), event));
-      break;
-    }
-  }
-}
-
-# endif // if ESP_IDF_VERSION_MAJOR > 3
 #endif // ifdef ESP32

@@ -34,12 +34,8 @@
   #endif
 
   #ifndef MAX_GPIO
-    #if ESP_IDF_VERSION_MAJOR > 3       // IDF 4+
       #include <hal/gpio_types.h>
       #define MAX_GPIO (GPIO_NUM_MAX - 1)
-    #else // ESP32 Before IDF 4.0
-      #define MAX_GPIO  39
-    #endif
   #endif
 
 #endif

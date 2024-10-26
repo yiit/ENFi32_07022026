@@ -22,11 +22,7 @@
   #elif defined(ESP32C6)
     #include <esp32c6/rom/rtc.h>
   # elif defined(ESP32_CLASSIC)
-    #if ESP_IDF_VERSION_MAJOR > 3
-      #include <esp32/rom/rtc.h>
-    #else
-      #include <rom/rtc.h>
-    #endif
+    #include <esp32/rom/rtc.h>
   # else
 
     static_assert(false, "Implement processor architecture");
