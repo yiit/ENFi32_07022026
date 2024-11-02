@@ -4,9 +4,11 @@
 #ifdef ESP8266
 
 
-#include "../../ESPEasy_common.h"
+# include "../../ESPEasy_common.h"
 
-#include <IPAddress.h>
+# if FEATURE_WIFI
+
+#  include <IPAddress.h>
 
 // ********************************************************************************
 
@@ -14,9 +16,11 @@
 // See reported issue: https://github.com/esp8266/Arduino/issues/4114
 // ********************************************************************************
 
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiSTA.h>
-class WiFi_Access_Static_IP : public ESP8266WiFiSTAClass {
+#  include <ESP8266WiFi.h>
+#  include <ESP8266WiFiSTA.h>
+
+class WiFi_Access_Static_IP : public ESP8266WiFiSTAClass
+{
 public:
 
   void set_use_static_ip(bool enabled);
@@ -43,10 +47,12 @@ void onDisconnectedAPmode(const WiFiEventSoftAPModeStationDisconnected& event);
 
 void onStationModeAuthModeChanged(const WiFiEventStationModeAuthModeChanged& event);
 
-#if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-void onWiFiScanDone(void *arg, STATUS status);
-#endif
+#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+void onWiFiScanDone(void  *arg,
+                    STATUS status);
+#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
 
-#endif
+# endif // if FEATURE_WIFI
 
-#endif
+#endif // ifdef ESP8266
+#endif // ifndef ESPEASY_WIFI_EVENT_ESP8266_H

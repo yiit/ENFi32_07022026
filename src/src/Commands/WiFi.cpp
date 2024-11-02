@@ -2,11 +2,14 @@
 
 #include "../../ESPEasy_common.h"
 
+#if FEATURE_WIFI
+
 #include "../Commands/Common.h"
 
 #include "../DataStructs/ESPEasy_EventStruct.h"
 
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../ESPEasyCore/Serial.h"
 
 #include "../Globals/ESPEasyWiFiEvent.h"
@@ -96,13 +99,13 @@ const __FlashStringHelper* Command_Wifi_Disconnect(struct EventStruct *event, co
 
 const __FlashStringHelper* Command_Wifi_APMode(struct EventStruct *event, const char *Line)
 {
-  setAP(true);
+   ESPEasy::net::wifi::setAP(true);
   return return_command_success_flashstr();
 }
 
 const __FlashStringHelper* Command_Wifi_STAMode(struct EventStruct *event, const char *Line)
 {
-  setSTA(true);
+   ESPEasy::net::wifi::setSTA(true);
   return return_command_success_flashstr();
 }
 
@@ -125,12 +128,12 @@ String Command_Wifi_Mode(struct EventStruct *event, const char *Line)
     }
 
     if ((mode >= WIFI_OFF) && (mode < WIFI_MODE_MAX)) {
-      setWifiMode(mode);
+      ESPEasy::net::wifi::setWifiMode(mode);
     } else {
       return return_result(event, F("Wifi Mode: invalid arguments"));
     }
   } else {
-    return return_result(event, concat(F("WiFi Mode:"),  getWifiModeString(WiFi.getMode())));
+    return return_result(event, concat(F("WiFi Mode:"),  ESPEasy::net::wifi::getWifiModeString(WiFi.getMode())));
   }
   return return_command_success();
 }
@@ -147,7 +150,7 @@ const __FlashStringHelper* Command_WiFi_Erase(struct EventStruct *event, const c
 {
   #ifdef ESP8266
   WifiDisconnect();
-  setWifiMode(WIFI_OFF);
+  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   if (!ESP.eraseConfig())
     return return_command_failed_flashstr();
   addLog(LOG_LEVEL_INFO, F("WiFi : Erased WiFi calibration data"));
@@ -155,7 +158,7 @@ const __FlashStringHelper* Command_WiFi_Erase(struct EventStruct *event, const c
 
   #ifdef ESP32
   WifiDisconnect();
-  setWifiMode(WIFI_OFF);
+  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   delay(100);
   esp_phy_erase_cal_data_in_nvs();
   addLog(LOG_LEVEL_INFO, F("WiFi : Erased WiFi calibration data"));
@@ -166,3 +169,5 @@ const __FlashStringHelper* Command_WiFi_Erase(struct EventStruct *event, const c
   #endif
   return return_command_success_flashstr();
 }
+
+#endif

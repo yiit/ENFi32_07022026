@@ -43,7 +43,9 @@
 #include "../Commands/Timer.h"
 #include "../Commands/UPD.h"
 #include "../Commands/wd.h"
+#if FEATURE_WIFI
 #include "../Commands/WiFi.h"
+#endif
 
 #include "../DataStructs/TimingStats.h"
 
@@ -302,14 +304,18 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::ethdisconnect:              COMMAND_CASE_A(Command_ETH_Disconnect, 0);               // Network Command
     case ESPEasy_cmd_e::ethwifimode:                COMMAND_CASE_R(Command_ETH_Wifi_Mode,  1);               // Network Command
 #endif // FEATURE_ETHERNET
+#if FEATURE_WIFI
     case ESPEasy_cmd_e::erasesdkwifi:               COMMAND_CASE_R(Command_WiFi_Erase,     0);               // WiFi.h
+#endif
     case ESPEasy_cmd_e::event:                      COMMAND_CASE_A(Command_Rules_Events,  -1);               // Rule.h
     case ESPEasy_cmd_e::executerules:               COMMAND_CASE_A(Command_Rules_Execute, -1);               // Rule.h
     case ESPEasy_cmd_e::factoryreset:               COMMAND_CASE_R(Command_Settings_FactoryReset, 0);        // Settings.h
     case ESPEasy_cmd_e::gateway:                    COMMAND_CASE_R(Command_Gateway,     1);                  // Network Command
     case ESPEasy_cmd_e::gpio:                       COMMAND_CASE_A(Command_GPIO,        2);                  // Gpio.h
     case ESPEasy_cmd_e::gpiotoggle:                 COMMAND_CASE_A(Command_GPIO_Toggle, 1);                  // Gpio.h
+#if FEATURE_WIFI
     case ESPEasy_cmd_e::hiddenssid:                 COMMAND_CASE_R(Command_Wifi_HiddenSSID, 1);              // wifi.h
+#endif
     case ESPEasy_cmd_e::i2cscanner:                 COMMAND_CASE_R(Command_i2c_Scanner, -1);                 // i2c.h
     case ESPEasy_cmd_e::inc:                        COMMAND_CASE_A(Command_Rules_Inc,   -1);                 // Rules.h
     case ESPEasy_cmd_e::ip:                         COMMAND_CASE_R(Command_IP,           1);                 // Network Command
@@ -461,7 +467,7 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::wdconfig:                   COMMAND_CASE_R(Command_WD_Config, 3);            // WD.h
     case ESPEasy_cmd_e::wdread:                     COMMAND_CASE_R(Command_WD_Read,   2);            // WD.h
 #endif // ifndef LIMIT_BUILD_SIZE
-
+#if FEATURE_WIFI
     case ESPEasy_cmd_e::wifiallowap:                COMMAND_CASE_R(Command_Wifi_AllowAP,    0);      // WiFi.h
     case ESPEasy_cmd_e::wifiapmode:                 COMMAND_CASE_R(Command_Wifi_APMode,     0);      // WiFi.h
     case ESPEasy_cmd_e::wificonnect:                COMMAND_CASE_A(Command_Wifi_Connect,    0);      // WiFi.h
@@ -473,7 +479,7 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::wifissid:                   COMMAND_CASE_R(Command_Wifi_SSID,       1);      // WiFi.h
     case ESPEasy_cmd_e::wifissid2:                  COMMAND_CASE_R(Command_Wifi_SSID2,      1);      // WiFi.h
     case ESPEasy_cmd_e::wifistamode:                COMMAND_CASE_R(Command_Wifi_STAMode,    0);      // WiFi.h
-
+#endif
 
     case ESPEasy_cmd_e::NotMatched:
       return false;

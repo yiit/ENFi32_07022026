@@ -59,27 +59,25 @@ struct WiFiEventData_t {
     return bitRead(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
   }
 
-  void setWiFiDisconnected();
-  void setWiFiGotIP();
-  void setWiFiConnected();
-  void setWiFiServicesInitialized();
+  void     setWiFiDisconnected();
+  void     setWiFiGotIP();
+  void     setWiFiConnected();
+  void     setWiFiServicesInitialized();
 
 
-  void markGotIP();
+  void     markGotIP();
 #if FEATURE_USE_IPV6
-  void markGotIPv6(const IPAddress& ip6);
+  void     markGotIPv6(const IPAddress& ip6);
 #endif
-  void markLostIP();
-  void markDisconnect(WiFiDisconnectReason reason);
-  void markConnected(const String& ssid,
-                     const uint8_t bssid[6],
-                     uint8_t       channel);
-  void markConnectedAPmode(const uint8_t mac[6]);
-  void markDisconnectedAPmode(const uint8_t mac[6]);
+  void     markLostIP();
+  void     markDisconnect(WiFiDisconnectReason reason);
+  void     markConnected(const String& ssid,
+                         const uint8_t bssid[6],
+                         uint8_t       channel);
+  void     markConnectedAPmode(const uint8_t mac[6]);
+  void     markDisconnectedAPmode(const uint8_t mac[6]);
 
-  void setAuthMode(uint8_t newMode) {
-    auth_mode = newMode;
-  }
+  void     setAuthMode(uint8_t newMode) { auth_mode = newMode; }
 
   String   ESPeasyWifiStatusToString() const;
 
@@ -135,11 +133,11 @@ struct WiFiEventData_t {
 
 
   // Semaphore like bools for processing data gathered from WiFi events.
-  bool processedConnect          = true;
-  bool processedDisconnect       = true;
-  bool processedGotIP            = true;
+  bool processedConnect    = true;
+  bool processedDisconnect = true;
+  bool processedGotIP      = true;
   #if FEATURE_USE_IPV6
-  bool processedGotIP6           = true;
+  bool processedGotIP6 = true;
   #endif
   bool processedDHCPTimeout      = true;
   bool processedConnectAPmode    = true;
@@ -158,6 +156,7 @@ struct WiFiEventData_t {
 #ifdef ESP32
   WiFiEventId_t wm_event_id = 0;
 #endif // ifdef ESP32
+
 };
 
 #endif   // ifndef DATASTRUCTS_WIFIEVENTDATA_H

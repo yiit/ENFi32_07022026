@@ -5,6 +5,7 @@
 #include "../WebServer/HTML_wrappers.h"
 
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../Globals/WiFi_AP_Candidates.h"
 #include "../Helpers/StringGenerator_WiFi.h"
 
@@ -31,7 +32,7 @@ void handle_wifiscanner_json() {
   if (WiFi_AP_Candidates.scanComplete() <= 0) {
     WiFiMode_t cur_wifimode = WiFi.getMode();
     WifiScan(false);
-    setWifiMode(cur_wifimode);
+    ESPEasy::net::wifi::setWifiMode(cur_wifimode);
   }
 
   for (auto it = WiFi_AP_Candidates.scanned_begin(); it != WiFi_AP_Candidates.scanned_end(); ++it)
@@ -68,7 +69,7 @@ void handle_wifiscanner() {
   WiFiMode_t cur_wifimode = WiFi.getMode();
   WifiScan(false);
   int8_t scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
-  setWifiMode(cur_wifimode);
+  ESPEasy::net::wifi::setWifiMode(cur_wifimode);
 
   navMenuIndex = MENU_INDEX_TOOLS;
   TXBuffer.startStream();

@@ -3121,6 +3121,16 @@ To create/register a plugin, you have to :
 #define FEATURE_ETHERNET                      0
 #endif
 
+#ifndef FEATURE_WIFI
+#ifdef ESP8266
+#define FEATURE_WIFI                          1
+#elif SOC_WIFI_SUPPORTED || CONFIG_ESP_WIFI_REMOTE_ENABLED
+#define FEATURE_WIFI                          1
+#else
+#define FEATURE_WIFI                          0
+#endif
+#endif
+
 #ifndef FEATURE_EXT_RTC
 #define FEATURE_EXT_RTC                       0
 #endif

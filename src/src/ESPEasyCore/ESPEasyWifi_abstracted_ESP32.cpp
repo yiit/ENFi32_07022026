@@ -1,22 +1,85 @@
 #include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 
-#ifdef ESP32
+#if FEATURE_WIFI
+# ifdef ESP32
 
-# include "../Globals/ESPEasyWiFiEvent.h"
-# include "../Globals/WiFi_AP_Candidates.h"
-# include "../ESPEasyCore/ESPEasyWiFiEvent_ESP32.h"
+#  include "../Globals/ESPEasyWiFiEvent.h"
+#  include "../Globals/EventQueue.h"
+#  include "../Globals/Settings.h"
+#  include "../Globals/WiFi_AP_Candidates.h"
+#  include "../ESPEasyCore/ESPEasyWiFiEvent_ESP32.h"
+
+#  include "../Helpers/StringConverter.h"
 
 
-# include <WiFiGeneric.h>
-# include <esp_wifi.h> // Needed to call ESP-IDF functions like esp_wifi_....
+#  include "../ESPEasyCore/ESPEasyNetwork.h" // Needed for NetworkCreateRFCCompliantHostname, WiFi code should not include network code
+#  include "../ESPEasyCore/ESPEasyWifi.h"    // Needed for WifiDisconnect. Maybe this should be moved to these 'abstract' files?
 
-# include <esp_phy_init.h>
+#  include "../ESPEasyCore/ESPEasyWifi_ProcessEvent.h"
 
 
-namespace ESPEasy_WiFi_abstraction {
-bool WiFiConnected() {
-  return WiFi.isConnected();
+#  include <WiFiGeneric.h>
+#  include <esp_wifi.h> // Needed to call ESP-IDF functions like esp_wifi_....
+
+#  include <esp_phy_init.h>
+
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
+bool WiFi_pre_setup() {
+
+  registerWiFiEventHandler();
+  WiFi.persistent(false);
+
+  return setSTA_AP(false, false);
 }
+
+bool WiFi_pre_STA_setup()
+{
+  if (!setSTA(true)) { return false; }
+
+  WiFi.setAutoReconnect(false);
+  delay(10);
+  return true;
+}
+
+STA_connected_state getSTA_connected_state()
+{
+  switch (WiFi.status())
+  {
+    case WL_CONNECTED:
+      return STA_connected_state::Connected;
+
+    case WL_NO_SSID_AVAIL:
+      return STA_connected_state::Error_Not_Found;
+
+    case WL_CONNECT_FAILED:
+    case WL_CONNECTION_LOST:
+      return STA_connected_state::Error_Connect_Failed;
+
+    case WL_NO_SHIELD:
+    case WL_STOPPED:
+    case WL_IDLE_STATUS:
+    case WL_SCAN_COMPLETED:
+    case WL_DISCONNECTED:
+      // ToDo TD-er: What to do here? Should we add some disconnected state?
+      break;
+
+  }
+
+  // TODO: Keep track of whether connection is in progress
+  // The status() function does not return a reply stating "connecting"
+
+  /*   if (_sta_connecting) {
+      return STA_connected_state::Connecting;
+     }
+   */
+  return STA_connected_state::Idle;
+}
+
+bool WiFiConnected() { return WiFi.isConnected(); }
 
 void WiFiDisconnect() {
   removeWiFiEventHandler();
@@ -31,14 +94,138 @@ void WiFiDisconnect() {
   }
 }
 
-bool WifiIsAP(WiFiMode_t wifimode)
-{
-  return (wifimode == WIFI_MODE_AP) || (wifimode == WIFI_MODE_APSTA);
-}
+bool WifiIsAP(WiFiMode_t wifimode)  { return (wifimode == WIFI_MODE_AP) || (wifimode == WIFI_MODE_APSTA); }
 
-bool WifiIsSTA(WiFiMode_t wifimode)
+bool WifiIsSTA(WiFiMode_t wifimode) { return (wifimode & WIFI_MODE_STA) != 0; }
+
+bool setWifiMode(WiFiMode_t new_mode)
 {
-  return (wifimode & WIFI_MODE_STA) != 0;
+  const WiFiMode_t cur_mode = WiFi.getMode();
+
+  // Made this static flag an int as ESP8266 and ESP32 differ in the "not set" values
+  static int8_t processing_wifi_mode = -1;
+
+  if (cur_mode == new_mode) {
+    return true;
+  }
+
+  if (processing_wifi_mode == static_cast<int8_t>(new_mode)) {
+    // Prevent loops
+    return true;
+  }
+  processing_wifi_mode = static_cast<int8_t>(new_mode);
+
+
+  if (cur_mode == WIFI_OFF) {
+    #  if defined(ESP32)
+
+    // Needs to be set while WiFi is off
+    WiFi.hostname(NetworkCreateRFCCompliantHostname());
+    #  endif // if defined(ESP32)
+    WiFiEventData.markWiFiTurnOn();
+  }
+
+  if (new_mode != WIFI_OFF) {
+    #  ifdef ESP8266
+
+    // See: https://github.com/esp8266/Arduino/issues/6172#issuecomment-500457407
+    WiFi.forceSleepWake(); // Make sure WiFi is really active.
+    #  endif // ifdef ESP8266
+    delay(100);
+  } else {
+    WifiDisconnect();
+
+    //    delay(100);
+    processDisconnect();
+    WiFiEventData.clear_processed_flags();
+  }
+
+  addLog(LOG_LEVEL_INFO, concat(F("WIFI : Set WiFi to "), getWifiModeString(new_mode)));
+
+  int retry = 2;
+
+  while (!WiFi.mode(new_mode) && retry > 0) {
+    delay(100);
+    --retry;
+  }
+  retry = 2;
+
+  while (WiFi.getMode() != new_mode && retry > 0) {
+    addLog(LOG_LEVEL_INFO, F("WIFI : mode not yet set"));
+    delay(100);
+    --retry;
+  }
+
+  if (WiFi.getMode() != new_mode) {
+    addLog(LOG_LEVEL_ERROR, F("WIFI : Cannot set mode!!!!!"));
+    return false;
+  }
+
+
+  if (new_mode == WIFI_OFF) {
+
+    // FIXME TD-er: Is this correct to mark Turn ON ????
+    WiFiEventData.markWiFiTurnOn();
+    #  if defined(ESP32)
+
+    // Needs to be set while WiFi is off
+    WiFi.hostname(NetworkCreateRFCCompliantHostname());
+    #  endif // if defined(ESP32)
+    delay(100);
+    #  if defined(ESP32)
+    esp_wifi_set_ps(WIFI_PS_NONE);
+
+    //    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+    #  endif // if defined(ESP32)
+    #  ifdef ESP8266
+    WiFi.forceSleepBegin();
+    #  endif // ifdef ESP8266
+    delay(1);
+  } else {
+    if (cur_mode == WIFI_OFF) {
+      registerWiFiEventHandler();
+    }
+
+    // Only set power mode when AP is not enabled
+    // When AP is enabled, the sleep mode is already set to WIFI_NONE_SLEEP
+    if (!WifiIsAP(new_mode)) {
+      if (Settings.WifiNoneSleep()) {
+        setWiFiNoneSleep();
+      } else if (Settings.EcoPowerMode()) {
+        setWiFiEcoPowerMode();
+      } else {
+        // Default
+        setWiFiDefaultPowerMode();
+      }
+    }
+#  if FEATURE_SET_WIFI_TX_PWR
+    SetWiFiTXpower();
+#  endif
+
+    if (WifiIsSTA(new_mode)) {
+      //      WiFi.setAutoConnect(Settings.SDK_WiFi_autoreconnect());
+      WiFi.setAutoReconnect(Settings.SDK_WiFi_autoreconnect());
+    }
+    delay(100); // Must allow for some time to init.
+  }
+  const bool new_mode_AP_enabled =  WifiIsAP(new_mode);
+
+  if (WifiIsAP(cur_mode) && !new_mode_AP_enabled) {
+    eventQueue.add(F("WiFi#APmodeDisabled"));
+  }
+
+  if (WifiIsAP(cur_mode) != new_mode_AP_enabled) {
+    // Mode has changed
+    setAPinternal(new_mode_AP_enabled);
+  }
+  #  if FEATURE_MDNS
+  #   ifdef ESP8266
+
+  // notifyAPChange() is not present in the ESP32 MDNSResponder
+  MDNS.notifyAPChange();
+  #   endif // ifdef ESP8266
+  #  endif // if FEATURE_MDNS
+  return true;
 }
 
 void removeWiFiEventHandler()
@@ -56,9 +243,12 @@ void registerWiFiEventHandler()
 }
 
 float GetRSSIthreshold(float& maxTXpwr) {
+  maxTXpwr = Settings.getWiFi_TX_power();
+
   float threshold = WIFI_SENSITIVITY_n;
 
-  switch (getConnectionProtocol()) {
+  switch (getConnectionProtocol())
+  {
     case WiFiConnectionProtocol::WiFi_Protocol_11b:
       threshold = WIFI_SENSITIVITY_11b;
 
@@ -77,11 +267,11 @@ float GetRSSIthreshold(float& maxTXpwr) {
 
       if (maxTXpwr > MAX_TX_PWR_DBM_n) { maxTXpwr = MAX_TX_PWR_DBM_n; }
       break;
-# if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(5, 2, 0)
+#  if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(5, 2, 0)
     case WiFiConnectionProtocol::WiFi_Protocol_11a:
     case WiFiConnectionProtocol::WiFi_Protocol_VHT20:
       // FIXME TD-er: Must determine max. TX power for these 5 GHz modi
-# endif // if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(5, 2, 0)
+#  endif // if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(5, 2, 0)
     case WiFiConnectionProtocol::WiFi_Protocol_LR:
     case WiFiConnectionProtocol::Unknown:
       break;
@@ -95,26 +285,28 @@ WiFiConnectionProtocol getConnectionProtocol()
     wifi_phy_mode_t phymode;
     esp_wifi_sta_get_negotiated_phymode(&phymode);
 
-    switch (phymode) {
+    switch (phymode)
+    {
       case WIFI_PHY_MODE_11B:   return WiFiConnectionProtocol::WiFi_Protocol_11b;
       case WIFI_PHY_MODE_11G:   return WiFiConnectionProtocol::WiFi_Protocol_11g;
       case WIFI_PHY_MODE_HT20:  return WiFiConnectionProtocol::WiFi_Protocol_HT20;
       case WIFI_PHY_MODE_HT40:  return WiFiConnectionProtocol::WiFi_Protocol_HT40;
       case WIFI_PHY_MODE_HE20:  return WiFiConnectionProtocol::WiFi_Protocol_HE20;
       case WIFI_PHY_MODE_LR:    return WiFiConnectionProtocol::WiFi_Protocol_LR;
-# if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
+#  if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
 
       // 5 GHz
       case WIFI_PHY_MODE_11A:   return WiFiConnectionProtocol::WiFi_Protocol_11a;
       case WIFI_PHY_MODE_VHT20: return WiFiConnectionProtocol::WiFi_Protocol_VHT20;
-# endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
+#  endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
     }
   }
   return WiFiConnectionProtocol::Unknown;
 }
 
-# if FEATURE_SET_WIFI_TX_PWR
-void SetWiFiTXpower(float& dBm)
+#  if FEATURE_SET_WIFI_TX_PWR
+
+void doSetWiFiTXpower(float& dBm)
 {
   int8_t power = dBm * 4;
 
@@ -125,7 +317,7 @@ void SetWiFiTXpower(float& dBm)
   }
 }
 
-# endif // if FEATURE_SET_WIFI_TX_PWR
+#  endif // if FEATURE_SET_WIFI_TX_PWR
 
 void setConnectionSpeed(bool ForceWiFi_bg_mode) {
   // Does not (yet) work, so commented out.
@@ -143,12 +335,13 @@ void setConnectionSpeed(bool ForceWiFi_bg_mode) {
   if (!ForceWiFi_bg_mode || (WiFiEventData.connectionFailures > 10)) {
     // Set to use BGN
     protocol |= WIFI_PROTOCOL_11N;
-    #ifdef ESP32C6
+    #  ifdef ESP32C6
     protocol |= WIFI_PROTOCOL_11AX;
-    #endif
+    #  endif
   }
 
   const WiFi_AP_Candidate candidate = WiFi_AP_Candidates.getCurrent();
+
   if (candidate.phy_known()) {
     // Check to see if the access point is set to "N-only"
     if ((protocol & WIFI_PROTOCOL_11N) == 0) {
@@ -158,48 +351,46 @@ void setConnectionSpeed(bool ForceWiFi_bg_mode) {
           protocol |= WIFI_PROTOCOL_11N;
           addLog(LOG_LEVEL_INFO, F("WIFI : AP is set to 802.11n only"));
         }
-#ifdef ESP32C6
+#  ifdef ESP32C6
+
         if (candidate.bits.phy_11ax) {
           // Set to use WiFi6
           protocol |= WIFI_PROTOCOL_11AX;
           addLog(LOG_LEVEL_INFO, F("WIFI : AP is set to 802.11ax"));
         }
-#endif
+#  endif // ifdef ESP32C6
       }
     }
   }
 
 
-  if (ESPEasy_WiFi_abstraction::WifiIsSTA(WiFi.getMode())) {
+  if (WifiIsSTA(WiFi.getMode())) {
     // Set to use "Long GI" making it more resilliant to reflections
     // See: https://www.tp-link.com/us/configuration-guides/q_a_basic_wireless_concepts/?configurationId=2958#_idTextAnchor038
     esp_wifi_config_80211_tx_rate(WIFI_IF_STA, WIFI_PHY_RATE_MCS3_LGI);
     esp_wifi_set_protocol(WIFI_IF_STA, protocol);
   }
 
-  if (ESPEasy_WiFi_abstraction::WifiIsAP(WiFi.getMode())) {
+  if (WifiIsAP(WiFi.getMode())) {
     esp_wifi_set_protocol(WIFI_IF_AP, protocol);
   }
 }
 
-void setWiFiNoneSleep()
-{
-  WiFi.setSleep(WIFI_PS_NONE);
-}
+void setWiFiNoneSleep() { WiFi.setSleep(WIFI_PS_NONE); }
 
 void setWiFiEcoPowerMode()
 {
   // Allow light sleep during idle times
-# ifdef ESP8266
+#  ifdef ESP8266
   WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
-# endif // ifdef ESP8266
-# ifdef ESP32
+#  endif // ifdef ESP8266
+#  ifdef ESP32
 
   // Maximum modem power saving.
   // In this mode, interval to receive beacons is determined by the listen_interval parameter in wifi_sta_config_t
   // FIXME TD-er: Must test if this is desired behavior in ESP32.
   WiFi.setSleep(WIFI_PS_MAX_MODEM);
-# endif // ifdef ESP32
+#  endif // ifdef ESP32
 }
 
 void setWiFiDefaultPowerMode()
@@ -209,11 +400,21 @@ void setWiFiDefaultPowerMode()
   WiFi.setSleep(WIFI_PS_MIN_MODEM);
 }
 
+void setWiFiCountryPolicyManual()
+{
+  wifi_country_t config = {
+    .cc     = "01",
+    .schan  = 1,
+    .nchan  = 14,
+    .policy = WIFI_COUNTRY_POLICY_MANUAL,
+  };
 
+  esp_wifi_set_country(&config);
+}
 
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
 
-
-} // namespace ESPEasy_WiFi_abstraction
-
-
-#endif // ifdef ESP32
+# endif // ifdef ESP32
+#endif // if FEATURE_WIFI

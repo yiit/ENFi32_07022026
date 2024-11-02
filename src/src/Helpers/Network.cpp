@@ -3,6 +3,7 @@
 #include "../../ESPEasy_common.h"
 
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../ESPEasyCore/ESPEasyNetwork.h"
 
 #include "../Globals/Settings.h"
@@ -52,7 +53,7 @@ void statusLED(bool traffic)
     }
 
     // AP mode is active
-    else if (WifiIsAP(WiFi.getMode()))
+    else if ( ESPEasy::net::wifi::WifiIsAP(WiFi.getMode()))
     {
       nStatusValue = ((millis() >> 1) & PWMRANGE_FULL) - (PWMRANGE_FULL >> 2); // ramp up for 2 sec, 3/4 luminosity
     }

@@ -10,6 +10,7 @@
 #include "../ESPEasyCore/ESPEasyNetwork.h"
 #include "../ESPEasyCore/ESPEasyRules.h"
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../ESPEasyCore/ESPEasyWifi_ProcessEvent.h"
 #include "../ESPEasyCore/Serial.h"
 #include "../Globals/Cache.h"
@@ -393,7 +394,7 @@ void ESPEasy_setup()
   if (initWiFi) {
     WiFi_AP_Candidates.clearCache();
     WiFi_AP_Candidates.load_knownCredentials();
-    setSTA(true);
+     ESPEasy::net::wifi::setSTA(true);
     if (!WiFi_AP_Candidates.hasCandidates()) {
       WiFiEventData.wifiSetup = true;
       RTC.clearLastWiFi(); // Must scan all channels
@@ -416,14 +417,14 @@ void ESPEasy_setup()
       addLog(LOG_LEVEL_INFO, F("Setup: Scan all channels"));
       WifiScan(false);
     }
-//    setWifiMode(WIFI_OFF);
+//    ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   }
   #ifndef BUILD_NO_RAM_TRACKER
   logMemUsageAfter(F("WifiScan()"));
   #endif
 
 
-  //  setWifiMode(WIFI_STA);
+  //  ESPEasy::net::wifi::setWifiMode(WIFI_STA);
   checkRuleSets();
   #ifndef BUILD_NO_RAM_TRACKER
   logMemUsageAfter(F("checkRuleSets()"));

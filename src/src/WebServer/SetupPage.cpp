@@ -13,6 +13,7 @@
 
 # include "../ESPEasyCore/ESPEasyNetwork.h"
 # include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 
 # include "../Globals/ESPEasyWiFiEvent.h"
 # include "../Globals/NetworkState.h"
@@ -250,7 +251,7 @@ void handle_setup_scan_and_show(const String& ssid, const String& other, const S
     WiFiMode_t cur_wifimode = WiFi.getMode();
     WifiScan(false);
     scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
-    setWifiMode(cur_wifimode);
+    ESPEasy::net::wifi::setWifiMode(cur_wifimode);
   }
 
 

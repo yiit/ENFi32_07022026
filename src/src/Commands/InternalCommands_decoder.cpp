@@ -57,9 +57,15 @@ const char Internal_commands_d[] PROGMEM =
   "dst|"
 ;
 
+#if FEATURE_WIFI
 #define Int_cmd_e_offset ESPEasy_cmd_e::erasesdkwifi
+#else
+#define Int_cmd_e_offset ESPEasy_cmd_e::event
+#endif
 const char Internal_commands_e[] PROGMEM =
+#if FEATURE_WIFI
   "erasesdkwifi|"
+#endif
   "event|"
   "executerules|"
 #if FEATURE_ETHERNET
@@ -84,7 +90,9 @@ const char Internal_commands_fghij[] PROGMEM =
   "gateway|"
   "gpio|"
   "gpiotoggle|"
+#if FEATURE_WIFI
   "hiddenssid|"
+#endif
   "i2cscanner|"
   "inc|"
   "ip|"
@@ -259,8 +267,14 @@ const char Internal_commands_u[] PROGMEM =
   "usentp|"
 ;
 
+#if FEATURE_WIFI || !defined(LIMIT_BUILD_SIZE)
+#if FEATURE_WIFI
 #define Int_cmd_w_offset ESPEasy_cmd_e::wifiallowap
+#else
+#define Int_cmd_w_offset ESPEasy_cmd_e::wdconfig
+#endif
 const char Internal_commands_w[] PROGMEM =
+#if FEATURE_WIFI
   "wifiallowap|"
   "wifiapmode|"
   "wificonnect|"
@@ -272,11 +286,13 @@ const char Internal_commands_w[] PROGMEM =
   "wifissid|"
   "wifissid2|"
   "wifistamode|"
+#endif
 #ifndef LIMIT_BUILD_SIZE
   "wdconfig|"
   "wdread|"
 #endif // ifndef LIMIT_BUILD_SIZE
 ;
+#endif
 
 const char* getInternalCommand_Haystack_Offset(const char firstLetter, int& offset)
 {
@@ -345,10 +361,12 @@ const char* getInternalCommand_Haystack_Offset(const char firstLetter, int& offs
       offset   = static_cast<int>(Int_cmd_u_offset);
       haystack = Internal_commands_u;
       break;
+#if FEATURE_WIFI || !defined(LIMIT_BUILD_SIZE)
     case 'w':
       offset   = static_cast<int>(Int_cmd_w_offset);
       haystack = Internal_commands_w;
       break;
+#endif
 
     default:
       return nullptr;

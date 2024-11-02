@@ -1,5 +1,7 @@
 #include "../ESPEasyCore/ESPEasyWifi.h"
 
+#if FEATURE_WIFI
+
 #include "../../ESPEasy-Globals.h"
 #include "../DataStructs/TimingStats.h"
 #include "../ESPEasyCore/ESPEasyNetwork.h"
@@ -34,129 +36,6 @@
 
 #include <esp_phy_init.h>
 #endif
-
-// FIXME TD-er: Cleanup of WiFi code
-#ifdef ESPEASY_WIFI_CLEANUP_WORK_IN_PROGRESS
-bool ESPEasyWiFi_t::begin() {
-  return true;
-}
-
-void ESPEasyWiFi_t::end() {
-
-
-}
-
-
-void ESPEasyWiFi_t::loop() {
-  switch (_state) {
-    case WiFiState_e::OFF:
-    break;
-    case WiFiState_e::AP_only:
-    break;
-    case WiFiState_e::ErrorRecovery:
-    // Wait for timeout to expire
-    // Start again from scratch
-    break;
-    case WiFiState_e::STA_Scanning:
-    case WiFiState_e::STA_AP_Scanning:
-    // Check if scanning is finished
-    // When scanning per channel, call for scanning next channel
-    break;
-    case WiFiState_e::STA_Connecting:
-    case WiFiState_e::STA_Reconnecting:
-    // Check if (re)connecting has finished
-    break;
-    case WiFiState_e::STA_Connected:
-    // Check if still connected
-    // Reconnect if not.
-    // Else mark last timestamp seen as connected
-    break;
-  }
-
-
-  {
-    // Check if we need to start AP
-    // Flag captive portal in webserver and/or whether we might be in setup mode
-  }
-
-#ifdef USE_IMPROV
-  {
-    // Check for Improv mode.
-  }
-#endif
-
-
-}
-
-
-IPAddress  ESPEasyWiFi_t::getIP() const {
-
-  IPAddress res;
-
-
-  return res;
-}
-
-void  ESPEasyWiFi_t::disconnect() {
-
-}
-
-
-void ESPEasyWiFi_t::checkConnectProgress() {
-
-}
-
-void ESPEasyWiFi_t::startScanning() {
-  _state = WiFiState_e::STA_Scanning;
-  WifiScan(true);
-  _last_state_change.setNow();
-}
-
-
-bool ESPEasyWiFi_t::connectSTA() {
-  if (!WiFi_AP_Candidates.hasCandidateCredentials()) {
-    if (!WiFiEventData.warnedNoValidWiFiSettings) {
-      addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
-      WiFiEventData.warnedNoValidWiFiSettings = true;
-    }
-    WiFiEventData.last_wifi_connect_attempt_moment.clear();
-    WiFiEventData.wifi_connect_attempt     = 1;
-    WiFiEventData.wifiConnectAttemptNeeded = false;
-
-    // No need to wait longer to start AP mode.
-    if (!Settings.DoNotStartAP()) {
-      setAP(true);
-    }
-    return false;
-  }
-  WiFiEventData.warnedNoValidWiFiSettings = false;
-  setSTA(true);
-  #if defined(ESP8266)
-  wifi_station_set_hostname(NetworkCreateRFCCompliantHostname().c_str());
-
-  #endif // if defined(ESP8266)
-  #if defined(ESP32)
-  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  #endif // if defined(ESP32)
-  setConnectionSpeed();
-  setupStaticIPconfig();
-
-
-
-    // Start the process of connecting or starting AP
-    if (WiFi_AP_Candidates.getNext(true)) {
-      // Try to connect to AP
-
-    } else {
-      // No (known) AP, start scanning
-      startScanning();
-    }
-
-
-  return true;
-}
-
-#endif // ESPEASY_WIFI_CLEANUP_WORK_IN_PROGRESS
 
 
 // ********************************************************************************
@@ -239,7 +118,7 @@ bool WiFiConnected() {
   }
 #endif
 
-  if (!WifiIsSTA(WiFi.getMode())) {
+  if (! ESPEasy::net::wifi::WifiIsSTA(WiFi.getMode())) {
     lastState = false;
     return lastState;
   }
@@ -265,7 +144,7 @@ bool WiFiConnected() {
 
   if (WiFiEventData.unprocessedWifiEvents()) { return false; }
 
-  bool wifi_isconnected = ESPEasy_WiFi_abstraction::WiFiConnected();
+  bool wifi_isconnected = ESPEasy::net::wifi::WiFiConnected();
 
   if (recursiveCall) return wifi_isconnected;
   recursiveCall = true;
@@ -307,12 +186,12 @@ bool WiFiConnected() {
     if (WiFiEventData.timerAPoff.isSet() && !WiFiEventData.timerAPoff.timeReached()) {
       if (!Settings.DoNotStartAP()) {
         // Timer reached, so enable AP mode.
-        if (!WifiIsAP(WiFi.getMode())) {
+        if (! ESPEasy::net::wifi::WifiIsAP(WiFi.getMode())) {
           if (!WiFiEventData.wifiConnectAttemptNeeded) {
             addLog(LOG_LEVEL_INFO, F("WiFi : WiFiConnected(), start AP"));
             WifiScan(false);
-            setSTA(false); // Force reset WiFi + reduce power consumption
-            setAP(true);
+             ESPEasy::net::wifi::setSTA(false); // Force reset WiFi + reduce power consumption
+             ESPEasy::net::wifi::setAP(true);
           }
         }
       }
@@ -324,7 +203,7 @@ bool WiFiConnected() {
 
 
   // When made this far in the code, we apparently do not have valid WiFi connection.
-  if (!WiFiEventData.timerAPstart.isSet() && !WifiIsAP(WiFi.getMode())) {
+  if (!WiFiEventData.timerAPstart.isSet() && ! ESPEasy::net::wifi::WifiIsAP(WiFi.getMode())) {
     // First run we do not have WiFi connection any more, set timer to start AP mode
     // Only allow the automatic AP mode in the first N minutes after boot.
     if (getUptimeMinutes() < WIFI_ALLOW_AP_AFTERBOOT_PERIOD) {
@@ -455,9 +334,9 @@ void AttemptWiFiConnect() {
   if (WiFiEventData.unprocessedWifiEvents()) {
     return;
   }
-  setSTA(false);
+   ESPEasy::net::wifi::setSTA(false);
 
-  setSTA(true);
+   ESPEasy::net::wifi::setSTA(true);
 
   if (WiFi_AP_Candidates.getNext(WiFiScanAllowed())) {
     const WiFi_AP_Candidate candidate = WiFi_AP_Candidates.getCurrent();
@@ -549,7 +428,7 @@ void AttemptWiFiConnect() {
 // Set Wifi config
 // ********************************************************************************
 bool prepareWiFi() {
-  ESPEasy_WiFi_abstraction::registerWiFiEventHandler();
+  ESPEasy::net::wifi::registerWiFiEventHandler();
 
   if (!WiFi_AP_Candidates.hasCandidateCredentials()) {
     if (!WiFiEventData.warnedNoValidWiFiSettings) {
@@ -563,12 +442,12 @@ bool prepareWiFi() {
     // No need to wait longer to start AP mode.
     if (!Settings.DoNotStartAP()) {
       WifiScan(false);
-//      setAP(true);
+//       ESPEasy::net::wifi::setAP(true);
     }
     return false;
   }
   WiFiEventData.warnedNoValidWiFiSettings = false;
-  setSTA(true);
+   ESPEasy::net::wifi::setSTA(true);
 
   #if defined(ESP8266)
   wifi_station_set_hostname(NetworkCreateRFCCompliantHostname().c_str());
@@ -577,7 +456,7 @@ bool prepareWiFi() {
   #if defined(ESP32)
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
   #endif // if defined(ESP32)
-  setConnectionSpeed();
+  ESPEasy::net::wifi::setConnectionSpeed();
   setupStaticIPconfig();
   WiFiEventData.wifiConnectAttemptNeeded = true;
 
@@ -653,7 +532,7 @@ void resetWiFi() {
   // Send this log only after WifiDisconnect() or else sending to syslog may cause issues
   addLog(LOG_LEVEL_INFO, F("Reset WiFi."));
 
-  //  setWifiMode(WIFI_OFF);
+  //  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
 
   initWiFi();
 }
@@ -670,7 +549,7 @@ void initWiFi()
 //  WiFi = ESP8266WiFiClass();
 #endif // ifdef ESP8266
 #ifdef ESP32
-  ESPEasy_WiFi_abstraction::removeWiFiEventHandler();
+  ESPEasy::net::wifi::removeWiFiEventHandler();
 #endif
 
 
@@ -680,12 +559,12 @@ void initWiFi()
   WiFi.disconnect(false);
   delay(1);
   if (active_network_medium != NetworkMedium_t::NotSet) {
-    setSTA(true);
+     ESPEasy::net::wifi::setSTA(true);
     WifiScan(false);
   }
-  setWifiMode(WIFI_OFF);
+  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
 
-  ESPEasy_WiFi_abstraction::registerWiFiEventHandler();
+  ESPEasy::net::wifi::registerWiFiEventHandler();
   delay(100);
 }
 
@@ -741,7 +620,7 @@ void SetWiFiTXpower(float dBm, float rssi) {
     dBm = minTXpwr;
   }
 
-ESPEasy_WiFi_abstraction::SetWiFiTXpower(dBm);
+ESPEasy::net::wifi::SetWiFiTXpower(dBm);
 
   if (WiFiEventData.wifi_TX_pwr < dBm) {
     // Will increase the TX power, give power supply of the unit some rest
@@ -779,7 +658,7 @@ ESPEasy_WiFi_abstraction::SetWiFiTXpower(dBm);
 
 float GetRSSIthreshold(float& maxTXpwr) {
   maxTXpwr = Settings.getWiFi_TX_power();
-  return ESPEasy_WiFi_abstraction::GetRSSIthreshold(maxTXpwr);
+  return ESPEasy::net::wifi::GetRSSIthreshold(maxTXpwr);
 }
 
 int GetRSSI_quality() {
@@ -793,7 +672,7 @@ int GetRSSI_quality() {
 }
 
 WiFiConnectionProtocol getConnectionProtocol() {
-  return ESPEasy_WiFi_abstraction::getConnectionProtocol();
+  return ESPEasy::net::wifi::getConnectionProtocol();
 }
 
 #ifdef ESP32
@@ -824,7 +703,7 @@ void WifiDisconnect()
   # ifndef BUILD_NO_DEBUG
   addLog(LOG_LEVEL_INFO, F("WiFi : WifiDisconnect()"));
   #endif
-  ESPEasy_WiFi_abstraction::WiFiDisconnect();
+  ESPEasy::net::wifi::WiFiDisconnect();
   WiFiEventData.setWiFiDisconnected();
   WiFiEventData.markDisconnect(WIFI_DISCONNECT_REASON_UNSPECIFIED);
   /*
@@ -918,7 +797,7 @@ bool WiFiScanAllowed() {
 
 
 void WifiScan(bool async, uint8_t channel) {
-  setSTA(true);
+   ESPEasy::net::wifi::setSTA(true);
   if (!WiFiScanAllowed()) {
     return;
   }
@@ -1043,7 +922,7 @@ void WiFiScan_log_to_serial()
   if (WiFi_AP_Candidates.scanComplete() <= 0) {
     WiFiMode_t cur_wifimode = WiFi.getMode();
     WifiScan(false);
-    setWifiMode(cur_wifimode);
+    ESPEasy::net::wifi::setWifiMode(cur_wifimode);
   }
 
   const int8_t scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
@@ -1072,61 +951,10 @@ void WiFiScan_log_to_serial()
   serialPrintln("");
 }
 
-// ********************************************************************************
-// Manage Wifi Modes
-// ********************************************************************************
-void setSTA(bool enable) {
-  switch (WiFi.getMode()) {
-    case WIFI_OFF:
 
-      if (enable) { setWifiMode(WIFI_STA); }
-      break;
-    case WIFI_STA:
-
-      if (!enable) { setWifiMode(WIFI_OFF); }
-      break;
-    case WIFI_AP:
-
-      if (enable) { setWifiMode(WIFI_AP_STA); }
-      break;
-    case WIFI_AP_STA:
-
-      if (!enable) { setWifiMode(WIFI_AP); }
-      break;
-    default:
-      break;
-  }
-}
-
-void setAP(bool enable) {
-  WiFiMode_t wifimode = WiFi.getMode();
-
-  switch (wifimode) {
-    case WIFI_OFF:
-
-      if (enable) { 
-        setWifiMode(WIFI_AP); 
-      }
-      break;
-    case WIFI_STA:
-
-      if (enable) { setWifiMode(WIFI_AP_STA); }
-      break;
-    case WIFI_AP:
-
-      if (!enable) { setWifiMode(WIFI_OFF); }
-      break;
-    case WIFI_AP_STA:
-
-      if (!enable) { setWifiMode(WIFI_STA); }
-      break;
-    default:
-      break;
-  }
-}
 
 // Only internal scope
-void setAPinternal(bool enable)
+void  setAPinternal(bool enable)
 {
   if (enable) {
     // create and store unique AP SSID/PW to prevent ESP from starting AP mode with default SSID and No password!
@@ -1146,7 +974,7 @@ void setAPinternal(bool enable)
     }
 
     int channel = 1;
-    if (WifiIsSTA(WiFi.getMode()) && WiFiConnected()) {
+    if ( ESPEasy::net::wifi::WifiIsSTA(WiFi.getMode()) && WiFiConnected()) {
       channel = WiFi.channel();
     }
 
@@ -1188,136 +1016,8 @@ void setAPinternal(bool enable)
   }
 }
 
-const __FlashStringHelper * getWifiModeString(WiFiMode_t wifimode)
-{
-  switch (wifimode) {
-    case WIFI_OFF:   return F("OFF");
-    case WIFI_STA:   return F("STA");
-    case WIFI_AP:    return F("AP");
-    case WIFI_AP_STA: return F("AP+STA");
-    default:
-      break;
-  }
-  return F("Unknown");
-}
-
-void setWifiMode(WiFiMode_t new_mode) {
-  const WiFiMode_t cur_mode = WiFi.getMode();
-  static WiFiMode_t processing_wifi_mode = cur_mode;
-  if (cur_mode == new_mode) {
-    return;
-  }
-  if (processing_wifi_mode == new_mode) {
-    // Prevent loops
-    return;
-  }
-  processing_wifi_mode = new_mode;
-
-  if (cur_mode == WIFI_OFF) {
-    #if defined(ESP32)
-    // Needs to be set while WiFi is off
-    WiFi.hostname(NetworkCreateRFCCompliantHostname());
-    #endif
-    WiFiEventData.markWiFiTurnOn();
-  }
-  if (new_mode != WIFI_OFF) {
-    #ifdef ESP8266
-    // See: https://github.com/esp8266/Arduino/issues/6172#issuecomment-500457407
-    WiFi.forceSleepWake(); // Make sure WiFi is really active.
-    #endif
-    delay(100);
-  } else {
-    WifiDisconnect();
-//    delay(100);
-    processDisconnect();
-    WiFiEventData.clear_processed_flags();
-  }
-
-  addLog(LOG_LEVEL_INFO, concat(F("WIFI : Set WiFi to "), getWifiModeString(new_mode)));
-
-  int retry = 2;
-  while (!WiFi.mode(new_mode) && retry > 0) {
-    addLog(LOG_LEVEL_INFO, F("WIFI : Cannot set mode!!!!!"));
-    delay(100);
-    --retry;
-  }
-  retry = 2;
-  while (WiFi.getMode() != new_mode && retry > 0) {
-    addLog(LOG_LEVEL_INFO, F("WIFI : mode not yet set"));
-    delay(100);
-    --retry;
-  }
 
 
-  if (new_mode == WIFI_OFF) {
-
-    // FIXME TD-er: Is this correct to mark Turn ON ????
-    WiFiEventData.markWiFiTurnOn();
-    #if defined(ESP32)
-    // Needs to be set while WiFi is off
-    WiFi.hostname(NetworkCreateRFCCompliantHostname());
-    #endif
-    delay(100);
-    #if defined(ESP32)
-    esp_wifi_set_ps(WIFI_PS_NONE); 
-//    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
-    #endif
-    #ifdef ESP8266
-    WiFi.forceSleepBegin();
-    #endif // ifdef ESP8266
-    delay(1);
-  } else {
-    if (cur_mode == WIFI_OFF) {
-      ESPEasy_WiFi_abstraction::registerWiFiEventHandler();
-    }
-    // Only set power mode when AP is not enabled
-    // When AP is enabled, the sleep mode is already set to WIFI_NONE_SLEEP
-    if (!WifiIsAP(new_mode)) {
-      if (Settings.WifiNoneSleep()) {
-        ESPEasy_WiFi_abstraction::setWiFiNoneSleep();
-      } else if (Settings.EcoPowerMode()) {
-        ESPEasy_WiFi_abstraction::setWiFiEcoPowerMode();
-      } else {
-        // Default
-        ESPEasy_WiFi_abstraction::setWiFiDefaultPowerMode();
-      }
-    }
-#if FEATURE_SET_WIFI_TX_PWR
-    SetWiFiTXpower();
-#endif
-    if (WifiIsSTA(new_mode)) {
-//      WiFi.setAutoConnect(Settings.SDK_WiFi_autoreconnect());
-      WiFi.setAutoReconnect(Settings.SDK_WiFi_autoreconnect());
-    }
-    delay(100); // Must allow for some time to init.
-  }
-  const bool new_mode_AP_enabled = WifiIsAP(new_mode);
-
-  if (WifiIsAP(cur_mode) && !new_mode_AP_enabled) {
-    eventQueue.add(F("WiFi#APmodeDisabled"));
-  }
-
-  if (WifiIsAP(cur_mode) != new_mode_AP_enabled) {
-    // Mode has changed
-    setAPinternal(new_mode_AP_enabled);
-  }
-  #if FEATURE_MDNS
-  #ifdef ESP8266
-  // notifyAPChange() is not present in the ESP32 MDNSResponder
-  MDNS.notifyAPChange();
-  #endif
-  #endif
-}
-
-bool WifiIsAP(WiFiMode_t wifimode)
-{
-  return ESPEasy_WiFi_abstraction::WifiIsAP(wifimode);
-}
-
-bool WifiIsSTA(WiFiMode_t wifimode)
-{
-  return ESPEasy_WiFi_abstraction::WifiIsSTA(wifimode);
-}
 
 bool WiFiUseStaticIP() {
   return Settings.IP[0] != 0 && Settings.IP[0] != 255;
@@ -1325,7 +1025,7 @@ bool WiFiUseStaticIP() {
 
 bool wifiAPmodeActivelyUsed()
 {
-  if (!WifiIsAP(WiFi.getMode()) || (!WiFiEventData.timerAPoff.isSet())) {
+  if (! ESPEasy::net::wifi::WifiIsAP(WiFi.getMode()) || (!WiFiEventData.timerAPoff.isSet())) {
     // AP not active or soon to be disabled in processDisableAPmode()
     return false;
   }
@@ -1333,10 +1033,6 @@ bool wifiAPmodeActivelyUsed()
 
   // FIXME TD-er: is effectively checking for AP active enough or must really check for connected clients to prevent automatic wifi
   // reconnect?
-}
-
-void setConnectionSpeed() {
-  ESPEasy_WiFi_abstraction::setConnectionSpeed(Settings.ForceWiFi_bg_mode());
 }
 
 void setupStaticIPconfig() {
@@ -1443,3 +1139,5 @@ void logConnectionStatus() {
   */
 #endif // ifndef BUILD_NO_DEBUG
 }
+
+#endif

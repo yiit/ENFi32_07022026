@@ -3,6 +3,7 @@
 #include "../ESPEasyCore/ESPEasy_Log.h"
 #include "../ESPEasyCore/ESPEasyEth.h"
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../Globals/ESPEasy_time.h"
 #include "../Globals/ESPEasyWiFiEvent.h"
 #include "../Globals/NetworkState.h"
@@ -175,7 +176,7 @@ esp_netif_t * getActiveNetworkMediumInterface() {
   } else
   #endif
   {
-    if (WifiIsSTA(WiFi.getMode())) {
+    if ( ESPEasy::net::wifi::WifiIsSTA(WiFi.getMode())) {
       iface = ESP_IF_WIFI_STA;
     }
   }

@@ -27,9 +27,7 @@
 #  include "../Globals/ESPEasyEthEvent.h"
 # endif // if FEATURE_ETHERNET
 
-
-void setUseStaticIP(bool enabled) {
-}
+void setUseStaticIP(bool enabled) {}
 
 // ********************************************************************************
 // Functions called on events.
@@ -40,37 +38,38 @@ void setUseStaticIP(bool enabled) {
 static bool ignoreDisconnectEvent = false;
 
 void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
-  switch (event) {
+  switch (event)
+  {
     case ARDUINO_EVENT_WIFI_READY:
       // ESP32 WiFi ready
       break;
     case ARDUINO_EVENT_WIFI_STA_START:
-    #  ifndef BUILD_NO_DEBUG
+    # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event STA Started"));
-    #  endif // ifndef BUILD_NO_DEBUG
+    # endif // ifndef BUILD_NO_DEBUG
       break;
     case ARDUINO_EVENT_WIFI_STA_STOP:
-    #  ifndef BUILD_NO_DEBUG
+    # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event STA Stopped"));
-    #  endif // ifndef BUILD_NO_DEBUG
+    # endif // ifndef BUILD_NO_DEBUG
       break;
     case ARDUINO_EVENT_WIFI_AP_START:
-    #  ifndef BUILD_NO_DEBUG
+    # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP Started"));
-    #  endif // ifndef BUILD_NO_DEBUG
+    # endif // ifndef BUILD_NO_DEBUG
       break;
     case ARDUINO_EVENT_WIFI_AP_STOP:
-    #  ifndef BUILD_NO_DEBUG
+    # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP Stopped"));
-    #  endif // ifndef BUILD_NO_DEBUG
+    # endif // ifndef BUILD_NO_DEBUG
       break;
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:
       // ESP32 station lost IP and the IP is reset to 0
-      #  if FEATURE_ETHERNET
+      # if FEATURE_ETHERNET
 
       if (active_network_medium == NetworkMedium_t::Ethernet) {
         // DNS records are shared among WiFi and Ethernet (very bad design!)
@@ -78,9 +77,9 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
         // As soon as WiFi is turned off, the DNS entry for Ethernet is cleared.
         EthEventData.markLostIP();
       }
-      #  endif // if FEATURE_ETHERNET
+      # endif // if FEATURE_ETHERNET
       WiFiEventData.markLostIP();
-      #  ifndef BUILD_NO_DEBUG
+      # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO,
 
@@ -90,16 +89,16 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
        */
 
       //         F("WiFi : Event Lost IP"));
-      #  endif // ifndef BUILD_NO_DEBUG
+      # endif // ifndef BUILD_NO_DEBUG
       break;
 
     case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:
       // Receive probe request packet in soft-AP interface
       // TODO TD-er: Must implement like onProbeRequestAPmode for ESP8266
-      #  ifndef BUILD_NO_DEBUG
+      # ifndef BUILD_NO_DEBUG
 
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event AP got probed"));
-      #  endif // ifndef BUILD_NO_DEBUG
+      # endif // ifndef BUILD_NO_DEBUG
       break;
 
     case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
@@ -136,7 +135,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       ignoreDisconnectEvent = false;
       WiFiEventData.markGotIP();
       break;
-    #  if FEATURE_USE_IPV6
+    # if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
     {
       ip_event_got_ip6_t *event = static_cast<ip_event_got_ip6_t *>(&info.got_ip6);
@@ -147,7 +146,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     case ARDUINO_EVENT_WIFI_AP_GOT_IP6:
       addLog(LOG_LEVEL_INFO, F("WIFI : AP got IP6"));
       break;
-    #  endif // if FEATURE_USE_IPV6
+    # endif // if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
       WiFiEventData.markConnectedAPmode(info.wifi_ap_staconnected.mac);
       break;
@@ -157,7 +156,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
     case ARDUINO_EVENT_WIFI_SCAN_DONE:
       WiFiEventData.processedScanDone = false;
       break;
-#  if FEATURE_ETHERNET
+# if FEATURE_ETHERNET
     case ARDUINO_EVENT_ETH_START:
     case ARDUINO_EVENT_ETH_CONNECTED:
     case ARDUINO_EVENT_ETH_GOT_IP:
@@ -167,7 +166,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
 
       // Handled in EthEvent
       break;
-#  endif // FEATURE_ETHERNET
+# endif // FEATURE_ETHERNET
     default:
     {
       // addLogMove(LOG_LEVEL_ERROR, concat(F("UNKNOWN WIFI/ETH EVENT: "),  event));

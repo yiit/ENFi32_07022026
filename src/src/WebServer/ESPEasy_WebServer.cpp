@@ -53,6 +53,7 @@
 #include "../ESPEasyCore/ESPEasyNetwork.h"
 #include "../ESPEasyCore/ESPEasyRules.h"
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 
 #include "../Globals/CPlugins.h"
 #include "../Globals/Device.h"
@@ -127,7 +128,7 @@ void sendHeadandTail_stdtemplate(bool Tail, bool rebooting) {
   sendHeadandTail(F("TmplStd"), Tail, rebooting);
 
   if (!Tail) {
-    if (!clientIPinSubnet() && WifiIsAP(WiFi.getMode()) && (WiFi.softAPgetStationNum() > 0)) {
+    if (!clientIPinSubnet() &&  ESPEasy::net::wifi::WifiIsAP(WiFi.getMode()) && (WiFi.softAPgetStationNum() > 0)) {
       addHtmlError(F("Warning: Connected via AP"));
     }
 

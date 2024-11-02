@@ -12,6 +12,7 @@
 #include "../ESPEasyCore/ESPEasy_Log.h"
 #include "../ESPEasyCore/ESPEasyNetwork.h"
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 #include "../ESPEasyCore/ESPEasyRules.h"
 #include "../ESPEasyCore/Serial.h"
 #include "../Globals/ESPEasyWiFiEvent.h"
@@ -490,7 +491,7 @@ void prepareShutdown(IntendedRebootReason_e reason)
   process_serialWriteBuffer();
   flushAndDisconnectAllClients();
   saveUserVarToRTC();
-  setWifiMode(WIFI_OFF);
+  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   ESPEASY_FS.end();
   process_serialWriteBuffer();
   delay(100); // give the node time to flush all before reboot or sleep

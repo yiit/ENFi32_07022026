@@ -40,8 +40,9 @@ enum class ESPEasy_cmd_e : uint8_t {
 #endif // #if FEATURE_PLUGIN_PRIORITY
   dns,
   dst,
-
+#if FEATURE_WIFI
   erasesdkwifi,
+#endif
   event,
   executerules,
 #if FEATURE_ETHERNET
@@ -64,7 +65,9 @@ enum class ESPEasy_cmd_e : uint8_t {
   gateway,
   gpio,
   gpiotoggle,
+#if FEATURE_WIFI
   hiddenssid,
+#endif
 
   i2cscanner,
   inc,
@@ -216,6 +219,7 @@ enum class ESPEasy_cmd_e : uint8_t {
   unmonitorrange,
   usentp,
 
+#if FEATURE_WIFI
   wifiallowap,
   wifiapmode,
   wificonnect,
@@ -227,6 +231,7 @@ enum class ESPEasy_cmd_e : uint8_t {
   wifissid,
   wifissid2,
   wifistamode,
+#endif
 #ifndef LIMIT_BUILD_SIZE
   wdconfig,
   wdread,

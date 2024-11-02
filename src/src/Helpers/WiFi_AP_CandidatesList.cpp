@@ -144,12 +144,15 @@ bool WiFi_AP_CandidatesList::getNext(bool scanAllowed) {
   load_knownCredentials();
 
   if (candidates.empty()) { 
-    if (scanAllowed) {
+    return false;
+
+/*     if (scanAllowed) {
       return false;
     }
     loadCandidatesFromScanned();
     attemptsLeft = 1;
     if (candidates.empty()) { return false; }
+ */  
   }
 
   currentCandidate = candidates.front();

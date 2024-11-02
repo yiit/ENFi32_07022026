@@ -3,6 +3,7 @@
 #include "../ESPEasyCore/ESPEasy_Log.h"
 #include "../ESPEasyCore/ESPEasyNetwork.h"
 #include "../ESPEasyCore/ESPEasyWifi.h"
+#include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
 
 #include "../Globals/SecuritySettings.h"
 #include "../Globals/Services.h"
@@ -57,7 +58,7 @@ bool getIPallowedRange(IPAddress& low, IPAddress& high)
   switch (SecuritySettings.IPblockLevel) {
     case LOCAL_SUBNET_ALLOWED:
 
-      if (WifiIsAP(WiFi.getMode())) {
+      if ( ESPEasy::net::wifi::WifiIsAP(WiFi.getMode())) {
         // WiFi is active as accesspoint, do not check.
         return false;
       }
@@ -114,7 +115,7 @@ boolean clientIPallowed()
     return true;
   }
 
-  if (WifiIsAP(WiFi.getMode())) {
+  if ( ESPEasy::net::wifi::WifiIsAP(WiFi.getMode())) {
     // @TD-er Fixme: Should match subnet of SoftAP.
     return true;
   }
