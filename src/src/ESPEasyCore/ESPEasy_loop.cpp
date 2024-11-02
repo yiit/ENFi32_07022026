@@ -5,6 +5,7 @@
 #include "../Commands/ExecuteCommand.h"
 #include "../DataStructs/TimingStats.h"
 #include "../ESPEasyCore/ESPEasyNetwork.h"
+#include "../ESPEasyCore/ESPEasyWifi.h"
 #include "../ESPEasyCore/ESPEasyWifi_ProcessEvent.h"
 #include "../ESPEasyCore/ESPEasy_backgroundtasks.h"
 #include "../ESPEasyCore/ESPEasy_Log.h"
@@ -71,6 +72,8 @@ void ESPEasy_loop()
    */
 
   updateLoopStats();
+
+  loopWiFi();
 
   handle_unprocessedNetworkEvents();
 

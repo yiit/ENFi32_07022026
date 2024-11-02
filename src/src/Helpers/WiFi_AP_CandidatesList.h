@@ -7,6 +7,8 @@
 
 #include <list>
 
+#define WiFi_CONNECT_ATTEMPTS  2
+
 typedef std::list<WiFi_AP_Candidate>::const_iterator WiFi_AP_Candidate_const_iterator;
 
 struct WiFi_AP_CandidatesList {
@@ -110,7 +112,7 @@ private:
   bool _mustLoadCredentials = true;
   bool _addedKnownCandidate = false;
 public:
-  int  attemptsLeft = 1;
+  int  attemptsLeft = WiFi_CONNECT_ATTEMPTS;
 };
 
 #endif // ifndef HELPERS_WIFI_AP_CANDIDATESLIST_H

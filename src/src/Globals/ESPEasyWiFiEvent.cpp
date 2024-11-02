@@ -14,5 +14,6 @@ WiFiEventHandler APModeStationDisconnectedHandler;
 #endif // ifdef ESP8266
 
 WiFiEventData_t WiFiEventData;
+ESPEasy::net::wifi::ESPEasyWiFi_t ESPEasyWiFi;
 
 

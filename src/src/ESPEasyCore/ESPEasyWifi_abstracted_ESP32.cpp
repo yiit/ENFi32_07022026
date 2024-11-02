@@ -45,7 +45,7 @@ bool WiFi_pre_STA_setup()
   return true;
 }
 
-STA_connected_state getSTA_connected_state()
+STA_connected_state getSTA_connected_state() 
 {
   switch (WiFi.status())
   {

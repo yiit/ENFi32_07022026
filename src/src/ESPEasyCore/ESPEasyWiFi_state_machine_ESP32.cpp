@@ -18,7 +18,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
-STA_connected_state ESPEasyWiFi_t::getSTA_connected_state()
+STA_connected_state ESPEasyWiFi_t::getSTA_connected_state() const
 {
   switch (WiFi.status())
   {
@@ -33,7 +33,7 @@ STA_connected_state ESPEasyWiFi_t::getSTA_connected_state()
       return STA_connected_state::Error_Connect_Failed;
 
     case WL_IDLE_STATUS:
-      return STA_connected_state::Idle;
+      return STA_connected_state::Connecting;
 
 
     case WL_NO_SHIELD:

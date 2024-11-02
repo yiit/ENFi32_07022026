@@ -85,6 +85,8 @@ enum class WiFiState_e
 
 };
 
+const __FlashStringHelper * toString(WiFiState_e state);
+
 
 } // namespace wifi
 } // namespace net

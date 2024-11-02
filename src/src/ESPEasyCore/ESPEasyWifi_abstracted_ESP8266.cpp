@@ -37,7 +37,7 @@ bool WiFi_pre_STA_setup() {
   return true;
 }
 
-STA_connected_state getSTA_connected_state()
+STA_connected_state getSTA_connected_state() 
 {
   // Perform check on SDK function, see: https://github.com/esp8266/Arduino/issues/7432
   station_status_t status = wifi_station_get_connect_status();

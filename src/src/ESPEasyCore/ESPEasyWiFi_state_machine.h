@@ -44,6 +44,8 @@ public:
     return _state;
   }
 
+  bool connected() const;
+
   // Get the IP-address in this order:
   // - STA interface if connected,
   // - AP interface if active
@@ -67,7 +69,7 @@ private:
   bool                connectSTA();
 
 
-  STA_connected_state getSTA_connected_state();
+  STA_connected_state getSTA_connected_state() const;
 
   WiFi_AP_Candidate _active_sta;
   WiFi_AP_Candidate _AP_conf;

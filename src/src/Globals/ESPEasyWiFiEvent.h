@@ -4,6 +4,8 @@
 
 #include "../../ESPEasy_common.h"
 
+#include "../ESPEasyCore/ESPEasyWiFi_state_machine.h"
+
 #include "../DataStructs/WiFiEventData.h"
 
 
@@ -34,6 +36,7 @@ extern WiFiEventHandler APModeStationDisconnectedHandler;
 
 
 extern WiFiEventData_t WiFiEventData;
+extern ESPEasy::net::wifi::ESPEasyWiFi_t ESPEasyWiFi;
 
 
 #endif // GLOBALS_ESPEASYWIFIEVENT_H
