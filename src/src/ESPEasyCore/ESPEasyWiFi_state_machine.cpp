@@ -16,12 +16,13 @@
 # include "../Globals/WiFi_AP_Candidates.h"
 
 # include "../Helpers/StringConverter.h"
+#include "../Helpers/StringGenerator_WiFi.h"
 
 namespace ESPEasy {
 namespace net {
 namespace wifi {
 
-    # define WIFI_STATE_MACHINE_STA_CONNECTING_TIMEOUT   6000
+    # define WIFI_STATE_MACHINE_STA_CONNECTING_TIMEOUT   10000
     # define WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT  10000
     # define WIFI_STATE_MACHINE_STA_SCANNING_TIMEOUT     10000
 
@@ -142,17 +143,6 @@ bool ESPEasyWiFi_t::connected() const
   return getSTA_connected_state() == STA_connected_state::Connected;
 }
 
-IPAddress ESPEasyWiFi_t::getIP() const
-{
-  if (WiFi.STA.hasIP()) {
-    return WiFi.STA.localIP();
-  }
-
-  if (WiFi.AP.hasIP()) {
-    return WiFi.AP.localIP();
-  }
-  return IPAddress();
-}
 
 void ESPEasyWiFi_t::disconnect() { WiFi.disconnect(Settings.WiFiRestart_connection_lost()); }
 
@@ -243,6 +233,13 @@ bool ESPEasyWiFi_t::connectSTA()
     }
     return false;
   }
+        if (WiFiEventData.lastDisconnectReason != WIFI_DISCONNECT_REASON_UNSPECIFIED) {
+        addLog(LOG_LEVEL_INFO, concat(
+          F("WiFi : Disconnect reason: "), 
+          getLastDisconnectReason()));
+        WiFiEventData.processedDisconnect = true;
+      }
+
   WiFiEventData.warnedNoValidWiFiSettings = false;
   setSTA(true);
 # if defined(ESP8266)
@@ -307,9 +304,12 @@ bool ESPEasyWiFi_t::connectSTA()
 # endif // ifdef ESP32
 
     if (candidate.bits.isHidden /*&& Settings.HiddenSSID_SlowConnectPerBSSID()*/) {
-      WiFi.disconnect();
+//      WiFi.disconnect(false, true);
+# ifdef ESP32
+      WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
+#endif
       delay(100);
-      WiFi.begin("" /*candidate.ssid.c_str()*/, key.c_str(), candidate.channel, candidate.bssid.mac);
+      WiFi.begin(candidate.ssid.c_str(), key.c_str(), candidate.channel, candidate.bssid.mac);
       // If the ssid returned from the scan is empty, it is a hidden SSID
       // it appears that the WiFi.begin() function is asynchronous and takes
       // additional time to connect to a hidden SSID. Therefore a delay of 1000ms
@@ -318,8 +318,14 @@ bool ESPEasyWiFi_t::connectSTA()
 //      WiFi.waitForConnectResult(6000);
     } else {
       if (candidate.allowQuickConnect()) {
+# ifdef ESP32
+        WiFi.setScanMethod(WIFI_FAST_SCAN);
+#endif
         WiFi.begin(candidate.ssid.c_str(), key.c_str(), candidate.channel, candidate.bssid.mac);
       } else {
+# ifdef ESP32
+        WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
+#endif
         WiFi.begin(candidate.ssid.c_str(), key.c_str());
       }
     }

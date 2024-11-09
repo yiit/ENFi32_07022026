@@ -9,6 +9,7 @@
 #  include <esp_phy_init.h>
 
 #  include <WiFi.h>
+#  include <WiFiSTA.h>
 #  include <WiFiType.h>
 
 #  include "../ESPEasyCore/ESPEasyWifi_abstracted.h"
@@ -18,8 +19,29 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
+
+IPAddress ESPEasyWiFi_t::getIP() const
+{
+  if (WiFi.STA.hasIP()) {
+    return WiFi.STA.localIP();
+  }
+
+  if (WiFi.AP.hasIP()) {
+    return WiFi.AP.localIP();
+  }
+  return IPAddress();
+}
+
 STA_connected_state ESPEasyWiFi_t::getSTA_connected_state() const
 {
+  if (WiFi.STA.connected()) {
+    if (WiFi.STA.hasIP()) {
+      return STA_connected_state::Connected;
+    }
+    return STA_connected_state::Connecting;
+  }
+
+
   switch (WiFi.status())
   {
     case WL_CONNECTED:

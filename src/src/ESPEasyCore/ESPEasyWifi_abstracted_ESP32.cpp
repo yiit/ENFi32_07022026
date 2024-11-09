@@ -45,42 +45,6 @@ bool WiFi_pre_STA_setup()
   return true;
 }
 
-STA_connected_state getSTA_connected_state()
-{
-  switch (WiFi.status())
-  {
-    case WL_CONNECTED:
-      return STA_connected_state::Connected;
-
-    case WL_NO_SSID_AVAIL:
-      return STA_connected_state::Error_Not_Found;
-
-    case WL_CONNECT_FAILED:
-    case WL_CONNECTION_LOST:
-      return STA_connected_state::Error_Connect_Failed;
-
-    case WL_NO_SHIELD:
-    case WL_STOPPED:
-    case WL_IDLE_STATUS:
-    case WL_SCAN_COMPLETED:
-    case WL_DISCONNECTED:
-      // ToDo TD-er: What to do here? Should we add some disconnected state?
-      break;
-
-  }
-
-  // TODO: Keep track of whether connection is in progress
-  // The status() function does not return a reply stating "connecting"
-
-  /*   if (_sta_connecting) {
-      return STA_connected_state::Connecting;
-     }
-   */
-  return STA_connected_state::Idle;
-}
-
-bool WiFiConnected() { return WiFi.isConnected(); }
-
 void WiFiDisconnect() {
   removeWiFiEventHandler();
   WiFi.disconnect();
@@ -385,7 +349,7 @@ void setWiFiDefaultPowerMode()
 
 void setWiFiCountryPolicyManual()
 {
-  wifi_country_t config = {
+/*   wifi_country_t config = {
     .cc     = "01",
     .schan  = 1,
     .nchan  = 14,
@@ -393,7 +357,7 @@ void setWiFiCountryPolicyManual()
   };
 
   esp_wifi_set_country(&config);
-}
+ */}
 
 } // namespace wifi
 } // namespace net

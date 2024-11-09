@@ -26,6 +26,8 @@ const __FlashStringHelper* getWifiModeString(WiFiMode_t wifimode)
   return F("Unknown");
 }
 
+bool WiFiConnected() { return ESPEasyWiFi.connected(); }
+
 bool setSTA(bool enable) { return setSTA_AP(enable,  WifiIsAP(WiFi.getMode())); }
 
 bool setAP(bool enable)  { return setSTA_AP(WifiIsSTA(WiFi.getMode()), enable); }

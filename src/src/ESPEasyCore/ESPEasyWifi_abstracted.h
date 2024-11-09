@@ -31,9 +31,6 @@ bool                WiFi_pre_setup();
 // Call before setting WiFi into STA mode
 bool                WiFi_pre_STA_setup();
 
-STA_connected_state getSTA_connected_state();
-
-
 bool                WiFiConnected();
 
 void                WiFiDisconnect();

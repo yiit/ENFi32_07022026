@@ -310,13 +310,7 @@ void WifiScan(bool async, uint8_t channel) {
   async = false;
 
   if (Settings.IncludeHiddenSSID()) {
-    wifi_country_t config = {
-      .cc     = "01",
-      .schan  = 1,
-      .nchan  = 14,
-      .policy = WIFI_COUNTRY_POLICY_MANUAL,
-    };
-    esp_wifi_set_country(&config);
+    ESPEasy::net::wifi::setWiFiCountryPolicyManual();
   }
 
 

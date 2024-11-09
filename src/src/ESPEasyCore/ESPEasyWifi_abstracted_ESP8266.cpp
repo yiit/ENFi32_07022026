@@ -37,33 +37,6 @@ bool WiFi_pre_STA_setup() {
   return true;
 }
 
-STA_connected_state getSTA_connected_state() 
-{
-  // Perform check on SDK function, see: https://github.com/esp8266/Arduino/issues/7432
-  station_status_t status = wifi_station_get_connect_status();
-
-  switch (status)
-  {
-    case STATION_GOT_IP:
-      return STA_connected_state::Connected;
-    case STATION_NO_AP_FOUND:
-      return STA_connected_state::Error_Not_Found;
-    case STATION_CONNECT_FAIL:
-    case STATION_WRONG_PASSWORD:
-      return STA_connected_state::Error_Connect_Failed;
-    case STATION_CONNECTING:
-      return STA_connected_state::Connecting;
-    case STATION_IDLE:
-      break;
-
-    default:
-      break;
-  }
-  return STA_connected_state::Idle;
-}
-
-bool WiFiConnected() { return getSTA_connected_state() == STA_connected_state::Connected; }
-
 void WiFiDisconnect() {
   // Only call disconnect when STA is active
   if ( WifiIsSTA(WiFi.getMode())) {

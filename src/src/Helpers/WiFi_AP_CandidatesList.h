@@ -7,7 +7,7 @@
 
 #include <list>
 
-#define WiFi_CONNECT_ATTEMPTS  2
+#define WiFi_CONNECT_ATTEMPTS  1
 
 typedef std::list<WiFi_AP_Candidate>::const_iterator WiFi_AP_Candidate_const_iterator;
 

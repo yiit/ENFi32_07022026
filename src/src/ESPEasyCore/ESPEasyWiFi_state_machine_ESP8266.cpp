@@ -10,6 +10,20 @@ namespace net {
 namespace wifi {
 
 
+IPAddress ESPEasyWiFi_t::getIP() const
+{
+  IPAddress ip = WiFi.localIP();
+  if (ip.isSet()) {
+    return ip;
+  }
+  ip = WiFi.softAPIP();
+  if (ip.isSet()) {
+    return ip;
+  }
+  return IPAddress();
+}
+
+
 STA_connected_state ESPEasyWiFi_t::getSTA_connected_state() const
 {
   // Perform check on SDK function, see: https://github.com/esp8266/Arduino/issues/7432
