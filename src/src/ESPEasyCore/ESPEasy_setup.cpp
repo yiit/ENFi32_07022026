@@ -64,6 +64,8 @@
 # include "hal/efuse_hal.h"
 #else
 #include <soc/efuse_defs.h>
+// IDF5.3 fix esp_gpio_reserve used in init PSRAM.
+#include "esp_private/esp_gpio_reserve.h"
 #endif
 #endif
 
@@ -151,6 +153,10 @@ void ESPEasy_setup()
     #endif
     uint32_t pkg_version = chip_ver & 0x7;
     if (pkg_version <= 3) {   // D0WD, S0WD, D2WD
+    #if ESP_IDF_VERSION_MAJOR >= 5
+      // Thanks Theo Arends from Tasmota
+      esp_gpio_revoke(BIT64(GPIO_NUM_16 | GPIO_NUM_17));
+    #endif
       gpio_reset_pin(GPIO_NUM_16);
       gpio_reset_pin(GPIO_NUM_17);
     }
