@@ -158,19 +158,19 @@ void ESPEasy_setup()
     uint32_t chip_ver = REG_GET_FIELD(EFUSE_BLK0_RDATA3_REG, EFUSE_RD_CHIP_PACKAGE);
     #endif
     if (pkg_version <= 7) {   // D0WD, S0WD, D2WD
-    gpio_num_t PSRAM_CLK = GPIO_NUM_17;
-    gpio_num_t PSRAM_CS  = GPIO_NUM_16;
-    switch (pkg_version) {
-      case EFUSE_RD_CHIP_VER_PKG_ESP32D2WDQ5:
-        PSRAM_CLK = static_cast<gpio_num_t>(CONFIG_D2WD_PSRAM_CLK_IO);
-        PSRAM_CS  = static_cast<gpio_num_t>(CONFIG_D2WD_PSRAM_CS_IO);
-        break;
-      case EFUSE_RD_CHIP_VER_PKG_ESP32PICOD4:
-      case EFUSE_RD_CHIP_VER_PKG_ESP32PICOV302:
-        PSRAM_CLK = static_cast<gpio_num_t>(GPIO_NUM_NC);
-        PSRAM_CS  = static_cast<gpio_num_t>(CONFIG_PICO_PSRAM_CS_IO);
-        break;
-    }
+      gpio_num_t PSRAM_CLK = static_cast<gpio_num_t>(CONFIG_D0WD_PSRAM_CLK_IO);
+      gpio_num_t PSRAM_CS  = static_cast<gpio_num_t>(CONFIG_D0WD_PSRAM_CS_IO);
+      switch (pkg_version) {
+        case EFUSE_RD_CHIP_VER_PKG_ESP32D2WDQ5:
+          PSRAM_CLK = static_cast<gpio_num_t>(CONFIG_D2WD_PSRAM_CLK_IO);
+          PSRAM_CS  = static_cast<gpio_num_t>(CONFIG_D2WD_PSRAM_CS_IO);
+          break;
+        case EFUSE_RD_CHIP_VER_PKG_ESP32PICOD4:
+        case EFUSE_RD_CHIP_VER_PKG_ESP32PICOV302:
+          PSRAM_CLK = static_cast<gpio_num_t>(GPIO_NUM_NC);
+          PSRAM_CS  = static_cast<gpio_num_t>(CONFIG_PICO_PSRAM_CS_IO);
+          break;
+      }
 
 #if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(5, 2, 0)
       // Thanks Theo Arends from Tasmota
