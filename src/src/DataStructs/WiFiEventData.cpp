@@ -175,9 +175,11 @@ void WiFiEventData_t::setWiFiServicesInitialized() {
   if (!processedConnect) {
     setWiFiConnected();
   }
+
   if (!processedGotIP) {
     setWiFiGotIP();
   }
+
   if (/*!unprocessedWifiEvents() && */ WiFiConnected() && WiFiGotIP()) {
     #ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_DEBUG, F("WiFi : WiFi services initialized"));
@@ -185,6 +187,7 @@ void WiFiEventData_t::setWiFiServicesInitialized() {
     bitSet(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
     wifiConnectInProgress    = false;
     wifiConnectAttemptNeeded = false;
+
     if (valid_DNS_address(WiFi.dnsIP(0))) {
       dns0_cache = WiFi.dnsIP(0);
     }
@@ -208,14 +211,17 @@ void WiFiEventData_t::markGotIP() {
 void WiFiEventData_t::markGotIP(const IPAddress& ip, const IPAddress& netmask, const IPAddress& gw)
 {
   addLog(
-    LOG_LEVEL_INFO, 
+    LOG_LEVEL_INFO,
     strformat(
-      F("WiFi : GotIP ip: %s, sn: %s, gw: %s"),
-      ip.toString().c_str(),
-      netmask.toString().c_str(),
-      gw.toString().c_str()));
+      F("WiFi : GotIP IP: %s, GW: %s, SN: %s DNS: %s / %s"),
+      formatIP(ip).c_str(),
+      formatIP(gw).c_str(),
+      formatIP(netmask).c_str(),
+      formatIP(WiFi.dnsIP(0)).c_str(),
+      formatIP(WiFi.dnsIP(1)).c_str()
+      ));
   markGotIP();
-  
+
 }
 
 #if FEATURE_USE_IPV6
@@ -325,53 +331,55 @@ uint32_t WiFiEventData_t::getSuggestedTimeout(int index, uint32_t minimum_timeou
   return constrain(res, minimum_timeout, CONNECT_TIMEOUT_MAX);
 }
 
-
 #ifdef ESP8266
-  bool WiFiEventData_t::WiFiDisconnected() const {
-    return wifiStatus == ESPEASY_WIFI_DISCONNECTED;
-  }
 
-  bool WiFiEventData_t::WiFiGotIP() const {
-    return bitRead(wifiStatus, ESPEASY_WIFI_GOT_IP);
-  }
+bool WiFiEventData_t::WiFiDisconnected() const {
+  return wifiStatus == ESPEASY_WIFI_DISCONNECTED;
+}
 
-  bool WiFiEventData_t::WiFiConnected() const {
-    return bitRead(wifiStatus, ESPEASY_WIFI_CONNECTED);
-  }
+bool WiFiEventData_t::WiFiGotIP() const {
+  return bitRead(wifiStatus, ESPEASY_WIFI_GOT_IP);
+}
 
-  bool WiFiEventData_t::WiFiServicesInitialized() const {
-    return bitRead(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
-  }
+bool WiFiEventData_t::WiFiConnected() const {
+  return bitRead(wifiStatus, ESPEASY_WIFI_CONNECTED);
+}
 
-#endif
+bool WiFiEventData_t::WiFiServicesInitialized() const {
+  return bitRead(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
+}
+
+#endif // ifdef ESP8266
 
 #ifdef ESP32
-  bool WiFiEventData_t::WiFiDisconnected() const {
-    return !WiFi.STA.connected();
-  }
 
-  bool WiFiEventData_t::WiFiGotIP() const {
-    return WiFi.STA.hasIP();
-  }
+bool WiFiEventData_t::WiFiDisconnected() const {
+  return !WiFi.STA.connected();
+}
 
-#if FEATURE_USE_IPV6
-  bool WiFiEventData_t::WiFiGotIPv6() const {
-    return WiFi.STA.hasGlobalIPv6();
-  }
-#endif
+bool WiFiEventData_t::WiFiGotIP() const {
+  return WiFi.STA.hasIP();
+}
 
-  bool WiFiEventData_t::WiFiConnected() const {
-    return WiFi.STA.connected();
-  }
+# if FEATURE_USE_IPV6
 
-  bool WiFiEventData_t::WiFiServicesInitialized() const {
-    return WiFiConnected() && 
-#if FEATURE_USE_IPV6
-(WiFiGotIP() || WiFi.STA.hasGlobalIPv6() || WiFi.STA.hasLinkLocalIPv6());
-#else
-    WiFiGotIP();
-#endif
-  }
+bool WiFiEventData_t::WiFiGotIPv6() const {
+  return WiFi.STA.hasGlobalIPv6();
+}
 
-  #endif
+# endif // if FEATURE_USE_IPV6
 
+bool WiFiEventData_t::WiFiConnected() const {
+  return WiFi.STA.connected();
+}
+
+bool WiFiEventData_t::WiFiServicesInitialized() const {
+  return WiFiConnected() &&
+# if FEATURE_USE_IPV6
+         (WiFiGotIP() || WiFi.STA.hasGlobalIPv6() || WiFi.STA.hasLinkLocalIPv6());
+# else
+         WiFiGotIP();
+# endif // if FEATURE_USE_IPV6
+}
+
+  #endif // ifdef ESP32

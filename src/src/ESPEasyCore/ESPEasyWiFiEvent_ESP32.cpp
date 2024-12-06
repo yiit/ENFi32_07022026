@@ -21,6 +21,7 @@
 # include "../Globals/WiFi_AP_Candidates.h"
 
 # include "../Helpers/ESPEasy_time_calc.h"
+# include "../Helpers/StringConverter.h"
 
 
 # if FEATURE_ETHERNET
@@ -37,8 +38,8 @@ void setUseStaticIP(bool enabled) {}
 
 static bool ignoreDisconnectEvent = false;
 
-void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
-  switch (event)
+void WiFiEvent(WiFiEvent_t event_id, arduino_event_info_t info) {
+  switch (event_id)
   {
     case ARDUINO_EVENT_WIFI_READY:
       // ESP32 WiFi ready
@@ -55,6 +56,13 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       // addLog(LOG_LEVEL_INFO, F("WiFi : Event STA Stopped"));
     # endif // ifndef BUILD_NO_DEBUG
       break;
+    case ARDUINO_EVENT_WIFI_OFF:
+    # ifndef BUILD_NO_DEBUG
+
+      // addLog(LOG_LEVEL_INFO, F("WiFi : Event WIFI off"));
+    # endif // ifndef BUILD_NO_DEBUG
+      break;
+
     case ARDUINO_EVENT_WIFI_AP_START:
     # ifndef BUILD_NO_DEBUG
 
@@ -121,11 +129,12 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
     {
+      // FIXME TD-er: Must also check event->esp_netif to see which interface got this event.
       ignoreDisconnectEvent = false;
       ip_event_got_ip_t  *event = static_cast<ip_event_got_ip_t *>(&info.got_ip);
       const IPAddress     ip(event->ip_info.ip.addr);
-      const IPAddress     netmask(event->ip_info.ip.addr);
-      const IPAddress     gw(event->ip_info.ip.addr);
+      const IPAddress     netmask(event->ip_info.netmask.addr);
+      const IPAddress     gw(event->ip_info.gw.addr);
       WiFiEventData.markGotIP(ip, netmask, gw);
       break;
     }
@@ -163,7 +172,7 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
 # endif // FEATURE_ETHERNET
     default:
     {
-      // addLogMove(LOG_LEVEL_ERROR, concat(F("UNKNOWN WIFI/ETH EVENT: "),  event));
+      addLogMove(LOG_LEVEL_ERROR, concat(F("UNKNOWN WIFI/ETH EVENT: "),  event_id));
       break;
     }
   }
