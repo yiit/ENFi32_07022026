@@ -221,7 +221,6 @@ void WiFiEventData_t::markGotIP(const IPAddress& ip, const IPAddress& netmask, c
       formatIP(WiFi.dnsIP(1)).c_str()
       ));
   markGotIP();
-
 }
 
 #if FEATURE_USE_IPV6

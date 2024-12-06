@@ -45,7 +45,13 @@ void onDisconnect(const WiFiEventStationModeDisconnected& event) {
   }
 }
 
-void onGotIP(const WiFiEventStationModeGotIP& event)                                { WiFiEventData.markGotIP(); }
+void onGotIP(const WiFiEventStationModeGotIP& event)
+{
+  WiFiEventData.markGotIP(
+    event.ip,
+    event.mask,
+    event.gw);
+}
 
 void onDHCPTimeout()                                                                { WiFiEventData.processedDHCPTimeout = false; }
 
