@@ -58,6 +58,8 @@ struct WiFiEventData_t {
 
 
   void     markGotIP();
+  void     markGotIP(const IPAddress& ip, const IPAddress& netmask, const IPAddress& gw);
+
 #if FEATURE_USE_IPV6
   void     markGotIPv6(const IPAddress& ip6);
 #endif

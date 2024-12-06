@@ -120,9 +120,15 @@ void WiFiEvent(WiFiEvent_t event, arduino_event_info_t info) {
       WiFiEventData.markDisconnect(static_cast<WiFiDisconnectReason>(info.wifi_sta_disconnected.reason));
       break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+    {
       ignoreDisconnectEvent = false;
-      WiFiEventData.markGotIP();
+      ip_event_got_ip_t  *event = static_cast<ip_event_got_ip_t *>(&info.got_ip);
+      const IPAddress     ip(event->ip_info.ip.addr);
+      const IPAddress     netmask(event->ip_info.ip.addr);
+      const IPAddress     gw(event->ip_info.ip.addr);
+      WiFiEventData.markGotIP(ip, netmask, gw);
       break;
+    }
     # if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
     {

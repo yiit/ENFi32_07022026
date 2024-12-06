@@ -9,6 +9,8 @@
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/Networking.h"
 
+#include "../Helpers/StringConverter.h"
+
 
 #define WIFI_RECONNECT_WAIT                  30000 // in milliSeconds
 
@@ -170,6 +172,12 @@ void WiFiEventData_t::setWiFiConnected() {
 }
 
 void WiFiEventData_t::setWiFiServicesInitialized() {
+  if (!processedConnect) {
+    setWiFiConnected();
+  }
+  if (!processedGotIP) {
+    setWiFiGotIP();
+  }
   if (/*!unprocessedWifiEvents() && */ WiFiConnected() && WiFiGotIP()) {
     #ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_DEBUG, F("WiFi : WiFi services initialized"));
@@ -177,8 +185,13 @@ void WiFiEventData_t::setWiFiServicesInitialized() {
     bitSet(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
     wifiConnectInProgress    = false;
     wifiConnectAttemptNeeded = false;
-    dns0_cache               = WiFi.dnsIP(0);
-    dns1_cache               = WiFi.dnsIP(1);
+    if (valid_DNS_address(WiFi.dnsIP(0))) {
+      dns0_cache = WiFi.dnsIP(0);
+    }
+
+    if (valid_DNS_address(WiFi.dnsIP(1))) {
+      dns1_cache = WiFi.dnsIP(1);
+    }
   }
 }
 
@@ -190,6 +203,19 @@ void WiFiEventData_t::markGotIP() {
   bitClear(wifiStatus, ESPEASY_WIFI_GOT_IP);
   bitClear(wifiStatus, ESPEASY_WIFI_SERVICES_INITIALIZED);
   processedGotIP = false;
+}
+
+void WiFiEventData_t::markGotIP(const IPAddress& ip, const IPAddress& netmask, const IPAddress& gw)
+{
+  addLog(
+    LOG_LEVEL_INFO, 
+    strformat(
+      F("WiFi : GotIP ip: %s, sn: %s, gw: %s"),
+      ip.toString().c_str(),
+      netmask.toString().c_str(),
+      gw.toString().c_str()));
+  markGotIP();
+  
 }
 
 #if FEATURE_USE_IPV6
