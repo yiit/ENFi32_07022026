@@ -17,6 +17,9 @@
 # include "../Globals/CPlugins.h"
 # include "../Globals/Device.h"
 # include "../Globals/ExtraTaskSettings.h"
+# if FEATURE_MQTT_DISCOVER
+#  include "../Globals/MQTT.h"
+# endif // if FEATURE_MQTT_DISCOVER
 # include "../Globals/Nodes.h"
 # include "../Globals/Plugins.h"
 
@@ -267,6 +270,10 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
 
   const DeviceStruct& device = Device[DeviceIndex];
 
+  # if FEATURE_MQTT_DISCOVER
+  controllerIndex_t discoverController = INVALID_CONTROLLER_INDEX;
+  # endif // if FEATURE_MQTT_DISCOVER
+
   unsigned long taskdevicetimer = getFormItemInt(F("TDT"), 0);
 
   Settings.TaskDeviceNumber[taskIndex] = taskdevicenumber.value;
@@ -372,6 +379,12 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
   {
     Settings.TaskDeviceID[controllerNr][taskIndex]       = getFormItemInt(getPluginCustomArgName(F("TDID"), controllerNr));
     Settings.TaskDeviceSendData[controllerNr][taskIndex] = isFormItemChecked(getPluginCustomArgName(F("TDSD"), controllerNr));
+    # if FEATURE_MQTT_DISCOVER
+
+    if (isFormItemChecked(getPluginCustomArgName(F("TDDSC"), controllerNr))) {
+      discoverController = controllerNr;
+    }
+    # endif // if FEATURE_MQTT_DISCOVER
   }
 
   if (device.PullUpOption) {
@@ -440,6 +453,20 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
     if (!device.ExitTaskBeforeSave) {
       PluginCall(PLUGIN_EXIT, &TempEvent, dummy);
     }
+    # if FEATURE_MQTT_DISCOVER
+
+    if (validControllerIndex(discoverController) && validControllerIndex(mqttDiscoveryController)) {
+      mqttDiscoverOnlyTask = taskIndex;
+      mqttDiscoveryTimeout = random(10, 100);
+
+      if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+        addLog(LOG_LEVEL_INFO, strformat(F("MQTT : Resend AutoDiscovery for Task %d on Controller %d in %.1f sec."),
+                                         taskIndex + 1,
+                                         mqttDiscoveryController + 1,
+                                         mqttDiscoveryTimeout / 10.0f));
+      }
+    }
+    # endif // if FEATURE_MQTT_DISCOVER
   }
 
   // Store all PCONFIG values on the web page
@@ -1407,16 +1434,42 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
           Settings.TaskDeviceSendData[controllerNr][taskIndex]);
 
         protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(controllerNr);
+        # if FEATURE_MQTT_DISCOVER
+        const bool showMqttGroup = (validProtocolIndex(ProtocolIndex) &&
+                                    getProtocolStruct(ProtocolIndex).mqttAutoDiscover &&
+                                    (mqttDiscoveryController == controllerNr) &&
+                                    Settings.TaskDeviceSendData[controllerNr][taskIndex]);
+        # endif // if FEATURE_MQTT_DISCOVER
 
-        if (validProtocolIndex(ProtocolIndex) &&
-            getProtocolStruct(ProtocolIndex).usesID && (Settings.Protocol[controllerNr] != 0)) {
+        if ((validProtocolIndex(ProtocolIndex) &&
+             getProtocolStruct(ProtocolIndex).usesID &&
+             (Settings.Protocol[controllerNr] != 0))
+            # if FEATURE_MQTT_DISCOVER
+            || showMqttGroup
+            # endif // if FEATURE_MQTT_DISCOVER
+            ) {
           html_TD();
-          addHtml(F("IDX:"));
+          addHtml(
+            # if FEATURE_MQTT_DISCOVER
+            showMqttGroup ? F("Group:") :
+            # endif // if FEATURE_MQTT_DISCOVER
+            F("IDX:"));
           html_TD();
           addNumericBox(
             getPluginCustomArgName(F("TDID"), controllerNr), // ="taskdeviceid"
             Settings.TaskDeviceID[controllerNr][taskIndex], 0, DOMOTICZ_MAX_IDX);
         }
+        # if FEATURE_MQTT_DISCOVER
+
+        if (showMqttGroup) {
+          html_TD();
+          addHtml(F("Resend MQTT Discovery:"));
+          html_TD();
+          addCheckBox(
+            getPluginCustomArgName(F("TDDSC"), controllerNr), // ="taskdevicediscover"
+            false);
+        }
+        # endif // if FEATURE_MQTT_DISCOVER
         html_end_table();
       }
     }

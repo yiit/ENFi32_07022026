@@ -818,9 +818,8 @@ void parseCommandString(struct EventStruct *event, const String& string)
   #ifndef BUILD_NO_RAM_TRACKER
   checkRAM(F("parseCommandString"));
   #endif // ifndef BUILD_NO_RAM_TRACKER
-  event->Par1 = parseCommandArgumentInt(string, 1);
-  event->Par2 = parseCommandArgumentInt(string, 2);
-  event->Par3 = parseCommandArgumentInt(string, 3);
-  event->Par4 = parseCommandArgumentInt(string, 4);
-  event->Par5 = parseCommandArgumentInt(string, 5);
+
+  for (uint8_t i = 0; i < 5; ++i) {
+    event->ParN[i] = parseCommandArgumentInt(string, i + 1);
+  }
 }

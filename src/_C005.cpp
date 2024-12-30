@@ -3,6 +3,9 @@
 
 # include "src/Commands/ExecuteCommand.h"
 # include "src/Globals/EventQueue.h"
+# if FEATURE_MQTT_DISCOVER
+#  include "src/Globals/MQTT.h"
+# endif // if FEATURE_MQTT_DISCOVER
 # include "src/Helpers/_CPlugin_Helper_mqtt.h"
 # include "src/Helpers/PeriodicalActions.h"
 # include "src/Helpers/StringParser.h"
@@ -13,6 +16,9 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2024-11-29 tonhuisman: Add Discovery trigger setting
+ * 2024-11-11 tonhuisman: Add AutoDiscovery options
+ *                        Home Assistant suggested discovery topic: "homeassistant/%devclass%/%sysname%/%tskname%/config"
  * 2023-08-18 tonhuisman: Clean up source for pull request
  * 2023-03-15 tonhuisman: Add processing of topic endpoint /set to issue a TaskValueSet,taskname,taskvalue,payload command for
  *                        topic %sysname%/#/taskname/valuename/set
@@ -46,9 +52,12 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
       proto.usesExtCreds = true;
       proto.defaultPort  = 1883;
       proto.usesID       = false;
-      #if FEATURE_MQTT_TLS
-      proto.usesTLS      = true;
-      #endif
+      # if FEATURE_MQTT_TLS
+      proto.usesTLS = true;
+      # endif // if FEATURE_MQTT_TLS
+      # if FEATURE_MQTT_DISCOVER
+      proto.mqttAutoDiscover = true;
+      # endif // if FEATURE_MQTT_DISCOVER
       break;
     }
 
@@ -61,8 +70,51 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
     case CPlugin::Function::CPLUGIN_INIT:
     {
       success = init_mqtt_delay_queue(event->ControllerIndex, CPlugin_005_pubname, CPlugin_005_mqtt_retainFlag);
+      # if FEATURE_MQTT_DISCOVER
+      mqttDiscoveryController = INVALID_CONTROLLER_INDEX;
+
+      if (success) {
+        MakeControllerSettings(ControllerSettings); // -V522
+
+        if (!AllocatedControllerSettings()) {
+          return false;
+        }
+        LoadControllerSettings(event->ControllerIndex, *ControllerSettings);
+
+        if (ControllerSettings->mqtt_autoDiscovery() &&
+
+            // (ControllerSettings->MqttAutoDiscoveryTrigger[0] != 0) &&
+            (ControllerSettings->MqttAutoDiscoveryTopic[0] != 0)) {
+          mqttDiscoveryController = event->ControllerIndex;
+          mqttDiscoveryTimeout    = random(10, 100);
+
+          if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+            addLog(LOG_LEVEL_INFO, strformat(F("C005 : INIT: AutoDiscovery for Controller %d in %.1f sec."),
+                                             event->ControllerIndex + 1,
+                                             mqttDiscoveryTimeout / 10.0f));
+          }
+        }
+      }
+      # endif // if FEATURE_MQTT_DISCOVER
       break;
     }
+
+    # if FEATURE_MQTT_DISCOVER
+    case CPlugin::Function::CPLUGIN_TEN_PER_SECOND:
+    {
+      if ((mqttDiscoveryTimeout > 0) && MQTTclient_connected) {
+        mqttDiscoveryTimeout--;
+
+        if (0 == mqttDiscoveryTimeout) {
+          if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+            addLog(LOG_LEVEL_INFO, F("C005 : AutoDiscovery delay expired, starting now..."));
+          }
+          success = MQTT_SendAutoDiscovery(event->ControllerIndex, CPLUGIN_ID_005);
+        }
+      }
+      break;
+    }
+    # endif // if FEATURE_MQTT_DISCOVER
 
     case CPlugin::Function::CPLUGIN_EXIT:
     {
@@ -82,7 +134,31 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
       controllerIndex_t ControllerID = findFirstEnabledControllerWithId(CPLUGIN_ID_005);
 
       if (validControllerIndex(ControllerID)) {
-        C005_parse_command(event);
+        # if FEATURE_MQTT_DISCOVER
+        MakeControllerSettings(ControllerSettings); // -V522
+
+        if (!AllocatedControllerSettings()) {
+          return false;
+        }
+        LoadControllerSettings(event->ControllerIndex, *ControllerSettings);
+
+        // AutoDiscovery enabled?
+        if (ControllerSettings->mqtt_autoDiscovery()
+            && (ControllerSettings->MqttAutoDiscoveryTrigger[0] != '\0')
+            && event->String1.equals(ControllerSettings->MqttAutoDiscoveryTrigger)
+            && event->String2.equals(F("online")) // FIXME Should be configurable?
+            ) {
+          // We have received the Discovery request topic
+          // Generate random time-offset in 0.1 sec, range 1..10 seconds
+          mqttDiscoveryTimeout = random(10, 100);
+          addLog(LOG_LEVEL_INFO, strformat(F("C005 : Request for AutoDiscovery received. %d"), mqttDiscoveryTimeout));
+
+          // FIXME Generate event when request received?
+        } else
+        # endif // if FEATURE_MQTT_DISCOVER
+        {
+          C005_parse_command(event);
+        }
       }
       break;
     }

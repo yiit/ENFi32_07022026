@@ -14,5 +14,36 @@ bool MQTT_protocol_send(EventStruct *event,
                         String       pubname,
                         bool         retainFlag);
 
+# if FEATURE_MQTT_DISCOVER
+
+struct DiscoveryItem {
+  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex)
+    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex) {}
+
+  Sensor_VType   VType;
+  int            valueCount;
+  taskVarIndex_t varIndex;
+};
+
+bool   MQTT_SendAutoDiscovery(controllerIndex_t ControllerIndex,
+                              cpluginID_t       CPluginID);
+bool   MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIndex,
+                                            ControllerSettingsStruct& ControllerSettings);
+bool   MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
+                                    std::vector<DiscoveryItem>& discoveryItems,
+                                    int                         valueCount);
+String MQTT_TaskValueUniqueName(const String& taskName,
+                                const String& valueName);
+String MQTT_DiscoveryBuildValueTopic(const String            & topic,
+                                     struct EventStruct       *event,
+                                     uint8_t                   taskValueIndex,
+                                     const __FlashStringHelper*deviceClass);
+bool MQTT_DiscoveryPublish(controllerIndex_t ControllerIndex,
+                           const String    & topic,
+                           String          & discoveryMessage,
+                           taskIndex_t       x,
+                           uint8_t           v,
+                           const String    & taskName);
+# endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
 #endif // ifndef CPLUGIN_HELPER_MQTT_H

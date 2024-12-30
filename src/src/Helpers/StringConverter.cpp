@@ -1321,11 +1321,19 @@ void parseControllerVariables(String& s, struct EventStruct *event, bool useURLe
   if (s.indexOf(T) != -1) { repl((T), (S), s, useURLencode); }
 
 void parseSingleControllerVariable(String            & s,
-                                   struct EventStruct *event,
-                                   uint8_t                taskValueIndex,
-                                   bool             useURLencode) {
+                                   struct EventStruct* event,
+                                   uint8_t             taskValueIndex,
+                                   bool                useURLencode) {
   SMART_REPL(F("%valname%"), getTaskValueName(event->TaskIndex, taskValueIndex));
 }
+
+#if FEATURE_MQTT_DISCOVER
+void parseDeviceClassVariable(String                   & s,
+                              const __FlashStringHelper* devclass,
+                              bool                       useURLencode) {
+  SMART_REPL(F("%devclass%"), devclass);
+}
+#endif
 
 void parseSystemVariables(String& s, bool useURLencode)
 {

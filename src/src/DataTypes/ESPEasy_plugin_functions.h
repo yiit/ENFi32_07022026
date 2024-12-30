@@ -66,6 +66,9 @@ enum PluginFunctions_e {
    PLUGIN_FILTEROUT_CONTROLLER_DATA   , // Can be called from the controller to query a task whether the data should be processed further.
 #endif
    PLUGIN_WEBFORM_PRE_SERIAL_PARAMS   , // Before serial parameters, convert additional parameters like baudrate or specific serial config
+   #if FEATURE_MQTT_DISCOVER
+   PLUGIN_GET_DISCOVERY_VTYPES        , // Fetch the Sensor_VType values for dynamic value configurations in event->Par1..Par4
+   #endif
 
    PLUGIN_MAX_FUNCTION  // Leave as last one.
 };

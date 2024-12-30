@@ -103,6 +103,11 @@ struct ControllerSettingsStruct
     CONTROLLER_TIMEOUT,
     CONTROLLER_SAMPLE_SET_INITIATOR,
     CONTROLLER_SEND_BINARY,
+    #if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
+    CONTROLLER_AUTO_DISCOVERY_OPTION,
+    CONTROLLER_AUTO_DISCOVERY_TRIGGER,
+    CONTROLLER_AUTO_DISCOVERY_TOPIC,
+    #endif
 
     // Keep this as last, is used to loop over all parameters
     CONTROLLER_ENABLED
@@ -170,6 +175,11 @@ struct ControllerSettingsStruct
   bool         useLocalSystemTime() const { return VariousBits1.useLocalSystemTime; }
   void         useLocalSystemTime(bool value) { VariousBits1.useLocalSystemTime = value; }
 
+  #if FEATURE_MQTT_DISCOVER
+  bool         mqtt_autoDiscovery() const { return VariousBits1.mqttAutoDiscovery; }
+  void         mqtt_autoDiscovery(bool value) { VariousBits1.mqttAutoDiscovery = value; }
+  #endif
+
 #if FEATURE_MQTT_TLS
   TLS_types TLStype() const { return static_cast<TLS_types>(VariousBits1.TLStype); }
   void      TLStype(TLS_types tls_type) { VariousBits1.TLStype = static_cast<uint8_t>(tls_type); }
@@ -214,7 +224,7 @@ struct ControllerSettingsStruct
     uint32_t deduplicate                      : 1; // Bit 10
     uint32_t useLocalSystemTime               : 1; // Bit 11
     uint32_t TLStype                          : 4; // Bit 12...15: TLS type
-    uint32_t unused_16                        : 1; // Bit 16
+    uint32_t mqttAutoDiscovery                : 1; // Bit 16
     uint32_t unused_17                        : 1; // Bit 17
     uint32_t unused_18                        : 1; // Bit 18
     uint32_t unused_19                        : 1; // Bit 19
@@ -232,6 +242,8 @@ struct ControllerSettingsStruct
     uint32_t unused_31                        : 1; // Bit 31
   }    VariousBits1;
   char ClientID[65];                                 // Used to define the Client ID used by the controller
+  char MqttAutoDiscoveryTopic[129];
+  char MqttAutoDiscoveryTrigger[65];
 
 private:
 

@@ -81,6 +81,8 @@ void ControllerSettingsStruct::validate() {
   ZERO_TERMINATE(MQTTLwtTopic);
   ZERO_TERMINATE(LWTMessageConnect);
   ZERO_TERMINATE(LWTMessageDisconnect);
+  ZERO_TERMINATE(MqttAutoDiscoveryTopic);
+  ZERO_TERMINATE(MqttAutoDiscoveryTrigger);
 
   #if FEATURE_MQTT
     #if FEATURE_MQTT_TLS

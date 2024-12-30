@@ -62,6 +62,11 @@ const __FlashStringHelper* toString(ControllerSettingsStruct::VarType parameterI
     case ControllerSettingsStruct::CONTROLLER_SEND_BINARY:              return F("Send Binary");
     case ControllerSettingsStruct::CONTROLLER_TIMEOUT:                  return F("Client Timeout");
     case ControllerSettingsStruct::CONTROLLER_SAMPLE_SET_INITIATOR:     return F("Sample Set Initiator");
+    # if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:    return F("Enable Auto Discovery");
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TRIGGER:   return F("Discovery Trigger topic");
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TOPIC:     return F("Auto Discovery topic");
+    # endif // if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
 
     case ControllerSettingsStruct::CONTROLLER_ENABLED:
 
@@ -199,11 +204,11 @@ void addControllerParameterForm(const ControllerSettingsStruct  & ControllerSett
 
         //       toString(TLS_types::TLS_PSK),
 
-/*
-        // FIXME TD-er: Disabled for now, will add selection later
-        toString(TLS_types::TLS_CA_CERT),
-        toString(TLS_types::TLS_FINGERPRINT),
-*/
+        /*
+                // FIXME TD-er: Disabled for now, will add selection later
+                toString(TLS_types::TLS_CA_CERT),
+                toString(TLS_types::TLS_FINGERPRINT),
+         */
         toString(TLS_types::TLS_insecure)
       };
       const int indices[] = {
@@ -211,11 +216,11 @@ void addControllerParameterForm(const ControllerSettingsStruct  & ControllerSett
 
         //        static_cast<int>(TLS_types::TLS_PSK),
 
-  /*
-        // FIXME TD-er: Disabled for now, will add selection later
-        static_cast<int>(TLS_types::TLS_CA_CERT),
-        static_cast<int>(TLS_types::TLS_FINGERPRINT),
-*/
+        /*
+              // FIXME TD-er: Disabled for now, will add selection later
+              static_cast<int>(TLS_types::TLS_CA_CERT),
+              static_cast<int>(TLS_types::TLS_FINGERPRINT),
+         */
         static_cast<int>(TLS_types::TLS_insecure)
       };
       constexpr int nrOptions = NR_ELEMENTS(indices);
@@ -227,30 +232,30 @@ void addControllerParameterForm(const ControllerSettingsStruct  & ControllerSett
     }
     case ControllerSettingsStruct::CONTROLLER_MQTT_TLS_STORE_FINGERPRINT:
     {
-/*
-      // FIXME TD-er: Disabled for now, will add selection later
-      const bool saveDisabled = fileExists(ControllerSettings.getCertificateFilename(TLS_types::TLS_FINGERPRINT));
-      addFormCheckBox(displayName, internalName, false, saveDisabled);
-      addCertificateFileNote(ControllerSettings, F("Store fingerprint in"), TLS_types::TLS_FINGERPRINT);
-*/
+      /*
+            // FIXME TD-er: Disabled for now, will add selection later
+            const bool saveDisabled = fileExists(ControllerSettings.getCertificateFilename(TLS_types::TLS_FINGERPRINT));
+            addFormCheckBox(displayName, internalName, false, saveDisabled);
+            addCertificateFileNote(ControllerSettings, F("Store fingerprint in"), TLS_types::TLS_FINGERPRINT);
+       */
       break;
     }
     case ControllerSettingsStruct::CONTROLLER_MQTT_TLS_STORE_CERT:
     // fall through
     case ControllerSettingsStruct::CONTROLLER_MQTT_TLS_STORE_CACERT:
     {
-  /*
-      // FIXME TD-er: Disabled for now, will add selection later      
-      //   const TLS_types tls_type =  (varType == ControllerSettingsStruct::CONTROLLER_MQTT_TLS_STORE_CACERT) ?
-      //         TLS_types::TLS_CA_CERT : TLS_types::TLS_CERT;
-      const bool saveDisabled = fileExists(ControllerSettings.getCertificateFilename(TLS_types::TLS_CA_CERT));
-      addFormCheckBox(displayName, internalName, false, saveDisabled);
+      /*
+          // FIXME TD-er: Disabled for now, will add selection later
+          //   const TLS_types tls_type =  (varType == ControllerSettingsStruct::CONTROLLER_MQTT_TLS_STORE_CACERT) ?
+          //         TLS_types::TLS_CA_CERT : TLS_types::TLS_CERT;
+          const bool saveDisabled = fileExists(ControllerSettings.getCertificateFilename(TLS_types::TLS_CA_CERT));
+          addFormCheckBox(displayName, internalName, false, saveDisabled);
 
-      if (saveDisabled) {
-        addUnit(F("File Exists"));
-      }
-      addCertificateFileNote(ControllerSettings, F("Store CA Certificate in"), TLS_types::TLS_CA_CERT);
-*/
+          if (saveDisabled) {
+            addUnit(F("File Exists"));
+          }
+          addCertificateFileNote(ControllerSettings, F("Store CA Certificate in"), TLS_types::TLS_CA_CERT);
+       */
       break;
     }
 #endif // if FEATURE_MQTT_TLS
@@ -360,6 +365,19 @@ void addControllerParameterForm(const ControllerSettingsStruct  & ControllerSett
     case ControllerSettingsStruct::CONTROLLER_CLEAN_SESSION:
       addFormCheckBox(displayName, internalName, ControllerSettings.mqtt_cleanSession());
       break;
+    # if FEATURE_MQTT_DISCOVER
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:
+      addFormCheckBox(displayName, internalName, ControllerSettings.mqtt_autoDiscovery());
+      break;
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TRIGGER:
+      addFormTextBox(displayName, internalName, ControllerSettings.MqttAutoDiscoveryTrigger,
+                     sizeof(ControllerSettings.MqttAutoDiscoveryTrigger) - 1);
+      break;
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TOPIC:
+      addFormTextBox(displayName, internalName, ControllerSettings.MqttAutoDiscoveryTopic,
+                     sizeof(ControllerSettings.MqttAutoDiscoveryTopic) - 1);
+      break;
+    # endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
     case ControllerSettingsStruct::CONTROLLER_USE_EXTENDED_CREDENTIALS:
       addFormCheckBox(displayName, internalName, ControllerSettings.useExtendedCredentials());
@@ -536,6 +554,17 @@ void saveControllerParameterForm(ControllerSettingsStruct        & ControllerSet
     case ControllerSettingsStruct::CONTROLLER_CLEAN_SESSION:
       ControllerSettings.mqtt_cleanSession(isFormItemChecked(internalName));
       break;
+    # if FEATURE_MQTT_DISCOVER
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:
+      ControllerSettings.mqtt_autoDiscovery(isFormItemChecked(internalName));
+      break;
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TRIGGER:
+      strncpy_webserver_arg(ControllerSettings.MqttAutoDiscoveryTrigger, internalName);
+      break;
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TOPIC:
+      strncpy_webserver_arg(ControllerSettings.MqttAutoDiscoveryTopic,   internalName);
+      break;
+    # endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
     case ControllerSettingsStruct::CONTROLLER_USE_EXTENDED_CREDENTIALS:
       ControllerSettings.useExtendedCredentials(isFormItemChecked(internalName));

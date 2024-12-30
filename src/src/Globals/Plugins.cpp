@@ -237,7 +237,7 @@ void post_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) {
   I2CMultiplexerOff();
   #endif // if FEATURE_I2CMULTIPLEXER
 
-  I2CSelectHighClockSpeed();  // Reset
+  I2CSelectHighClockSpeed(); // Reset
 }
 
 // Add an event to the event queue.
@@ -325,9 +325,11 @@ bool PluginCallForTask(taskIndex_t taskIndex, uint8_t Function, EventStruct *Tem
           UserVar.clear_computed(taskIndex);
           LoadTaskSettings(taskIndex);
         }
+
         if (Settings.TaskDeviceDataFeed[taskIndex] == 0) // these calls only to tasks with local feed
         {
           TempEvent->setTaskIndex(taskIndex);
+
           // Need to 'clear' the sensorType first, before calling getSensorType()
           TempEvent->sensorType = Sensor_VType::SENSOR_TYPE_NOT_SET;
           TempEvent->getSensorType();
@@ -894,14 +896,14 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
             if (taskData != nullptr) {
               // FIXME TD-er: Must make this flag configurable
               const bool onlyUpdateTimestampWhenSame = true;
-              const bool trackpeaks = 
+              const bool trackpeaks                  =
                 Settings.TaskDeviceDataFeed[event->TaskIndex] != 0 || // Receive data from remote node
                 !Device[DeviceIndex].TaskLogsOwnPeaks;
 
               taskData->pushPluginStatsValues(
-                event, 
+                event,
                 trackpeaks,
-                onlyUpdateTimestampWhenSame); 
+                onlyUpdateTimestampWhenSame);
             }
               #endif // if FEATURE_PLUGIN_STATS
             saveUserVarToRTC();
@@ -939,7 +941,8 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
         if (Function == PLUGIN_EXIT) {
           UserVar.clear_computed(event->TaskIndex);
           clearPluginTaskData(event->TaskIndex);
-//          clearTaskCache(event->TaskIndex);
+
+          //          clearTaskCache(event->TaskIndex);
 
           //            initSerial();
           queueTaskEvent(F("TaskExit"), event->TaskIndex, retval);
@@ -979,6 +982,9 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
     #ifdef USES_ESPEASY_NOW
     case PLUGIN_FILTEROUT_CONTROLLER_DATA:
     #endif // ifdef USES_ESPEASY_NOW
+    #if FEATURE_MQTT_DISCOVER
+    case PLUGIN_GET_DISCOVERY_VTYPES:
+    #endif // if FEATURE_MQTT_DISCOVER
 
       // PLUGIN_MQTT_xxx functions are directly called from the scheduler.
       // case PLUGIN_MQTT_CONNECTION_STATE:
@@ -996,6 +1002,9 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
             (Function == PLUGIN_INIT_VALUE_RANGES) ||
             (Function == PLUGIN_WEBFORM_SHOW_SERIAL_PARAMS) ||
             (Function == PLUGIN_WEBFORM_PRE_SERIAL_PARAMS)
+            #if FEATURE_MQTT_DISCOVER
+            || (Function == PLUGIN_GET_DISCOVERY_VTYPES)
+            #endif // if FEATURE_MQTT_DISCOVER
             ) {
           LoadTaskSettings(event->TaskIndex);
         }

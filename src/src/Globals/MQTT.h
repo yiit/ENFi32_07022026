@@ -5,6 +5,9 @@
 
 
 #if FEATURE_MQTT
+# include "../DataTypes/ControllerIndex.h"
+# include "../DataTypes/TaskIndex.h"
+
 # include "../Helpers/LongTermTimer.h"
 
 # include <WiFiClient.h>
@@ -40,5 +43,10 @@ extern LongTermTimer MQTTclient_next_connect_attempt;
 extern bool P037_MQTTImport_connected;
 #endif // ifdef USES_P037
 
+#if FEATURE_MQTT_DISCOVER
+extern controllerIndex_t mqttDiscoveryController;
+extern taskIndex_t mqttDiscoverOnlyTask;
+extern uint32_t mqttDiscoveryTimeout;
+#endif // if FEATURE_MQTT_DISCOVER
 
 #endif // GLOBALS_MQTT_H

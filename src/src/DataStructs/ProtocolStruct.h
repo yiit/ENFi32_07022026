@@ -42,6 +42,9 @@ struct ProtocolStruct
 #if FEATURE_MQTT_TLS
   bool     usesTLS              : 1; // May offer TLS related settings and options
 #endif
+#if FEATURE_MQTT_DISCOVER
+  bool     mqttAutoDiscover     : 1; // Enable MQTT Auto Discovery (MQTT server-specific)
+#endif
 
 //  uint8_t Number{};
 };

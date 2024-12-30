@@ -394,9 +394,15 @@ void parseControllerVariables(String            & s,
                               bool             useURLencode);
 
 void parseSingleControllerVariable(String            & s,
-                                   struct EventStruct *event,
-                                   uint8_t                taskValueIndex,
-                                   bool             useURLencode);
+                                   struct EventStruct* event,
+                                   uint8_t             taskValueIndex,
+                                   bool                useURLencode);
+
+#if FEATURE_MQTT_DISCOVER
+void parseDeviceClassVariable(String                   & s,
+                              const __FlashStringHelper* devclass,
+                              bool                       useURLencode);
+#endif
 
 void parseSystemVariables(String& s,
                           bool useURLencode);
