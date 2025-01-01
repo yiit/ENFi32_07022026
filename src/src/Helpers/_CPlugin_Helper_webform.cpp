@@ -57,6 +57,7 @@ const __FlashStringHelper* toString(ControllerSettingsStruct::VarType parameterI
     case ControllerSettingsStruct::CONTROLLER_SEND_LWT:                 return F("Send LWT to broker");
     case ControllerSettingsStruct::CONTROLLER_WILL_RETAIN:              return F("Will Retain");
     case ControllerSettingsStruct::CONTROLLER_CLEAN_SESSION:            return F("Clean Session");
+    case ControllerSettingsStruct::CONTROLLER_KEEP_ALIVE_TIME:          return F("Keep Alive Time");
 #endif // if FEATURE_MQTT
     case ControllerSettingsStruct::CONTROLLER_USE_EXTENDED_CREDENTIALS: return F("Use Extended Credentials");
     case ControllerSettingsStruct::CONTROLLER_SEND_BINARY:              return F("Send Binary");
@@ -365,6 +366,10 @@ void addControllerParameterForm(const ControllerSettingsStruct  & ControllerSett
     case ControllerSettingsStruct::CONTROLLER_CLEAN_SESSION:
       addFormCheckBox(displayName, internalName, ControllerSettings.mqtt_cleanSession());
       break;
+    case ControllerSettingsStruct::CONTROLLER_KEEP_ALIVE_TIME:
+      addFormNumericBox(displayName, internalName, ControllerSettings.KeepAliveTime, 0, CONTROLLER_KEEP_ALIVE_TIME_MAX);
+      addUnit(F("sec"));
+      break;
     # if FEATURE_MQTT_DISCOVER
     case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:
       addFormCheckBox(displayName, internalName, ControllerSettings.mqtt_autoDiscovery());
@@ -553,6 +558,9 @@ void saveControllerParameterForm(ControllerSettingsStruct        & ControllerSet
       break;
     case ControllerSettingsStruct::CONTROLLER_CLEAN_SESSION:
       ControllerSettings.mqtt_cleanSession(isFormItemChecked(internalName));
+      break;
+    case ControllerSettingsStruct::CONTROLLER_KEEP_ALIVE_TIME:
+      ControllerSettings.KeepAliveTime = getFormItemInt(internalName, ControllerSettings.KeepAliveTime);
       break;
     # if FEATURE_MQTT_DISCOVER
     case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:
