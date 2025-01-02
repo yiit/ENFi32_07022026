@@ -1706,107 +1706,90 @@ int http_authenticate(const String& logIdentifier,
       else {
         const String str = http.getString();
 
-        // Process URL to get unique keys
-        auto getCombinedParams = [](const String& url, const String& paramName) {
-                                   int start = url.indexOf(paramName + '=');
+        auto processAndQueueParams = [](const String& url, const String& str, const String& eventName) {
+            // Extract the parameters from the URL
+            int start = url.indexOf(eventName + '=');
+            if (start == -1) {
+                return; // No parameters found for the given eventName
+            }
+            start += eventName.length() + 1;
+            const int end = url.indexOf('&', start);
+            const String params = (end == -1) ? url.substring(start) : url.substring(start, end);
 
-                                   if (start == -1) { return EMPTY_STRING; }
-                                   start += paramName.length() + 1;
-                                   const int end = url.indexOf('&', start);
-                                   return (end == -1) ? url.substring(start) : url.substring(start, end);
-                                 };
+            if (!params.isEmpty()) {
+                String keys[20];
+                int keyCount = 0;
+                int startIndex = 0;
+                int commaIndex = params.indexOf(',');
 
-        // Extract current hourly and daily parameters
-        const String currentParams = getCombinedParams(uri, F("current"));
-        const String hourlyParams  = getCombinedParams(uri, F("hourly"));
-        const String dailyParams = getCombinedParams(uri, F("daily"));
+                // Split and add keys to the array
+                while (commaIndex != -1) {
+                    if (keyCount >= 20) {
+                        // Stop adding keys if array is full
+                        addLog(LOG_LEVEL_ERROR, F("Too many keys in the URL"));
+                        break;
+                    }
+                    String key = params.substring(startIndex, commaIndex);
+                    keys[keyCount++] = key;
+                    startIndex = commaIndex + 1;
+                    commaIndex = params.indexOf(',', startIndex);
+                }
 
-        auto processAndQueueParams = [](const String& params, const String& str, const String& eventName) {
-                                       if (!params.isEmpty()) {
-                                         String keys[20];
-                                         int    keyCount   = 0;
-                                         int    startIndex = 0;
-                                         int    commaIndex = params.indexOf(',');
+                // Add the last key
+                if (keyCount < 20) {
+                    const String lastKey = params.substring(startIndex);
+                    keys[keyCount++] = lastKey;
+                }
 
-                                         // Split and add keys to the array
-                                         while (commaIndex != -1) {
-                                           if (keyCount >= 20){
-                                             // stop adding keys if array is full
-                                             break;
-                                           }
-                                           String key = params.substring(startIndex, commaIndex);
-                                           keys[keyCount++] = key;
-                                           startIndex       = commaIndex + 1;
-                                           commaIndex       = params.indexOf(',', startIndex);
-                                         }
+                String csv;
+                const int startStringIndex = str.indexOf("\"" + eventName + "\":") + eventName.length() + 4;
+                const int endStringIndex = str.indexOf("}", startStringIndex);
 
-                                         // Add the last key
-                                         if (keyCount < 20) {
-                                          const String lastKey = params.substring(startIndex);
-                                          keys[keyCount++] = lastKey;
-                                         } else {
-                                          addLog(LOG_LEVEL_ERROR, F("Too many keys in the URL"));
-                                         }
+                for (int i = 0; i < keyCount; i++) // Use keyCount to limit the iteration
+                {
+                    String key = keys[i];
+                    String value;
+                    int startIndex = str.indexOf(key + "\":", startStringIndex);
 
-                                         String csv;
-                                         const int    startStringIndex = str.indexOf("\"" + eventName + "\":") + eventName.length() + 4;
-                                         const int    endStringIndex   = str.indexOf("}", startStringIndex);
+                    if (startIndex == -1) {
+                        // Handle case where key is not found
+                        value = F("-256"); // Placeholder value
+                    } else {
+                        int endIndex = 0;
 
-                                         for (int i = 0; i < keyCount; i++) // Use keyCount to limit the iteration
-                                         {
-                                           String key        = keys[i];
-                                           String value;
-                                           int    startIndex = str.indexOf(key + "\":", startStringIndex);
+                        if (!equals(eventName, F("current"))) {
+                            // In daily and hourly, the values are stored in an array
+                            startIndex += key.length() + 3; // Move index past the key
+                            endIndex = str.indexOf("]", startIndex);
+                        } else {
+                            startIndex += key.length() + 2; // Move index past the key
+                            endIndex = str.indexOf(",", startIndex);
+                        }
 
-                                           if (startIndex == -1)
-                                           {
-                                             // Handle case where key is not found
-                                             value = F("-256"); // Placeholder value
-                                           }
-                                           else
-                                           {
-                                             int endIndex = 0;
+                        // Find the index of the next comma
+                        if ((endIndex == -1) || (endIndex > str.indexOf("}", startIndex))) {
+                            endIndex = str.indexOf("}", startIndex); // If no comma is found or comma comes after },
+                                                                    // take the rest of the string
+                        }
 
-                                             if (!equals(eventName, F("current"))) { // in daily and hourly the values are stored in an
-                                               // array
-                                               // so
-                                               // get rid of the brackets and put the values in a csv
-                                               startIndex += key.length() + 3; // Move index past the key
-                                               endIndex    = str.indexOf("]", startIndex);
-                                             }
-                                             else {
-                                               startIndex += key.length() + 2; // Move index past the key
-                                               endIndex    = str.indexOf(",", startIndex);
-                                             }
+                        value = str.substring(startIndex, endIndex);
+                        value.trim(); // Remove any surrounding whitespace
+                    }
 
-                                             // Find the index of the next comma
-                                             if ((endIndex == -1) || (endIndex > str.indexOf("}", startIndex)))
-                                             {
-                                               endIndex = str.indexOf("}", startIndex); // If no comma is found or comma comes after },
-                                                                                        // take
-                                                                                        // the
-                                                                                        // rest of the string
-                                             }
+                    if (!csv.isEmpty()) {
+                        csv += ',';
+                    }
+                    csv += value;
+                }
 
-                                             value = str.substring(startIndex, endIndex);
-                                             value.trim(); // Remove any surrounding whitespace
-                                           }
+                concat(F("OpenMeteo#"), eventName);
+                eventQueue.addMove(strformat(F("%s=%s"), eventName.c_str(), csv.c_str()));
+            }
+        };
 
-                                           if (!csv.isEmpty())
-                                           {
-                                             csv += ',';
-                                           }
-                                           csv += value;
-                                         }
-
-                                         concat(F("OpenMeteo#"), eventName);
-                                         eventQueue.addMove(strformat(F("%s=%s"), eventName.c_str(), csv.c_str()));
-                                       }
-                                     };
-
-        processAndQueueParams(currentParams, str, F("current"));
-        processAndQueueParams(hourlyParams,  str, F("hourly"));
-        processAndQueueParams(dailyParams,   str, F("daily"));
+        processAndQueueParams(uri, str, F("current"));
+        processAndQueueParams(uri, str, F("hourly"));
+        processAndQueueParams(uri, str, F("daily"));
       }
     }
    # endif // if FEATURE_OMETEO_EVENT
