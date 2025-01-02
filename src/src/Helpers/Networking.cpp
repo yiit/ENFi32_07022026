@@ -1682,6 +1682,139 @@ int http_authenticate(const String& logIdentifier,
       }
     }
     #endif
+
+    # if FEATURE_OMETEO_EVENT
+
+    // Generate an event with the response of an open-meteo request (https://open-meteo.com/en/docs)
+    // Example command:
+    // sendtohttp,api.open-meteo.com,80,/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&forecast_days=1
+    // No need for an api key and it is free (daily requests are limited to 10,000 in the free version)
+    // Visit the URL and build your personal URL by selecting the location and values you want to receive.
+    // Supported variable kinds are current, hourly, daily!
+    // In rules you can grep the reply by the kind of weather variables with "On Openmeteo#<type> Do ..."
+    // e.g. "On Openmeteo#current Do ..."
+    // Note: hourly and daily results are arrays which can become very long.
+    // Best to make seperate calls. Especially for hourly results.
+
+    if ((httpCode == 200) && equals(host, F("api.open-meteo.com")))
+    {
+      // Length of the response is limited to 5000 characters
+      // ToDo: What would be right size?
+      if (uri.length() > 5000) {
+        addLog(LOG_LEVEL_ERROR, F("Response exceeds 5000 characters"));
+      }
+      else {
+        String str = http.getString();
+
+        // Process URL to get unique keys
+
+
+        auto getCombinedParams = [](String url, String paramName) {
+                                   int start = url.indexOf(paramName + "=");
+
+                                   if (start == -1) { return String(""); }
+                                   start += paramName.length() + 1;
+                                   int end = url.indexOf('&', start);
+                                   return (end == -1) ? url.substring(start) : url.substring(start, end);
+                                 };
+
+        // Extract current and daily parameters
+        String currentParams = getCombinedParams(uri, "current");
+        String hourlyParams  = getCombinedParams(uri, "hourly");
+        String dailyParams   = getCombinedParams(uri, "daily");
+
+        auto processAndQueueParams = [](String& params, String& str, String eventName) {
+                                       if (!params.isEmpty()) {
+                                         String keys[20];
+                                         int    keyCount = 0;
+
+                                         int startIndex = 0;
+                                         int commaIndex = params.indexOf(',');
+
+                                         // Split and add keys to the array
+                                         while (commaIndex != -1) {
+                                           String key = params.substring(startIndex, commaIndex);
+
+
+                                           keys[keyCount++] = key;
+
+                                           startIndex = commaIndex + 1;
+                                           commaIndex = params.indexOf(',', startIndex);
+                                         }
+
+                                         // Add the last key
+                                         String lastKey = params.substring(startIndex);
+
+
+                                         keys[keyCount++] = lastKey;
+
+                                         String csv              = "";
+                                         int    startStringIndex = str.indexOf("\"" + eventName + "\":") + eventName.length() + 4;
+                                         int    endStringIndex   = str.indexOf("}", startStringIndex);
+
+                                         for (int i = 0; i < keyCount; i++) // Use keyCount to limit the iteration
+                                         {
+                                           String key        = keys[i];
+                                           String value      = "";
+                                           int    startIndex = str.indexOf(key + "\":", startStringIndex);
+
+                                           if (startIndex == -1)
+                                           {
+                                             // Handle case where key is not found
+                                             value = "-256"; // Placeholder value
+                                           }
+                                           else
+                                           {
+                                             int endIndex = 0;
+
+                                             if (eventName != "current") { // in daily and hourly the values are stored in an
+                                               // array
+                                               // so
+                                               // get rid of the brackets and put the values in a csv
+                                               startIndex += key.length() + 3; // Move index past the key
+                                               endIndex    = str.indexOf("]", startIndex);
+                                             }
+                                             else {
+                                               startIndex += key.length() + 2; // Move index past the key
+                                               endIndex    = str.indexOf(",", startIndex);
+                                             }
+
+                                             // Find the index of the next comma
+                                             if ((endIndex == -1) || (endIndex > str.indexOf("}", startIndex)))
+                                             {
+                                               endIndex = str.indexOf("}", startIndex); // If no comma is found or comma comes after },
+                                                                                        // take
+                                                                                        // the
+                                                                                        // rest of the string
+                                             }
+
+                                             value = str.substring(startIndex, endIndex);
+                                             value.trim(); // Remove any surrounding whitespace
+                                           }
+
+                                           if (!csv.isEmpty())
+                                           {
+                                             csv += ",";
+                                           }
+                                           csv += value;
+                                         }
+                                         eventName = "OpenMeteo#" + eventName;
+                                         eventQueue.addMove(strformat(F("%s=%s"), eventName.c_str(), csv.c_str()));
+                                       }
+                                     };
+
+
+        // Process currentParams
+        processAndQueueParams(currentParams, str, "current");
+
+        // Process hourlyParams
+        processAndQueueParams(hourlyParams,  str, "hourly");
+
+        // Process dailyParams
+        processAndQueueParams(dailyParams,   str, "daily");
+      }
+  }
+   # endif // if FEATURE_OMETEO_EVENT
   }
 
 #ifndef BUILD_NO_DEBUG
