@@ -1685,11 +1685,11 @@ int http_authenticate(const String& logIdentifier,
 
     # if FEATURE_OMETEO_EVENT
 
-    // Generate an event with the response of an open-meteo request (https://open-meteo.com/en/docs)
+    // Generate an event with the response of an open-meteo request.
     // Example command:
-    // sendtohttp,api.open-meteo.com,80,/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&forecast_days=1
+    // sendtohttp,api.open-meteo.com,80,"/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&forecast_days=1"
     // No need for an api key and it is free (daily requests are limited to 10,000 in the free version)
-    // Visit the URL and build your personal URL by selecting the location and values you want to receive.
+    // Visit the URL (https://open-meteo.com/en/docs) and build your personal URL by selecting the location and values you want to receive.
     // Supported variable kinds are current, hourly, daily!
     // In rules you can grep the reply by the kind of weather variables with "On Openmeteo#<type> Do ..."
     // e.g. "On Openmeteo#current Do ..."
@@ -1707,8 +1707,6 @@ int http_authenticate(const String& logIdentifier,
         String str = http.getString();
 
         // Process URL to get unique keys
-
-
         auto getCombinedParams = [](String url, String paramName) {
                                    int start = url.indexOf(paramName + "=");
 
@@ -1718,7 +1716,7 @@ int http_authenticate(const String& logIdentifier,
                                    return (end == -1) ? url.substring(start) : url.substring(start, end);
                                  };
 
-        // Extract current and daily parameters
+        // Extract current hourly and daily parameters
         String currentParams = getCombinedParams(uri, "current");
         String hourlyParams  = getCombinedParams(uri, "hourly");
         String dailyParams   = getCombinedParams(uri, "daily");
@@ -1734,18 +1732,13 @@ int http_authenticate(const String& logIdentifier,
                                          // Split and add keys to the array
                                          while (commaIndex != -1) {
                                            String key = params.substring(startIndex, commaIndex);
-
-
                                            keys[keyCount++] = key;
-
-                                           startIndex = commaIndex + 1;
-                                           commaIndex = params.indexOf(',', startIndex);
+                                           startIndex       = commaIndex + 1;
+                                           commaIndex       = params.indexOf(',', startIndex);
                                          }
 
                                          // Add the last key
                                          String lastKey = params.substring(startIndex);
-
-
                                          keys[keyCount++] = lastKey;
 
                                          String csv              = "";
@@ -1803,14 +1796,8 @@ int http_authenticate(const String& logIdentifier,
                                        }
                                      };
 
-
-        // Process currentParams
         processAndQueueParams(currentParams, str, "current");
-
-        // Process hourlyParams
         processAndQueueParams(hourlyParams,  str, "hourly");
-
-        // Process dailyParams
         processAndQueueParams(dailyParams,   str, "daily");
       }
   }
