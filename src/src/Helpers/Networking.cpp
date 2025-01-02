@@ -1781,9 +1781,7 @@ int http_authenticate(const String& logIdentifier,
                     }
                     csv += value;
                 }
-
-                concat(F("OpenMeteo#"), eventName);
-                eventQueue.addMove(strformat(F("%s=%s"), eventName.c_str(), csv.c_str()));
+                eventQueue.addMove(strformat(F("OpenMeteo#%s=%s"), eventName.c_str(), csv.c_str()));
             }
         };
 
