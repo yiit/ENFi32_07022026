@@ -3636,6 +3636,12 @@ To create/register a plugin, you have to :
     #endif
   #endif
 
+  #if defined(FEATURE_THINGSPEAK_EVENT) || defined(FEATURE_OPENMETEO_EVENT)
+    #define RESPONSE_PARSER_SUPPORT 1
+  #else
+    #define RESPONSE_PARSER_SUPPORT 0
+  #endif
+
   #if !(defined(SOC_DAC_SUPPORTED) && SOC_DAC_SUPPORTED)
     #ifdef USES_P152
       #undef USES_P152
