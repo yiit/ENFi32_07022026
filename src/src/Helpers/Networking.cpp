@@ -33,7 +33,7 @@
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringProvider.h"
 
-#ifdef RESPONSE_PARSER_SUPPORT
+#if RESPONSE_PARSER_SUPPORT
 #include "../Helpers/HTTPResponseParser.h"
 #endif
 
@@ -1648,7 +1648,7 @@ int http_authenticate(const String& logIdentifier,
     // Generate event with the HTTP return code
     // e.g. http#hostname=401
     eventQueue.addMove(strformat(F("http#%s=%d"), host.c_str(), httpCode));
-#ifdef RESPONSE_PARSER_SUPPORT
+#if RESPONSE_PARSER_SUPPORT
     eventFromResponse(host, httpCode, uri, http);
 #endif
   }
