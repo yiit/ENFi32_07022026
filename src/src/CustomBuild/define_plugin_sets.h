@@ -3620,12 +3620,20 @@ To create/register a plugin, you have to :
 */
 
 
-  #ifndef FEATURE_THINGSPEAK_EVENT
-      #define FEATURE_THINGSPEAK_EVENT 0
+#ifndef FEATURE_THINGSPEAK_EVENT
+  #if defined(PLUGIN_BUILD_MAX_ESP32)
+    #define FEATURE_THINGSPEAK_EVENT 1
+  #else
+    #define FEATURE_THINGSPEAK_EVENT 0
   #endif
+#endif
 
   #ifndef FEATURE_OPENMETEO_EVENT
-    #define FEATURE_OPENMETEO_EVENT 0
+    #if defined(PLUGIN_BUILD_MAX_ESP32)
+      #define FEATURE_OPENMETEO_EVENT 1
+    #else
+      #define FEATURE_OPENMETEO_EVENT 0
+    #endif
   #endif
 
   #if !(defined(SOC_DAC_SUPPORTED) && SOC_DAC_SUPPORTED)

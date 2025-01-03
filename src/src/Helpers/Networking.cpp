@@ -1695,101 +1695,104 @@ int http_authenticate(const String& logIdentifier,
     // e.g. "On Openmeteo#current Do ..."
     // Note: hourly and daily results are arrays which can become very long.
     // Best to make seperate calls. Especially for hourly results.
+     
+     //define limits
+      #define WEATHER_KEYS_MAX  10
+      #define URI_MAX_LENGTH    5000
 
     if ((httpCode == 200) && equals(host, F("api.open-meteo.com")))
     {
-      // Length of the response is limited to 5000 characters
-      // ToDo: What would be right size?
-      if (uri.length() > 5000) {
-        addLog(LOG_LEVEL_ERROR, F("Response exceeds 5000 characters"));
+
+      const String str = http.getString();
+
+      if (str.length() > 5000) {
+      addLog(LOG_LEVEL_ERROR, strformat(F("Response exceeds %d characters which could cause instabilities or crashes!"), URI_MAX_LENGTH));
       }
-      else {
-        const String str = http.getString();
 
-        auto processAndQueueParams = [](const String& url, const String& str, const String& eventName) {
-            // Extract the parameters from the URL
-            int start = url.indexOf(eventName + '=');
-            if (start == -1) {
-                return; // No parameters found for the given eventName
-            }
-            start += eventName.length() + 1;
-            const int end = url.indexOf('&', start);
-            const String params = (end == -1) ? url.substring(start) : url.substring(start, end);
+      auto processAndQueueParams = [](const String& url, const String& str, const String& eventName) {
+          // Extract the parameters from the URL
+          int start = url.indexOf(eventName + '=');
+          if (start == -1) {
+              return; // No parameters found for the given eventName
+          }
+          start += eventName.length() + 1;
+          const int end = url.indexOf('&', start);
+          const String params = (end == -1) ? url.substring(start) : url.substring(start, end);
 
-            if (!params.isEmpty()) {
-                String keys[20];
-                int keyCount = 0;
-                int startIndex = 0;
-                int commaIndex = params.indexOf(',');
+          if (!params.isEmpty()) {
+              String keys[WEATHER_KEYS_MAX];
+              int keyCount = 0;
+              int startIndex = 0;
+              int commaIndex = params.indexOf(',');
 
-                // Split and add keys to the array
-                while (commaIndex != -1) {
-                    if (keyCount >= 20) {
-                        // Stop adding keys if array is full
-                        addLog(LOG_LEVEL_ERROR, F("Too many keys in the URL"));
-                        break;
-                    }
-                    String key = params.substring(startIndex, commaIndex);
-                    keys[keyCount++] = key;
-                    startIndex = commaIndex + 1;
-                    commaIndex = params.indexOf(',', startIndex);
-                }
+              // Split and add keys to the array
+              while (commaIndex != -1) {
+                  if (keyCount >= WEATHER_KEYS_MAX) {
+                      // Stop adding keys if array is full
+                      addLog(LOG_LEVEL_ERROR, strformat(F("More than %d keys in the URL, this could cause instabilities or crashes! Try to split up the calls.."), WEATHER_KEYS_MAX));
+                      break;
+                  }
+                  String key = params.substring(startIndex, commaIndex);
+                  keys[keyCount++] = key;
+                  startIndex = commaIndex + 1;
+                  commaIndex = params.indexOf(',', startIndex);
+              }
 
-                // Add the last key
-                if (keyCount < 20) {
-                    const String lastKey = params.substring(startIndex);
-                    keys[keyCount++] = lastKey;
-                }
+              // Add the last key
+              if (keyCount < WEATHER_KEYS_MAX) {
+                  const String lastKey = params.substring(startIndex);
+                  keys[keyCount++] = lastKey;
+              }
 
-                String csv;
-                const int startStringIndex = str.indexOf("\"" + eventName + "\":") + eventName.length() + 4;
-                const int endStringIndex = str.indexOf("}", startStringIndex);
+              String csv;
+              const int startStringIndex = str.indexOf(strformat(F("\"%s\":"), eventName.c_str())) + eventName.length() + 4;
+              const int endStringIndex = str.indexOf('}', startStringIndex);
 
-                for (int i = 0; i < keyCount; i++) // Use keyCount to limit the iteration
-                {
-                    String key = keys[i];
-                    String value;
-                    int startIndex = str.indexOf(key + "\":", startStringIndex);
+              for (int i = 0; i < keyCount; i++) // Use keyCount to limit the iteration
+              {
+                  String key = keys[i];
+                  String value;
+                  int startIndex = str.indexOf(strformat(F("%s\":"), key.c_str()), startStringIndex);
 
-                    if (startIndex == -1) {
-                        // Handle case where key is not found
-                        value = F("-256"); // Placeholder value
-                    } else {
-                        int endIndex = 0;
+                  if (startIndex == -1) {
+                      // Handle case where key is not found
+                      value = F("-256"); // Placeholder value
+                  } else {
+                      int endIndex = 0;
 
-                        if (!equals(eventName, F("current"))) {
-                            // In daily and hourly, the values are stored in an array
-                            startIndex += key.length() + 3; // Move index past the key
-                            endIndex = str.indexOf("]", startIndex);
-                        } else {
-                            startIndex += key.length() + 2; // Move index past the key
-                            endIndex = str.indexOf(",", startIndex);
-                        }
+                      if (!equals(eventName, F("current"))) {
+                          // In daily and hourly, the values are stored in an array
+                          startIndex += key.length() + 3; // Move index past the key
+                          endIndex = str.indexOf(']', startIndex);
+                      } else {
+                          startIndex += key.length() + 2; // Move index past the key
+                          endIndex = str.indexOf(',', startIndex);
+                      }
 
-                        // Find the index of the next comma
-                        if ((endIndex == -1) || (endIndex > str.indexOf("}", startIndex))) {
-                            endIndex = str.indexOf("}", startIndex); // If no comma is found or comma comes after },
-                                                                    // take the rest of the string
-                        }
+                      // Find the index of the next comma
+                      if ((endIndex == -1) || (endIndex > str.indexOf("}", startIndex))) {
+                          endIndex = str.indexOf('}', startIndex); // If no comma is found or comma comes after },
+                                                                  // take the rest of the string
+                      }
 
-                        value = str.substring(startIndex, endIndex);
-                        value.trim(); // Remove any surrounding whitespace
-                    }
+                      value = str.substring(startIndex, endIndex);
+                      value.trim(); // Remove any surrounding whitespace
+                  }
 
-                    if (!csv.isEmpty()) {
-                        csv += ',';
-                    }
-                    csv += value;
-                }
-                eventQueue.addMove(strformat(F("OpenMeteo#%s=%s"), eventName.c_str(), csv.c_str()));
-            }
-        };
+                  if (!csv.isEmpty()) {
+                      csv += ',';
+                  }
+                  csv += value;
+              }
+              eventQueue.addMove(strformat(F("OpenMeteo#%s=%s"), eventName.c_str(), csv.c_str()));
+          }
+      };
 
-        processAndQueueParams(uri, str, F("current"));
-        processAndQueueParams(uri, str, F("hourly"));
-        processAndQueueParams(uri, str, F("daily"));
-      }
+      processAndQueueParams(uri, str, F("current"));
+      processAndQueueParams(uri, str, F("hourly"));
+      processAndQueueParams(uri, str, F("daily"));
     }
+
    # endif // if FEATURE_OMETEO_EVENT
   }
 
