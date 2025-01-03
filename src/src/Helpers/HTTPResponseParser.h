@@ -4,6 +4,10 @@
 #include "../../ESPEasy_common.h"
 #include "../../_Plugin_Helper.h"
 
+# ifdef PLUGIN_BUILD_MINIMAL_OTA
+#  include <ESP8266HTTPClient.h>
+# endif // ifdef ESP8266
+
 
 // Function declarations
 void eventFromResponse(const String& host,

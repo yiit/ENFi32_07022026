@@ -3643,7 +3643,7 @@ To create/register a plugin, you have to :
   #if FEATURE_THINGSPEAK_EVENT || FEATURE_OPENMETEO_EVENT || FEATURE_INVERTER_EVENT
     #define RESPONSE_PARSER_SUPPORT 1
   #else
-    #define RESPONSE_PARSER_SUPPORT 1
+    #define RESPONSE_PARSER_SUPPORT 0
   #endif
 
   #if !(defined(SOC_DAC_SUPPORTED) && SOC_DAC_SUPPORTED)
