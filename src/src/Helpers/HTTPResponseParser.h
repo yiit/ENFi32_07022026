@@ -3,16 +3,28 @@
 
 #include "../../ESPEasy_common.h"
 #include "../../_Plugin_Helper.h"
+#include "../Helpers/Networking.h"
 
-#ifdef PLUGIN_BUILD_MINIMAL_OTA
+#include <ArduinoJson.h>
+
+#ifdef ESP8266
 # include <ESP8266HTTPClient.h>
-#endif // ifdef ESP8266
+#endif // ifdef ESP8266 #
 
+#define MAX_KEYS 20 // Maximum number of keys allowed in json.keys
+#define URI_MAX_LENGTH 5000
 
-// Function declarations
+/**
+ * @brief Reads and processes keys from a json.keys file and navigates the JSON document.
+ */
+void readAndProcessJsonKeys(DynamicJsonDocument*root);
+
+/**
+ * @brief Processes the response of an HTTP request, extracts the JSON, and processes it using keys from `json.keys`.
+ */
 void eventFromResponse(const String& host,
                        const int   & httpCode,
                        const String& uri,
                        HTTPClient  & http);
 
-#endif // ifndef HELPERS_HTTPRESPONSEPARSER_H
+#endif // HELPERS_HTTPRESPONSEPARSER_H
