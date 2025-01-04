@@ -3,16 +3,18 @@
 
 #include "../../ESPEasy_common.h"
 #include "../../_Plugin_Helper.h"
-#include "../Helpers/Networking.h"
 
-#include <ArduinoJson.h>
+#if RESPONSE_PARSER_SUPPORT
+# include "../Helpers/Networking.h"
 
-#ifdef ESP8266
-# include <ESP8266HTTPClient.h>
-#endif // ifdef ESP8266 #
+# include <ArduinoJson.h>
 
-#define MAX_KEYS 20 // Maximum number of keys allowed in json.keys
-#define URI_MAX_LENGTH 5000
+# ifdef ESP8266
+#  include <ESP8266HTTPClient.h>
+# endif // ifdef ESP8266 #
+
+# define MAX_KEYS 20 // Maximum number of keys allowed in json.keys
+# define URI_MAX_LENGTH 5000
 
 /**
  * @brief Reads and processes keys from a json.keys file and navigates the JSON document.
@@ -26,5 +28,5 @@ void eventFromResponse(const String& host,
                        const int   & httpCode,
                        const String& uri,
                        HTTPClient  & http);
-
+#endif // RESPONSE_PARSER_SUPPORT
 #endif // HELPERS_HTTPRESPONSEPARSER_H
