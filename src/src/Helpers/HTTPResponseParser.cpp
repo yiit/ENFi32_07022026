@@ -252,7 +252,7 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
           // Process the keys from the file
           readAndProcessJsonKeys(root, numJson);
         } else {
-          addLog(LOG_LEVEL_INFO, strformat(F("Parsing JSON failed")));
+          addLog(LOG_LEVEL_INFO, F("Parsing JSON failed"));
         }
 
         // Cleanup JSON resources
@@ -397,7 +397,10 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
 
   // Log the results
   addLog(LOG_LEVEL_INFO, strformat(F("Successfully processed %d out of %d keys"), successfullyProcessedCount, keyCount));
-  eventQueue.addMove(strformat(F("JsonReply%s=%s"),  (numJson != 0) ? String(numJson).c_str() : "", csvOutput.c_str()));
+  eventQueue.addMove(strformat(F("JsonReply%s%s=%s"),
+                               (numJson != 0) ? "#" : "",
+                               (numJson != 0) ? String(numJson).c_str() : "",
+                               csvOutput.c_str()));
 }
 
   # endif // if FEATURE_JSON_EVENT
