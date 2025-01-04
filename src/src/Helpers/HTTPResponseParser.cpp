@@ -8,12 +8,12 @@
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/StringProvider.h"
 
-#if FEATURE_JSON_EVENT
-# include "../Helpers/ESPEasy_Storage.h"
-# include "../WebServer/LoadFromFS.h"
+# if FEATURE_JSON_EVENT
+#  include "../Helpers/ESPEasy_Storage.h"
+#  include "../WebServer/LoadFromFS.h"
 
-# include <ArduinoJson.h>
-#endif // if FEATURE_JSON_EVENT
+#  include <ArduinoJson.h>
+# endif // if FEATURE_JSON_EVENT
 
 
 void eventFromResponse(const String& host, const int& httpCode, const String& uri, HTTPClient& http) {
@@ -192,7 +192,7 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
     // ------------------------------------------------------------------------------------------- JSONevent
   # if FEATURE_JSON_EVENT
 
-    if (uri.endsWith(F("&json"))) {
+    if (uri.endsWith(F("?json"))) {
       const String message = http.getString();
 
       if (message.length() > URI_MAX_LENGTH) {
@@ -310,7 +310,18 @@ void readAndProcessJsonKeys(DynamicJsonDocument*root) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
       } else if (value.is<float>()) {
-        csvOutput += String(value.as<float>());
+        csvOutput += String(value.as<float>(), 16);
+
+        // remove trailing zeros and decimal point
+        if (csvOutput.lastIndexOf('.') != -1) {
+          while (csvOutput.endsWith("0")) {
+            csvOutput.remove(csvOutput.length() - 1);
+          }
+
+          if (csvOutput.endsWith(".")) {
+            csvOutput.remove(csvOutput.length() - 1);
+          }
+        }
       } else if (value.is<const char *>()) {
         csvOutput += String(value.as<const char *>());
       } else {
