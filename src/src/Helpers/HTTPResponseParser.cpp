@@ -345,12 +345,13 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     if (!value.isNull()) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
-         #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+    #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<double>()) {
         csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
-      #  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+    #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<float>()) {
         csvOutput += floatToString(value.as<float>(), nr_decimals, 1);
+    #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<const char *>()) {
         csvOutput += String(value.as<const char *>());
       } else if (value.is<JsonArray>()) {
@@ -365,9 +366,10 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
         #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<double>()) {
             csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
-        #  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+        #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<float>()) {
             csvOutput += floatToString(element.as<float>(), nr_decimals, 1);
+        #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<const char *>()) {
             csvOutput += String(element.as<const char *>());
           } else {
