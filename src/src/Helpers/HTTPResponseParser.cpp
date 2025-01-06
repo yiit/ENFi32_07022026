@@ -12,9 +12,6 @@
 #  include "../Helpers/ESPEasy_Storage.h"
 #  include "../WebServer/LoadFromFS.h"
 
-#  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-#   define ARDUINOJSON_USE_DOUBLE 1
-#  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
 #  include <ArduinoJson.h>
 
 # endif // if FEATURE_JSON_EVENT
@@ -345,11 +342,10 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     if (!value.isNull()) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
-    #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-      } else if (value.is<double>()) {
-        csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
-    #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<float>()) {
+         #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+        csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
+         #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
         csvOutput += floatToString(value.as<float>(), nr_decimals, 1);
     #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<const char *>()) {
@@ -363,11 +359,10 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
         for (JsonVariant element : array) {
           if (element.is<int>()) {
             csvOutput += String(element.as<int>());
-        #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-          } else if (element.is<double>()) {
-            csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
-        #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<float>()) {
+              #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+            csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
+              #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
             csvOutput += floatToString(element.as<float>(), nr_decimals, 1);
         #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<const char *>()) {
