@@ -12,7 +12,11 @@
 #  include "../Helpers/ESPEasy_Storage.h"
 #  include "../WebServer/LoadFromFS.h"
 
+#  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+#   define ARDUINOJSON_USE_DOUBLE 1
+#  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
 #  include <ArduinoJson.h>
+
 # endif // if FEATURE_JSON_EVENT
 
 
@@ -265,26 +269,11 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
    # if FEATURE_JSON_EVENT
 
 void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
-// #  ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-//   int nr_decimals = ESPEASY_DOUBLE_NR_DECIMALS;
-// #  else // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-//   int nr_decimals = ESPEASY_FLOAT_NR_DECIMALS;
-// #  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-
-int nr_decimals = ESPEASY_FLOAT_NR_DECIMALS;
-
-  // function to clean up float values
-  auto cleanUpFloat = [](String& valueStr) {
-                        if (valueStr.lastIndexOf('.') != -1) {
-                          while (valueStr.endsWith("0")) {
-                            valueStr.remove(valueStr.length() - 1);
-                          }
-
-                          if (valueStr.endsWith(".")) {
-                            valueStr.remove(valueStr.length() - 1);
-                          }
-                        }
-                      };
+#  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+  int nr_decimals = ESPEASY_DOUBLE_NR_DECIMALS;
+#  else // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+  int nr_decimals = ESPEASY_FLOAT_NR_DECIMALS;
+#  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
 
   // Open the `json.keys` file
   const String fileName = strformat(
@@ -356,9 +345,12 @@ int nr_decimals = ESPEASY_FLOAT_NR_DECIMALS;
     if (!value.isNull()) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
+         #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+      } else if (value.is<double>()) {
+        csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
+      #  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<float>()) {
-        csvOutput += String(value.as<float>(), nr_decimals);
-        cleanUpFloat(csvOutput);
+        csvOutput += floatToString(value.as<float>(), nr_decimals, 1);
       } else if (value.is<const char *>()) {
         csvOutput += String(value.as<const char *>());
       } else if (value.is<JsonArray>()) {
@@ -370,9 +362,12 @@ int nr_decimals = ESPEASY_FLOAT_NR_DECIMALS;
         for (JsonVariant element : array) {
           if (element.is<int>()) {
             csvOutput += String(element.as<int>());
+        #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+          } else if (element.is<double>()) {
+            csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
+        #  endif // ifdef FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<float>()) {
-        csvOutput += String(value.as<float>(), nr_decimals);
-        cleanUpFloat(csvOutput);
+            csvOutput += floatToString(element.as<float>(), nr_decimals, 1);
           } else if (element.is<const char *>()) {
             csvOutput += String(element.as<const char *>());
           } else {
