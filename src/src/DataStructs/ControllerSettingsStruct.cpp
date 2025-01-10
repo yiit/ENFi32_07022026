@@ -48,6 +48,7 @@ void ControllerSettingsStruct::reset() {
   VariousBits1.deduplicate                      = 0;
   VariousBits1.useLocalSystemTime               = 0;
   VariousBits1.TLStype                          = 0;
+  VariousBits1.mqttAutoDiscovery                = 0;
 
   safe_strncpy(ClientID, F(CONTROLLER_DEFAULT_CLIENTID), sizeof(ClientID));
 }

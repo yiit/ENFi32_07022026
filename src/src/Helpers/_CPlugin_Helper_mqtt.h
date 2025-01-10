@@ -38,12 +38,28 @@ String MQTT_DiscoveryBuildValueTopic(const String            & topic,
                                      struct EventStruct       *event,
                                      uint8_t                   taskValueIndex,
                                      const __FlashStringHelper*deviceClass);
+
 bool MQTT_DiscoveryPublish(controllerIndex_t ControllerIndex,
                            const String    & topic,
-                           String          & discoveryMessage,
+                           const String    & discoveryMessage,
                            taskIndex_t       x,
                            uint8_t           v,
                            const String    & taskName);
+
+bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
+                                           uint8_t                   taskValue,
+                                           String                    taskName,
+                                           controllerIndex_t         ControllerIndex,
+                                           String                    publishTopic,
+                                           String                    discoveryTopic,
+                                           const __FlashStringHelper*componentClass,
+                                           String                    deviceClass,
+                                           String                    unitOfMeasure,
+                                           struct EventStruct       *event,
+                                           const String              deviceElement,
+                                           bool                      success,
+                                           bool                      hasSet,
+                                           bool                      hasIcon);
 # endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
 #endif // ifndef CPLUGIN_HELPER_MQTT_H

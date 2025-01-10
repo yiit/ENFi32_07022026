@@ -18,7 +18,7 @@
 /** Changelog:
  * 2024-11-29 tonhuisman: Add Discovery trigger setting
  * 2024-11-11 tonhuisman: Add AutoDiscovery options
- *                        Home Assistant suggested discovery topic: "homeassistant/%devclass%/%sysname%/%tskname%/config"
+ *                        Home Assistant suggested discovery topic: "homeassistant/%devclass%/%sysname%/%tskname%"
  * 2023-08-18 tonhuisman: Clean up source for pull request
  * 2023-03-15 tonhuisman: Add processing of topic endpoint /set to issue a TaskValueSet,taskname,taskvalue,payload command for
  *                        topic %sysname%/#/taskname/valuename/set
@@ -151,7 +151,11 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
           // We have received the Discovery request topic
           // Generate random time-offset in 0.1 sec, range 1..10 seconds
           mqttDiscoveryTimeout = random(10, 100);
-          addLog(LOG_LEVEL_INFO, strformat(F("C005 : Request for AutoDiscovery received. %d"), mqttDiscoveryTimeout));
+
+          if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+            addLog(LOG_LEVEL_INFO, strformat(F("C005 : Request for AutoDiscovery received. %.1f sec."),
+                                             mqttDiscoveryTimeout / 10.0f));
+          }
 
           // FIXME Generate event when request received?
         } else

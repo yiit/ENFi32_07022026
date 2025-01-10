@@ -69,6 +69,18 @@ uint8_t getValueCountFromSensorType(Sensor_VType sensorType)
     case Sensor_VType::SENSOR_TYPE_UV_ONLY:
     case Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY:
     case Sensor_VType::SENSOR_TYPE_IR_ONLY:
+    case Sensor_VType::SENSOR_TYPE_WEIGHT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_CURRENT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY:
+    case Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY:
+    case Sensor_VType::SENSOR_TYPE_TVOC_ONLY:
+    case Sensor_VType::SENSOR_TYPE_BARO_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_RED_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_BLUE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_TEMP_ONLY:
       return 1;
   }
   #ifndef BUILD_NO_DEBUG
@@ -112,22 +124,65 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_NONE:             return F("None");
     case Sensor_VType::SENSOR_TYPE_NOT_SET:  break;
 
-    // FIXME To be ignored?
+      // FIXME To be ignored?
+    #if FEATURE_MQTT_DISCOVER
     case Sensor_VType::SENSOR_TYPE_ANALOG_ONLY:      return F("Analog");
     case Sensor_VType::SENSOR_TYPE_TEMP_ONLY:        return F("Temp");
     case Sensor_VType::SENSOR_TYPE_HUM_ONLY:         return F("Hum");
-    case Sensor_VType::SENSOR_TYPE_LUX_ONLY:         return F("Luc");
+    case Sensor_VType::SENSOR_TYPE_LUX_ONLY:         return F("Lux");
     case Sensor_VType::SENSOR_TYPE_DISTANCE_ONLY:    return F("Distance");
     case Sensor_VType::SENSOR_TYPE_DIRECTION_ONLY:   return F("Direction");
     case Sensor_VType::SENSOR_TYPE_DUSTPM2_5_ONLY:   return F("Dust PM2.5");
     case Sensor_VType::SENSOR_TYPE_DUSTPM1_0_ONLY:   return F("Dust PM1.0");
     case Sensor_VType::SENSOR_TYPE_DUSTPM10_ONLY:    return F("Dust PM10");
     case Sensor_VType::SENSOR_TYPE_MOISTURE_ONLY:    return F("Moisture");
-    case Sensor_VType::SENSOR_TYPE_CO2_ONLY:         return F("CO2");
+    case Sensor_VType::SENSOR_TYPE_CO2_ONLY:         return F("(e)CO2");
     case Sensor_VType::SENSOR_TYPE_GPS_ONLY:         return F("GPS");
     case Sensor_VType::SENSOR_TYPE_UV_ONLY:          return F("UV");
     case Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY:    return F("UV Index");
     case Sensor_VType::SENSOR_TYPE_IR_ONLY:          return F("IR");
+    case Sensor_VType::SENSOR_TYPE_WEIGHT_ONLY:      return F("Weight");
+    case Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY:     return F("Voltage");
+    case Sensor_VType::SENSOR_TYPE_CURRENT_ONLY:     return F("Current");
+    case Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY:   return F("Power Usage");
+    case Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY:  return F("Power Factor");
+    case Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY: return F("Apparent Power Usage");
+    case Sensor_VType::SENSOR_TYPE_TVOC_ONLY:        return F("TVOC");
+    case Sensor_VType::SENSOR_TYPE_BARO_ONLY:        return F("Baro");
+    case Sensor_VType::SENSOR_TYPE_COLOR_RED_ONLY:   return F("Red");
+    case Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY: return F("Green");
+    case Sensor_VType::SENSOR_TYPE_COLOR_BLUE_ONLY:  return F("Blue");
+    case Sensor_VType::SENSOR_TYPE_COLOR_TEMP_ONLY:  return F("Color temperature");
+    #else // if FEATURE_MQTT_DISCOVER
+    case Sensor_VType::SENSOR_TYPE_ANALOG_ONLY:
+    case Sensor_VType::SENSOR_TYPE_TEMP_ONLY:
+    case Sensor_VType::SENSOR_TYPE_HUM_ONLY:
+    case Sensor_VType::SENSOR_TYPE_LUX_ONLY:
+    case Sensor_VType::SENSOR_TYPE_DISTANCE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_DIRECTION_ONLY:
+    case Sensor_VType::SENSOR_TYPE_DUSTPM2_5_ONLY:
+    case Sensor_VType::SENSOR_TYPE_DUSTPM1_0_ONLY:
+    case Sensor_VType::SENSOR_TYPE_DUSTPM10_ONLY:
+    case Sensor_VType::SENSOR_TYPE_MOISTURE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_CO2_ONLY:
+    case Sensor_VType::SENSOR_TYPE_GPS_ONLY:
+    case Sensor_VType::SENSOR_TYPE_UV_ONLY:
+    case Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY:
+    case Sensor_VType::SENSOR_TYPE_IR_ONLY:
+    case Sensor_VType::SENSOR_TYPE_WEIGHT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_CURRENT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY:
+    case Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY:
+    case Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY:
+    case Sensor_VType::SENSOR_TYPE_TVOC_ONLY:
+    case Sensor_VType::SENSOR_TYPE_BARO_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_RED_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_BLUE_ONLY:
+    case Sensor_VType::SENSOR_TYPE_COLOR_TEMP_ONLY:
+      break;
+    #endif // if FEATURE_MQTT_DISCOVER
   }
   return F("");
 }

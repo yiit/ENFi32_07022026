@@ -1434,16 +1434,16 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
           Settings.TaskDeviceSendData[controllerNr][taskIndex]);
 
         protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(controllerNr);
+        const bool showControllerIDX  = validProtocolIndex(ProtocolIndex) &&
+                                        getProtocolStruct(ProtocolIndex).usesID &&
+                                        (Settings.Protocol[controllerNr] != 0);
         # if FEATURE_MQTT_DISCOVER
         const bool showMqttGroup = (validProtocolIndex(ProtocolIndex) &&
                                     getProtocolStruct(ProtocolIndex).mqttAutoDiscover &&
-                                    (mqttDiscoveryController == controllerNr) &&
                                     Settings.TaskDeviceSendData[controllerNr][taskIndex]);
         # endif // if FEATURE_MQTT_DISCOVER
 
-        if ((validProtocolIndex(ProtocolIndex) &&
-             getProtocolStruct(ProtocolIndex).usesID &&
-             (Settings.Protocol[controllerNr] != 0))
+        if (showControllerIDX
             # if FEATURE_MQTT_DISCOVER
             || showMqttGroup
             # endif // if FEATURE_MQTT_DISCOVER
@@ -1451,7 +1451,7 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
           html_TD();
           addHtml(
             # if FEATURE_MQTT_DISCOVER
-            showMqttGroup ? F("Group:") :
+            showMqttGroup && !showControllerIDX ? F("Group:") :
             # endif // if FEATURE_MQTT_DISCOVER
             F("IDX:"));
           html_TD();
@@ -1461,7 +1461,8 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
         }
         # if FEATURE_MQTT_DISCOVER
 
-        if (showMqttGroup) {
+        if (showMqttGroup &&
+            (mqttDiscoveryController == controllerNr)) {
           html_TD();
           addHtml(F("Resend MQTT Discovery:"));
           html_TD();
