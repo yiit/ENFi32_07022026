@@ -102,14 +102,13 @@ boolean Plugin_073(uint8_t function, struct EventStruct *event, String& string) 
 
   switch (function) {
     case PLUGIN_DEVICE_ADD: {
-      Device[++deviceCount].Number      = PLUGIN_ID_073;
-      Device[deviceCount].Type          = DEVICE_TYPE_TRIPLE;
-      Device[deviceCount].VType         = Sensor_VType::SENSOR_TYPE_NONE;
-      Device[deviceCount].Ports         = 0;
-      Device[deviceCount].ValueCount    = 0;
-      Device[deviceCount].setPin1Direction(gpio_direction::gpio_output);
-      Device[deviceCount].setPin2Direction(gpio_direction::gpio_output);
-      Device[deviceCount].setPin3Direction(gpio_direction::gpio_output);
+      auto& dev = Device[++deviceCount];
+      dev.Number = PLUGIN_ID_073;
+      dev.Type   = DEVICE_TYPE_TRIPLE;
+      dev.VType  = Sensor_VType::SENSOR_TYPE_NONE;
+      dev.setPin1Direction(gpio_direction::gpio_output);
+      dev.setPin2Direction(gpio_direction::gpio_output);
+      dev.setPin3Direction(gpio_direction::gpio_output);
 
       break;
     }
@@ -150,7 +149,8 @@ boolean Plugin_073(uint8_t function, struct EventStruct *event, String& string) 
                                                    F("74HC595 - 2..8 digit"),
                                                    # endif // if P073_USE_74HC595
         };
-        addFormSelector(F("Display Type"), F("displtype"), NR_ELEMENTS(displtype), displtype, nullptr, P073_CFG_DISPLAYTYPE);
+        constexpr size_t optionCount = NR_ELEMENTS(displtype);
+        addFormSelector(F("Display Type"), F("displtype"), optionCount, displtype, nullptr, PCONFIG(0));
       }
       # if P073_USE_74HC595
 
@@ -229,9 +229,9 @@ boolean Plugin_073(uint8_t function, struct EventStruct *event, String& string) 
       # if P073_SUPPRESS_ZERO
       addFormCheckBox(F("Suppress leading 0 on day/hour"), F("supp0"), bitRead(P073_CFG_FLAGS, P073_OPTION_SUPPRESS0));
       # endif // if P073_SUPPRESS_ZERO
-      #if P073_BLINK_DOT
+      # if P073_BLINK_DOT
       addFormCheckBox(F("Use decimal dot for blink"),      F("bldot"), bitRead(P073_CFG_FLAGS, P073_OPTION_BLINK_DOT));
-      #endif // if P073_BLINK_DOT
+      # endif // if P073_BLINK_DOT
 
       # if P073_SCROLL_TEXT
       addFormCheckBox(F("Scroll text &gt; display width"), F("scroll_text"), bitRead(P073_CFG_FLAGS, P073_OPTION_SCROLLTEXT));
@@ -271,9 +271,9 @@ boolean Plugin_073(uint8_t function, struct EventStruct *event, String& string) 
       # if P073_SUPPRESS_ZERO
       bitWrite(lSettings, P073_OPTION_SUPPRESS0, isFormItemChecked(F("supp0")));
       # endif // if P073_SUPPRESS_ZERO
-      #if P073_BLINK_DOT
+      # if P073_BLINK_DOT
       bitWrite(lSettings, P073_OPTION_BLINK_DOT, isFormItemChecked(F("bldot")));
-      #endif // if P073_BLINK_DOT
+      # endif // if P073_BLINK_DOT
       # if P073_EXTRA_FONTS
       P073_CFG_FONTSET = getFormItemInt(F("fontset"));
       # endif // if P073_EXTRA_FONTS

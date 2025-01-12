@@ -6,18 +6,20 @@
 // #######################################################################################################
 
 
-#if defined(ESP32) && !defined(ESP32C2) && !defined(ESP32C3) && !defined(ESP32C6)
+#if defined(SOC_TOUCH_SENSOR_SUPPORTED) && SOC_TOUCH_SENSOR_SUPPORTED
+
+# define LAST_TOUCH_INPUT_INDEX    SOC_TOUCH_SENSOR_NUM
 
 #ifdef ESP32_CLASSIC
   # define HAS_T0_INPUT  1
   # define HAS_T10_TO_T14 0
-  # define LAST_TOUCH_INPUT_INDEX 10
-#endif
-#if defined(ESP32S2) || defined(ESP32S3)
+//  # define LAST_TOUCH_INPUT_INDEX 10
+#elif defined(ESP32S2) || defined(ESP32S3)
   # define HAS_T0_INPUT  0
   # define HAS_T10_TO_T14 1
-  # define LAST_TOUCH_INPUT_INDEX 15
-  
+//  # define LAST_TOUCH_INPUT_INDEX 15
+#else
+  static_assert(false, "Implement processor architecture");
 #endif
 
 
@@ -54,19 +56,14 @@ boolean Plugin_097(uint8_t function, struct EventStruct *event, String& string)
   {
     case PLUGIN_DEVICE_ADD:
     {
-      Device[++deviceCount].Number           = PLUGIN_ID_097;
-      Device[deviceCount].Type               = DEVICE_TYPE_ANALOG;
-      Device[deviceCount].VType              = Sensor_VType::SENSOR_TYPE_SINGLE;
-      Device[deviceCount].Ports              = 0;
-      Device[deviceCount].PullUpOption       = false;
-      Device[deviceCount].InverseLogicOption = false;
-      Device[deviceCount].FormulaOption      = true;
-      Device[deviceCount].ValueCount         = 1;
-      Device[deviceCount].SendDataOption     = true;
-      Device[deviceCount].DecimalsOnly       = false;
-      Device[deviceCount].TimerOption        = false;
-      Device[deviceCount].TimerOptional      = true;
-      Device[deviceCount].GlobalSyncOption   = true;
+      auto& dev = Device[++deviceCount];
+      dev.Number         = PLUGIN_ID_097;
+      dev.Type           = DEVICE_TYPE_ANALOG;
+      dev.VType          = Sensor_VType::SENSOR_TYPE_SINGLE;
+      dev.FormulaOption  = true;
+      dev.ValueCount     = 1;
+      dev.SendDataOption = true;
+      dev.TimerOptional  = true;
       break;
     }
 
