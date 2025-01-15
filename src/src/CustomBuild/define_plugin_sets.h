@@ -3651,6 +3651,7 @@ To create/register a plugin, you have to :
     #define FEATURE_JSON_EVENT 1
   #else
     #define FEATURE_JSON_EVENT 0
+  #endif
 #endif
 
 #if FEATURE_THINGSPEAK_EVENT || FEATURE_OPENMETEO_EVENT || FEATURE_JSON_EVENT
