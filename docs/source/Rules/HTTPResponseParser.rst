@@ -196,9 +196,9 @@ Example: ``SendToHTTP 192.168.1.199,80,"/solar_api/v1/GetInverterRealtimeData.cg
 
 .. code:: none
 
-    Body.Data.PAC.Value
-    Body.Data.DAY_ENERGY.Value
-    Body.Data.TOTAL_ENERGY.Value
+    Body.Data.PAC.Values.1
+    Body.Data.DAY_ENERGY.Values.1
+    Body.Data.TOTAL_ENERGY.Values.1
 
 3. Upload the file.
 
@@ -214,8 +214,8 @@ Example: ``SendToHTTP 192.168.1.199,80,"/solar_api/v1/GetInverterRealtimeData.cg
 
   .. code:: none
 
-    1:Body.Data.DAY_ENERGY.Value
-    2:Body.Data.PAC.Value
+    1:Body.Data.DAY_ENERGY.Values.1
+    2:Body.Data.PAC.Values.1
 
 - Grep the data with ``On JsonReply#<number> Do``. e.g.: ``On JsonReply#1 Do``
 
@@ -227,9 +227,9 @@ This way you can call more than one URL or put an array in a separate response, 
 
     On JsonReply* Do
       If %eventpar% = 1
-        LogEntry,'%eventpar% 1: %eventvalue1% 2: %eventvalue2% 3: %eventvalue3%'
+        LogEntry,'Keygroup:%eventpar% DAY_ENERGY:%eventvalue1%'
       Elseif %eventpar% = 2
-        LogEntry,'%eventpar% 1: %eventvalue1% 2: %eventvalue2% 3: %eventvalue3%'
+        LogEntry,'Keygroup:%eventpar% PAC:%eventvalue1%'
       Endif
     Endon
 
