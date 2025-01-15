@@ -226,7 +226,7 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
                          };
 
       // Check if root needs resizing or cleanup
-      if ((root != nullptr) && (message.length() * 2 > lastJsonMessageLength)) {
+      if ((root != nullptr) && (message.length() * 2.5 > lastJsonMessageLength)) {
         cleanupJSON();
       }
 
@@ -306,7 +306,6 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
       key       = key.substring(key.indexOf(':') + 1);
     }
 
-
     // Only process keys that match the filterNumber (or process all if no match)
     if ((numJson > 0) && (keyNumber != numJson)) {
       continue; // Skip this key if it doesn't match the filter number
@@ -343,11 +342,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
       } else if (value.is<float>()) {
-         #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
         csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
-         #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-        csvOutput += floatToString(value.as<float>(), nr_decimals, 1);
-    #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
       } else if (value.is<const char *>()) {
         csvOutput += String(value.as<const char *>());
       } else if (value.is<JsonArray>()) {
@@ -360,11 +355,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
           if (element.is<int>()) {
             csvOutput += String(element.as<int>());
           } else if (element.is<float>()) {
-              #  if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
             csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
-              #  else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-            csvOutput += floatToString(element.as<float>(), nr_decimals, 1);
-        #  endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
           } else if (element.is<const char *>()) {
             csvOutput += String(element.as<const char *>());
           } else {
@@ -384,21 +375,24 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     } else {
       csvOutput += "null"; // Indicate missing value
     }
-
-    // Add a comma unless it's the last key
-    if (keyFile.peek() != -1) {
-      csvOutput += ","; // Add a comma after the value
-    }
+    csvOutput += ",";
   }
 
   keyFile.close();
 
-  // Log the results
-  addLog(LOG_LEVEL_INFO, strformat(F("Successfully processed %d out of %d keys"), successfullyProcessedCount, keyCount));
-  eventQueue.addMove(strformat(F("JsonReply%s%s=%s"),
-                               numJson != 0 ? "#" : "",
-                               toStringNoZero(numJson).c_str(),
-                               csvOutput.c_str()));
+  if (!csvOutput.isEmpty()) {                   // If there is nothing to show don't create an event
+    if (csvOutput.charAt(csvOutput.length() - 1) == ',') {
+      // Check if the last character is a comma
+      csvOutput.remove(csvOutput.length() - 1); // Remove the last character
+    }
+
+    // Log the results
+    addLog(LOG_LEVEL_INFO, strformat(F("Successfully processed %d out of %d keys"), successfullyProcessedCount, keyCount));
+    eventQueue.addMove(strformat(F("JsonReply%s%s=%s"),
+                                 numJson != 0 ? "#" : "",
+                                 toStringNoZero(numJson).c_str(),
+                                 csvOutput.c_str()));
+  }
 }
 
   # endif // if FEATURE_JSON_EVENT

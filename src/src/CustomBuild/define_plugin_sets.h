@@ -3629,7 +3629,7 @@ To create/register a plugin, you have to :
 #define FEATURE_ALTERNATIVE_CDN_URL 1
 */
 
-
+//-------------------HTTPResponseParser Section----------------
 #ifndef FEATURE_THINGSPEAK_EVENT
   #if defined(PLUGIN_BUILD_MAX_ESP32)
     #define FEATURE_THINGSPEAK_EVENT 1
@@ -3638,35 +3638,39 @@ To create/register a plugin, you have to :
   #endif
 #endif
 
-  #ifndef FEATURE_OPENMETEO_EVENT
-    #if defined(PLUGIN_BUILD_MAX_ESP32)
-      #define FEATURE_OPENMETEO_EVENT 1
-    #else
-      #define FEATURE_OPENMETEO_EVENT 0
-    #endif
-  #endif
-
-  #ifndef FEATURE_JSON_EVENT
-    #define FEATURE_JSON_EVENT 0
-  #endif
-
-  #if FEATURE_THINGSPEAK_EVENT || FEATURE_OPENMETEO_EVENT || FEATURE_JSON_EVENT
-    #define RESPONSE_PARSER_SUPPORT 1
+#ifndef FEATURE_OPENMETEO_EVENT
+  #if defined(PLUGIN_BUILD_MAX_ESP32)
+    #define FEATURE_OPENMETEO_EVENT 1
   #else
-    #define RESPONSE_PARSER_SUPPORT 0
+    #define FEATURE_OPENMETEO_EVENT 0
   #endif
+#endif
 
-  #if !(defined(SOC_DAC_SUPPORTED) && SOC_DAC_SUPPORTED)
-    #ifdef USES_P152
-      #undef USES_P152
-    #endif
-  #endif
+#ifndef FEATURE_JSON_EVENT
+  #if defined(PLUGIN_BUILD_MAX_ESP32)
+    #define FEATURE_JSON_EVENT 1
+  #else
+    #define FEATURE_JSON_EVENT 0
+#endif
 
-  #if !(defined(SOC_TOUCH_SENSOR_SUPPORTED) && SOC_TOUCH_SENSOR_SUPPORTED)
-    #ifdef USES_P097
-      #undef USES_P097
-    #endif
+#if FEATURE_THINGSPEAK_EVENT || FEATURE_OPENMETEO_EVENT || FEATURE_JSON_EVENT
+  #define RESPONSE_PARSER_SUPPORT 1
+#else
+  #define RESPONSE_PARSER_SUPPORT 0
+#endif
+//-------------------End of HTTPResponseParser Section----------
+
+#if !(defined(SOC_DAC_SUPPORTED) && SOC_DAC_SUPPORTED)
+  #ifdef USES_P152
+    #undef USES_P152
   #endif
+#endif
+
+#if !(defined(SOC_TOUCH_SENSOR_SUPPORTED) && SOC_TOUCH_SENSOR_SUPPORTED)
+  #ifdef USES_P097
+    #undef USES_P097
+  #endif
+#endif
 
 
 #endif // CUSTOMBUILD_DEFINE_PLUGIN_SETS_H

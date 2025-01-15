@@ -1648,10 +1648,13 @@ int http_authenticate(const String& logIdentifier,
     // Generate event with the HTTP return code
     // e.g. http#hostname=401
     eventQueue.addMove(strformat(F("http#%s=%d"), host.c_str(), httpCode));
+
+// ----This way to the custom response parser----------------
 #if RESPONSE_PARSER_SUPPORT
     eventFromResponse(host, httpCode, uri, http);
 #endif
   }
+// -----------------------------------------------------------
 
 #ifndef BUILD_NO_DEBUG
   log_http_result(http, logIdentifier, host + ':' + port, HttpMethod, httpCode, EMPTY_STRING);
