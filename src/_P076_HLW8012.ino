@@ -19,6 +19,8 @@
 //
 
 /** Changelog:
+ * 2025-01-16 tonhuisman: Implement support for MQTT AutoDiscovery
+ *                        Add support for PLUGIN_GET_DEVICEVALUECOUNT that was missing.
  * 2025-01-16 tonhuisman: Fix merge conflict, (re-)apply Uncrustify formatting
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported yet for HLW8012)
  * 2024-12-26 tonhuisman: Add preset for Shelly Plus PLUG-S (ESP32 device), only enabled for ESP32 builds
@@ -109,6 +111,9 @@ unsigned long p076_timer{};
 // Forward declaration helper function
 const __FlashStringHelper* p076_getQueryString(uint8_t value_nr,
                                                bool    displayString);
+# if FEATURE_MQTT_DISCOVER
+Sensor_VType               p076_getQueryVType(uint8_t value_nr);
+# endif // if FEATURE_MQTT_DISCOVER
 
 # if ESP_IDF_VERSION_MAJOR >= 5
 
@@ -242,7 +247,7 @@ boolean Plugin_076(uint8_t function, struct EventStruct *event, String& string)
       {
         if (i < P076_NR_OUTPUT_VALUES)
         {
-          uint8_t choice = PCONFIG(i + P076_QUERY1_CONFIG_POS);
+          const uint8_t choice = PCONFIG(i + P076_QUERY1_CONFIG_POS);
           ExtraTaskSettings.setTaskDeviceValueName(i, p076_getQueryString(choice, false));
         }
         else
@@ -253,11 +258,21 @@ boolean Plugin_076(uint8_t function, struct EventStruct *event, String& string)
       break;
     }
 
+    case PLUGIN_GET_DEVICEVALUECOUNT:
+    {
+      event->Par1 = P076_NR_OUTPUT_VALUES;
+      success     = true;
+      break;
+    }
+
     # if FEATURE_MQTT_DISCOVER
     case PLUGIN_GET_DISCOVERY_VTYPES:
     {
-      event->Par1 = static_cast<int>(Sensor_VType::SENSOR_TYPE_NONE); // Not yet supported
-      success     = true;
+      for (uint8_t i = 0; i < event->Par5; ++i) {
+        const uint8_t choice = PCONFIG(i + P076_QUERY1_CONFIG_POS);
+        event->ParN[i] = static_cast<int>(p076_getQueryVType(choice));
+      }
+      success = true;
       break;
     }
     # endif // if FEATURE_MQTT_DISCOVER
@@ -920,6 +935,30 @@ const __FlashStringHelper* p076_getQueryString(uint8_t value_nr, bool displayStr
   }
   return F("");
 }
+
+# if FEATURE_MQTT_DISCOVER
+Sensor_VType p076_getQueryVType(uint8_t value_nr) {
+  switch (value_nr)
+  {
+    case P076_INDEX_VOLT:
+      return Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY;
+    case P076_INDEX_CURR:
+      return Sensor_VType::SENSOR_TYPE_CURRENT_ONLY;
+    case P076_INDEX_POWR:
+      return Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY;
+    case P076_INDEX_VAR:
+      return Sensor_VType::SENSOR_TYPE_REACTIVE_POWER_ONLY;
+    case P076_INDEX_VA:
+      return Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY;
+    case P076_INDEX_PF:
+      return Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY;
+    case P076_INDEX_ENER:
+      return Sensor_VType::SENSOR_TYPE_NONE; // FIXME Add support for Energy + Unit of Measure
+  }
+  return Sensor_VType::SENSOR_TYPE_NONE;
+}
+
+# endif // if FEATURE_MQTT_DISCOVER
 
 void p076_checkdefault_queries(struct EventStruct *event)
 {
