@@ -17,6 +17,7 @@
 //      with most code copied from plugin 085: _P085_AcuDC243.ino
 
 /** Changelog:
+ * 2025-01-17 tonhuisman: Implement support for MQTT AutoDiscovery (partially)
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported yet for DDS238)
  */
 
@@ -81,8 +82,11 @@ boolean Plugin_108(uint8_t function, struct EventStruct *event, String& string) 
     # if FEATURE_MQTT_DISCOVER
     case PLUGIN_GET_DISCOVERY_VTYPES:
     {
-      event->Par1 = static_cast<int>(Sensor_VType::SENSOR_TYPE_NONE); // Not yet supported
-      success     = true;
+      for (uint8_t i = 0; i < event->Par5; ++i) {
+        const uint8_t choice = PCONFIG(i + P108_QUERY1_CONFIG_POS);
+        event->ParN[i] = static_cast<int>(Plugin_108_getQueryVType(choice));
+      }
+      success = true;
       break;
     }
     # endif // if FEATURE_MQTT_DISCOVER
