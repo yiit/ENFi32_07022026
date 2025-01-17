@@ -8,6 +8,7 @@
 //
 
 /** Changelog:
+ * 2025-01-17 tonhuisman: Implement support for MQTT AutoDiscovery (partially)
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported yet for PZEM00x)
  */
 
@@ -96,8 +97,11 @@ boolean                    Plugin_102(uint8_t function, struct EventStruct *even
     # if FEATURE_MQTT_DISCOVER
     case PLUGIN_GET_DISCOVERY_VTYPES:
     {
-      event->Par1 = static_cast<int>(Sensor_VType::SENSOR_TYPE_NONE); // Not yet supported
-      success     = true;
+      for (uint8_t i = 0; i < event->Par5; ++i) {
+        const uint8_t choice = PCONFIG(i + P102_QUERY1_CONFIG_POS);
+        event->ParN[i] = static_cast<int>(p102_getQueryVType(choice));
+      }
+      success = true;
       break;
     }
     # endif // if FEATURE_MQTT_DISCOVER
@@ -393,5 +397,21 @@ const __FlashStringHelper* p102_getQueryString(uint8_t query) {
   }
   return F("");
 }
+
+# if FEATURE_MQTT_DISCOVER
+Sensor_VType p102_getQueryVType(uint8_t query) {
+  switch (query)
+  {
+    case 0: return Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY;
+    case 1: return Sensor_VType::SENSOR_TYPE_CURRENT_ONLY;
+    case 2: return Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY;
+    case 3: return Sensor_VType::SENSOR_TYPE_NONE; // FIXME
+    case 4: return Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY;
+    case 5: return Sensor_VType::SENSOR_TYPE_NONE;
+  }
+  return Sensor_VType::SENSOR_TYPE_NONE;
+}
+
+# endif // if FEATURE_MQTT_DISCOVER
 
 #endif // USES_P102
