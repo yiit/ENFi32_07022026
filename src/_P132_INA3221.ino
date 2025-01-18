@@ -6,6 +6,7 @@
 
 /**
  * Changelog:
+ * 2025-01-18 tonhuisman: Implement support for MQTT AutoDiscovery
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported yet for INA3221)
  * 2022-04-23 tonhuisman: Add separate settings for Conversion rate Voltage and Current
  * 2022-04-21 tonhuisman: Move source into PluginStructs
@@ -62,14 +63,17 @@ boolean Plugin_132(uint8_t function, struct EventStruct *event, String& string)
       break;
     }
 
-    # if FEATURE_MQTT_DISCOVER
+    #if FEATURE_MQTT_DISCOVER
     case PLUGIN_GET_DISCOVERY_VTYPES:
     {
-      event->Par1 = static_cast<int>(Sensor_VType::SENSOR_TYPE_NONE); // Not yet supported
-      success     = true;
+      for (uint8_t i = 0; i < event->Par5; ++i) {
+        const uint8_t choice = PCONFIG(i + P132_CONFIG_BASE);
+        event->ParN[i] = static_cast<int>(Plugin_132_getQueryVType(choice));
+      }
+      success = true;
       break;
     }
-    # endif // if FEATURE_MQTT_DISCOVER
+    #endif // if FEATURE_MQTT_DISCOVER
 
     case PLUGIN_I2C_HAS_ADDRESS:
     case PLUGIN_WEBFORM_SHOW_I2C_PARAMS:
