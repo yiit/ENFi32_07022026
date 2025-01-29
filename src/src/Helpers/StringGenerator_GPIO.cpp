@@ -258,7 +258,16 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose)
   }
 
   if (includeI2C && Settings.isI2C_pin(gpio)) {
-    return (Settings.Pin_i2c_sda == gpio) ?  F("I2C SDA") : F("I2C SCL");
+    return ((Settings.Pin_i2c_sda == gpio)
+    #if FEATURE_I2C_MULTIPLE
+    || (Settings.Pin_i2c2_sda == gpio)
+    #if FEATURE_I2C_INTERFACE_3
+    || (Settings.Pin_i2c3_sda == gpio)
+    #endif // if FEATURE_I2C_INTERFACE_3
+    #endif // if FEATURE_I2C_MULTIPLE
+    )
+    ?  F("I2C SDA") :
+    F("I2C SCL");
   }
 
   if (includeSPI && Settings.isSPI_pin(gpio)) {

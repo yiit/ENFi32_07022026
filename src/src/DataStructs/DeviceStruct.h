@@ -38,6 +38,7 @@
 
 #define I2C_FLAGS_SLOW_SPEED                0 // Force slow speed when this flag is set
 #define I2C_FLAGS_MUX_MULTICHANNEL          1 // Allow multiple multiplexer channels when set
+#define I2C_FLAGS_BUS_NUMBER                2 // 3 bits. The I2C bus number to use (ESP32 only), 3 bits allow for future expansion
 
 
 
@@ -110,6 +111,7 @@ struct __attribute__((__packed__)) DeviceStruct
   bool I2CMax100kHz       : 1;       // When enabled, the device is only able to handle 100 kHz bus-clock speed, shows warning and enables "Force Slow I2C speed" by default
 
   bool HasFormatUserVar   : 1;       // Optimization to only call this when PLUGIN_FORMAT_USERVAR is implemented
+  bool I2CNoBusSelection  : 1;       // Dis-allow I2C Bus selection in device configuration
 };
 
 

@@ -90,8 +90,13 @@ pluginID_t getPluginID_from_TaskIndex(taskIndex_t taskIndex) {
 }
 
 #if FEATURE_PLUGIN_PRIORITY
-bool isPluginI2CPowerManager_from_TaskIndex(taskIndex_t taskIndex) {
+bool isPluginI2CPowerManager_from_TaskIndex(taskIndex_t taskIndex, uint8_t i2cBus) {
   if (validTaskIndex(taskIndex)) {
+    #if FEATURE_I2C_MULTIPLE
+    if (get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER) != i2cBus) {
+      return false;
+    }
+    #endif // if FEATURE_I2C_MULTIPLE
     deviceIndex_t deviceIndex = getDeviceIndex_from_TaskIndex(taskIndex);
 
     if (validDeviceIndex(deviceIndex)) {
@@ -212,6 +217,19 @@ bool prepare_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) 
   if (I2C_state != I2C_bus_state::OK) {
     return false; // Bus state is not OK, so do not consider task runnable
   }
+
+  #if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  #else
+  const uint8_t i2cBus = 0;
+  #endif // if FEATURE_I2C_MULTIPLE
+
+  if (bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED)) {
+    I2CSelectLowClockSpeed(i2cBus); // Set to slow, also switch the bus
+  } else {
+    I2CSelectHighClockSpeed(i2cBus); // Set to normal, also switch the bus
+  }
+
   #if FEATURE_I2CMULTIPLEXER
   I2CMultiplexerSelectByTaskIndex(taskIndex);
 
@@ -219,9 +237,6 @@ bool prepare_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) 
   // frequency is set before anything else is sent.
   #endif // if FEATURE_I2CMULTIPLEXER
 
-  if (bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED)) {
-    I2CSelectLowClockSpeed(); // Set to slow
-  }
   return true;
 }
 
@@ -233,11 +248,16 @@ void post_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) {
   if (Device[DeviceIndex].Type != DEVICE_TYPE_I2C) {
     return;
   }
+  #if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  #else
+  const uint8_t i2cBus = 0;
+  #endif // ifdef ESP32
   #if FEATURE_I2CMULTIPLEXER
-  I2CMultiplexerOff();
+  I2CMultiplexerOff(i2cBus);
   #endif // if FEATURE_I2CMULTIPLEXER
 
-  I2CSelectHighClockSpeed();  // Reset
+  I2CSelectHighClockSpeed(i2cBus);  // Reset, stay on current bus
 }
 
 // Add an event to the event queue.
