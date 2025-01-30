@@ -31,10 +31,6 @@
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/StringGenerator_GPIO.h"
 
-#if FEATURE_I2C_MULTIPLE
-# include "../Helpers/Hardware_device_info.h"
-#endif
-
 # include "../../_Plugin_Helper.h"
 
 # include <ESPeasySerial.h>
@@ -837,7 +833,7 @@ void format_I2C_port_description(taskIndex_t x)
   # endif // if FEATURE_I2C_GET_ADDRESS
   # if FEATURE_I2CMULTIPLEXER
   #if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[x], I2C_FLAGS_BUS_NUMBER);
+  const uint8_t i2cBus = Settings.getI2CInterface(x);
   #else
   const uint8_t i2cBus = 0;
   #endif // if FEATURE_I2C_MULTIPLE
@@ -1254,7 +1250,7 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
 
   #if FEATURE_I2C_MULTIPLE
   if (!Device[DeviceIndex].I2CNoBusSelection) { // If the device doesn't disallow bus selection
-    i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+    i2cBus = Settings.getI2CInterface(taskIndex);
     I2CInterfaceSelector(F("I2C Interface"),
                         F("pi2cbus"),
                         i2cBus);

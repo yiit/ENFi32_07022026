@@ -252,7 +252,7 @@ void handle_hardware() {
   #if FEATURE_I2C_MULTIPLE
   if (getI2CBusCount() >= 2) {
     addFormSubHeader(F("PCF &amp; MCP Direct I/O"));
-    const uint8_t i2cBus = get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP);
+    const uint8_t i2cBus = Settings.getI2CInterfacePCFMCP();
     I2CInterfaceSelector(F("I2C Interface"),
                         F("pi2cbuspcf"),
                         i2cBus);

@@ -150,11 +150,6 @@ bool I2C_deviceCheck(uint8_t     i2caddr,
 #endif // if FEATURE_I2C_DEVICE_CHECK
 
 #if FEATURE_I2C_MULTIPLE
-#define I2C_PERIPHERAL_BUS_CLOCK  0 // bit-offset for I2C bus used for the RTC clock device
-#define I2C_PERIPHERAL_BUS_WDT    3 // bit-offset for I2C bus used for the watchdog timer
-#define I2C_PERIPHERAL_BUS_PCFMCP 6 // bit-offset for I2C bus used for PCF & MCP direct access
-// #define I2C_PERIPHERAL_BUS_???    9 // bit-offset for I2C bus used for the ???
-
 void I2CInterfaceSelector(String  label,
                           String  id,
                           uint8_t choice);

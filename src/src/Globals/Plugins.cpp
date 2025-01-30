@@ -93,7 +93,7 @@ pluginID_t getPluginID_from_TaskIndex(taskIndex_t taskIndex) {
 bool isPluginI2CPowerManager_from_TaskIndex(taskIndex_t taskIndex, uint8_t i2cBus) {
   if (validTaskIndex(taskIndex)) {
     #if FEATURE_I2C_MULTIPLE
-    if (get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER) != i2cBus) {
+    if (Settings.getI2CInterface(taskIndex) != i2cBus) {
       return false;
     }
     #endif // if FEATURE_I2C_MULTIPLE
@@ -219,7 +219,7 @@ bool prepare_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) 
   }
 
   #if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
   #else
   const uint8_t i2cBus = 0;
   #endif // if FEATURE_I2C_MULTIPLE
@@ -249,7 +249,7 @@ void post_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) {
     return;
   }
   #if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
   #else
   const uint8_t i2cBus = 0;
   #endif // ifdef ESP32

@@ -40,6 +40,12 @@
 #define I2C_FLAGS_MUX_MULTICHANNEL          1 // Allow multiple multiplexer channels when set
 #define I2C_FLAGS_BUS_NUMBER                2 // 3 bits. The I2C bus number to use (ESP32 only), 3 bits allow for future expansion
 
+#if FEATURE_I2C_MULTIPLE
+#define I2C_PERIPHERAL_BUS_CLOCK  0 // bit-offset for I2C bus used for the RTC clock device
+#define I2C_PERIPHERAL_BUS_WDT    3 // bit-offset for I2C bus used for the watchdog timer
+#define I2C_PERIPHERAL_BUS_PCFMCP 6 // bit-offset for I2C bus used for PCF & MCP direct access
+// #define I2C_PERIPHERAL_BUS_???    9 // bit-offset for I2C bus used for the ???
+#endif // if FEATURE_I2C_MULTIPLE
 
 
 /*********************************************************************************************\

@@ -966,39 +966,25 @@ bool SettingsStruct_tmpl<N_TASKS>::isSPI_valid() const {
 template<unsigned int N_TASKS>
 bool SettingsStruct_tmpl<N_TASKS>::isI2C_pin(int8_t pin) const {
   if (pin < 0) { return false; }
-  return Pin_i2c_sda == pin || Pin_i2c_scl == pin
-  #if FEATURE_I2C_MULTIPLE
-  || ((getI2CBusCount() >= 2) && (Pin_i2c2_sda == pin || Pin_i2c2_scl == pin))
-  #if FEATURE_I2C_INTERFACE_3
-  || ((getI2CBusCount() >= 3) && (Pin_i2c3_sda == pin || Pin_i2c3_scl == pin))
-  #endif // if FEATURE_I2C_INTERFACE_3
-  #endif // if FEATURE_I2C_MULTIPLE
-  ;
+  for (uint8_t i2cBus = 0; i2cBus < getI2CBusCount(); ++i2cBus) {
+    if ((getI2CSdaPin(i2cBus) == pin) || (getI2CSclPin(i2cBus) == pin)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 template<unsigned int N_TASKS>
 bool SettingsStruct_tmpl<N_TASKS>::isI2CEnabled(uint8_t i2cBus) const {
-  if (0 == i2cBus) {
-    return (Pin_i2c_sda != -1) &&
-          (Pin_i2c_scl != -1) &&
-          (I2C_clockSpeed > 0) &&
-          (I2C_clockSpeed_Slow > 0);
-  #if FEATURE_I2C_MULTIPLE
-  } else if (1 == i2cBus) {
-    return (Pin_i2c2_sda != -1) &&
-          (Pin_i2c2_scl != -1) &&
-          (I2C2_clockSpeed > 0) &&
-          (I2C2_clockSpeed_Slow > 0);
-  #if FEATURE_I2C_INTERFACE_3
-  } else {
-    return (Pin_i2c3_sda != -1) &&
-          (Pin_i2c3_scl != -1) &&
-          (I2C3_clockSpeed > 0) &&
-          (I2C3_clockSpeed_Slow > 0);
-  #endif // if FEATURE_I2C_INTERFACE_3
-  #endif // if FEATURE_I2C_MULTIPLE
-  }
-  return false;
+  return (getI2CSdaPin(i2cBus) != -1) &&
+        (getI2CSclPin(i2cBus) != -1) &&
+        (getI2CClockSpeed(i2cBus) > 0) &&
+        (getI2CClockSpeedSlow(i2cBus) > 0);
+}
+
+template<unsigned int N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getI2CInterface(taskIndex_t TaskIndex) const {
+  return get3BitFromUL(I2C_Flags[TaskIndex], I2C_FLAGS_BUS_NUMBER);
 }
 
 template<unsigned int N_TASKS>
@@ -1080,6 +1066,23 @@ uint32_t SettingsStruct_tmpl<N_TASKS>::getI2CClockStretch(uint8_t i2cBus) const 
   }
   return 0u;
 }
+
+#if FEATURE_I2C_MULTIPLE
+template<unsigned int N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getI2CInterfaceRTC() const {
+  return get3BitFromUL(I2C_peripheral_bus, I2C_PERIPHERAL_BUS_CLOCK);
+}
+
+template<unsigned int N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getI2CInterfaceWDT() const {
+  return get3BitFromUL(I2C_peripheral_bus, I2C_PERIPHERAL_BUS_WDT);
+}
+
+template<unsigned int N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getI2CInterfacePCFMCP() const {
+  return get3BitFromUL(I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP);
+}
+#endif // if FEATURE_I2C_MULTIPLE
 
 #if FEATURE_I2CMULTIPLEXER
 template<unsigned int N_TASKS>

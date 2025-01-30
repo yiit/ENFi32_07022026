@@ -1224,7 +1224,7 @@ bool getGPIOPinStateValues(String& str) {
           #endif // if FEATURE_PINSTATE_EXTENDED
           #if FEATURE_I2C_MULTIPLE
           if (getI2CBusCount() >= 2) {
-            I2CSelectHighClockSpeed(get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP));
+            I2CSelectHighClockSpeed(Settings.getI2CInterfacePCFMCP());
           }
           #endif // if FEATURE_I2C_MULTIPLE
           str       = GPIO_MCP_Read(par1);
@@ -1242,7 +1242,7 @@ bool getGPIOPinStateValues(String& str) {
           #endif // if FEATURE_PINSTATE_EXTENDED
           #if FEATURE_I2C_MULTIPLE
           if (getI2CBusCount() >= 2) {
-            I2CSelectHighClockSpeed(get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP));
+            I2CSelectHighClockSpeed(Settings.getI2CInterfacePCFMCP());
           }
           #endif // if FEATURE_I2C_MULTIPLE
           str       = GPIO_PCF_Read(par1);

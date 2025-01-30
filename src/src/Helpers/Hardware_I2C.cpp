@@ -55,7 +55,7 @@ void initI2C() {
     delay(500);
 
     #if FEATURE_I2C_MULTIPLE
-    I2CSelectHighClockSpeed(get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_WDT));
+    I2CSelectHighClockSpeed(Settings.getI2CInterfaceWDT());
     #endif // if FEATURE_I2C_MULTIPLE
 
     if (I2C_write8_reg(Settings.WDI2CAddress,
@@ -236,7 +236,7 @@ void I2CMultiplexerSelectByTaskIndex(taskIndex_t taskIndex) {
   uint8_t toWrite = 0;
 
   # if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
   # else // if FEATURE_I2C_MULTIPLE
   const uint8_t i2cBus = 0;
   # endif // if FEATURE_I2C_MULTIPLE
@@ -294,7 +294,7 @@ bool I2CMultiplexerPortSelectedForTask(taskIndex_t taskIndex) {
   if (!validTaskIndex(taskIndex)) { return false; }
 
   # if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_Flags[taskIndex], I2C_FLAGS_BUS_NUMBER);
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
   # else // if FEATURE_I2C_MULTIPLE
   const uint8_t i2cBus = 0;
   # endif // if FEATURE_I2C_MULTIPLE

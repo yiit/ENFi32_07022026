@@ -237,7 +237,7 @@ void handle_advanced() {
   }
   #if FEATURE_I2C_MULTIPLE
   {
-    const uint8_t i2cBus = get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_CLOCK);
+    const uint8_t i2cBus = Settings.getI2CInterfaceRTC();
     I2CInterfaceSelector(F("Ext. Time Source I2C Interface"),
                         F("pi2cbusrtc"),
                         i2cBus);
@@ -323,7 +323,7 @@ void handle_advanced() {
   addHtml(F(" (decimal)"));
   #if FEATURE_I2C_MULTIPLE
   {
-    const uint8_t i2cBus = get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_WDT);
+    const uint8_t i2cBus = Settings.getI2CInterfaceWDT();
     I2CInterfaceSelector(F("WD I2C Interface"),
                         F("pi2cbuswdt"),
                         i2cBus);

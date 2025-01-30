@@ -920,7 +920,7 @@ bool ESPEasy_time::ExtRTC_get(uint32_t& unixtime)
 {
   unixtime = 0;
   #if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_CLOCK);
+  const uint8_t i2cBus = Settings.getI2CInterfaceRTC();
   #else
   const uint8_t i2cBus = 0;
   #endif // if FEATURE_I2C_MULTIPLE
@@ -1021,7 +1021,7 @@ bool ESPEasy_time::ExtRTC_set(uint32_t unixtime)
   }
   bool timeAdjusted = false;
   #if FEATURE_I2C_MULTIPLE
-  const uint8_t i2cBus = get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_CLOCK);
+  const uint8_t i2cBus = Settings.getI2CInterfaceRTC();
   #else
   const uint8_t i2cBus = 0;
   #endif // if FEATURE_I2C_MULTIPLE

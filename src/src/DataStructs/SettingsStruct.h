@@ -317,12 +317,19 @@ public:
   // Return true if I2C settings are correct
   bool isI2CEnabled(uint8_t i2cBus) const;
 
+  uint8_t getI2CInterface(taskIndex_t TaskIndex) const;
   int8_t getI2CSdaPin(uint8_t i2cBus) const;
   int8_t getI2CSclPin(uint8_t i2cBus) const;
   uint32_t getI2CClockSpeed(uint8_t i2cBus) const;
   uint32_t getI2CClockSpeedSlow(uint8_t i2cBus) const;
   uint32_t getI2CClockStretch(uint8_t i2cBus) const;
   
+  #if FEATURE_I2C_MULTIPLE
+  uint8_t getI2CInterfaceRTC() const;
+  uint8_t getI2CInterfaceWDT() const;
+  uint8_t getI2CInterfacePCFMCP() const;
+  #endif // if FEATURE_I2C_MULTIPLE
+
   #if FEATURE_I2CMULTIPLEXER
   int8_t getI2CMultiplexerType(uint8_t i2cBus) const;
   int8_t getI2CMultiplexerAddr(uint8_t i2cBus) const;

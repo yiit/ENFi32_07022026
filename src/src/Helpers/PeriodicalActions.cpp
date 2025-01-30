@@ -173,7 +173,7 @@ void runOncePerSecond()
   if (Settings.WDI2CAddress != 0)
   {
     #if FEATURE_I2C_MULTIPLE
-    I2CSelectHighClockSpeed(get3BitFromUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_WDT)); // Select bus
+    I2CSelectHighClockSpeed(Settings.getI2CInterfaceWDT()); // Select bus
     #endif // if FEATURE_I2C_MULTIPLE
     I2C_write8(Settings.WDI2CAddress, 0xA5);
   }

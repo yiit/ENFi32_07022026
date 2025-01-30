@@ -518,7 +518,7 @@ void handle_json()
         #if FEATURE_I2CMULTIPLEXER
         uint8_t i2cBus = 0;
         #if FEATURE_I2C_MULTIPLE
-        i2cBus = get3BitFromUL(Settings.I2C_Flags[TaskIndex], I2C_FLAGS_BUS_NUMBER);
+        i2cBus = Settings.getI2CInterface(TaskIndex);
         #endif
         if (Device[DeviceIndex].Type == DEVICE_TYPE_I2C && isI2CMultiplexerEnabled(i2cBus)) {
           #if FEATURE_I2C_MULTIPLE
