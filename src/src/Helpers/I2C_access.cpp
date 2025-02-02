@@ -4,6 +4,7 @@
 #include "../Globals/I2Cdev.h"
 #include "../Globals/Settings.h"
 #include "../Helpers/ESPEasy_time_calc.h"
+#include "../Helpers/Hardware_I2C.h"
 #include "../Helpers/StringConverter.h"
 
 #if FEATURE_I2C_MULTIPLE
@@ -427,7 +428,8 @@ bool I2C_deviceCheck(uint8_t     i2caddr,
 #if FEATURE_I2C_MULTIPLE
 void I2CInterfaceSelector(String  label,
                           String  id,
-                          uint8_t choice) {
+                          uint8_t choice,
+                          bool    reloadWhenNeeded) {
   const uint8_t i2cMaxBusCount = (getI2CBusCount() >= 2
                                   ? ((Settings.isI2CEnabled(1) ? 1 : 0)
                                     # if FEATURE_I2C_INTERFACE_3
@@ -464,6 +466,23 @@ void I2CInterfaceSelector(String  label,
     FormSelectorOptions selector(i2cBusCount,
                                  i2cBusList, i2cBusNumbers);
     selector.default_index = 0;
+    bool reloadOnChange = false;
+
+    # if FEATURE_I2CMULTIPLEXER
+
+    if (reloadWhenNeeded) {
+      // Only use reloadOnChange if current I2C Interface has multiplexer availability different than the other I2C Interface(s)
+      bool hasMultiplexer = false;
+
+      for (uint8_t i2cBus = 0; i2cBus < getI2CBusCount(); ++i2cBus) {
+        if (i2cBus != choice) {
+          hasMultiplexer |= (Settings.isI2CEnabled(i2cBus) && isI2CMultiplexerEnabled(i2cBus));
+        }
+      }
+      reloadOnChange = (hasMultiplexer != isI2CMultiplexerEnabled(choice));
+    }
+    # endif // if FEATURE_I2CMULTIPLEXER
+    selector.reloadonchange = reloadOnChange;
     selector.addFormSelector(label, id, choice);
   }
 }

@@ -240,7 +240,8 @@ void handle_advanced() {
     const uint8_t i2cBus = Settings.getI2CInterfaceRTC();
     I2CInterfaceSelector(F("Ext. Time Source I2C Interface"),
                         F("pi2cbusrtc"),
-                        i2cBus);
+                        i2cBus,
+                        false);
   }
   #endif // if FEATURE_I2C_MULTIPLE
   #endif
@@ -326,7 +327,8 @@ void handle_advanced() {
     const uint8_t i2cBus = Settings.getI2CInterfaceWDT();
     I2CInterfaceSelector(F("WD I2C Interface"),
                         F("pi2cbuswdt"),
-                        i2cBus);
+                        i2cBus,
+                        false);
   }
   #endif // if FEATURE_I2C_MULTIPLE
 

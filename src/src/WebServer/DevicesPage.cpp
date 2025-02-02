@@ -1264,7 +1264,8 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
     i2cBus = Settings.getI2CInterface(taskIndex);
     I2CInterfaceSelector(F("I2C Interface"),
                         F("pi2cbus"),
-                        i2cBus);
+                        i2cBus,
+                        true);
   }
   #endif // if FEATURE_I2C_MULTIPLE
   # if FEATURE_I2CMULTIPLEXER

@@ -152,7 +152,8 @@ bool I2C_deviceCheck(uint8_t     i2caddr,
 #if FEATURE_I2C_MULTIPLE
 void I2CInterfaceSelector(String  label,
                           String  id,
-                          uint8_t choice);
+                          uint8_t choice,
+                          bool    reloadWhenNeeded);
 #endif // if FEATURE_I2C_MULTIPLE
 
 #endif // HELPERS_I2C_ACCESS_H

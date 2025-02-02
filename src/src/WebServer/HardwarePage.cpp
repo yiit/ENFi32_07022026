@@ -262,7 +262,8 @@ void handle_hardware() {
     const uint8_t i2cBus = Settings.getI2CInterfacePCFMCP();
     I2CInterfaceSelector(F("I2C Interface"),
                         F("pi2cbuspcf"),
-                        i2cBus);
+                        i2cBus,
+                        false);
 
   }
   #endif // if FEATURE_I2C_MULTIPLE
