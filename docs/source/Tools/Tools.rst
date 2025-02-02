@@ -273,6 +273,15 @@ This allows ESPEasy to know the correct date and time after been powered off for
 
 N.B. these modules all use I2C, so they need to be connected to the configured I2C pins and those pins should be set.
 
+Added: 2025-02-02
+
+When multiple I2C Interfaces are configured (ESP32 only), we need to configure on which I2C Interface the RTC chip is connected:
+
+.. image:: images/Tools_RTC_I2CSelector.png
+
+NB: If only 1 I2C Interface is configured, this configuration option isn't shown.
+
+
 Procedure to configure a real time clock (RTC) chip:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -408,6 +417,15 @@ WD I2C Address
 
 The Watchdog timer can be accessed via I2C.
 What can be read/set/changed must still be documented.
+
+Added: 2025-02-02
+
+When multiple I2C Interfaces are configured (ESP32 only), we need to configure on which I2C Interface the Watchdog chip is connected:
+
+.. image:: images/Tools_WD_I2CSelector.png
+
+NB: If only 1 I2C Interface is configured, this configuration option isn't shown.
+
 
 JSON bool output without quotes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -950,9 +968,19 @@ Example scan using an I2C multiplexer, showing multiple devices across multiple 
 
 .. image:: images/Tools_I2Cscan_multiplexer.png
 
+Added: 2025-02-02
+
+When having multiple I2C Interfaces configured, for each configured interface an I2C Scan is performed, including the multiplexer if that's configured.
+
+An example: (No actual multiplexer connected...)
+
+.. image:: images/Tools_I2Cscan_multipleInterfaces.png
+
+|
 
 .. note:: On builds that have ``LIMIT_BUILD_SIZE`` set, like the ESP8266 Collection and Display builds, the names of the supported devices and plugins are **not** included in the output, only the address(es) are listed.
 
+|
 
 Settings
 ********
