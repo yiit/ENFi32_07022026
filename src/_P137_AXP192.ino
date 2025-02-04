@@ -8,6 +8,8 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-01-21 tonhuisman: Bugfix: commands axp,ldo2,x to axp,dcdc3,x weren't working as intended
+ * 2025-01-18 tonhuisman: Add predefined config settings for M5Stack StickC Plus units
  * 2025-01-18 tonhuisman: Implement support for MQTT AutoDiscovery
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported yet for AXP192)
  * 2022-12-27 tonhuisman: Add predefined config settings for LilyGO T-Beam LoRa units
@@ -190,6 +192,7 @@ boolean Plugin_137(uint8_t function, struct EventStruct *event, String& string)
           toString(P137_PredefinedDevices_e::M5Stack_StickC),
           toString(P137_PredefinedDevices_e::M5Stack_Core2),
           toString(P137_PredefinedDevices_e::LilyGO_TBeam),
+          toString(P137_PredefinedDevices_e::M5Stack_StickCPlus),
           toString(P137_PredefinedDevices_e::UserDefined) // keep last and at 99 !!
         };
         const int predefinedValues[] = {
@@ -197,6 +200,7 @@ boolean Plugin_137(uint8_t function, struct EventStruct *event, String& string)
           static_cast<int>(P137_PredefinedDevices_e::M5Stack_StickC),
           static_cast<int>(P137_PredefinedDevices_e::M5Stack_Core2),
           static_cast<int>(P137_PredefinedDevices_e::LilyGO_TBeam),
+          static_cast<int>(P137_PredefinedDevices_e::M5Stack_StickCPlus),
           static_cast<int>(P137_PredefinedDevices_e::UserDefined) }; // keep last and at 99 !!
         constexpr size_t optionCount = NR_ELEMENTS(predefinedValues);
         FormSelectorOptions selector(optionCount, predefinedNames, predefinedValues);

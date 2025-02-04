@@ -588,10 +588,14 @@ bool MQTTConnect(controllerIndex_t controller_idx)
 void MQTTparseSystemVariablesAndSubscribe(String subscribeTo) {
   if (subscribeTo.isEmpty()) { return; }
   parseSystemVariables(subscribeTo, false);
-  MQTTclient.subscribe(subscribeTo.c_str());
+  subscribeTo.trim();
 
-  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    addLogMove(LOG_LEVEL_INFO, concat(F("Subscribed to: "),  subscribeTo));
+  if (!subscribeTo.isEmpty()) {
+    MQTTclient.subscribe(subscribeTo.c_str());
+
+    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+      addLogMove(LOG_LEVEL_INFO, concat(F("Subscribed to: "),  subscribeTo));
+    }
   }
 }
 
