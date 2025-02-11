@@ -272,10 +272,12 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
 
   if (device.Type == DEVICE_TYPE_I2C) {
     uint8_t flags = 0;
-    uint8_t i2cBus = 0;
     bitWrite(flags, I2C_FLAGS_SLOW_SPEED, isFormItemChecked(F("taskdeviceflags0")));
+#if FEATURE_I2C_MULTIPLE || FEATURE_I2CMULTIPLEXER
+    uint8_t i2cBus = 0;
+#endif
 
-    #if FEATURE_I2C_MULTIPLE
+#if FEATURE_I2C_MULTIPLE
     if ((getI2CBusCount() >= 2) && (Settings.isI2CEnabled(1) 
                                     #if FEATURE_I2C_INTERFACE_3
                                     || Settings.isI2CEnabled(2)
@@ -286,7 +288,7 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
       i2cBus = getFormItemInt(F("pi2cbus"));
       set3BitToUL(flags, I2C_FLAGS_BUS_NUMBER, i2cBus);
     }
-    #endif // if FEATURE_I2C_MULTIPLE
+#endif // if FEATURE_I2C_MULTIPLE
 
 # if FEATURE_I2CMULTIPLEXER
 
@@ -1257,7 +1259,9 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
   if (Device[DeviceIndex].I2CMax100kHz) {
     addFormNote(F("This device is specified for max. 100 kHz operation!"));
   }
+#if FEATURE_I2C_MULTIPLE || FEATURE_I2CMULTIPLEXER
   uint8_t i2cBus = 0;
+#endif
 
   #if FEATURE_I2C_MULTIPLE
   if (!Device[DeviceIndex].I2CNoBusSelection) { // If the device doesn't disallow bus selection
