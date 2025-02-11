@@ -116,6 +116,8 @@ void addPinSelector_Item(PinSelectPurpose purpose, const String& gpio_label, int
       #if FEATURE_SD
       bool includeSDCard = true;
       #endif // if FEATURE_SD
+      // bool includeStatusLed = true; // Added as place-holders, see below
+      // bool includeResetPin = true;
 
       switch (purpose) {
         case PinSelectPurpose::SPI:
@@ -185,6 +187,21 @@ void addPinSelector_Item(PinSelectPurpose purpose, const String& gpio_label, int
           }
           break;
         #endif
+        
+        case PinSelectPurpose::Status_led:
+          // includeStatusLed = false; // Placeholder, see below
+          if (!output) {
+            return;
+          }
+          break;
+
+        case PinSelectPurpose::Reset_pin:
+          // includeResetPin = false; // Placeholder, see below
+          if (!input) {
+            return;
+          }  
+          break;
+  
       }
 
       if (includeI2C && Settings.isI2C_pin(gpio)) {
@@ -199,6 +216,15 @@ void addPinSelector_Item(PinSelectPurpose purpose, const String& gpio_label, int
         disabled = true;
       }
 
+      // Not blocking these GPIO pins, as they may already be in dual-purpose use, just a place-holder
+      // if (includeStatusLed && (Settings.Pin_status_led == gpio)) {
+      //   disabled = true;
+      // }
+      
+      // if (includeResetPin && (Settings.Pin_Reset == gpio)) {
+      //   disabled = true;
+      // }
+  
   #if FEATURE_ETHERNET
 
       if (Settings.isEthernetPin(gpio) || (includeEthernet && Settings.isEthernetPinOptional(gpio))) {

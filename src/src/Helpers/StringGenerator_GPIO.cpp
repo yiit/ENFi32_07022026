@@ -226,6 +226,8 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose)
   #if FEATURE_ETHERNET
   bool includeEthernet = true;
   #endif // if FEATURE_ETHERNET
+  bool includeStatusLed = true;
+  bool includeResetPin = true;
 
   switch (purpose) {
     case PinSelectPurpose::I2C:
@@ -255,6 +257,12 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose)
       includeSDCard = false;
       break;
     #endif
+    case PinSelectPurpose::Status_led:
+      includeStatusLed = false;
+      break;
+    case PinSelectPurpose::Reset_pin:
+      includeResetPin = false;
+      break;
   }
 
   if (includeI2C && Settings.isI2C_pin(gpio)) {
@@ -272,6 +280,14 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose)
 
   if (includeSPI && Settings.isSPI_pin(gpio)) {
     return F("SPI");
+  }
+
+  if (includeStatusLed && (Settings.Pin_status_led == gpio) && (-1 != gpio)) {
+    return F("Wifi Status LED");
+  }
+
+  if (includeResetPin && (Settings.Pin_Reset == gpio) && (-1 != gpio)) {
+    return F("Reset Pin");
   }
 
   if (includeSerial) {

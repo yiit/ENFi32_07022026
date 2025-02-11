@@ -158,12 +158,12 @@ void handle_hardware() {
   addFormHeader(F("Hardware Settings"), F("ESPEasy#Hardware_page"), F("Hardware/Hardware.html"));
 
   addFormSubHeader(F("Wifi Status LED"));
-  addFormPinSelect(PinSelectPurpose::Generic_output, formatGpioName_output(F("LED")), F("pled"), Settings.Pin_status_led);
+  addFormPinSelect(PinSelectPurpose::Status_led, formatGpioName_output(F("LED")), F("pled"), Settings.Pin_status_led);
   addFormCheckBox(F("Inversed LED"), F("pledi"), Settings.Pin_status_led_Inversed);
   addFormNote(F("Use &rsquo;GPIO-2 (D4)&rsquo; with &rsquo;Inversed&rsquo; checked for onboard LED"));
 
   addFormSubHeader(F("Reset Pin"));
-  addFormPinSelect(PinSelectPurpose::Generic_input, formatGpioName_input(F("Switch")), F("pres"), Settings.Pin_Reset);
+  addFormPinSelect(PinSelectPurpose::Reset_pin, formatGpioName_input(F("Switch")), F("pres"), Settings.Pin_Reset);
   addFormNote(F("Press about 10s for factory reset"));
 
   #if FEATURE_I2CMULTIPLEXER

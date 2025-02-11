@@ -32,7 +32,8 @@ enum class PinSelectPurpose : uint8_t {
   #if FEATURE_SD
   SD_Card,
   #endif
-
+  Status_led,
+  Reset_pin,
 };
 
 
