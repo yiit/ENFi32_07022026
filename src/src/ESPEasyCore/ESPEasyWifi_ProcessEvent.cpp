@@ -51,14 +51,13 @@ void handle_unprocessedNetworkEvents()
 #endif
 
   if (active_network_medium == NetworkMedium_t::WIFI) {
-    if (WiFiConnected() && !WiFiEventData.WiFiServicesInitialized()) {
-      WiFiEventData.processedConnect = false;
-      WiFiEventData.processedGotIP = false;
+    bool processedSomething = false;
       if (!WiFiEventData.processedConnect) {
         #ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_DEBUG, F("WIFI : Entering processConnect()"));
         #endif // ifndef BUILD_NO_DEBUG
         processConnect();
+        processedSomething = true;
 
 // FIXME TD-er: Forcefully set the connected flag for now
         WiFiEventData.setWiFiConnected();
@@ -70,12 +69,14 @@ void handle_unprocessedNetworkEvents()
         #endif // ifndef BUILD_NO_DEBUG
         processGotIP();
 
+        processedSomething = true;
+
         // FIXME TD-er: Forcefully set the GotIP flag for now
         WiFiEventData.setWiFiGotIP();
       }
       WiFiEventData.setWiFiServicesInitialized();
 
-      if (WiFiEventData.WiFiServicesInitialized()) {
+      if (WiFiEventData.WiFiServicesInitialized() && processedSomething) {
 
         // #ifdef ESP32
         setWebserverRunning(false);
@@ -89,7 +90,6 @@ void handle_unprocessedNetworkEvents()
          #endif
          */
       }
-    }
   }
 
 #if FEATURE_ETHERNET
