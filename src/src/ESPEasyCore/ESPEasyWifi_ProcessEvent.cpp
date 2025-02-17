@@ -213,11 +213,12 @@ void processGotIP() {
   if (!useStaticIP()) {
    #ifdef ESP8266
 
-    if (!ip.isSet()) {
+    if (!ip.isSet()) 
    #else // ifdef ESP8266
 
-    if ((ip[0] == 0) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 0)) {
+    if ((ip[0] == 0) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 0)) 
    #endif // ifdef ESP8266
+    {
       return;
     }
   }
@@ -313,11 +314,10 @@ void processDisconnectAPmode() {
 #ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    const int nrStationsConnected = WiFi.softAPgetStationNum();
-    String    log                 = F("AP Mode: Client disconnected: ");
-    log += WiFiEventData.lastMacDisconnectedAPmode.toString();
-    log += F(" Connected devices: ");
-    log += nrStationsConnected;
+    String log(strformat(
+      F("AP Mode: Client disconnected: %s Connected devices: %u"),
+      WiFiEventData.lastMacDisconnectedAPmode.toString().c_str(),
+      WiFi.softAPgetStationNum()));
     addLogMove(LOG_LEVEL_INFO, log);
   }
 #endif // ifndef BUILD_NO_DEBUG
@@ -333,10 +333,10 @@ void processConnectAPmode() {
 #ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    String log = F("AP Mode: Client connected: ");
-    log += WiFiEventData.lastMacConnectedAPmode.toString();
-    log += F(" Connected devices: ");
-    log += WiFi.softAPgetStationNum();
+    String log(strformat(
+      F("AP Mode: Client connected: %s Connected devices: %u"),
+      WiFiEventData.lastMacConnectedAPmode.toString().c_str(),
+      WiFi.softAPgetStationNum()));
     addLogMove(LOG_LEVEL_INFO, log);
   }
 #endif // ifndef BUILD_NO_DEBUG

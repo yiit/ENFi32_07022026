@@ -104,7 +104,6 @@
 // - Start/stop of AP mode
 // ********************************************************************************
 bool WiFiConnected() {
-  START_TIMER;
   static uint32_t lastCheckedTime = 0;
 
   const int32_t timePassed = timePassedSince(lastCheckedTime);
