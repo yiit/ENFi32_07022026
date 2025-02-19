@@ -456,7 +456,7 @@ bool PluginCallForTask(taskIndex_t taskIndex, uint8_t Function, EventStruct *Tem
                 void *ptr               = special_calloc(1, size);
 
                 if (ptr) {
-                  initPluginTaskData(taskIndex, new (std::nothrow) _StatsOnly_data_struct());
+                  initPluginTaskData(taskIndex, new (ptr) _StatsOnly_data_struct());
                 }
               }
             }
