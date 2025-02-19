@@ -55,7 +55,6 @@ struct ProvisioningStruct
 };
 
 typedef std::shared_ptr<ProvisioningStruct> ProvisioningStruct_ptr_type;
-//# define MakeProvisioningSettings(T) ProvisioningStruct_ptr_type T(new (std::nothrow) ProvisioningStruct());
 
 #define MakeProvisioningSettings(T) void * calloc_ptr = special_calloc(1,sizeof(ProvisioningStruct)); ProvisioningStruct_ptr_type T(new (calloc_ptr)  ProvisioningStruct());
 
