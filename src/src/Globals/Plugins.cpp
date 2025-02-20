@@ -419,14 +419,7 @@ bool PluginCallForTask(taskIndex_t taskIndex, uint8_t Function, EventStruct *Tem
                 LoadTaskSettings(taskIndex);
 
                 if (ExtraTaskSettings.anyEnabledPluginStats()) {
-
-                  // Try to allocate in PSRAM or 2nd heap if possible
-                  constexpr unsigned size = sizeof(_StatsOnly_data_struct);
-                  void *ptr               = special_calloc(1, size);
-
-                  if (ptr) {
-                    initPluginTaskData(taskIndex, new (ptr) _StatsOnly_data_struct());
-                  }
+                  special_initPluginTaskData(taskIndex, _StatsOnly_data_struct);
                 }
               }
             }
@@ -452,12 +445,7 @@ bool PluginCallForTask(taskIndex_t taskIndex, uint8_t Function, EventStruct *Tem
 
               if (ExtraTaskSettings.anyEnabledPluginStats()) {
                 // Try to allocate in PSRAM or 2nd heap if possible
-                constexpr unsigned size = sizeof(_StatsOnly_data_struct);
-                void *ptr               = special_calloc(1, size);
-
-                if (ptr) {
-                  initPluginTaskData(taskIndex, new (ptr) _StatsOnly_data_struct());
-                }
+                special_initPluginTaskData(taskIndex, _StatsOnly_data_struct);
               }
             }
           }
@@ -931,7 +919,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
                 LoadTaskSettings(event->TaskIndex);
 
                 if (ExtraTaskSettings.anyEnabledPluginStats()) {
-                  initPluginTaskData(event->TaskIndex, new (std::nothrow) _StatsOnly_data_struct());
+                  special_initPluginTaskData(event->TaskIndex, _StatsOnly_data_struct);
                 }
               }
             }

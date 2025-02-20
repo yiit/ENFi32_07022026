@@ -30,7 +30,11 @@ P037_data_struct::~P037_data_struct() {
  * Load the settings from file
  */
 bool P037_data_struct::loadSettings() {
+
   if (_taskIndex < TASKS_MAX) {
+    # ifdef USE_SECOND_HEAP
+//    HeapSelectIram ephemeral;
+    #endif
     size_t offset = 0;
     LoadCustomTaskSettings(_taskIndex, mqttTopics,
                            VARS_PER_TASK, 41, offset);
