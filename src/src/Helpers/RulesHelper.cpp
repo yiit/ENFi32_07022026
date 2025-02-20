@@ -293,7 +293,7 @@ String RulesHelperClass::readLn(const String& filename,
 
       while (f.available()) {
         if (addChar(char(f.read()), tmpStr, firstNonSpaceRead)) {
-          lines.push_back(move_special(std::move(tmpStr)));
+          lines.push_back(std::move(move_special(std::move(tmpStr))));
           ++readPos;
 
           firstNonSpaceRead = false;
@@ -304,7 +304,7 @@ String RulesHelperClass::readLn(const String& filename,
       if (tmpStr.length() > 0) {
         rules_strip_trailing_comments(tmpStr);
         check_rules_line_user_errors(tmpStr);
-        lines.push_back(move_special(std::move(tmpStr)));
+        lines.push_back(std::move(move_special(std::move(tmpStr))));
         tmpStr.clear();
       }
 # ifndef BUILD_NO_DEBUG
@@ -404,7 +404,10 @@ String RulesHelperClass::readLn(const String& filename,
   }
   rules_strip_trailing_comments(line);
   check_rules_line_user_errors(line);
-  return line;
+
+  // Make sure there is no left-over reserved data 
+  // and allocate it to the appropriate memory area.
+  return move_special(std::move(line));
 }
 
 #endif // ifdef CACHE_RULES_IN_MEMORY
