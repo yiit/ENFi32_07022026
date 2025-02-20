@@ -74,7 +74,9 @@ void handle_unprocessedNetworkEvents()
         // FIXME TD-er: Forcefully set the GotIP flag for now
         WiFiEventData.setWiFiGotIP();
       }
-      WiFiEventData.setWiFiServicesInitialized();
+      if (!WiFiEventData.WiFiServicesInitialized()) {
+        WiFiEventData.setWiFiServicesInitialized();
+      }
 
       if (WiFiEventData.WiFiServicesInitialized() && processedSomething) {
 
