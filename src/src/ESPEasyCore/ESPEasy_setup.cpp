@@ -129,6 +129,10 @@ void sw_watchdog_callback(void *arg)
 \*********************************************************************************************/
 void ESPEasy_setup()
 {
+# ifdef BOARD_HAS_PSRAM
+  psramInit();
+# endif // ifdef BOARD_HAS_PSRAM
+
 #if defined(ESP8266_DISABLE_EXTRA4K) || defined(USE_SECOND_HEAP)
 
   //  disable_extra4k_at_link_time();
@@ -144,9 +148,6 @@ void ESPEasy_setup()
   DisableBrownout(); // Workaround possible weak LDO resulting in brownout detection during Wifi connection
 # endif  // DISABLE_ESP32_BROWNOUT
 
-# ifdef BOARD_HAS_PSRAM
-  psramInit();
-# endif // ifdef BOARD_HAS_PSRAM
 
 # if CONFIG_IDF_TARGET_ESP32
 
