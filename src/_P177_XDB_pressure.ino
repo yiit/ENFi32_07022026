@@ -6,6 +6,8 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-02-24 tonhuisman: Adjust calculations to avoid zero-division, and use double for accuracy when available.
+ *                        Add setting to ignore negative pressure values
  * 2025-02-23 tonhuisman: Add Generate events on pressure change and Raw data options
  *                        Fix pressure and temperature calculation
  * 2025-02-22 tonhuisman: Initial plugin development, direct I2C access,
@@ -90,6 +92,8 @@ boolean Plugin_177(uint8_t function, struct EventStruct *event, String& string)
       addFormCheckBox(F("Use raw data from sensor"),           F("praw"),    P177_RAW_DATA == 1);
       addFormNote(F("When checked: Pressure scaling factor and Temperature offset will be ignored!"));
 
+      addFormCheckBox(F("Ignore negative pressure values"), F("pneg"), P177_IGNORE_NEGATIVE == 1);
+
       success = true;
       break;
     }
@@ -100,6 +104,7 @@ boolean Plugin_177(uint8_t function, struct EventStruct *event, String& string)
       P177_TEMPERATURE_OFFSET    = getFormItemInt(F("tempoffset"), 0);
       P177_GENERATE_EVENTS       = isFormItemChecked(F("pevents")) ? 1 : 0;
       P177_RAW_DATA              = isFormItemChecked(F("praw")) ? 1 : 0;
+      P177_IGNORE_NEGATIVE       = isFormItemChecked(F("pneg")) ? 1 : 0;
 
       success = true;
       break;

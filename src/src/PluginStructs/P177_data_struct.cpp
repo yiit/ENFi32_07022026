@@ -4,8 +4,9 @@
 
 
 P177_data_struct::P177_data_struct(struct EventStruct *event) {
-  _sendEvents = P177_GENERATE_EVENTS == 1;
-  _rawData    = P177_RAW_DATA == 1;
+  _sendEvents     = P177_GENERATE_EVENTS == 1;
+  _rawData        = P177_RAW_DATA == 1;
+  _ignoreNegative = P177_IGNORE_NEGATIVE == 1;
 }
 
 P177_data_struct::~P177_data_struct() {}
@@ -98,23 +99,29 @@ bool P177_data_struct::plugin_read(struct EventStruct *event) {
   }
 
   if (_updated) {
-    float _pressure    = 1.0f * _rawPressure;
-    float _temperature = 1.0f * _rawTemperature;
+    uint32_t tmpTemperature               = _rawTemperature >> 5;
+    ESPEASY_RULES_FLOAT_TYPE _pressure    = 1.0 * (_rawPressure & 0x7FFFFF);
+    ESPEASY_RULES_FLOAT_TYPE _temperature = 1.0 * (tmpTemperature & 0x3FF);
 
     if (_rawPressure & 0x800000) {
-      _pressure = -1.0f * (_rawPressure & 0x7FFFFF);
+      if (_ignoreNegative) {
+        _pressure = 0.0;
+      } else {
+        _pressure = -1.0 * (_rawPressure & 0x7FFFFF);
+      }
     }
 
-    if (_rawTemperature & 0x8000) {
-      _temperature = -1.0f * (_rawTemperature & 0x7FFF);
+    if (tmpTemperature & 0x400) {
+      _temperature = -1.0 * (tmpTemperature & 0x3FF);
     }
-    _temperature /= 256.0f; // Shift 5 unused bits off
 
     if (!_rawData) {
-      _pressure /= (1.0f * (8388608.0 / P177_PRESSURE_SCALE_FACTOR));
+      if (!essentiallyZero(_pressure)) {
+        _pressure /= (1.0 * (8388608.0 / P177_PRESSURE_SCALE_FACTOR));
+      }
 
       if (P177_TEMPERATURE_OFFSET != 0) {
-        _temperature += (P177_TEMPERATURE_OFFSET / 10.0f); // In 0.1 degree steps
+        _temperature += (P177_TEMPERATURE_OFFSET / 10.0); // In 0.1 degree steps
       }
     }
 

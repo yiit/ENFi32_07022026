@@ -21,6 +21,7 @@
 # define P177_TEMPERATURE_OFFSET    PCONFIG(0)      // Temperature compensation in 0.1 degree steps
 # define P177_GENERATE_EVENTS       PCONFIG(1)      // To generate an event on Pressure change
 # define P177_RAW_DATA              PCONFIG(2)      // Present raw data
+# define P177_IGNORE_NEGATIVE       PCONFIG(3)      // Negative pressure rounded to 0
 
 enum class P177_SensorMode_e : uint8_t {
   IdleMode      = 0u,
@@ -48,6 +49,7 @@ public:
   bool              _updated    = false;
   bool              _sendEvents;
   bool              _rawData;
+  bool              _ignoreNegative;
 };
 
 #endif // ifdef USES_P177
