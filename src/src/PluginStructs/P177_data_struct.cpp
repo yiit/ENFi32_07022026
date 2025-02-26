@@ -101,19 +101,19 @@ bool P177_data_struct::plugin_read(struct EventStruct *event) {
   if (_updated) {
     int tmpPressure                       = _rawPressure; // Unsigned to signed
     int tmpTemperature                    = _rawTemperature;
-    ESPEASY_RULES_FLOAT_TYPE _pressure    = 1.0 * tmpPressure;
-    ESPEASY_RULES_FLOAT_TYPE _temperature = 1.0 * tmpTemperature;
+    ESPEASY_RULES_FLOAT_TYPE _pressure    = tmpPressure;
+    ESPEASY_RULES_FLOAT_TYPE _temperature = tmpTemperature;
 
-    if (tmpPressure > (1 << 23)) { // Negative value
+    if (tmpPressure >= (1 << 23)) { // Negative value?
       if (_ignoreNegative) {
         _pressure = 0.0;
       } else {
-        _pressure = 1.0 * (tmpPressure - (1 << 24));
+        _pressure = tmpPressure - (1 << 24);
       }
     }
 
-    if (tmpTemperature > (1 << 15)) { // Negative value?
-      _temperature = 1.0 * (tmpTemperature - (1 << 15));
+    if (tmpTemperature >= (1 << 15)) { // Negative value?
+      _temperature = tmpTemperature - (1 << 16);
     }
 
     if (!essentiallyZero(_temperature)) {
@@ -121,9 +121,7 @@ bool P177_data_struct::plugin_read(struct EventStruct *event) {
     }
 
     if (!_rawData) {
-      if (!essentiallyZero(_pressure)) {
-        _pressure /= (1.0 * ((1 << 23) / P177_PRESSURE_SCALE_FACTOR));
-      }
+      _pressure *= (P177_PRESSURE_SCALE_FACTOR / static_cast<ESPEASY_RULES_FLOAT_TYPE>(1 << 23));
 
       if (P177_TEMPERATURE_OFFSET != 0) {
         _temperature += (P177_TEMPERATURE_OFFSET / 10.0); // In 0.1 degree steps

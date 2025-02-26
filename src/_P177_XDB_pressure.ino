@@ -6,6 +6,7 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-02-26 tonhuisman: Fix some typos in calculation.
  * 2025-02-25 tonhuisman: Repair broken temperature calculation.
  * 2025-02-24 tonhuisman: Adjust calculations to avoid zero-division, and use double for accuracy when available.
  *                        Add setting to ignore negative pressure values
