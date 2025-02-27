@@ -6,6 +6,8 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-02-27 tonhuisman: Swapped Temperature and Pressure values so they can be handled as a single device by Domoticz.
+ *                        Re-ordered the settings options for a better grouping of related settings.
  * 2025-02-26 tonhuisman: Fix some typos in calculation.
  * 2025-02-25 tonhuisman: Repair broken temperature calculation.
  * 2025-02-24 tonhuisman: Adjust calculations to avoid zero-division, and use double for accuracy when available.
@@ -19,8 +21,8 @@
 # define PLUGIN_177
 # define PLUGIN_ID_177         177
 # define PLUGIN_NAME_177       "Environment - XDB401 I2C Pressure"
-# define PLUGIN_VALUENAME1_177 "Pressure"
-# define PLUGIN_VALUENAME2_177 "Temperature"
+# define PLUGIN_VALUENAME1_177 "Temperature"
+# define PLUGIN_VALUENAME2_177 "Pressure"
 
 # include "./src/PluginStructs/P177_data_struct.h"
 
@@ -82,19 +84,19 @@ boolean Plugin_177(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_WEBFORM_LOAD:
     {
-      addFormNumericBox(F("Sensor Full-scale Pressure"), F("scale"), P177_PRESSURE_SCALE_FACTOR, 1);
-      addUnit(F("psi, mBar, hPa, etc."));
-
       addFormNumericBox(F("Temperature offset"), F("tempoffset"), P177_TEMPERATURE_OFFSET);
       addUnit(F("x 0.1C"));
       addFormNote(F("Offset in units of 0.1 degree Celsius"));
 
+      addFormNumericBox(F("Sensor Full-scale Pressure"), F("scale"), P177_PRESSURE_SCALE_FACTOR, 1);
+      addUnit(F("psi, mBar, hPa, etc."));
+
       addFormCheckBox(F("Generate events on Pressure change"), F("pevents"), P177_GENERATE_EVENTS == 1);
 
-      addFormCheckBox(F("Use raw data from sensor"),           F("praw"),    P177_RAW_DATA == 1);
-      addFormNote(F("When checked: Pressure scaling factor and Temperature offset will be ignored!"));
+      addFormCheckBox(F("Ignore negative pressure values"),    F("pneg"),    P177_IGNORE_NEGATIVE == 1);
 
-      addFormCheckBox(F("Ignore negative pressure values"), F("pneg"), P177_IGNORE_NEGATIVE == 1);
+      addFormCheckBox(F("Use raw data from sensor"),           F("praw"),    P177_RAW_DATA == 1);
+      addFormNote(F("When checked: Temperature offset and Sensor Full-scale Pressure will be ignored!"));
 
       success = true;
       break;
@@ -102,11 +104,11 @@ boolean Plugin_177(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_WEBFORM_SAVE:
     {
-      P177_PRESSURE_SCALE_FACTOR = getFormItemInt(F("scale"), 1000);
       P177_TEMPERATURE_OFFSET    = getFormItemInt(F("tempoffset"), 0);
+      P177_PRESSURE_SCALE_FACTOR = getFormItemInt(F("scale"), 1000);
       P177_GENERATE_EVENTS       = isFormItemChecked(F("pevents")) ? 1 : 0;
-      P177_RAW_DATA              = isFormItemChecked(F("praw")) ? 1 : 0;
       P177_IGNORE_NEGATIVE       = isFormItemChecked(F("pneg")) ? 1 : 0;
+      P177_RAW_DATA              = isFormItemChecked(F("praw")) ? 1 : 0;
 
       success = true;
       break;

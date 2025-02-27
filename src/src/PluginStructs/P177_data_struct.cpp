@@ -128,8 +128,8 @@ bool P177_data_struct::plugin_read(struct EventStruct *event) {
       }
     }
 
-    UserVar.setFloat(event->TaskIndex, 0, _pressure);
-    UserVar.setFloat(event->TaskIndex, 1, _temperature);
+    UserVar.setFloat(event->TaskIndex, 0, _temperature);
+    UserVar.setFloat(event->TaskIndex, 1, _pressure);
     _updated = false;
     return true;
   }
