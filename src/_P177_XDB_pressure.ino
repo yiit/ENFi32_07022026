@@ -6,6 +6,7 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-03-03 tonhuisman: Change Sensor_VType to SENSOR_TYPE_TEMP_BARO for correct handling by Domoticz HTTP Controller.
  * 2025-03-01 tonhuisman: Ensure all requested data is read from the sensor, to avoid read-stalling
  *                        Change: We're now ignoring the status bit to see if data is available, and just read it after a ~100 msec delay
  * 2025-02-27 tonhuisman: Swapped Temperature and Pressure values so they can be handled as a single device by Domoticz.
@@ -39,7 +40,7 @@ boolean Plugin_177(uint8_t function, struct EventStruct *event, String& string)
       auto& dev = Device[++deviceCount];
       dev.Number         = PLUGIN_ID_177;
       dev.Type           = DEVICE_TYPE_I2C;
-      dev.VType          = Sensor_VType::SENSOR_TYPE_DUAL;
+      dev.VType          = Sensor_VType::SENSOR_TYPE_TEMP_BARO;
       dev.FormulaOption  = true;
       dev.ValueCount     = 2;
       dev.SendDataOption = true;
