@@ -7,6 +7,11 @@
 
 // Maxim Integrated (ex Dallas) DS2423 datasheet : https://datasheets.maximintegrated.com/en/ds/DS2423.pdf
 
+/** Changelog:
+ * 2025-03-06 tonhuisman: Add support for getting the (already fetched and stored) CountTotal value for the selected counter
+ * 2025-03-06 tonhuisman: Start changelog.
+ */
+
 # include "src/Helpers/Dallas1WireHelper.h"
 
 # define PLUGIN_100
@@ -56,7 +61,7 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
       addFormNote(F("External pull up resistor is needed, see docs!"));
 
       // Scan the onewire bus and fill dropdown list with devicecount on this GPIO.
-      int8_t Plugin_100_DallasPin = CONFIG_PIN1;
+      const int8_t Plugin_100_DallasPin = CONFIG_PIN1;
 
       if (validGpio(Plugin_100_DallasPin)) {
         Dallas_addr_selector_webform_load(event->TaskIndex, Plugin_100_DallasPin, Plugin_100_DallasPin);
@@ -103,9 +108,9 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
         // Explicitly set the pinMode using the "slow" pinMode function
         // This way we know for sure the state of any pull-up or -down resistor is known.
         pinMode(CONFIG_PIN1, INPUT);
+        success = true; // Only start with a valid GPIO pin set
       }
 
-      success = true;
       break;
     }
 
@@ -144,6 +149,17 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
             addLogMove(LOG_LEVEL_INFO, log);
           }
         }
+      }
+      break;
+    }
+
+    case PLUGIN_GET_CONFIG_VALUE:
+    {
+      const String cmd = parseString(string, 1);
+
+      if (equals(cmd, F("counttotal"))) {
+        string  = formatUserVarNoCheck(event, 1); // Fetch stored value
+        success = true;
       }
       break;
     }
