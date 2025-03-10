@@ -177,6 +177,9 @@ void ESPEasyWiFi_t::loop()
       } else {
         // Else mark last timestamp seen as connected
         _last_seen_connected.setNow();
+        # if FEATURE_SET_WIFI_TX_PWR
+        SetWiFiTXpower();
+        # endif
       }
       break;
   }

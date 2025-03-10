@@ -271,10 +271,9 @@ void doSetWiFiTXpower(float& dBm)
 {
   int8_t power = dBm * 4;
 
-  if (esp_wifi_set_max_tx_power(power) == ESP_OK)  {
-    if (esp_wifi_get_max_tx_power(&power) == ESP_OK)  {
-      dBm = static_cast<float>(power) / 4.0f;
-    }
+  esp_wifi_set_max_tx_power(power);
+  if (esp_wifi_get_max_tx_power(&power) == ESP_OK)  {
+    dBm = static_cast<float>(power) / 4.0f;
   }
 }
 
