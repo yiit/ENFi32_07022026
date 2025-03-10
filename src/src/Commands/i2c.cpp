@@ -11,13 +11,13 @@
 
 #include "../../ESPEasy_common.h"
 
-void i2c_scanI2Cbus(bool dbg, int8_t channel) {
+void i2c_scanI2Cbus(bool dbg, int8_t channel, uint8_t i2cBus) {
   uint8_t error, address;
 
   #if FEATURE_I2CMULTIPLEXER
 
   if (-1 == channel) {
-    serialPrintln(F("Standard I2C bus"));
+    serialPrintln(concat(F("Standard I2C bus "), i2cBus + 1));
   } else {
     serialPrintln(concat(F("Multiplexer channel "), channel));
   }
@@ -38,16 +38,18 @@ void i2c_scanI2Cbus(bool dbg, int8_t channel) {
 const __FlashStringHelper* Command_i2c_Scanner(struct EventStruct *event, const char *Line)
 {
   const bool dbg = equals(parseString(Line, 2), F("1"));
+
   #if !FEATURE_I2C_MULTIPLE
   const uint8_t i2cBus = 0;
   #else // if !FEATURE_I2C_MULTIPLE
+
   for (uint8_t i2cBus = 0; i2cBus < getI2CBusCount(); ++i2cBus)
   #endif // if !FEATURE_I2C_MULTIPLE
   {
     if (Settings.isI2CEnabled(i2cBus)) {
       I2CSelect_Max100kHz_ClockSpeed(i2cBus); // Scan bus using low speed
 
-      i2c_scanI2Cbus(dbg, -1);          // Base I2C bus
+      i2c_scanI2Cbus(dbg, -1, i2cBus);        // Base I2C bus
 
       #if FEATURE_I2CMULTIPLEXER
 
@@ -56,7 +58,7 @@ const __FlashStringHelper* Command_i2c_Scanner(struct EventStruct *event, const 
 
         for (int8_t channel = 0; channel < mux_max; ++channel) {
           I2CMultiplexerSelect(i2cBus, channel);
-          i2c_scanI2Cbus(dbg, channel); // Multiplexer I2C bus
+          i2c_scanI2Cbus(dbg, channel, i2cBus); // Multiplexer I2C bus
         }
         I2CMultiplexerOff(0);
       }
