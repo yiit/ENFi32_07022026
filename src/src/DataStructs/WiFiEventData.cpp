@@ -151,6 +151,10 @@ void WiFiEventData_t::setWiFiDisconnected() {
   wifiStatus = ESPEASY_WIFI_DISCONNECTED;
   last_wifi_connect_attempt_moment.clear();
   wifiConnectInProgress = false;
+#if FEATURE_ESPEASY_P2P
+  updateUDPport(true);
+#endif  
+
 }
 
 void WiFiEventData_t::setWiFiGotIP() {
@@ -195,6 +199,9 @@ void WiFiEventData_t::setWiFiServicesInitialized() {
     if (valid_DNS_address(WiFi.dnsIP(1))) {
       dns1_cache = WiFi.dnsIP(1);
     }
+#if FEATURE_ESPEASY_P2P
+    updateUDPport(false);
+#endif  
   }
 }
 
