@@ -1036,11 +1036,11 @@ void handle_devices_TaskSettingsPage(taskIndex_t taskIndex, uint8_t page)
 
     if (addPinConfig || (device.Type == DEVICE_TYPE_I2C)) {
       if (device.isSerial()) {
-          # ifdef PLUGIN_USES_SERIAL
+        # ifdef PLUGIN_USES_SERIAL
         devicePage_show_serial_config(taskIndex);
-          # else // ifdef PLUGIN_USES_SERIAL
+        # else // ifdef PLUGIN_USES_SERIAL
         addHtml(F("PLUGIN_USES_SERIAL not defined"));
-          # endif // ifdef PLUGIN_USES_SERIAL
+        # endif // ifdef PLUGIN_USES_SERIAL
 
         devicePage_show_pin_config(taskIndex, DeviceIndex);
         addPinConfig = false;

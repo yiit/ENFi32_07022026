@@ -52,6 +52,7 @@ void handle_hardware() {
     }
     Settings.I2C_clockSpeed           = getFormItemInt(F("pi2csp0"), DEFAULT_I2C_CLOCK_SPEED);
     Settings.I2C_clockSpeed_Slow      = getFormItemInt(F("pi2cspslow0"), DEFAULT_I2C_CLOCK_SPEED_SLOW);
+    Settings.WireClockStretchLimit    = getFormItemInt(F("wirestretch"));
     #if FEATURE_I2CMULTIPLEXER
     Settings.I2C_Multiplexer_Type     = getFormItemInt(F("pi2cmuxtype0"));
     if (Settings.I2C_Multiplexer_Type != I2C_MULTIPLEXER_NONE) {
@@ -231,6 +232,18 @@ void handle_hardware() {
     addFormNote(F("Use 100 kHz for old I2C devices, 400 kHz is max for most."));
     addFormNumericBox(F("Slow device Clock Speed"), strformat(F("pi2cspslow%u"), i2cBus), Settings.getI2CClockSpeedSlow(i2cBus), 100, 3400000);
     addUnit(F("Hz"));
+
+    if (0 == i2cBus) { // Only support Clock-stretching on Bus 1
+      #ifdef ESP8266
+      addFormNumericBox(F("I2C ClockStretchLimit"), F("wirestretch"), Settings.WireClockStretchLimit, 0); // TODO define limits
+      addUnit(F("usec"));
+      #endif
+      #ifdef ESP32
+      addFormNumericBox(F("I2C ClockStretchLimit"), F("wirestretch"), Settings.WireClockStretchLimit, 0); // TODO define limits
+      addUnit(F("1/80 usec"));
+      #endif
+    }
+
     #if FEATURE_I2CMULTIPLEXER
     #if !FEATURE_I2C_MULTIPLE
     addFormSubHeader(F("I2C Multiplexer"));

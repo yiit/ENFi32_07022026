@@ -1066,14 +1066,6 @@ template<unsigned int N_TASKS>
 uint32_t SettingsStruct_tmpl<N_TASKS>::getI2CClockStretch(uint8_t i2cBus) const {
   if (0 == i2cBus) {
     return WireClockStretchLimit;
-  #if FEATURE_I2C_MULTIPLE
-  } else if (1 == i2cBus) {
-    return Wire2ClockStretchLimit;
-  #if FEATURE_I2C_INTERFACE_3
-  } else {
-    return Wire3ClockStretchLimit;
-  #endif // if FEATURE_I2C_INTERFACE_3
-  #endif // if FEATURE_I2C_MULTIPLE
   }
   return 0u;
 }

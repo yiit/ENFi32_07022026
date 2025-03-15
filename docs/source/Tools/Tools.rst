@@ -406,12 +406,6 @@ like subnet mask / gateway / DNS, it may still be useful.
 This allows a somewhat static IP in your network (N.B. use it with an 'octet' outside the range of the DHCP IPs) while still having set to DHCP.
 So if you take the node to another network which does use 192.168.52.x then you will know it will be on 192.168.52.10 (when setting this value to "10")
 
-I2C ClockStretchLimit
-^^^^^^^^^^^^^^^^^^^^^
-
-- `I2C-bus.org - Clock Stretching <https://www.i2c-bus.org/clock-stretching/>`_
-- `ESPeasy wiki - Basics: The I2C Bus <https://www.letscontrolit.com/wiki/index.php/Basics:_The_I%C2%B2C_Bus>`_
-
 WD I2C Address
 ^^^^^^^^^^^^^^
 

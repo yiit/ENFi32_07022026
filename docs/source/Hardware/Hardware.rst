@@ -47,6 +47,13 @@ The default bus clock speed can also be set here. If only devices supporting 100
 
 ESPEasy has a separate setting for Slow I2C devices, and per I2C device this slow clock speed can be selected in the Device configuration page. This value is by default set to 100 kHz, but can be set lower or higher if desired.
 
+*I2C ClockStretchLimit*
+
+- `I2C-bus.org - Clock Stretching <https://www.i2c-bus.org/clock-stretching/>`_
+- `ESPeasy wiki - Basics: The I2C Bus <https://www.letscontrolit.com/wiki/index.php/Basics:_The_I%C2%B2C_Bus>`_
+
+This setting is only available for the first I2C Bus, as not many devices (should) need this set, and the devices that do need this should then be connected to I2C Bus 1.
+
 .. image:: Hardware_I2CBus.png
 
 *Device specific Force Slow I2C speed selection:*
@@ -67,7 +74,7 @@ The available options are the same as for the first I2C Bus.
 
 If a second (or third) I2C Bus are not needed, then leave the GPIO settings on ``- None -``, and the interface won't be initialized, and not shown in the configuration options.
 
-NB: The second (or third) I2C Bus should of course not be configured for the same GPIO pins as any other I2C Bus.
+NB: The I2C Buses should of course not be configured for the same GPIO pins as any other I2C Bus.
 
 NB2: Some boards require that in the Serial Console Settings (Tools/Advanced), the ``Fall-back to Serial 0`` option is disabled, to free the GPIO pins for I2C use.
 

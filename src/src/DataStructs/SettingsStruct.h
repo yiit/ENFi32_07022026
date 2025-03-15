@@ -434,9 +434,7 @@ public:
   int8_t        I2C3_Multiplexer_Type = I2C_MULTIPLEXER_NONE;
   int8_t        I2C3_Multiplexer_Addr = -1;
   int8_t        I2C3_Multiplexer_ResetPin = -1;
-  unsigned long Wire2ClockStretchLimit = 0;
-  unsigned long Wire3ClockStretchLimit = 0;
-  unsigned int  OLD_TaskDeviceID[N_TASKS - 9] = {0};  //UNUSED: this can be reused
+  unsigned int  OLD_TaskDeviceID[N_TASKS - 7] = {0};  //UNUSED: this can be reused
 
   // FIXME TD-er: When used on ESP8266, this conversion union may not work
   // It might work as it is 32-bit in size.

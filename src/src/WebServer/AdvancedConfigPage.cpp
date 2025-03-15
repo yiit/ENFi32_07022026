@@ -97,17 +97,6 @@ void handle_advanced() {
     #if FEATURE_SSDP
     Settings.UseSSDP                     = isFormItemChecked(F("usessdp"));
     #endif // if FEATURE_SSDP
-    Settings.WireClockStretchLimit       = getFormItemInt(F("wirestretch"));
-    #if FEATURE_I2C_MULTIPLE
-    if (getI2CBusCount() > 1) {
-      Settings.Wire2ClockStretchLimit    = getFormItemInt(F("wire2stretch"));
-    }
-    #if FEATURE_I2C_INTERFACE_3
-    if (getI2CBusCount() > 2) {
-      Settings.Wire3ClockStretchLimit    = getFormItemInt(F("wire3stretch"));
-    }
-    #endif // if FEATURE_I2C_INTERFACE_3
-    #endif // if FEATURE_I2C_MULTIPLE
     Settings.UseRules                    = isFormItemChecked(F("userules"));
     Settings.ConnectionFailuresThreshold = getFormItemInt(LabelType::CONNECTION_FAIL_THRESH);
     Settings.ArduinoOTAEnable            = isFormItemChecked(F("arduinootaenable"));
@@ -332,25 +321,10 @@ void handle_advanced() {
   }
   #endif // if FEATURE_I2C_MULTIPLE
 
-  addFormNumericBox(F("I2C ClockStretchLimit"), F("wirestretch"), Settings.WireClockStretchLimit); // TODO define limits
-  #ifdef ESP8266
-  addUnit(F("usec"));
-  #endif
-  #ifdef ESP32
-  addUnit(F("1/80 usec"));
-  #endif
-  #if FEATURE_I2C_MULTIPLE
-  if ((getI2CBusCount() > 1) && Settings.isI2CEnabled(1)) {
-    addFormNumericBox(concat(F("I2C ClockStretchLimit"), F(" Interface 2")), F("wire2stretch"), Settings.Wire2ClockStretchLimit); // TODO define limits
-    addUnit(F("1/80 usec"));
-  }
-  #if FEATURE_I2C_INTERFACE_3
-  if ((getI2CBusCount() > 2) && Settings.isI2CEnabled(2)) {
-    addFormNumericBox(concat(F("I2C ClockStretchLimit"), F(" Interface 3")), F("wire3stretch"), Settings.Wire3ClockStretchLimit); // TODO define limits
-    addUnit(F("1/80 usec"));
-  }
-  #endif // if FEATURE_I2C_INTERFACE_3
-  #endif // if FEATURE_I2C_MULTIPLE
+  // TODO: Remove this code
+  addRowLabel(F("I2C ClockStretchLimit"));
+  addUnit(F("Moved to Hardware page"));
+
   #if FEATURE_ARDUINO_OTA
   addFormCheckBox(F("Enable Arduino OTA"), F("arduinootaenable"), Settings.ArduinoOTAEnable);
   #endif // if FEATURE_ARDUINO_OTA
