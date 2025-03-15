@@ -8,6 +8,8 @@
 // Maxim Integrated (ex Dallas) DS2423 datasheet : https://datasheets.maximintegrated.com/en/ds/DS2423.pdf
 
 /** Changelog:
+ * 2025-03-15 tonhuisman: Add option in UI to enable the CountTotal value. When not enabled, still available via [<TaskName>#CountTotal]
+ *                        Enable PluginStats feature. Initially set Decimals to 0.
  * 2025-03-06 tonhuisman: Add support for getting the (already fetched and stored) CountTotal value for the selected counter
  * 2025-03-06 tonhuisman: Start changelog.
  */
@@ -18,6 +20,7 @@
 # define PLUGIN_ID_100         100
 # define PLUGIN_NAME_100       "Pulse Counter - DS2423"
 # define PLUGIN_VALUENAME1_100 "CountDelta"
+# define PLUGIN_VALUENAME2_100 "CountTotal"
 
 boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
 {
@@ -30,11 +33,12 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
       auto& dev = Device[++deviceCount];
       dev.Number         = PLUGIN_ID_100;
       dev.Type           = DEVICE_TYPE_SINGLE;
-      dev.VType          = Sensor_VType::SENSOR_TYPE_SINGLE;
+      dev.VType          = Sensor_VType::SENSOR_TYPE_DUAL;
       dev.FormulaOption  = true;
-      dev.ValueCount     = 1;
+      dev.ValueCount     = 2;
       dev.SendDataOption = true;
       dev.TimerOption    = true;
+      dev.PluginStats    = true;
       break;
     }
 
@@ -47,6 +51,28 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
     case PLUGIN_GET_DEVICEVALUENAMES:
     {
       strcpy_P(ExtraTaskSettings.TaskDeviceValueNames[0], PSTR(PLUGIN_VALUENAME1_100));
+      strcpy_P(ExtraTaskSettings.TaskDeviceValueNames[1], PSTR(PLUGIN_VALUENAME2_100));
+      break;
+    }
+
+    case PLUGIN_GET_DEVICEVALUECOUNT:
+    {
+      event->Par1 = 1 == PCONFIG(1) ? 2 : 1;
+      success     = true;
+      break;
+    }
+
+    case PLUGIN_GET_DEVICEVTYPE:
+    {
+      event->sensorType = 1 == PCONFIG(1) ? Sensor_VType::SENSOR_TYPE_DUAL : Sensor_VType::SENSOR_TYPE_SINGLE;
+      success           = true;
+      break;
+    }
+
+    case PLUGIN_SET_DEFAULTS:
+    {
+      ExtraTaskSettings.TaskDeviceValueDecimals[0] = 0; // Counters don't use decimals by default
+      ExtraTaskSettings.TaskDeviceValueDecimals[1] = 0;
       break;
     }
 
@@ -73,6 +99,7 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
         selector.addFormSelector(F("Counter"), F("counter"), PCONFIG(0));
         addFormNote(F("Counter value is incremental"));
       }
+      addFormCheckBox(F("Show CountTotal value"), F("ptot"), PCONFIG(1) == 1);
       success = true;
       break;
     }
@@ -84,6 +111,7 @@ boolean Plugin_100(uint8_t function, struct EventStruct *event, String& string)
 
       // 1-wire device address
       Dallas_addr_selector_webform_save(event->TaskIndex, CONFIG_PIN1, CONFIG_PIN1);
+      PCONFIG(1) = isFormItemChecked(F("ptot")) ? 1 : 0;
 
       success = true;
       break;
