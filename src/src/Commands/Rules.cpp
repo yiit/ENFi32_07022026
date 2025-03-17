@@ -12,6 +12,7 @@
 #include "../ESPEasyCore/ESPEasyRules.h"
 
 #include "../Globals/EventQueue.h"
+#include "../Globals/ExtraTaskSettings.h"
 #include "../Globals/RulesCalculate.h"
 #include "../Globals/RuntimeData.h"
 #include "../Globals/Settings.h"
@@ -75,14 +76,13 @@ const __FlashStringHelper * Command_Rules_Let(struct EventStruct *event, const c
   String TmpStr1;
   GetArgv(Line, varName, 2);
 
-  if (GetArgv(Line, TmpStr1, 3)) {
-    if (!varName.isEmpty()) {
-      ESPEASY_RULES_FLOAT_TYPE result{};
+  if (!varName.isEmpty() &&
+      ExtraTaskSettings.checkInvalidCharInNames(varName.c_str()) && GetArgv(Line, TmpStr1, 3)) {
+    ESPEASY_RULES_FLOAT_TYPE result{};
 
-      if (!isError(Calculate(TmpStr1, result))) {
-        setCustomFloatVar(varName, result);
-        return return_command_success_flashstr();
-      }
+    if (!isError(Calculate(TmpStr1, result))) {
+      setCustomFloatVar(varName, result);
+      return return_command_success_flashstr();
     }
   }
   return return_command_failed_flashstr();
