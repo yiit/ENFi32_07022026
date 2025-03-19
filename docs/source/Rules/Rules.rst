@@ -718,12 +718,16 @@ A really great feature to use is the internal variables. You set them like this:
 
  Let,<n>,<value>
 
+ Let,1,15
+
  Let,border,3
 
  Let,angle,0.436
 
 Where n can be a positive integer (type ``uint32_t``), or a name (identifier), and the value a floating point value. To use the values in strings you can
 either use the ``%v7%`` syntax or ``[var#7]``, or when using named variables: ``%v_border%`` or ``[var#border]``.
+
+Added: 2025-03-31: Support for named variables.
 
 .. note:: The number for ``n`` used to be limited to 1 ... 16, but this limit has been removed in builds made after 2021-01-09.
 
@@ -739,10 +743,10 @@ When using a named variable with the short-hand notation, an underscore must be 
 The short-hand notation (e.g. ``%v7%``) will be processed first.
 Meaning this can be used to switch sets of variables by nesting like this: ``[int#%v7%]``.
 
-On the "System Variables" page of the web interface all set values can be inspected including their values.
+On the "System Variables" page of the web interface all set values can be inspected including their values. Named variables will be listed in lowercase, and the variable names are not case-sensitive, just like task- and value-names.
 If none is set, "No variables set" will be shown.
 
-If a specific system variable was never set (using the ``Let`` command), its value will be considered to be ``0.0``.
+If a specific system variable was never set (using the ``Let``, ``Inc`` or ``Dec`` commands), its value will be considered to be ``0.0``.
 
 .. note:: Internal variables are lost after a reboot. If you need to keep values that will survive a reboot or crash (without losing power), please use a dummy task for this.
 
