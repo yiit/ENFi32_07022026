@@ -112,12 +112,114 @@
 #    include "../Static/Fonts/LCD14cond24pt7b.h"
 #   endif // ifdef ADAGFX_FONTS_EXTRA_24PT_LCD14COND
 #  endif // ifdef ADAGFX_FONTS_EXTRA_24PT_INCLUDED
-# endif  // if ADAGFX_FONTS_INCLUDED
+# endif  // if ADAGFX_FONTS_INCLUDED (this should be the closing #endif)
+
+/* Marker: C) Keep the last #endif, above, and insert an #ifdef/#ifdef/#include/#endif/#endif to conditinally include the specific font .h
+   file  *DON'T REMOVE* */
 
 # if FEATURE_SD && defined(ADAGFX_ENABLE_BMP_DISPLAY)
 #  include <SD.h>
 # endif // if FEATURE_SD && defined(ADAGFX_ENABLE_BMP_DISPLAY)
 
+/**
+   ------------------------------------------
+   Adding a custom font to the list of fonts.
+   ------------------------------------------
+   (Advanced development topic)
+
+   As we can't have all fonts combined in all builds for .bin-size reasons, each font has to be guarded by compile-time defines.
+   This does make the readability of the source quite poor, but flexible in what is eventually included.
+   For historic reasons, there are 2 types of compile-time defines, some that are either just defined, or not,
+   and some that should be defined as 0 for Off/Disabled, and non-0 (usually 1, sometimes 'true') for On/Enabled. This of course adds to the
+   confusion.
+
+   For this explanation I'll use a 90pt font named 7segment90pt7b
+   The desired font can be generated from https://rop.nl/truetype2gfx/ where you can upload a .ttf font file, select the size, 'preview' the
+   font (remember, the site shows the .ttf font, not the generated bitmap font), and generate a .h file using the Get GFX Font File.
+   This .h file should be copied to the src/src/Static/Fonts folder of the repository.
+
+   The steps are numbered a) to g)
+
+   a)
+   We start by adding the defines to AdafruitGFX_helper.h
+
+   To add a 90pt font, find 'Marker: A)' to insert #define ADAGFX_FONTS_EXTRA_90PT_INCLUDED (above the marker) to guard this group of fonts.
+
+   b)
+   At 'Marker: B)' add #define ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B (above the marker) to have a way to include or exclude this new font.
+   The last part of the name should best match the name of the font
+
+   c)
+   Now we continue in AdafruitGFX_helper.cpp
+
+   Just above 'Marker: C)' is the last #endif of a large #ifdef/#ifdef/#include/#endif/#endif list.
+   Just before that last #endif, a new check should be added, like this: (example names used, the name for the include-file should be
+   adjusted too):
+
+ #  ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+ #   ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+ #    include "../Static/Fonts/7segment90pt7b.h"
+ #   endif // ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+ #  endif // ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+
+
+   d)
+   Next, the include-file generated before needs a few adjustments to make it work with the ESPEasy code:
+   In that font .h file we'll insert, above the first line, a single-include check:
+
+ #ifndef FONTS_7SEGMENT90PT7B_H
+ #define FONTS_7SEGMENT90PT7B_H
+
+   and at the end of that file:
+
+ #endif // ifndef FONTS_7SEGMENT90PT7B_H
+
+   The name of the #define should match the filename, any periods, slashes and dashes replaced by underscores, and all uppercase, by
+   convention.
+
+   e)
+   Now we'll reteurn to AdafruitGFX_helper.cpp, to extend the list of font-names:
+   That font-names list ends just above 'Marker E)', with an empty set of quotes and a semicolon: "";
+   Just before that line, include this conditional code:
+
+ #  ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+ #   ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+   "sevenseg90b|"
+ #   endif // ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+ #  endif // ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+
+   assigning the name sevenseg90b to the font. This name should match the fontname and probably the point size,
+   but _must_ be all lowercase characters! (required!)
+
+   f)
+   Next we have to add the font data to the font-list array.
+   At the end of that array, above 'Marker F)', we'll have to add the address of the GFXFont from the new font .h file (select your
+      font.h file, of course) and parameters for the font:
+
+ # ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+ #  ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+   { &_7segment90pt7b,               96,              120, 122,  false, 101u },
+ #  endif // ifdef ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B
+ # endif  // ifdef ADAGFX_FONTS_EXTRA_90PT_INCLUDED
+
+   The numbers are:
+   - width (usually a few pixels wider than the font-size)
+   - height (usually the font-size multiplied by ~1.4)
+   - offset (line-height offset, some fonts need 0, for most fonts it should be the font-height + a few pixels for the line-spacing)
+   and a boolean that's true for proportinal spacing and false for monospaced fonts.
+   These numbers are an approximation, and have to be tried on a real display, by trial and error.
+   The last number, 101u in the example, is the font-id. That has to be unique (check the rest of the list), used 101 as the first
+   user-custom font.
+   The exisiting font-ids should NOT be changed, as they are stored in plugin settings as the default font to use, and would invalidate
+   existing configurations of modified!
+
+   g)
+   Next step is to compile a build with this code enabled. Don't compile for ESP8266, as then all extra fonts are disabled (not going to fit
+   in the binary).
+   An ESP32 MAX build is a good candidate to compile, as that includes all plugins, and most fonts, though these added custom fonts have to
+   be manually enabled.
+
+ */
 
 /******************************************************************************************
  * get the display text for a 'text print mode' enum value
@@ -213,6 +315,7 @@ void AdaGFXFormTextPrintMode(const __FlashStringHelper *id,
 
   constexpr int count = NR_ELEMENTS(textModes);
   FormSelectorOptions selector(count, textModes);
+
   selector.default_index = 1;
 
   selector.addFormSelector(F("Text print Mode"), id, selectedIndex);
@@ -965,6 +1068,8 @@ const char adagfx_fonts[] PROGMEM =
   #  endif // ifdef ADAGFX_FONTS_EXTRA_24PT_INCLUDED
   "";
 
+/* Marker E) Add the new fontname with #ifdef checks _above_ the line with only: "";  *DON'T REMOVE* */
+
 struct tFontArgs {
   constexpr tFontArgs(const GFXfont *f,
                       uint8_t        width,
@@ -1094,6 +1199,8 @@ constexpr tFontArgs fontargs[] =
 };
 /* *INDENT-ON* */
 # endif // if ADAGFX_FONTS_INCLUDED
+
+/* Marker F) Add the font data address and parameters to the above array, just above the closing curly brace  *DON'T REMOVE* */
 
 String AdaGFXgetFontName(uint8_t fontId, bool includeFontId) {
   # if ADAGFX_FONTS_INCLUDED
