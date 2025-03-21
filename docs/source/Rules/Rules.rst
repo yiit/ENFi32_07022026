@@ -2590,6 +2590,8 @@ Required device tasks:
 * Sensor (temperature in the example)
 * Dummy device (named ``Dummy`` in this example, minimal 2 values, ``LoggingON`` and ``LoggingOFF``), Interval can be set to 0
 
+Changed: 2025-03-21 Use named variables, instead of numbered variables.
+
 .. code-block:: none
 
   On System#Boot Do
@@ -2609,29 +2611,27 @@ Required device tasks:
 
   On HeaterON Do // Optional 1st argument is the temperature, defaults to the value of DS1#Temperature if not provided
     If [Dummy#LoggingON] = 1
-      Let,1,%syssec_d% // Store current nr of seconds of today in var#1
+      Let,secs,%syssec_d% // Store current nr of seconds of today in var#secs
       PostToHTTP,192.168.1.20,8080,/receiver.php,'','%lcltime% !!! Temp = %eventvalue1|[DS1#Temperature]% -> Heater ON'
       TaskValueSet,Dummy,LoggingON,0
-      TaskValueSet,Dummy,LoggingOFF,1
-      TaskRun,Dummy
+      TaskValueSetAndRun,Dummy,LoggingOFF,1
     Endif
   Endon
 
   On HeaterOFF Do // Optional 1st argument is the temperature, defaults to the value of DS1#Temperature if not provided
     If [Dummy#LoggingOFF] = 1
-      Let,2,[int#2]+%syssec_d%-[int#1] // Add run time to var#2
+      Inc,total,%syssec_d%-[int#secs] // Add run time to var#total
       PostToHTTP,192.168.1.20,8080,/receiver.php,'','%lcltime% !!! Temp = %eventvalue1|[DS1#Temperature]% -> Heater OFF'
       TaskValueSet,Dummy,LoggingON,1
-      TaskValueSet,Dummy,LoggingOFF,0
-      TaskRun,Dummy
+      TaskValueSetAndRun,Dummy,LoggingOFF,0
     Endif
   Endon
 
   On Clock#Time=All,00:00 Do // At midnight
-    // Send value of [int#2] to wherever you need it
-    PostToHTTP,192.168.1.20,8080,/receiver.php,'','%lcltime% !!! Total RunningTime = [int#2] Seconds'
-    Let,1,0 // Reset start time
-    Let,2,0 // Reset total counter 
+    // Send value of [int#total] to wherever you need it
+    PostToHTTP,192.168.1.20,8080,/receiver.php,'','%lcltime% !!! Total RunningTime = [int#total] Seconds'
+    Let,secs,0 // Reset start time
+    Let,total,0 // Reset total counter 
   Endon
 
 
