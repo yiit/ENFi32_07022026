@@ -127,16 +127,27 @@
    ------------------------------------------
    (Advanced development topic)
 
-   As we can't have all fonts combined in all builds for .bin-size reasons, each font has to be guarded by compile-time defines.
+   As we can't have all fonts combined in all builds for .bin-size reasons, each extra font has to be guarded by compile-time defines.
    This does make the readability of the source quite poor, but flexible in what is eventually included.
    For historic reasons, there are 2 types of compile-time defines, some that are either just defined, or not,
    and some that should be defined as 0 for Off/Disabled, and non-0 (usually 1, sometimes 'true') for On/Enabled. This of course adds to the
    confusion.
 
-   For this explanation I'll use a 90pt font named 7segment90pt7b
+   A few sources for finding truetype (ttf) fonts:
+   https://www.fonts.google.com
+   https://www.1001freefonts.com
+   https://www.fontsquirrel.com
+   Most usable for displaying text and numeric data in a structured way is to use a monospaced font, where all characters use the same
+   width. When only displaying numeric data, some proportionally spaced fonts have monospaced digits (same width), but certainly not all
+   fonts do!
+   When sharing your font in the ESPEasy repository, please select a font that's free to use, as we don't have funding for commercial fonts
+   or copyrighted fonts available! Please share the link to the font that was used, so the legal stuff can be validated.
+   If you want to use a non-free or licensed font, then please don't share it in the ESPEasy repository, to avoid legal issues.
+
+   For this explanation I'll use a 90pt font named 7segment90pt7b.
    The desired font can be generated from https://rop.nl/truetype2gfx/ where you can upload a .ttf font file, select the size, 'preview' the
-   font (remember, the site shows the .ttf font, not the generated bitmap font), and generate a .h file using the Get GFX Font File.
-   This .h file should be copied to the src/src/Static/Fonts folder of the repository.
+   font (mind you, the site shows the .ttf font, not the generated bitmap font!), and generate a .h file using the Get GFX Font File button.
+   The generated .h file should be copied to the src/src/Static/Fonts folder of the repository.
 
    The steps are numbered a) to g)
 
@@ -206,18 +217,24 @@
    - width (usually a few pixels wider than the font-size)
    - height (usually the font-size multiplied by ~1.4)
    - offset (line-height offset, some fonts need 0, for most fonts it should be the font-height + a few pixels for the line-spacing)
-   and a boolean that's true for proportinal spacing and false for monospaced fonts.
+   and a boolean that's true for proportional spacing and false for monospaced fonts.
    These numbers are an approximation, and have to be tried on a real display, by trial and error.
    The last number, 101u in the example, is the font-id. That has to be unique (check the rest of the list), used 101 as the first
    user-custom font.
    The exisiting font-ids should NOT be changed, as they are stored in plugin settings as the default font to use, and would invalidate
-   existing configurations of modified!
+   existing configurations if modified!
 
    g)
    Next step is to compile a build with this code enabled. Don't compile for ESP8266, as then all extra fonts are disabled (not going to fit
    in the binary).
    An ESP32 MAX build is a good candidate to compile, as that includes all plugins, and most fonts, though these added custom fonts have to
    be manually enabled.
+   Also, a Custom build can be built, where you define in a Custom.h file, copied from Custom-sample.h, and enable one or more of USES_P095,
+   USES_P096, USES_P116, USES_P131, USES_P141 and USES_P165 to have the AdafruitGFX_helper auto-enabled. (P165 doesn't have much space for
+   large fonts though)
+   In the Custom.h file, you can also enable the #define for the font-group (ADAGFX_FONTS_EXTRA_90PT_INCLUDED) and optionally the font
+   (ADAGFX_FONTS_EXTRA_90PT_SEVENSEG_B), so in the AdafruitGFX_helper.h file they can be disabled by default, and only enabled in the Custom
+   build when desired.
 
  */
 
