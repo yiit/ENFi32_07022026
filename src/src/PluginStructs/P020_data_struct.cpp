@@ -23,6 +23,8 @@ P020_Task::P020_Task(struct EventStruct *event) : _taskIndex(event->TaskIndex) {
   _port         = static_cast<ESPEasySerialPort>(CONFIG_PORT);
   _serialId     = P020_GET_EVENT_SERIAL_ID;
   _appendTaskId = P020_GET_APPEND_TASK_ID;
+  _rxBufferSize = P020_RX_BUFFER;
+  _eventAsHex   = P020_GET_EVENT_AS_HEX;
 }
 
 P020_Task::~P020_Task() {
@@ -91,11 +93,11 @@ bool P020_Task::hasClientConnected() {
   if ((nullptr != ser2netServer) && ser2netServer->hasClient())
   {
     if (ser2netClient) { ser2netClient.stop(); }
-    #if ESP_IDF_VERSION_MAJOR >= 5
+    # if ESP_IDF_VERSION_MAJOR >= 5
     ser2netClient = ser2netServer->accept();
-    #else
+    # else // if ESP_IDF_VERSION_MAJOR >= 5
     ser2netClient = ser2netServer->available();
-    #endif
+    # endif // if ESP_IDF_VERSION_MAJOR >= 5
 
     # ifdef MUSTFIX_CLIENT_TIMEOUT_IN_SECONDS
 
@@ -139,7 +141,7 @@ void P020_Task::clearBuffer() {
   free_string(serial_buffer);
   _maxDataGramSize = serial_processing == P020_Events::P1WiFiGateway
                     ? P020_P1_DATAGRAM_MAX_SIZE
-                    : P020_DATAGRAM_MAX_SIZE;
+                    : _rxBufferSize;
   serial_buffer.reserve(_maxDataGramSize);
 }
 
@@ -251,7 +253,9 @@ void P020_Task::handleSerialIn(struct EventStruct *event) {
       if ((serial_processing == P020_Events::P1WiFiGateway) && !serial_buffer.endsWith(F("\r\n"))) {
         serial_buffer += F("\r\n");
       }
-      ser2netClient.print(serial_buffer);
+
+      // Might include non-printable characters, so use write instead of print
+      ser2netClient.write(reinterpret_cast<const uint8_t *>(serial_buffer.c_str()), serial_buffer.length());
     }
 
     blinkLED();
@@ -309,7 +313,14 @@ void P020_Task::rulesEngine(const String& message) {
             eventString += (_taskIndex + 1);
           }
           eventString += '#';
-          eventString += message.substring(StartPos, NewLinePos);
+
+          if (_eventAsHex) {
+            eventString += F("0x");
+            eventString += formatToHex_array(reinterpret_cast<const uint8_t *>(message.substring(StartPos, NewLinePos).c_str()),
+                                             NewLinePos - StartPos);
+          } else {
+            eventString += message.substring(StartPos, NewLinePos);
+          }
         }
         break;
       }
