@@ -268,7 +268,7 @@ void P104_data_struct::loadSettings() {
         # endif // ifdef P104_DEBUG
       }
 
-      free_string(buffer);     // Free some memory
+      free_string(buffer);   // Free some memory
     }
 
     delete[] settingsBuffer; // Release allocated buffer
@@ -339,14 +339,14 @@ void P104_data_struct::configureZones() {
         # ifdef P104_USE_NUMERIC_DOUBLEHEIGHT_FONT
         case P104_DOUBLE_HEIGHT_FONT_ID: {
           P->setFont(currentZone, numeric7SegDouble);
-          P->setCharSpacing(currentZone, P->getCharSpacing() * 2); // double spacing as well
+          P->setCharSpacing(currentZone, P->getCharSpacing(currentZone) * 2); // double spacing as well
           break;
         }
         # endif // ifdef P104_USE_NUMERIC_DOUBLEHEIGHT_FONT
         # ifdef P104_USE_FULL_DOUBLEHEIGHT_FONT
         case P104_FULL_DOUBLEHEIGHT_FONT_ID: {
           P->setFont(currentZone, BigFont);
-          P->setCharSpacing(currentZone, P->getCharSpacing() * 2); // double spacing as well
+          P->setCharSpacing(currentZone, P->getCharSpacing(currentZone) * 2); // double spacing as well
           break;
         }
         # endif // ifdef P104_USE_FULL_DOUBLEHEIGHT_FONT
@@ -1543,7 +1543,8 @@ bool P104_data_struct::handlePluginOncePerSecond(struct EventStruct *event) {
   bool timeAmpm   = false;
   bool year4dgt   = false;
   # endif // ifdef P104_USE_DATETIME_OPTIONS
-  bool newFlasher = !flasher && useFlasher;
+  bool newFlasher     = !flasher && useFlasher;
+  bool currentFlasher = flasher;
 
   for (auto it = zones.begin(); it != zones.end(); ++it) {
     redisplay = false;
@@ -1554,7 +1555,7 @@ bool P104_data_struct::handlePluginOncePerSecond(struct EventStruct *event) {
         case P104_CONTENT_TIME_SEC:       // time sec
         {
           bool   useSeconds = (it->content == P104_CONTENT_TIME_SEC);
-          int8_t m          = getTime(szTimeL, useSeconds, flasher || !useFlasher, time12h, timeAmpm);
+          int8_t m          = getTime(szTimeL, useSeconds, currentFlasher || !useFlasher, time12h, timeAmpm);
           flasher          = newFlasher;
           redisplay        = useFlasher || useSeconds || (it->_lastChecked != m);
           it->_lastChecked = m;
@@ -1580,7 +1581,7 @@ bool P104_data_struct::handlePluginOncePerSecond(struct EventStruct *event) {
         case P104_CONTENT_DATE_TIME: // date-time/9
         {
           int8_t m = getDateTime(szTimeL,
-                                 flasher || !useFlasher,
+                                 currentFlasher || !useFlasher,
                                  time12h,
                                  timeAmpm,
                                  year4dgt
