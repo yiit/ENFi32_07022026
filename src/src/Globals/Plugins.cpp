@@ -90,8 +90,14 @@ pluginID_t getPluginID_from_TaskIndex(taskIndex_t taskIndex) {
 }
 
 #if FEATURE_PLUGIN_PRIORITY
-bool isPluginI2CPowerManager_from_TaskIndex(taskIndex_t taskIndex) {
+bool isPluginI2CPowerManager_from_TaskIndex(taskIndex_t taskIndex, uint8_t i2cBus) {
   if (validTaskIndex(taskIndex)) {
+    # if FEATURE_I2C_MULTIPLE
+
+    if (Settings.getI2CInterface(taskIndex) != i2cBus) {
+      return false;
+    }
+    # endif // if FEATURE_I2C_MULTIPLE
     deviceIndex_t deviceIndex = getDeviceIndex_from_TaskIndex(taskIndex);
 
     if (validDeviceIndex(deviceIndex)) {
@@ -209,9 +215,26 @@ bool prepare_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) 
     return true; // No I2C task, so consider all-OK
   }
 
+  if (!Settings.isI2CEnabled(Settings.getI2CInterface(taskIndex))) {
+    return false; // Plugin-selected I2C bus is not configured, fail
+  }
+
   if (I2C_state != I2C_bus_state::OK) {
     return false; // Bus state is not OK, so do not consider task runnable
   }
+
+  #if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
+  #else // if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = 0;
+  #endif // if FEATURE_I2C_MULTIPLE
+
+  if (bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED)) {
+    I2CSelectLowClockSpeed(i2cBus);  // Set to slow, also switch the bus
+  } else {
+    I2CSelectHighClockSpeed(i2cBus); // Set to normal, also switch the bus
+  }
+
   #if FEATURE_I2CMULTIPLEXER
   I2CMultiplexerSelectByTaskIndex(taskIndex);
 
@@ -219,9 +242,6 @@ bool prepare_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) 
   // frequency is set before anything else is sent.
   #endif // if FEATURE_I2CMULTIPLEXER
 
-  if (bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED)) {
-    I2CSelectLowClockSpeed(); // Set to slow
-  }
   return true;
 }
 
@@ -233,11 +253,16 @@ void post_I2C_by_taskIndex(taskIndex_t taskIndex, deviceIndex_t DeviceIndex) {
   if (Device[DeviceIndex].Type != DEVICE_TYPE_I2C) {
     return;
   }
+  #if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = Settings.getI2CInterface(taskIndex);
+  #else // if FEATURE_I2C_MULTIPLE
+  const uint8_t i2cBus = 0;
+  #endif // ifdef ESP32
   #if FEATURE_I2CMULTIPLEXER
-  I2CMultiplexerOff();
+  I2CMultiplexerOff(i2cBus);
   #endif // if FEATURE_I2CMULTIPLEXER
 
-  I2CSelectHighClockSpeed(); // Reset
+  I2CSelectHighClockSpeed(i2cBus); // Reset, stay on current bus
 }
 
 // Add an event to the event queue.
@@ -516,6 +541,11 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
 
           if (validDeviceIndex(DeviceIndex))  {
             START_TIMER;
+            #if FEATURE_I2C_MULTIPLE
+            const uint8_t i2cBus = Settings.getI2CInterfacePCFMCP();
+            I2CSelectHighClockSpeed(i2cBus); // Switch to requested bus, no need to switch back,
+                                             // next I2C plugin call will switch to desired bus
+            #endif // if FEATURE_I2C_MULTIPLE
             PluginCall(DeviceIndex, Function, &TempEvent, str);
             STOP_TIMER_TASK(DeviceIndex, Function);
           }
