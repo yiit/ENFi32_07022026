@@ -931,6 +931,10 @@ Usage: ``{substring:<startpos>:<endpos>:<string>}``
 
 The position arguments are the same as in Arduino ``String::substring`` , meaning the endpos is 1 position further than the last character you need.
 
+Added: 2025-03-31
+
+If ``<endpos>`` is not provided or invalid (the colon has to stay included!), the remainder of ``<string>`` beginning at ``<startpos>`` is returned (like Arduino behavior).
+
 For example:
 
 .. code-block:: none

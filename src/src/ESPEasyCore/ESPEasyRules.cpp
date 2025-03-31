@@ -526,9 +526,12 @@ void parse_string_commands(String& line) {
               // substring arduino style (first char included, last char excluded)
               // Syntax like 12345{substring:8:12:ANOTHER HELLO WORLD}67890
 
-              if (arg1valid
-                  && arg2valid) {
-                replacement = arg3.substring(startpos, endpos);
+              if (arg1valid) {
+                if (arg2valid){
+                  replacement = arg3.substring(startpos, endpos);
+                } else {
+                  replacement = arg3.substring(startpos);
+                }
               }
               break;
             case string_commands_e::indexof:
