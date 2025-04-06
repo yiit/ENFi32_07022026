@@ -43,6 +43,29 @@ int64_t presence_start{};
 int64_t presence_end{};
 
 
+void Dallas_pinModeInput(int8_t gpio_pin_rx, int8_t gpio_pin_tx)
+{
+  if (gpio_pin_rx == gpio_pin_tx) {
+    DIRECT_PINMODE_INPUT(gpio_pin_rx); // let pin float, pull up will raise level
+  } else {
+    DIRECT_pinWrite(gpio_pin_tx, 1);
+  }
+}
+
+
+void Dallas_pinWrite(int8_t gpio_pin_rx, int8_t gpio_pin_tx, bool pinstate)
+{
+  DIRECT_pinWrite(gpio_pin_tx, pinstate);
+
+  if (gpio_pin_rx == gpio_pin_tx) {
+    DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
+  }
+}
+
+#define Dallas_pinLow   Dallas_pinWrite(gpio_pin_rx, gpio_pin_tx, 0)
+#define Dallas_pinHigh  Dallas_pinWrite(gpio_pin_rx, gpio_pin_tx, 1)
+#define Dallas_pinInput Dallas_pinModeInput(gpio_pin_rx, gpio_pin_tx)
+
 // References to 1-wire family codes:
 // http://owfs.sourceforge.net/simple_family.html
 // https://github.com/owfs/owfs-doc/wiki/1Wire-Device-List
@@ -81,7 +104,7 @@ uint64_t Dallas_addr_to_uint64(const uint8_t addr[]) {
   uint64_t tmpAddr_64 = 0;
 
   for (uint8_t i = 0; i < 8; ++i) {
-    tmpAddr_64 *= 256;
+    tmpAddr_64 <<= 8;
     tmpAddr_64 += addr[i];
   }
   return tmpAddr_64;
@@ -677,11 +700,8 @@ uint8_t Dallas_reset(int8_t gpio_pin_rx, int8_t gpio_pin_tx)
   DIRECT_pinWrite(DEBUG_LOGIC_ANALYZER_PIN, 1);
 #endif // ifdef DEBUG_LOGIC_ANALYZER_PIN
 
-  if (gpio_pin_rx == gpio_pin_tx) {
-    DIRECT_PINMODE_INPUT(gpio_pin_rx);
-  } else {
-    DIRECT_pinWrite(gpio_pin_tx, 1);
-  }
+  Dallas_pinInput;
+
 #ifdef DEBUG_LOGIC_ANALYZER_PIN
 
   // DEBUG code using logic analyzer for timings
@@ -712,19 +732,14 @@ uint8_t Dallas_reset(int8_t gpio_pin_rx, int8_t gpio_pin_tx)
     // The master starts a transmission with a reset pulse,
     // which pulls the wire to 0 volts for at least 480 µs.
     // This resets every slave device on the bus.
-    DIRECT_pinWrite(gpio_pin_tx, 0);
-
-    if (gpio_pin_rx == gpio_pin_tx) {
-      DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-    }
+    Dallas_pinLow;
 
     delayMicroseconds(480);
 
-    if (gpio_pin_rx == gpio_pin_tx) {
-      DIRECT_PINMODE_INPUT(gpio_pin_rx);
-    } else {
-      DIRECT_pinWrite(gpio_pin_tx, 1);
-    }
+    // Set to 'input', state will be pulled high by pull-up resistor
+    // Or will be kept pulled low by sensor
+    Dallas_pinInput;
+
 #ifdef DEBUG_LOGIC_ANALYZER_PIN
 
     // DEBUG code using logic analyzer for timings
@@ -767,17 +782,17 @@ uint8_t Dallas_reset(int8_t gpio_pin_rx, int8_t gpio_pin_tx)
         }
       } else {
         // Set the pin high so we have a clear starting level on the next write.
-        DIRECT_pinWrite(gpio_pin_tx, 1);
+        Dallas_pinHigh;
 
-        if (gpio_pin_rx == gpio_pin_tx) {
-          DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-        }
         waiting_for_presence = false;
         delayMicroseconds(4);
       }
       delayMicroseconds(2);
     }
   }
+  // Set the pin high, just in case we have a (single) parasitic powered sensor
+  Dallas_pinHigh;
+
   ISR_interrupts();
 
   if (presence_end != 0) {
@@ -888,11 +903,7 @@ uint8_t Dallas_search(uint8_t *newAddr, int8_t gpio_pin_rx, int8_t gpio_pin_tx)
           ROM_NO[rom_byte_number] &= ~rom_byte_mask;
         }
 
-        DIRECT_pinWrite(gpio_pin_tx, 1);
-
-        if (gpio_pin_rx == gpio_pin_tx) {
-          DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-        }
+        Dallas_pinHigh;
 
         // serial number search direction write bit
         Dallas_write_bit(search_direction, gpio_pin_rx, gpio_pin_tx);
@@ -970,11 +981,8 @@ void Dallas_write(uint8_t ByteToWrite, int8_t gpio_pin_rx, int8_t gpio_pin_tx)
 {
   uint8_t bitMask;
 
-  DIRECT_pinWrite(gpio_pin_tx, 1);
+  Dallas_pinHigh;
 
-  if (gpio_pin_rx == gpio_pin_tx) {
-    DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-  }
 #ifdef DEBUG_LOGIC_ANALYZER_PIN
 
   // DEBUG code using logic analyzer for timings
@@ -1023,22 +1031,17 @@ uint8_t DALLAS_IRAM_ATTR Dallas_read_bit_ISR(
   {
     ISR_noInterrupts();
     start = getMicros64();
-    DIRECT_pinWrite(gpio_pin_tx, 0);
 
-    if (gpio_pin_rx == gpio_pin_tx) {
-      DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-    }
+    Dallas_pinLow;
 
     while (usecPassedSince(start) < 6) {
       // Wait for 6 usec
     }
     const uint64_t startwait = getMicros64();
 
-    if (gpio_pin_rx == gpio_pin_tx) {
-      DIRECT_PINMODE_INPUT(gpio_pin_rx); // let pin float, pull up will raise
-    } else {
-      DIRECT_pinWrite(gpio_pin_tx, 1);
-    }
+    // Set to 'input', state will be pulled high by pull-up resistor
+    // Or will be kept pulled low by sensor
+    Dallas_pinInput;
 
     while (usecPassedSince(startwait) < 9ll) {
       // Wait for another 9 usec
@@ -1046,10 +1049,8 @@ uint8_t DALLAS_IRAM_ATTR Dallas_read_bit_ISR(
     r = DIRECT_pinRead(gpio_pin_rx);
 
     // Pull high again so we can support parasite mode for 1 sensor
-    if (gpio_pin_rx == gpio_pin_tx) {
-      DIRECT_PINMODE_OUTPUT(gpio_pin_rx);
-      DIRECT_pinWrite(gpio_pin_rx, 1);
-    }
+    Dallas_pinHigh;
+
     ISR_interrupts();
   }
 
@@ -1086,13 +1087,13 @@ void DALLAS_IRAM_ATTR Dallas_write_bit_ISR(uint8_t   v,
 {
   ISR_noInterrupts();
   start = getMicros64();
-  DIRECT_pinWrite(gpio_pin_tx, 0);
+  Dallas_pinLow;
 
   while (usecPassedSince(start) < low_time) {
     // output remains low
   }
   start = getMicros64();
-  DIRECT_pinWrite(gpio_pin_tx, 1);
+  Dallas_pinHigh;
   ISR_interrupts();
 }
 
