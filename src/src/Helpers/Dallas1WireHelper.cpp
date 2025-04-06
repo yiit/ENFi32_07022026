@@ -1045,6 +1045,8 @@ uint8_t DALLAS_IRAM_ATTR Dallas_read_bit_ISR(
     }
     r = DIRECT_pinRead(gpio_pin_rx);
 
+    // Pull high again so we can support parasite mode for 1 sensor
+    DIRECT_pinWrite(gpio_pin_tx, 1);
     ISR_interrupts();
   }
 
