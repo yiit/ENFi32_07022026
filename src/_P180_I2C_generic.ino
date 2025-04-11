@@ -6,6 +6,7 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-04-10 tonhuisman: First version made available. Most plugin features implemented, few todos to resolve.
  * 2025-03-27 tonhuisman: Start plugin development
  */
 
@@ -109,9 +110,7 @@ boolean Plugin_180(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_SET_DEFAULTS:
     {
-      // Just some 'random' defaults
-      P180_I2C_ADDRESS                = 0x55;
-      PCONFIG(P180_SENSOR_TYPE_INDEX) = static_cast<int16_t>(Sensor_VType::SENSOR_TYPE_DUAL);
+      PCONFIG(P180_SENSOR_TYPE_INDEX) = static_cast<int16_t>(Sensor_VType::SENSOR_TYPE_SINGLE);
       break;
     }
 
@@ -155,8 +154,8 @@ boolean Plugin_180(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_WEBFORM_LOAD:
     {
-      addFormPinSelect(PinSelectPurpose::Generic_output, F("Enable GPIO"), F("taskdevicepin1"), P180_ENABLE_PIN);
-      addFormPinSelect(PinSelectPurpose::Generic_output, F("Reset GPIO"),  F("taskdevicepin2"), P180_RST_PIN);
+      addFormPinSelect(PinSelectPurpose::Generic_output, F("'Enable' GPIO"), F("taskdevicepin1"), P180_ENABLE_PIN);
+      addFormPinSelect(PinSelectPurpose::Generic_output, F("'Reset' GPIO"),  F("taskdevicepin2"), P180_RST_PIN);
 
       sensorTypeHelper_webformLoad_allTypes(event, P180_SENSOR_TYPE_INDEX);
 
@@ -191,6 +190,8 @@ boolean Plugin_180(uint8_t function, struct EventStruct *event, String& string)
                      strings[P180_BUFFER_ENTRY_EXIT],
                      P180_MAX_COMMAND_LENGTH);
       addUnit(strformat(F("%d of %d used"), strings[P180_BUFFER_ENTRY_EXIT].length(), P180_MAX_COMMAND_LENGTH));
+
+      addFormSubHeader(F("I2C Commands"));
 
       for (uint8_t i = 0; i < P180_NR_OUTPUT_VALUES; ++i) {
         // type
@@ -251,11 +252,15 @@ boolean Plugin_180(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_INIT:
     {
-      initPluginTaskData(event->TaskIndex, new (std::nothrow) P180_data_struct(event));
-      P180_data_struct *P180_data = static_cast<P180_data_struct *>(getPluginTaskData(event->TaskIndex));
+      if (P180_I2C_ADDRESS > 0) {
+        initPluginTaskData(event->TaskIndex, new (std::nothrow) P180_data_struct(event));
+        P180_data_struct *P180_data = static_cast<P180_data_struct *>(getPluginTaskData(event->TaskIndex));
 
-      if (nullptr != P180_data) {
-        success = P180_data->plugin_init(event);
+        if (nullptr != P180_data) {
+          success = P180_data->plugin_init(event);
+        }
+      } else {
+        addLog(LOG_LEVEL_ERROR, F("P180 : I2C address not set."))
       }
 
       break;
