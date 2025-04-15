@@ -763,17 +763,17 @@ bool P180_data_struct::executeI2CCommands() {
 
               if (toCalc.indexOf(F("%b")) > -1) {
                 for (uint8_t i = 0; i < _evalCommand->data_b.size(); ++i) {
-                  toCalc.replace(strformat(F("%%b%d%%"), i),  String(_evalCommand->data_b[i]));      // %b<n>%
-                  toCalc.replace(strformat(F("%%bx%d%%"), i), formatToHex(_evalCommand->data_b[i])); // %bx<n>%
+                  toCalc.replace(strformat(F("%%b%d%%"), i),  String(_evalCommand->data_b[i]));                // %b<n>%
+                  toCalc.replace(strformat(F("%%bx%d%%"), i), formatToHex_no_prefix(_evalCommand->data_b[i])); // %bx<n>%
                 }
               }
             } else if (P180_DataFormat_e::words == _evalCommand->format) {
-              toCalc.replace(F("%h%"), _evalCommand->getHexValue()); // %h%
+              toCalc.replace(F("%h%"), _evalCommand->getHexValue(true)); // %h%
 
               if (toCalc.indexOf(F("%w")) > -1) {
                 for (uint8_t i = 0; i < _evalCommand->data_w.size(); ++i) {
-                  toCalc.replace(strformat(F("%%w%d%%"), i),  String(_evalCommand->data_w[i]));      // %w<n>%
-                  toCalc.replace(strformat(F("%%wx%d%%"), i), formatToHex(_evalCommand->data_w[i])); // %wx<n>%
+                  toCalc.replace(strformat(F("%%w%d%%"), i),  String(_evalCommand->data_w[i]));                // %w<n>%
+                  toCalc.replace(strformat(F("%%wx%d%%"), i), formatToHex_no_prefix(_evalCommand->data_w[i])); // %wx<n>%
                 }
               }
             }
@@ -783,7 +783,7 @@ bool P180_data_struct::executeI2CCommands() {
 
           if (Calculate(newCalc, tmp) == CalculateReturnCode::OK) {
             if (loglevelActiveFor(LOG_LEVEL_INFO) && _showLog) {
-              addLog(LOG_LEVEL_INFO, strformat(F("P180 : Calculation result: %s"), doubleToString(tmp).c_str()));
+              addLog(LOG_LEVEL_INFO, strformat(F("P180 : Calculation: %s, result: %s"), toCalc.c_str(), doubleToString(tmp).c_str()));
             }
 
             if (P180_Command_e::If == _it->command) {
