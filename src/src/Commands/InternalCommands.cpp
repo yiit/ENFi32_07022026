@@ -64,7 +64,7 @@ bool checkNrArguments(const char *cmd, const String& Line, int nrArguments) {
     if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
       String log;
 
-      if (log.reserve(128)) {
+      if (reserve_special(log, 128)) {
         log += F("Too many arguments: cmd=");
         log += cmd;
 
@@ -420,6 +420,7 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::sendtohttp:                 COMMAND_CASE_A(Command_HTTP_SendToHTTP, 3);      // HTTP.h
 #endif // FEATURE_SEND_TO_HTTP
     case ESPEasy_cmd_e::sendtoudp:                  COMMAND_CASE_A(Command_UDP_SendToUPD,   3);      // UDP.h
+    case ESPEasy_cmd_e::sendtoudpmix:               COMMAND_CASE_A(Command_UDP_SendToUPDMix, 3);     // UDP.h
 #ifndef BUILD_NO_DIAGNOSTIC_COMMANDS
     case ESPEasy_cmd_e::serialfloat:                COMMAND_CASE_R(Command_SerialFloat,    0);       // Diagnostic.h
 #endif // ifndef BUILD_NO_DIAGNOSTIC_COMMANDS
