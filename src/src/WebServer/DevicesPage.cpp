@@ -682,9 +682,11 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
               #  endif // if FEATURE_ADC_VCC
               # endif // ifdef ESP8266
               # ifdef ESP32
+              #if SOC_ADC_SUPPORTED
               showpin1 = true;
               addHtml(formatGpioName_ADC(Settings.TaskDevicePin1[x]));
               html_BR();
+              #endif
               # endif // ifdef ESP32
 
               break;

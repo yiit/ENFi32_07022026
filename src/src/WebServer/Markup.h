@@ -300,6 +300,7 @@ void addPinSelect(PinSelectPurpose purpose,
 
 
 #ifdef ESP32
+#if SOC_ADC_SUPPORTED
 enum class AdcPinSelectPurpose {
   TouchOnly,
   ADC_Touch,
@@ -308,12 +309,16 @@ enum class AdcPinSelectPurpose {
 #endif
   ADC_Touch_Optional
 };
+
 void addADC_PinSelect(AdcPinSelectPurpose purpose,
                       const String      & id,
                       int                 choice);
+#endif
+#if SOC_DAC_SUPPORTED
 void addDAC_PinSelect(const String& id,  
                       int           choice);
-#endif // ifdef ESP32
+#endif
 
+#endif // ifdef ESP32
 
 #endif // ifndef WEBSERVER_WEBSERVER_MARKUP_H
