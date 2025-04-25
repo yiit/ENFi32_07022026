@@ -623,7 +623,9 @@ bool Erase_WiFi_Calibration() {
   setWifiMode(WIFI_OFF);
   if (!ESP.eraseConfig())
     return false;
+  #ifndef BUILD_MINIMAL_OTA
   addLog(LOG_LEVEL_INFO, F("WiFi : Erased WiFi calibration data"));
+  #endif
   #endif
 
   #ifdef ESP32

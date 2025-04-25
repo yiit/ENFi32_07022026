@@ -468,7 +468,9 @@ void ESPEasy_setup()
     WiFi_AP_Candidates.load_knownCredentials();
 
     if (!WiFi_AP_Candidates.hasCandidates()) {
+      #ifndef BUILD_MINIMAL_OTA
       addLog(LOG_LEVEL_INFO, F("Setup: Scan all channels"));
+      #endif
       WifiScan(false);
     }
 
