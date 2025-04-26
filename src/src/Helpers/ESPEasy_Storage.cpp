@@ -602,8 +602,6 @@ void fileSystemCheck()
 }
 
 bool FS_format() {
-  Erase_WiFi_Calibration();
-
 #ifdef USE_LITTLEFS
 # ifdef ESP32
   const bool res = ESPEASY_FS.begin(true);
