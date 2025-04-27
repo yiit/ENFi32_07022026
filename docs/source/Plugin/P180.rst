@@ -138,7 +138,7 @@ The commands available can either be used with the full command, or the 1 charac
 * ``read.<format>[.<len>].<reg>``: ``(r)``: Read data in the requested format from a register in the device.
 * ``write.<format>.<reg>.<data>[.<data>...]``: ``(w)``: Write data to a register in the device in the specified format.
 * ``eval``: ``(e)``: Evaluate the previous command, and set as selected data for ``calc`` or ``if`` commands.
-* ``value.<valueIndex>``: ``(v)``: (1..4) Write the last calculated result, or last read value, to the specified Value field.
+* ``value.<valueIndex>``: ``(v)``: (1..4 or a value name) Store the last calculated result, or last read value, in the specified Value field.
 * ``calc.<calculation>``: ``(c)``: Calculate a result, like Rules, extra available vars: ``%value%``, ``%pvalue%``, ``%h%``, ``%b0%..%b<n>%``, ``%bx0%..%bx<n>%``, ``%w0%..%w<n>%``, ``%wx0%..%wx<n>%``
 * ``if.<calculation>``: ``(i)``: Similar to ``calc`` command, when the calculation-result is 0 execution is cancelled
 * ``delay.<msec>``: ``(d)``: (range: 0..500) Some devices, after starting a read, require some time to process data. This can be handled by a delay. If the delay is < 10 msec, it will be handled immediately, longer delays are processed asynchronous to avoid blocking the ESP for too long.
@@ -180,7 +180,7 @@ The plugin should be configured with these settings:
 
 Once this setting is saved:
 
-* **Values**: the names can be changed to Temp or Temperature and Hum or Humidity, and the number of decimals adjusted as desired (usually 1 or 2 decimals is fine for both measurements). Stats can be enabled, best would be to set the Axis to L1 for Temperature, and R1 for Humidity, as the scales for these values don't match in range.
+* **Values**: the names can be changed to Temp or Temperature and Hum or Humidity, and the number of decimals adjusted as desired (usually 1 or 2 decimals is fine for both measurements). Stats can be enabled, best would be to set the Axis to **L1** for Temperature, and **R1** for Humidity, as the scales for these values don't match in range.
 
 * **Interval**: can be set to 60 seconds to retrieve a measurement every minute.
 
@@ -195,9 +195,9 @@ Command sequence explanation:
 * ``get.b.7``: Read 7 bytes from the sensor
 * ``eval``: Use the previous command result for evaluation
 * ``calc.'0x{substring:4:9:%h%}/10485.76'``: Calculate the humidity value from the data provided. `%h%` is the sequence of bytes read (fmt: `b.7`), prefixed with '0x', and only 5 nibbles are used for the humidity value. This is divided by 10485.75 (2^20 / 100) to get the humidity percentage. Quotes are used because of the decimal point used in this calculation, that's also the argument separator here.
-* ``value.2``: Assign the last result to Value2 field
+* ``value.2``: Assign the last result to Value2 field (Hum)
 * ``calc.'0x{substring:9:14:%h%}/5242.88-50'``: Calculate the temperature value from the data provided. Again 5 nibbles are used, to be divided by 2^20 / 200 and 50 subtracted.
-* ``value.1``: Assign the last result to Value1 field
+* ``value.1``: Assign the last result to Value1 field (Temp)
 
 |
 

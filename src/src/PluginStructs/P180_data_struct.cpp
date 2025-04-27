@@ -318,9 +318,15 @@ std::vector<P180_Command_struct>P180_data_struct::parseI2CCommands(const String&
               break;
             case P180_Command_e::Value: // value - v.<valueIndex>
             case P180_Command_e::Delay: // delay - d.<ms>
+            {
               fmt = P180_DataFormat_e::undefined;
-              validInt64FromString(args[arg - 1], val);
+              const bool isInt = validInt64FromString(args[arg - 1], val);
+
+              if ((P180_Command_e::Value == cmd) && !isInt) {
+                val = findDeviceValueIndexByName(args[arg - 1], _taskIndex);
+              }
               break;
+            }
             case P180_Command_e::RegisterRead:   // read - r.<format>.<reg>
             case P180_Command_e::Register16Read: // read16 - s.<format>.<reg16>
               reg = val;
@@ -390,7 +396,7 @@ std::vector<P180_Command_struct>P180_data_struct::parseI2CCommands(const String&
     }
 
     if (!key.isEmpty()) {
-      _commandCache.emplace(key, commands);
+      _commandCache[key] = commands;
 
       if (loglevelActiveFor(LOG_LEVEL_INFO) && _showLog) {
         addLog(LOG_LEVEL_INFO, strformat(F("P180 : Insert '%s' into cache with %d commands."), name.c_str(), commands.size()));
@@ -919,6 +925,7 @@ bool P180_data_struct::plugin_read(struct EventStruct *event) {
   if ((P180_CommandState_e::Processing == commandState) || (P180_CommandState_e::ConditionalExit == commandState)) {
     commandState = P180_CommandState_e::Idle;
     _commands.clear();
+    _valueIsSet = false; // reset afterward
   } else if (P180_CommandState_e::StartingDelay == commandState) {
     commandState = P180_CommandState_e::WaitingForDelay;
   }
@@ -936,35 +943,44 @@ bool P180_data_struct::plugin_write(struct EventStruct *event,
 
   if (equals(cmd, F("geni2c"))) {
     const String sub     = parseString(string, 2);
-    const bool   hasPar3 = !parseString(string, 3).isEmpty();
-    const bool   hasPar4 = !parseString(string, 4).isEmpty();
+    const String par3    = parseStringKeepCaseNoTrim(string, 3);
+    const String varName = parseString(string, 4);
+    const bool   hasPar3 = !par3.isEmpty();
+    const bool   hasPar4 = !varName.isEmpty();
     const bool   hasPar5 = !parseString(string, 5).isEmpty();
+    std::vector<P180_Command_struct> cmds;
+    taskVarIndex_t taskVar = INVALID_TASKVAR_INDEX;
+    uint32_t val{};
 
-    if (equals(sub, F("cmd")) && hasPar3) { // genI2c,cmd,<I2Ccommands>[,<TaskValueIndex>[,<name>]]
-      taskVarIndex_t taskVar = INVALID_TASKVAR_INDEX;
-      String   name;
-      uint32_t val{};
-
-      if (hasPar4 && validUIntFromString(parseString(string, 4), val) && (val > 0) && (val <= VARS_PER_TASK)) {
+    if (hasPar4) {
+      if (validUIntFromString(varName, val) && (val > 0) && (val <= VARS_PER_TASK)) {
         taskVar = val - 1;
+      } else {
+        taskVar = findDeviceValueIndexByName(varName, event->TaskIndex);
       }
+    }
+
+    if (equals(sub, F("cmd")) && hasPar3) { // genI2c,cmd,<I2Ccommands>[,<TaskValueIndex>[,<cache_name>]]
+      String cacheName;
 
       if (hasPar5) {
-        name = parseString(string, 5);
+        cacheName = parseString(string, 5);
       }
 
-      std::vector<P180_Command_struct> cmds = parseI2CCommands(name, parseString(string, 3), !name.isEmpty());
+      cmds = parseI2CCommands(cacheName, par3, !cacheName.isEmpty());
+    } else if (equals(sub, F("exec")) && hasPar3) {                     // genI2c,exec,<cache_name>[,<TaskValueIndex>]
+      cmds = parseI2CCommands(par3, EMPTY_STRING);                      // Fetch commands from cache by name
+    }
 
-      if (!cmds.empty()) {
-        _commands    = cmds;
-        _varIndex    = taskVar;
-        _loop        = 0;
-        _loopMax     = _loop + 1; // Process single entry
-        commandState = P180_CommandState_e::Processing;
-        Scheduler.schedule_task_device_timer(_taskIndex, millis() + 5);
+    if (!cmds.empty() && (P180_CommandState_e::Idle == commandState)) { // Execute commands when not busy
+      _commands    = cmds;
+      _varIndex    = taskVar;
+      _loop        = 0;
+      _loopMax     = _loop + 1; // Process single entry
+      commandState = P180_CommandState_e::Processing;
+      Scheduler.schedule_task_device_timer(_taskIndex, millis() + 5);
 
-        success = true;
-      }
+      success = true;
     }
   }
 

@@ -6,6 +6,8 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-04-27 tonhuisman: Add support vor executing a command sequence from cache: getI2C,exec,<cache-name>[,<TaskVarIndex>]
+ *                        Add support for selecting the Value-index either by number or name
  * 2025-04-21 tonhuisman: Add preliminary support for MQTT Discovery
  * 2025-04-13 tonhuisman: Add 'if' command, some optimizations
  * 2025-04-10 tonhuisman: First version made available. Most plugin features implemented, few todos to resolve.
@@ -64,7 +66,8 @@
  */
 
 /** Write commands supported:
- * geni2c,cmd,<I2C-commands>[,<TaskVarIndex>][,<cache-name>]
+ * geni2c,cmd,<I2C-commands>[,<TaskVarIndex>[,<cache-name>]] : Parse command sequence (opt. into cache), execute and store value in TaskVar
+ * getI2C,exec,<cache-name>[,<TaskVarIndex>] : Execute command sequence from cache and store value in TaskVar
  */
 
 # define PLUGIN_180
