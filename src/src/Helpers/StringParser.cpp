@@ -38,8 +38,8 @@ void stripEscapeCharacters(String& str)
   constexpr uint8_t nrbraces = NR_ELEMENTS(braces);
 
   for (uint8_t i = 0; i < nrbraces; ++i) {
-    const String s(concat(F("\\"), braces[i]));
-    str.replace(s, s.substring(1));
+    const char s[] = { '\\', braces[i], '\0'};
+    str.replace(s, s + 1);
   }
 }
 
