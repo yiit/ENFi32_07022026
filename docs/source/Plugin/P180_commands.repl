@@ -27,3 +27,14 @@
   ","
   This command is used to execute a cached I2C Command sequence, and optionally store the result in a task value.
   "
+  "
+  ``genI2C,log,<0|1>``
+
+  0 - Disable plugin logging
+
+  1 - Enable plugin logging
+  ","
+  Enable or disable logging for the I2C Command sequence(s) during parsing and execution.
+
+  NB: No logging will be generated during parsing or execution of 1/sec, 10/sec or 50/sec event processing to avoid overloading the ESP, as logging can incur quite a processing penalty.
+  "

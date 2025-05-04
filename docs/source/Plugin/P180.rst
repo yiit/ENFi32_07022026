@@ -28,7 +28,7 @@ This plugin offers generic access to I2C devices, by providing a set of commands
 
 This enables the implementation of yet unsupported I2C devices or use I2C devices in builds where the available plugin isn't included.
 
-.. warning:: This plugin is in the 'pro' category of plugins (i.o.w. not really *Easy* to use), and may require in-depth studying of the datasheet for the device, extracting the required commands and calculation(s) for implementing correct usage. (Examples available below)
+.. warning:: This plugin is in the 'pro' category of plugins (i.o.w. not really *Easy* to use), and requires in-depth studying of the datasheet for the device, extracting the required commands and calculation(s) for implementing correct usage. (Some examples available below)
 
 Configuration
 -------------
@@ -71,7 +71,7 @@ For each Value1 .. Value4 output, depending on the **Output Data Type** setting,
 
 * **Value x type**: Here you can select a specific output type for each Value. This shows a selection of the **Output Data Type** selector, but only the single-value types. This will also be used for sending to Domoticz controllers and for MQTT Auto-Discovery.
 
-* **Cache-Name x (optional)**: When set to a unique name (for this task), the parsed & pre-processed command sequence will be stored in a memory-cache, to improve the speed of the plugin in runtime. When not set, the command sequence will be parsed every time the task is run (**Interval** setting or ``taskRun`` command).
+* **Cache-Name x (optional)**: When set to a unique name (for this task), the parsed & pre-processed command sequence will be stored in a memory-cache, to improve the speed of the plugin in runtime. When not set, the command sequence will be parsed every time the task is run (**Interval** setting or ``taskRun`` command). To be able to use event processing for 1ps, 10ps of 50ps, setting a Cache-Name is required!
 
 * **I2C Commands x**: The sequence of commands to execute for this value. Nothing will be done if this is empty. The corresponding Value output can be set from another I2C Commands sequence. The currently used vs. the available space is shown next to the field. I2C Commands are explained below.
 
@@ -94,23 +94,18 @@ Plugin Commands available
 
 .. include:: P180_commands.repl
 
-.. Get Config Values
-.. ^^^^^^^^^^^^^^^^^
-
-.. Get Config Values retrieves values or settings from the sensor or plugin, and can be used in Rules, Display plugins, Formula's etc. The square brackets **are** part of the variable. Replace ``<taskname>`` by the **Name** of the task.
-
-.. .. include:: P180_config_values.repl
-
 I2C Commands
 ------------
 
 I2C Commands (sequences) are available for reading and writing the device on the selected I2C Bus, using the configured I2C address. If the address is not set, the plugin won't start.
 
-The general I2C Command format is: ``<command>[.<dataformat>[.<length>]][.<arguments>....];...``
+The general I2C Command format is: ``<command>[.<dataformat>[.<length>]][.<arguments>....];...[|(1ps|10ps|50ps)|<command_sequences>]``
 
 * The command separator is a semicolon ``;``
 
 * The argument separator is a period ``.``
+
+* The event separator is a pipe-symbol ``|``
 
 For ``dataformat`` there are a limited set of options available:
 
@@ -151,12 +146,33 @@ During processing, the data has to be made available to some of the following st
 
 The next variables are only available after an ``eval`` I2C Command is executed:
 
-* ``%value%``: The value retrieved in decimal presentation. So if a ``read`` or ``get`` command was used. Not applicable for ``b.<length>`` and ``w.<length>`` dataformats.
+* ``%value%``: The value retrieved in decimal presentation. So if a ``read`` or ``get`` command was used. Not applicable for ``b.<length>`` and ``w.<length>`` dataformats, ``%h%``, ``%b..%`` or ``%w..%`` variables should be used.
 * ``%h%``: The result of a ``read`` or ``get`` formatted as hex bytes with a single '0x' prefix, using the minimal number of digits needed. For ``b.<length>`` or ``w.<length>`` dataformat all bytes/words are concatenated. If 7 bytes are retrieved using ``get.b.7`` command, ``%h`` will be replaced by ``0x00010203040506``, or 3 words using ``get.w.3`` with ``0x000000010002``, showing the retrieved data of course.
 * ``%b<N>%``: The value of byte N (0-based!), retrieved using the ``b.<length>`` dataformat. This will be a decimal presentation of the data.
 * ``%bx<N>%``: The value of byte N (0-based!), retrieved using the ``b.<length>`` dataformat. This will be a 2 digit hexadecimal presentation, without '0x' prefix, of the data.
 * ``%w<N>%``: The value of word N (0-based!), retrieved using the ``w.<length>`` dataformat. This will be a decimal presentation of the data.
 * ``%wx<N>%``: The value of word N (0-based!), retrieved using the ``w.<length>`` dataformat. This will be a 4 digit hexadecimal presentation, without '0x' prefix, of the data.
+
+Processing commands for 1/sec, 10/sec and 50/sec plugin events
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is sometimes needed to check the state or value of a device more often than the regular **Interval** setting. For this use-case there is support for the repeating 1/sec, 10/sec and 50/sec events. These events have a short window of time where a few commands can be processed for fetching data or checking the state of the sensor.
+
+To optimize storage space for commands, these events are also stored in the regular I2C Commands settings per value. The prefix for these events are ``1ps``, ``10ps`` and ``50ps``, and they are separated from the regular commands by a pipe-symbol ``|``. So a hypothetical configuration that supports a normal read, 1/sec, 10/sec and 50/sec sequence of commands could look like this:
+
+``<read_commands>|1ps|<once_a_second_commands>|10ps|<ten_per_second_commands>|50ps|<fifty_per_second_commands>``
+
+A few warnings though:
+
+* Using 50/sec event I2C commands may slow down the ESP or increase the load, as for processing the commands there are only 20 msec available, and as processing in the plugin is far less efficient than normal C++ code, this should be as short/small as possible, or moved to 10/sec processing (where 100 msec is available) when possible.
+
+* Delay commands during these events should be avoided, or use < 10 msec duration.
+
+* The result from a 1/sec, 10/sec and 50/sec event command sequence is **not** assigned to the corresponding Value by default, but it can be assigned using the ``value.<n>`` I2C command.
+
+* If no commands are used for the ``<read_commands>`` sequence, then it is strongly advised to insert a ``nop`` I2C command there, to avoid the event commands being re-parsed for every processing loop.
+
+* Logging is disabled during handling of the 1/sec, 10/sec and 50/sec events, to avoid unnecessary delays.
 
 |
 
@@ -175,6 +191,8 @@ AHT2x Temperature / Humidity sensor
 The I2C commands to read the values are extracted from the data sheet, available from the manufacturer via the `product information page <https://asairsensors.com/product/aht20-integrated-temperature-and-humidity-sensor/>`_ (Scroll down to find the 'Product specifications' link to a pdf file).
 
 The plugin should be configured with these settings:
+
+* **I2C Address (Hex)**: ``0x38``
 
 * **Output Data Type**: ``Temp / Hum``
 
@@ -209,6 +227,8 @@ As documented here: `M5Stack AIN4-20mA Unit <https://docs.m5stack.com/en/unit/AI
 This device can measure DC current in the 4..20 mA range, and has a rather straightforward protocol for reading, as shown in the Protocol overview near the end of that link. The unit has a single input, and the module is equiped with 4 inputs.
 
 The plugin should be configured with these settings:
+
+* **I2C Address (Hex)**: ``0x55``
 
 * **Output Data Type**: ``Single`` (Unit)
 * **Output Data Type**: ``Quad`` (Module)
@@ -252,6 +272,8 @@ This device measures the barometric pressure and temperature, with high accuracy
 
 The plugin should be configured with these settings:
 
+* **I2C Address (Hex)**: ``0x46`` (SDO = 0) or ``0x47`` (SDO = 1, default)
+
 * **Output Data Type**: ``Temp / Baro``
 
 Once this setting is saved:
@@ -262,14 +284,14 @@ Once this setting is saved:
 
 The **I2C Init Commands** sequence for initializing the sensor:
 
-``write.u8.0x36.0x40;write.u8.0x37.0x71``
+``write.u8.0x37.0x70;delay.3;write.u16le.0x36.0xF140``
 
 This configures these parameters:
 
 * Enable Pressure measurement
 * No over-sampling (osr)
 * 1 Hz output data rate (odr)
-* Normal operating mode
+* Normal operating mode, by first going to Standby operating mode, then to Normal operating mode, as documented
 
 If over-sampling or IIR filtering is desired, then information about setting the configuration registers can be obtained from the datasheet, linked above.
 
