@@ -561,7 +561,10 @@ static const char DATA_ESPEASY_DEFAULT_MIN_CSS[] PROGMEM = {
 // #define USES_P173   // Environment - SHTC3
 // #define USES_P175   // Dust - PMSx003i I2C
 // #define USES_P176   // Communication - Victron VE.Direct
+// #define USES_P177   // XDB401 I2C Pressure
 // #define USES_P178   // LU9685 Servo controller
+
+// #define USES_P180   // I2C Generic
 
 /*
  #######################################################################################################
