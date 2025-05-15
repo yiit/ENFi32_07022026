@@ -123,8 +123,9 @@ For ``dataformat`` there are a limited set of options available:
 * ``16le``: int16_t (2 bytes, signed, little endian)
 * ``24le``: int24_t (3 bytes, signed, little endian)
 * ``32le``: int32_t (4 bytes, signed, little endian)
-* ``b[.<length>]``: <len> uint8_t (bytes), <length> is needed for reading only
-* ``w[.<length>]``: <len> uint16_t (words), <length> is needed for reading only
+* ``b[.<length>]``: <length> uint8_t (bytes), <length> is needed for reading only
+* ``w[.<length>]``: <length> uint16_t (words), <length> is needed for reading only
+* ``str[.<length>]``: <length> String, <length> is needed for reading only (not avaiable on ESP8266 builds by default for code-size reasons)
 
 The commands available can either be used with the full command, or the 1 character shortcut to save some space in the limited available storage:
 
@@ -147,7 +148,7 @@ During processing, the data has to be made available to some of the following st
 
 The next variables are only available after an ``eval`` I2C Command is executed:
 
-* ``%value%``: The value retrieved in decimal presentation. So if a ``read`` or ``get`` command was used. Not applicable for ``b.<length>`` and ``w.<length>`` dataformats, ``%h%``, ``%b..%`` or ``%w..%`` variables should be used.
+* ``%value%``: The value retrieved in decimal presentation, or the read String for format ``str``. So if a ``read`` or ``get`` command was used. Not applicable for ``b.<length>`` and ``w.<length>`` dataformats, ``%h%``, ``%b..%`` or ``%w..%`` variables should be used.
 * ``%h%``: The result of a ``read`` or ``get`` formatted as hex bytes with a single '0x' prefix, using the minimal number of digits needed. For ``b.<length>`` or ``w.<length>`` dataformat all bytes/words are concatenated. If 7 bytes are retrieved using ``get.b.7`` command, ``%h`` will be replaced by ``0x00010203040506``, or 3 words using ``get.w.3`` with ``0x000000010002``, showing the retrieved data of course.
 * ``%b<N>%``: The value of byte N (0-based!), retrieved using the ``b.<length>`` dataformat. This will be a decimal presentation of the data.
 * ``%bx<N>%``: The value of byte N (0-based!), retrieved using the ``b.<length>`` dataformat. This will be a 2 digit hexadecimal presentation, without '0x' prefix, of the data.
@@ -167,7 +168,7 @@ A few warnings though:
 
 * Using 50/sec event I2C commands may slow down the ESP or increase the load, as for processing the commands there are only 20 msec available, and as processing in the plugin is far less efficient than normal C++ code, this should be as short/small as possible, or moved to 10/sec processing (where 100 msec is available) when possible.
 
-* Delay commands during these events should be avoided, or use < 10 msec duration.
+* Delay commands during these events should be avoided, and will be reduced to max 10 msec duration.
 
 * The result from a 1/sec, 10/sec and 50/sec event command sequence is **not** assigned to the corresponding Value by default, but it can be assigned using the ``value.<n>`` I2C command.
 
