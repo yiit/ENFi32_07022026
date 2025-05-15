@@ -4,6 +4,7 @@
 #include "../../_Plugin_Helper.h"
 #ifdef USES_P180
 
+# include "../Helpers/BusCmd_Handler_I2C.h"
 # include "../Helpers/BusCmd_Helper.h"
 
 # include <map>

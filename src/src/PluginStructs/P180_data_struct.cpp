@@ -5,26 +5,31 @@
 # include "../Globals/RulesCalculate.h"
 
 P180_data_struct::P180_data_struct(struct EventStruct *event) {
-  _enPin        = P180_ENABLE_PIN;
-  _rstPin       = P180_RST_PIN;
-  _showLog      = P180_LOG_DEBUG == 1;
-  _taskIndex    = event->TaskIndex;
-  busCmd_Helper = new (std::nothrow) BusCmd_Helper_struct(_taskIndex,
-                                                          _enPin,
-                                                          _rstPin,
-                                                          P180_NR_OUTPUT_VALUES);
+  _enPin     = P180_ENABLE_PIN;
+  _rstPin    = P180_RST_PIN;
+  _showLog   = P180_LOG_DEBUG == 1;
+  _taskIndex = event->TaskIndex;
 
-  if (nullptr != busCmd_Helper) {
-    busCmd_Helper->setLog(_showLog);
-    busCmd_Helper->setI2CAddress(P180_I2C_ADDRESS); // FIXME
+  BusCmd_Handler_I2C*i2cHandler = new (std::nothrow) BusCmd_Handler_I2C(static_cast<uint8_t>(P180_I2C_ADDRESS));
 
-    loadStrings(event);
+  if (nullptr != i2cHandler) {
+    busCmd_Helper = new (std::nothrow) BusCmd_Helper_struct(i2cHandler,
+                                                            _taskIndex,
+                                                            _enPin,
+                                                            _rstPin,
+                                                            P180_NR_OUTPUT_VALUES);
 
-    if (_stringsLoaded) {
-      for (uint8_t i = 0; i < VARS_PER_TASK; ++i) {
-        busCmd_Helper->setBuffer(i, _strings[P180_BUFFER_START_CACHE + i], _strings[P180_BUFFER_START_COMMANDS + i]);
-        _strings[P180_BUFFER_START_CACHE + i].clear(); // Clear memory
-        _strings[P180_BUFFER_START_COMMANDS + i].clear();
+    if (nullptr != busCmd_Helper) {
+      busCmd_Helper->setLog(_showLog);
+
+      loadStrings(event);
+
+      if (_stringsLoaded) {
+        for (uint8_t i = 0; i < VARS_PER_TASK; ++i) {
+          busCmd_Helper->setBuffer(i, _strings[P180_BUFFER_START_CACHE + i], _strings[P180_BUFFER_START_COMMANDS + i]);
+          _strings[P180_BUFFER_START_CACHE + i].clear(); // Clear memory
+          _strings[P180_BUFFER_START_COMMANDS + i].clear();
+        }
       }
     }
   }

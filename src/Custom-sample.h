@@ -248,6 +248,7 @@
 // #define FEATURE_ANYRTTTL_LIB 1 // Use AnyRttl library for RTTTL handling
 // #define FEATURE_ANYRTTTL_ASYNC 1 // When AnyRttl enabled, use Async (nonblocking) mode instead of the default Blocking mode
 // #define FEATURE_RTTTL_EVENTS   1 // Enable RTTTL events for Async use, for blocking it doesn't make sense
+// #define FEATURE_BUSCMD_STRING   1  // Enable support for String data-format in Helpers/BusCmd_Handler, default disabled for LIMIT_BUILD_SIZE only
 
 #if FEATURE_CUSTOM_PROVISIONING
 // For device models, see src/src/DataTypes/DeviceModel.h

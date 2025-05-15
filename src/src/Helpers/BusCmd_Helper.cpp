@@ -28,6 +28,9 @@ const char BusCmd_dataFormats[] PROGMEM =
   "32le|"
   "b|"
   "w|"
+  #if FEATURE_BUSCMD_STRING
+  "str|"
+  #endif // if FEATURE_BUSCMD_STRING
 ;
 
 /**
@@ -58,7 +61,11 @@ BusCmd_Command_struct::BusCmd_Command_struct(BusCmd_Command_e    _command,
     case BusCmd_DataFormat_e::int24_t_LE:
     case BusCmd_DataFormat_e::int32_t_LE: d0_int32_t = _data; break;
     case BusCmd_DataFormat_e::bytes:
-    case BusCmd_DataFormat_e::words: break;
+    case BusCmd_DataFormat_e::words:
+    #if FEATURE_BUSCMD_STRING
+    case BusCmd_DataFormat_e::string:
+    #endif // if FEATURE_BUSCMD_STRING
+      break;
   }
 }
 
@@ -91,7 +98,11 @@ int64_t BusCmd_Command_struct::getIntValue() {
     case BusCmd_DataFormat_e::int24_t_LE:
     case BusCmd_DataFormat_e::int32_t_LE: data = d0_int32_t; break;
     case BusCmd_DataFormat_e::bytes:
-    case BusCmd_DataFormat_e::words: break;
+    case BusCmd_DataFormat_e::words:
+    #if FEATURE_BUSCMD_STRING
+    case BusCmd_DataFormat_e::string:
+    #endif // if FEATURE_BUSCMD_STRING
+      break;
   }
   return data;
 }
@@ -107,9 +118,23 @@ String BusCmd_Command_struct::getHexValue() {
     return formatToHex_array(&data_b[0], data_b.size());
   } else if (BusCmd_DataFormat_e::words == format) {
     return formatToHex_wordarray(&data_w[0], data_w.size());
+    #if FEATURE_BUSCMD_STRING
+  } else if (BusCmd_DataFormat_e::string == format) {
+    return EMPTY_STRING;
+    #endif // if FEATURE_BUSCMD_STRING
   }
   return formatToHex(data64);
 }
+
+#if FEATURE_BUSCMD_STRING
+String BusCmd_Command_struct::getString() {
+  if (BusCmd_DataFormat_e::string == format) {
+    return variable;
+  }
+  return EMPTY_STRING;
+}
+
+#endif // if FEATURE_BUSCMD_STRING
 
 #ifndef LIMIT_BUILD_SIZE
 String BusCmd_Command_struct::toString() {
@@ -141,7 +166,11 @@ String BusCmd_Command_struct::toString() {
   }
 
   if (!variable.isEmpty()) {
-    result = concat(result, strformat(F(", variable: %s"), variable.c_str()));
+    result = concat(result, strformat(
+                      # if FEATURE_BUSCMD_STRING
+                      BusCmd_DataFormat_e::string == format ? F(", string: %s") :
+                      # endif // if FEATURE_BUSCMD_STRING
+                      F(", variable: %s"), variable.c_str()));
   }
 
   if (!calculation.isEmpty()) {
@@ -162,11 +191,12 @@ BusCmd_Buffer::BusCmd_Buffer(const String& name,
 /**
  *  Constructor BusCmd_Helper_struct
  */
-BusCmd_Helper_struct::BusCmd_Helper_struct(taskIndex_t taskIndex,
-                                           int16_t     enPin,
-                                           int16_t     rstPin,
-                                           uint8_t     loopLimit)
-  : _taskIndex(taskIndex), _enPin(enPin), _rstPin(rstPin), _loopLimit(loopLimit) {}
+BusCmd_Helper_struct::BusCmd_Helper_struct(IBusCmd_Handler*busCmd_Handler,
+                                           taskIndex_t     taskIndex,
+                                           int16_t         enPin,
+                                           int16_t         rstPin,
+                                           uint8_t         loopLimit)
+  : _iBusCmd_Handler(busCmd_Handler), _taskIndex(taskIndex), _enPin(enPin), _rstPin(rstPin), _loopLimit(loopLimit) {}
 
 /**
  *  Destructor BusCmd_Helper_struct
@@ -191,7 +221,7 @@ const __FlashStringHelper * BusCmd_Helper_struct::cacheSuffix(BusCmd_CommandSour
 void BusCmd_Helper_struct::setBuffer(uint8_t       index,
                                      const String& name,
                                      const String& line) {
-  if (_buffer.size() < index + 1) {
+  if (_buffer.size() < index + 1u) {
     _buffer.resize(max(index + 1, VARS_PER_TASK), BusCmd_Buffer(EMPTY_STRING, EMPTY_STRING));
   }
   _buffer[index] = BusCmd_Buffer(name, line);
@@ -210,6 +240,10 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
                                                                             const String& line,
                                                                             const bool    update) {
   std::vector<BusCmd_Command_struct> commands;
+
+  if ((nullptr == _iBusCmd_Handler) || !_iBusCmd_Handler->init()) { // Handler is required and initialized
+    return commands;
+  }
 
   const String key = parseString(name, 1);
   String keyPostfix;
@@ -303,7 +337,11 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
             fmt = static_cast<BusCmd_DataFormat_e>(arg2i);
           }
 
-          if ((BusCmd_DataFormat_e::bytes == fmt) || (BusCmd_DataFormat_e::words == fmt)) {
+          if ((BusCmd_DataFormat_e::bytes == fmt) || (BusCmd_DataFormat_e::words == fmt)
+              #if FEATURE_BUSCMD_STRING
+              || (BusCmd_DataFormat_e::string == fmt)
+              #endif // if FEATURE_BUSCMD_STRING
+              ) {
             validUIntFromString(args[arg], len);
             ++arg;
           }
@@ -315,8 +353,16 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
 
             switch (cmd) {
               case BusCmd_Command_e::NOP: break;
-              case BusCmd_Command_e::Read:      // get - g.<format>
-              case BusCmd_Command_e::Write:     // put - p.<format>.<value>
+              case BusCmd_Command_e::Read:  // get - g.<format>
+                break;
+              case BusCmd_Command_e::Write: // put - p.<format>.<value>
+
+                #if FEATURE_BUSCMD_STRING
+
+                if (BusCmd_DataFormat_e::string == fmt) {
+                  variable = args[arg];
+                }
+                #endif // if FEATURE_BUSCMD_STRING
                 break;
               case BusCmd_Command_e::Calculate: // calc - c.<calculation>
               case BusCmd_Command_e::If:        // if - i.<calculation>
@@ -357,11 +403,23 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
                 reg = val;
                 val = 0;
 
-                if (!((BusCmd_DataFormat_e::bytes == fmt) || (BusCmd_DataFormat_e::words == fmt))) {
+                if (!((BusCmd_DataFormat_e::bytes == fmt) || (BusCmd_DataFormat_e::words == fmt)
+                      #if FEATURE_BUSCMD_STRING
+                      || (BusCmd_DataFormat_e::string == fmt)
+                      #endif // if FEATURE_BUSCMD_STRING
+                      )) {
                   ++arg;
 
                   validInt64FromString(args[arg], val);
                 }
+
+                #if FEATURE_BUSCMD_STRING
+
+                if (BusCmd_DataFormat_e::string == fmt) {
+                  ++arg;
+                  variable = args[arg];
+                }
+                #endif // if FEATURE_BUSCMD_STRING
                 break;
               case BusCmd_Command_e::EnableGPIO: // enable - l.<state>
               case BusCmd_Command_e::ResetGPIO:  // reset - z.<state>.<msec>
@@ -445,6 +503,10 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
 bool BusCmd_Helper_struct::executeBusCmdCommands() {
   bool result = false;
 
+  if ((nullptr == _iBusCmd_Handler) || !_iBusCmd_Handler->init()) {
+    return result;
+  }
+
   if (BusCmd_CommandState_e::Processing == _commandState) {
     _it = _commands.begin();
   }
@@ -465,7 +527,7 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
   }
 
   while (_it != _commands.end() && BusCmd_CommandState_e::Processing == _commandState) {
-    bool is_ok = false;
+    bool wideReg = false;
     uint32_t du32{};
     uint16_t du16{};
     _lastCommand = _it->command; // We only need this for long ResetGPIO pulses
@@ -478,69 +540,62 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
         switch (_it->format) {
           case BusCmd_DataFormat_e::undefined: break;
           case BusCmd_DataFormat_e::uint8_t:
-            _it->d0_uint8_t = I2C_read8(_i2cAddress, &is_ok);
+            _it->d0_uint8_t = _iBusCmd_Handler->read8u();
             break;
           case BusCmd_DataFormat_e::uint16_t:
-            _it->d0_uint16_t = I2C_read16(_i2cAddress, &is_ok);
+            _it->d0_uint16_t = _iBusCmd_Handler->read16u();
             break;
           case BusCmd_DataFormat_e::uint24_t:
-            _it->d0_uint32_t = I2C_read24(_i2cAddress, &is_ok);
+            _it->d0_uint32_t = _iBusCmd_Handler->read24u();
             break;
           case BusCmd_DataFormat_e::uint32_t: // Fall through
           case BusCmd_DataFormat_e::int32_t:
-            _it->d0_uint32_t = I2C_read32(_i2cAddress, &is_ok);
+            _it->d0_uint32_t = _iBusCmd_Handler->read32u();
             break;
           case BusCmd_DataFormat_e::uint16_t_LE:
-            du16             = I2C_read16(_i2cAddress, &is_ok);
+            du16             = _iBusCmd_Handler->read16u();
             _it->d0_uint16_t = (du16 << 8) | (du16 >> 8);
             break;
           case BusCmd_DataFormat_e::uint24_t_LE:
-            du32             = I2C_read24(_i2cAddress, &is_ok);
+            du32             = _iBusCmd_Handler->read24u();
             _it->d0_uint32_t = ((du32 & 0xFF0000) >> 16) | (du32 & 0xFF00) | ((du32 & 0xFF) << 16);
             break;
           case BusCmd_DataFormat_e::uint32_t_LE:
-            du32             = I2C_read32(_i2cAddress, &is_ok);
+            du32             = _iBusCmd_Handler->read32u();
             _it->d0_uint32_t = ((du32 & 0xFF000000) >> 24) | ((du32 & 0xFF0000) >> 16) | ((du32 & 0xFF00) << 8) | ((du32 & 0xFF) << 24);
             break;
           case BusCmd_DataFormat_e::int8_t:
-            _it->d0_int8_t = I2C_read8(_i2cAddress, &is_ok);
+            _it->d0_int8_t = _iBusCmd_Handler->read8u();
             break;
           case BusCmd_DataFormat_e::int16_t:
-            _it->d0_int16_t = I2C_read16(_i2cAddress, &is_ok);
+            _it->d0_int16_t = _iBusCmd_Handler->read16u();
             break;
           case BusCmd_DataFormat_e::int16_t_LE:
-            du16            = I2C_read16(_i2cAddress, &is_ok);
+            du16            = _iBusCmd_Handler->read16u();
             _it->d0_int16_t = (du16 << 8) | (du16 >> 8);
             break;
           case BusCmd_DataFormat_e::int24_t:
-            _it->d0_int32_t = I2C_read24(_i2cAddress, &is_ok);
+            _it->d0_int32_t = _iBusCmd_Handler->read24u();
             break;
           case BusCmd_DataFormat_e::int24_t_LE:
-            du32            = I2C_read24(_i2cAddress, &is_ok);
+            du32            = _iBusCmd_Handler->read24u();
             _it->d0_int32_t = ((du32 & 0xFF0000) >> 16) | (du32 & 0xFF00) | ((du32 & 0xFF) << 16);
             break;
           case BusCmd_DataFormat_e::int32_t_LE:
-            du32            = I2C_read32(_i2cAddress, &is_ok);
+            du32            = _iBusCmd_Handler->read32u();
             _it->d0_int32_t = ((du32 & 0xFF000000) >> 24) | ((du32 & 0xFF0000) >> 16) | ((du32 & 0xFF00) << 8) | ((du32 & 0xFF) << 24);
             break;
           case BusCmd_DataFormat_e::bytes:
-            _it->data_b.reserve(_it->len);
-
-            Wire.requestFrom(_i2cAddress, _it->len);
-
-            for (uint8_t i = 0; i < _it->len; ++i) {
-              _it->data_b.push_back(Wire.read());
-            }
+            _it->data_b = _iBusCmd_Handler->read8uB(_it->len);
             break;
           case BusCmd_DataFormat_e::words:
-            _it->data_w.reserve(_it->len);
-
-            Wire.requestFrom(_i2cAddress, _it->len * 2);
-
-            for (uint8_t i = 0; i < _it->len; ++i) {
-              _it->data_w.push_back((Wire.read() << 8) | Wire.read());
-            }
+            _it->data_w = _iBusCmd_Handler->read16uW(_it->len);
             break;
+          #if FEATURE_BUSCMD_STRING
+          case BusCmd_DataFormat_e::string:
+            _it->variable = _iBusCmd_Handler->readString(_it->len);
+            break;
+          #endif // if FEATURE_BUSCMD_STRING
         }
         result = true;
         break;
@@ -549,216 +604,198 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
         switch (_it->format) {
           case BusCmd_DataFormat_e::undefined: break;
           case BusCmd_DataFormat_e::uint8_t:
-            I2C_write8(_i2cAddress, _it->d0_uint8_t);
+            result = _iBusCmd_Handler->write8u(_it->d0_uint8_t);
             break;
           case BusCmd_DataFormat_e::uint16_t:
-            I2C_write16(_i2cAddress, _it->d0_uint16_t);
+            result = _iBusCmd_Handler->write16u(_it->d0_uint16_t);
             break;
           case BusCmd_DataFormat_e::uint24_t:
-            I2C_write24(_i2cAddress, _it->d0_uint32_t);
+            result = _iBusCmd_Handler->write24u(_it->d0_uint32_t);
             break;
           case BusCmd_DataFormat_e::uint32_t:
-            I2C_write32(_i2cAddress, _it->d0_uint32_t);
+            result = _iBusCmd_Handler->write32u(_it->d0_uint32_t);
             break;
           case BusCmd_DataFormat_e::int32_t:
-            I2C_write32(_i2cAddress, _it->d0_int32_t);
+            result = _iBusCmd_Handler->write32u(_it->d0_int32_t);
             break;
           case BusCmd_DataFormat_e::uint16_t_LE:
-            I2C_write16_LE(_i2cAddress, _it->d0_uint16_t);
+            result = _iBusCmd_Handler->write16u((_it->d0_uint16_t << 8) | (_it->d0_uint16_t >> 8));
             break;
           case BusCmd_DataFormat_e::uint24_t_LE:
-            du32 = ((_it->d0_uint32_t & 0xFF0000) >> 16) | (_it->d0_uint32_t & 0xFF00) | ((_it->d0_uint32_t & 0xFF) << 16);
-            I2C_write24(_i2cAddress, du32);
+            du32   = ((_it->d0_uint32_t & 0xFF0000) >> 16) | (_it->d0_uint32_t & 0xFF00) | ((_it->d0_uint32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write24u(du32);
             break;
           case BusCmd_DataFormat_e::uint32_t_LE:
             du32 = ((_it->d0_uint32_t & 0xFF000000) >> 24) | ((_it->d0_uint32_t & 0xFF0000) >> 16) |
                    (_it->d0_uint32_t & 0xFF00) | ((_it->d0_uint32_t & 0xFF) << 16);
-            I2C_write32(_i2cAddress, du32);
+            result = _iBusCmd_Handler->write32u(du32);
             break;
           case BusCmd_DataFormat_e::int8_t:
-            I2C_write8(_i2cAddress, _it->d0_int8_t);
+            result = _iBusCmd_Handler->write8u(_it->d0_int8_t);
             break;
           case BusCmd_DataFormat_e::int16_t:
-            I2C_write16(_i2cAddress, _it->d0_int16_t);
+            result = _iBusCmd_Handler->write16u(_it->d0_int16_t);
             break;
           case BusCmd_DataFormat_e::int16_t_LE:
-            I2C_write16_LE(_i2cAddress, _it->d0_int16_t);
+            result = _iBusCmd_Handler->write16u((_it->d0_int16_t << 8) | (_it->d0_int16_t >> 8));
             break;
           case BusCmd_DataFormat_e::int24_t:
-            I2C_write24(_i2cAddress, _it->d0_int32_t);
+            result = _iBusCmd_Handler->write24u(_it->d0_int32_t);
             break;
           case BusCmd_DataFormat_e::int24_t_LE:
-            du32 = ((_it->d0_int32_t & 0xFF0000) >> 16) | (_it->d0_int32_t & 0xFF00) | ((_it->d0_int32_t & 0xFF) << 16);
-            I2C_write24(_i2cAddress, du32);
+            du32   = ((_it->d0_int32_t & 0xFF0000) >> 16) | (_it->d0_int32_t & 0xFF00) | ((_it->d0_int32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write24u(du32);
             break;
           case BusCmd_DataFormat_e::int32_t_LE:
             du32 = ((_it->d0_int32_t & 0xFF000000) >> 24) | ((_it->d0_int32_t & 0xFF0000) >> 16) |
                    (_it->d0_int32_t & 0xFF00) | ((_it->d0_int32_t & 0xFF) << 16);
-            I2C_write32(_i2cAddress, du32);
+            result = _iBusCmd_Handler->write32u(du32);
             break;
           case BusCmd_DataFormat_e::bytes:
-            Wire.beginTransmission(_i2cAddress);
-
-            for (size_t itb = 0; itb < _it->data_b.size(); ++itb) {
-              Wire.write(_it->data_b[itb]);
-            }
-            result = Wire.endTransmission() == 0;
+            result = _iBusCmd_Handler->write8uB(_it->data_b);
             break;
           case BusCmd_DataFormat_e::words:
-            Wire.beginTransmission(_i2cAddress);
-
-            for (size_t itw = 0; itw < _it->data_w.size(); ++itw) {
-              Wire.write((uint8_t)(_it->data_w[itw] << 8));
-              Wire.write((uint8_t)(_it->data_w[itw] & 0xFF));
-            }
-            result = Wire.endTransmission() == 0;
+            result = _iBusCmd_Handler->write16uW(_it->data_w);
             break;
+          #if FEATURE_BUSCMD_STRING
+          case BusCmd_DataFormat_e::string:
+            result = _iBusCmd_Handler->writeString(_it->variable);
+            break;
+          #endif // if FEATURE_BUSCMD_STRING
         }
-        result = true;
         break;
+      case BusCmd_Command_e::Register16Read:
+        wideReg = true; // fall through
       case BusCmd_Command_e::RegisterRead:
 
         switch (_it->format) {
           case BusCmd_DataFormat_e::undefined: break;
           case BusCmd_DataFormat_e::uint8_t:
-            _it->d0_uint8_t = I2C_read8_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_uint8_t = _iBusCmd_Handler->read8uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::uint16_t:
-            _it->d0_uint16_t = I2C_read16_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_uint16_t = _iBusCmd_Handler->read16uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::uint24_t:
-            _it->d0_uint32_t = I2C_read24_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_uint32_t = _iBusCmd_Handler->read24uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::uint32_t: // Fall through
           case BusCmd_DataFormat_e::int32_t:
-            _it->d0_uint32_t = I2C_read32_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_uint32_t = _iBusCmd_Handler->read32uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::uint16_t_LE:
-            _it->d0_uint16_t = I2C_read16_LE_reg(_i2cAddress, _it->reg, &is_ok);
+            du16             = _iBusCmd_Handler->read16uREG(_it->reg, wideReg);
+            _it->d0_uint16_t = (du16 << 8) | (du16 >> 8);
             break;
           case BusCmd_DataFormat_e::uint24_t_LE:
-            du32             = I2C_read24_reg(_i2cAddress, _it->reg, &is_ok);
+            du32             = _iBusCmd_Handler->read24uREG(_it->reg, wideReg);
             _it->d0_uint32_t = ((du32 & 0xFF0000) >> 16) | (du32 & 0xFF00) | ((du32 & 0xFF) << 16);
             break;
           case BusCmd_DataFormat_e::uint32_t_LE:
-            du32             = I2C_read32_reg(_i2cAddress, _it->reg, &is_ok);
+            du32             = _iBusCmd_Handler->read32uREG(_it->reg, wideReg);
             _it->d0_uint32_t = ((du32 & 0xFF000000) >> 24) | ((du32 & 0xFF0000) >> 16) | ((du32 & 0xFF00) << 8) | ((du32 & 0xFF) << 24);
             break;
           case BusCmd_DataFormat_e::int8_t:
-            _it->d0_int8_t = I2C_read8_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_int8_t = _iBusCmd_Handler->read8uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::int16_t:
-            _it->d0_int16_t = I2C_read16_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_int16_t = _iBusCmd_Handler->read16uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::int16_t_LE:
-            du16            = I2C_read16_LE_reg(_i2cAddress, _it->reg, &is_ok);
+            du16            = _iBusCmd_Handler->read16uREG(_it->reg, wideReg);
             _it->d0_int16_t = (du16 << 8) | (du16 >> 8);
             break;
           case BusCmd_DataFormat_e::int24_t:
-            _it->d0_int32_t = I2C_read24_reg(_i2cAddress, _it->reg, &is_ok);
+            _it->d0_int32_t = _iBusCmd_Handler->read24uREG(_it->reg, wideReg);
             break;
           case BusCmd_DataFormat_e::int24_t_LE:
-            du32            = I2C_read24_reg(_i2cAddress, _it->reg, &is_ok);
+            du32            = _iBusCmd_Handler->read24uREG(_it->reg, wideReg);
             _it->d0_int32_t = ((du32 & 0xFF0000) >> 16) | (du32 & 0xFF00) | ((du32 & 0xFF) << 16);
             break;
           case BusCmd_DataFormat_e::int32_t_LE:
-            du32            = I2C_read32_reg(_i2cAddress, _it->reg, &is_ok);
+            du32            = _iBusCmd_Handler->read32uREG(_it->reg, wideReg);
             _it->d0_int32_t = ((du32 & 0xFF000000) >> 24) | ((du32 & 0xFF0000) >> 16) | ((du32 & 0xFF00) << 8) | ((du32 & 0xFF) << 24);
             break;
           case BusCmd_DataFormat_e::bytes:
-            _it->data_b.reserve(_it->len);
-
-            if (I2C_write8(_i2cAddress, _it->reg) && (Wire.requestFrom(_i2cAddress, _it->len) == _it->len)) {
-              for (uint8_t i = 0; i < _it->len; ++i) {
-                _it->data_b.push_back(Wire.read());
-              }
-            }
+            _it->data_b = _iBusCmd_Handler->read8uBREG(_it->reg, _it->len, wideReg);
             break;
           case BusCmd_DataFormat_e::words:
-            _it->data_w.reserve(_it->len);
-
-            if (I2C_write8(_i2cAddress, _it->reg) && (Wire.requestFrom(_i2cAddress, _it->len * 2) == _it->len * 2)) {
-              for (uint8_t i = 0; i < _it->len; ++i) {
-                _it->data_w.push_back((Wire.read() << 8) | Wire.read());
-              }
-            }
+            _it->data_w = _iBusCmd_Handler->read16uWREG(_it->reg, _it->len, wideReg);
             break;
+          #if FEATURE_BUSCMD_STRING
+          case BusCmd_DataFormat_e::string:
+            _it->variable = _iBusCmd_Handler->readStringREG(_it->reg, _it->len, wideReg);
+            break;
+          #endif // if FEATURE_BUSCMD_STRING
         }
         result = true;
         break;
-      case BusCmd_Command_e::Register16Read:
-        addLog(LOG_LEVEL_ERROR, F("BUSCMD: Register16Read (read16/s) feature not implemented yet."));   // FIXME ??
-        break;
       case BusCmd_Command_e::Register16Write:
-        addLog(LOG_LEVEL_ERROR, F("BUSCMD: Register16Write (write16/t) feature not implemented yet.")); // FIXME ??
-        break;
+        wideReg = true; // fall through
       case BusCmd_Command_e::RegisterWrite:
 
         switch (_it->format) {
           case BusCmd_DataFormat_e::undefined: break;
           case BusCmd_DataFormat_e::uint8_t:
-            I2C_write8_reg(_i2cAddress, _it->reg, _it->d0_uint8_t);
+            result = _iBusCmd_Handler->write8uREG(_it->reg, _it->d0_uint8_t, wideReg);
             break;
           case BusCmd_DataFormat_e::uint16_t:
-            I2C_write16_reg(_i2cAddress, _it->reg, _it->d0_uint16_t);
+            result = _iBusCmd_Handler->write16uREG(_it->reg, _it->d0_uint16_t, wideReg);
             break;
           case BusCmd_DataFormat_e::uint24_t:
-            I2C_write24_reg(_i2cAddress, _it->reg, _it->d0_uint32_t);
+            result = _iBusCmd_Handler->write24uREG(_it->reg, _it->d0_uint32_t, wideReg);
             break;
           case BusCmd_DataFormat_e::uint32_t: // Fall through
-            I2C_write32_reg(_i2cAddress, _it->reg, _it->d0_uint32_t);
+            result = _iBusCmd_Handler->write32uREG(_it->reg, _it->d0_uint32_t, wideReg);
             break;
           case BusCmd_DataFormat_e::int32_t:
-            I2C_write32_reg(_i2cAddress, _it->reg, _it->d0_int32_t);
+            result = _iBusCmd_Handler->write32uREG(_it->reg, _it->d0_int32_t, wideReg);
             break;
           case BusCmd_DataFormat_e::uint16_t_LE:
-            I2C_write16_LE_reg(_i2cAddress, _it->reg, _it->d0_uint16_t);
+            result = _iBusCmd_Handler->write16uREG(_it->reg, (_it->d0_uint16_t << 8) | (_it->d0_uint16_t >> 8), wideReg);
             break;
           case BusCmd_DataFormat_e::uint24_t_LE:
-            I2C_write24_LE_reg(_i2cAddress, _it->reg, _it->d0_uint32_t);
+            du32   = ((_it->d0_uint32_t & 0xFF0000) >> 16) | (_it->d0_uint32_t & 0xFF00) | ((_it->d0_uint32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write24uREG(_it->reg, du32, wideReg);
             break;
           case BusCmd_DataFormat_e::uint32_t_LE:
-            I2C_write32_LE_reg(_i2cAddress, _it->reg, _it->d0_uint32_t);
+            du32 = ((_it->d0_uint32_t & 0xFF000000) >> 24) | ((_it->d0_uint32_t & 0xFF0000) >> 16) |
+                   (_it->d0_uint32_t & 0xFF00) | ((_it->d0_uint32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write32uREG(_it->reg, du32, wideReg);
             break;
           case BusCmd_DataFormat_e::int8_t:
-            I2C_write8_reg(_i2cAddress, _it->reg, _it->d0_int8_t);
+            result = _iBusCmd_Handler->write8uREG(_it->reg, _it->d0_int8_t, wideReg);
             break;
           case BusCmd_DataFormat_e::int16_t:
-            I2C_write16_reg(_i2cAddress, _it->reg, _it->d0_int16_t);
+            result = _iBusCmd_Handler->write16uREG(_it->reg, _it->d0_int16_t, wideReg);
             break;
           case BusCmd_DataFormat_e::int16_t_LE:
-            I2C_write16_LE_reg(_i2cAddress, _it->reg, _it->d0_int16_t);
+            result = _iBusCmd_Handler->write16uREG(_it->reg, (_it->d0_int16_t << 8) | (_it->d0_int16_t >> 8), wideReg);
             break;
           case BusCmd_DataFormat_e::int24_t:
-            I2C_write24_reg(_i2cAddress, _it->reg, _it->d0_int32_t);
+            result = _iBusCmd_Handler->write24uREG(_it->reg, _it->d0_int32_t, wideReg);
             break;
           case BusCmd_DataFormat_e::int24_t_LE:
-            I2C_write24_LE_reg(_i2cAddress, _it->reg, _it->d0_int32_t);
+            du32   = ((_it->d0_int32_t & 0xFF0000) >> 16) | (_it->d0_int32_t & 0xFF00) | ((_it->d0_int32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write24uREG(_it->reg, du32, wideReg);
             break;
           case BusCmd_DataFormat_e::int32_t_LE:
-            I2C_write32_reg(_i2cAddress, _it->reg, _it->d0_int32_t);
+            du32 = ((_it->d0_int32_t & 0xFF000000) >> 24) | ((_it->d0_int32_t & 0xFF0000) >> 16) |
+                   (_it->d0_int32_t & 0xFF00) | ((_it->d0_int32_t & 0xFF) << 16);
+            result = _iBusCmd_Handler->write32uREG(_it->reg, du32, wideReg);
             break;
           case BusCmd_DataFormat_e::bytes:
-            Wire.beginTransmission(_i2cAddress);
-            Wire.write((uint8_t)_it->reg);
-
-            for (size_t itb = 0; itb < _it->data_b.size(); ++itb) {
-              Wire.write(_it->data_b[itb]);
-            }
-            result = Wire.endTransmission() == 0;
+            result = _iBusCmd_Handler->write8uBREG(_it->reg, _it->data_b, wideReg);
             break;
           case BusCmd_DataFormat_e::words:
-            Wire.beginTransmission(_i2cAddress);
-            Wire.write((uint8_t)_it->reg);
-
-            for (size_t itw = 0; itw < _it->data_w.size(); ++itw) {
-              Wire.write((uint8_t)(_it->data_w[itw] << 8));
-              Wire.write((uint8_t)(_it->data_w[itw] & 0xFF));
-            }
-            result = Wire.endTransmission() == 0;
+            result = _iBusCmd_Handler->write16uWREG(_it->reg, _it->data_w, wideReg);
             break;
+          #if FEATURE_BUSCMD_STRING
+          case BusCmd_DataFormat_e::string:
+            result = _iBusCmd_Handler->writeStringReg(_it->reg, _it->variable, wideReg);
+            break;
+          #endif // if FEATURE_BUSCMD_STRING
         }
-        result = true;
         break;
       case BusCmd_Command_e::Value:
 
@@ -881,6 +918,15 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
         case BusCmd_DataFormat_e::bytes:
         case BusCmd_DataFormat_e::words:
           break;
+        #if FEATURE_BUSCMD_STRING
+        case BusCmd_DataFormat_e::string:
+          # if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+          validDoubleFromString(_it->variable, _value);
+          # else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+          validFloatFromString(_it->variable, _value);
+          # endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+          break;
+        #endif // if FEATURE_BUSCMD_STRING
       }
     }
 
@@ -911,11 +957,15 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
 String BusCmd_Helper_struct::replacePluginValues(const String& inVar) {
   String result(inVar);
 
-  result.replace(F("%pvalue%"), toString(_value));                       // %pvalue%
+  result.replace(F("%pvalue%"), toString(_value)); // %pvalue%
 
   if (_evalIsSet) {
-    result.replace(F("%value%"), toString(_evalCommand->getIntValue())); // %value%
-    result.replace(F("%h%"),     _evalCommand->getHexValue(true));       // %h%
+    result.replace(F("%value%"),
+                   #if FEATURE_BUSCMD_STRING
+                   BusCmd_DataFormat_e::string == _evalCommand->format ? _evalCommand->getString() :
+                   #endif // if FEATURE_BUSCMD_STRING
+                   toString(_evalCommand->getIntValue()));     // %value%
+    result.replace(F("%h%"), _evalCommand->getHexValue(true)); // %h%
 
     if (BusCmd_DataFormat_e::bytes == _evalCommand->format) {
       if (result.indexOf(F("%b")) > -1) {

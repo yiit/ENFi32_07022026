@@ -6,6 +6,8 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-05-13 tonhuisman: Add support for String (str) data-format handling
+ * 2025-05-12 tonhuisman: Refactor I2C handling into replaceble BusCmd_Handler interface & I2C implemented handler
  * 2025-05-10 tonhuisman: Refactor I2C Command processor to BusCmd command processor helper (phase 1 refactor)
  * 2025-05-05 tonhuisman: Change abbreviation for 'enable' from 'l' to 'a'
  *                        Add 'let.<var>.<value>' I2C command, abbreviated to 'l'. Assigns <value> to a Rules global variable
@@ -15,7 +17,7 @@
  *                        Add genI2C,log,<0|1> subcommand for disabling/enabling plugin logging
  *                        Remove support for PLUGIN_GET_CONFIG as its not needed or useable and not implemented yet
  * 2025-04-28 tonhuisman: Add support for processing during 1/sec, 10/sec and 50/sec plugin events
- * 2025-04-27 tonhuisman: Add support vor executing a command sequence from cache: getI2C,exec,<cache-name>[,<TaskVarIndex>]
+ * 2025-04-27 tonhuisman: Add support for executing a command sequence from cache: getI2C,exec,<cache-name>[,<TaskVarIndex>]
  *                        Add support for selecting the Value-index either by number or name
  * 2025-04-21 tonhuisman: Add preliminary support for MQTT Discovery
  * 2025-04-13 tonhuisman: Add 'if' command, some optimizations
@@ -30,18 +32,19 @@
  * p : put = Write
  * r : read = Read from a register
  * w : write = Write to a register
- * s : read16 = Read from a 16 bit register (not supported yet)
- * t : write16 = Write to a 16 bit register (not supported yet)
+ * s : read16 = Read from a 16 bit register (to be implemented per BusCmd_Handler implementation)
+ * t : write16 = Write to a 16 bit register (to be implemented per BusCmd_Handler implementation)
  * e : eval = Set previous command data to eval for calc and/or if commands
  * c : calc = Calculate a result from eval data retrieved
  * i : if = Calculate a result from eval data and cancel execution if the result is 0
  * v : value = Put current result in Value
  * d : delay = Delay msec. until next command is executed (asynchronous/non-blocking when > 10 msec)
- * l : enable = Set Enable GPIO pin to a state
+ * a : enable = Set Enable GPIO pin to a state
  * z : reset = Pulse Reset GPIO pin to a state for n msec.
+ * l : let = Assign value to global variable, usable in calculations (and Rules)
  *
- * Command structure: (period . for argument separator, semicolon ; for command separator)
- * <cmd>[.<fmt>[.<len>]][.<register>][.<data>];...
+ * Command structure: (period . for argument separator, semicolon ; for command separator, | for event separator)
+ * <cmd>[.<fmt>[.<len>]][.<register>][.<data>];...[|(1ps|10ps|50ps)|<cmd_sequences>]
  *
  * get.<fmt>[.<len>]
  * put.<fmt>.<data>[.<data>...]
@@ -54,6 +57,7 @@
  * delay.<msec> (range: 0..500)
  * enable.<state> (0 or 1)
  * reset.<state>.<msec> (state = 0 or 1, msec = range: 0..500)
+ * let.<var>.<calculation> Similar to 'calc', result is stored in global <var>, can be used like [var#<var>], [int#<var>] or %v_<var>%
  *
  * fmt options:
  * u8 : uint8_t (1 byte)
@@ -72,6 +76,7 @@
  * 32le : int32_t (4 bytes, signed, little endian)
  * b[.<len>] : <len> uint8_t (bytes), <len> is needed for reading only
  * w[.<len>] : <len> uint16_t (words), <len> is needed for reading only
+ * str[.<len>] : <len> String, <len> is needed for reading only
  */
 
 /** 1/sec, 10/sec and 50/sec plugin event support:
@@ -85,6 +90,7 @@
 /** Write commands supported:
  * geni2c,cmd,<I2C-commands>[,<TaskVarIndex>[,<cache-name>]] : Parse command sequence (opt. into cache), execute and store value in TaskVar
  * getI2C,exec,<cache-name>[,<TaskVarIndex>] : Execute command sequence from cache and store value in TaskVar
+ * getI2C,log,<0|1> : Set the Logging option disabled or enabled. Not saved automatically.
  */
 
 # define PLUGIN_180

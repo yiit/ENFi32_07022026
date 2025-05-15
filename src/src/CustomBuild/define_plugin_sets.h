@@ -3645,6 +3645,13 @@ To create/register a plugin, you have to :
 #endif
 
 
+#ifndef FEATURE_BUSCMD_STRING
+# if defined(LIMIT_BUILD_SIZE) || defined(ESP8266)
+#  define FEATURE_BUSCMD_STRING   0
+# else // if defined(LIMIT_BUILD_SIZE) || defined(ESP8266)
+#  define FEATURE_BUSCMD_STRING   1
+# endif // if defined(LIMIT_BUILD_SIZE) || defined(ESP8266)
+#endif // ifndef FEATURE_BUSCMD_STRING
   
   
 #if !defined(CUSTOM_BUILD_CDN_URL) && !defined(FEATURE_ALTERNATIVE_CDN_URL)

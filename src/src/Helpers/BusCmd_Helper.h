@@ -1,7 +1,14 @@
 #ifndef _HELPERS_BUSCMD_HELPER_H
 #define _HELPERS_BUSCMD_HELPER_H
 
+/** Changelog:
+ * 2025-05-13 tonhuisman: Add String format support, guarded with FEATURE_BUSCMD_STRING
+ * 2025-05-10 tonhuisman: Extracted from Plugin P180 I2C Generic into a separate Bus Command processor
+ */
+
 #include "../../_Plugin_Helper.h"
+
+#include "../Helpers/IBusCmd_Handler.h"
 
 #define BUSCMD_EVENT_SEPARATOR     '|'
 #define BUSCMD_COMMAND_SEPARATOR   ';'
@@ -43,6 +50,9 @@ enum class BusCmd_DataFormat_e : uint8_t {
   int32_t_LE,
   bytes,
   words,
+  #if FEATURE_BUSCMD_STRING
+  string,
+  #endif // if FEATURE_BUSCMD_STRING
 };
 
 enum class BusCmd_CommandState_e :uint8_t {
@@ -80,6 +90,10 @@ struct BusCmd_Command_struct {
   uint32_t getUIntValue() {
     return static_cast<uint32_t>(getIntValue());
   }
+
+  #if FEATURE_BUSCMD_STRING
+  String getString();
+  #endif // if FEATURE_BUSCMD_STRING
 
   BusCmd_Command_e    command = BusCmd_Command_e::NOP;
   BusCmd_DataFormat_e format  = BusCmd_DataFormat_e::undefined;
@@ -123,12 +137,13 @@ struct BusCmd_Buffer {
 };
 
 struct BusCmd_Helper_struct {
-  BusCmd_Helper_struct();
+  BusCmd_Helper_struct() = delete;
 
-  BusCmd_Helper_struct(taskIndex_t taskIndex,
-                       int16_t     enPin,
-                       int16_t     rstPin,
-                       uint8_t     loopLimit);
+  BusCmd_Helper_struct(IBusCmd_Handler*busCmd_Handler,
+                       taskIndex_t     taskIndex,
+                       int16_t         enPin,
+                       int16_t         rstPin,
+                       uint8_t         loopLimit);
   virtual ~BusCmd_Helper_struct();
 
   bool                              plugin_read(struct EventStruct *event);
@@ -154,10 +169,6 @@ struct BusCmd_Helper_struct {
     _showLog = showLog;
   }
 
-  void setI2CAddress(uint8_t i2cAddress) {
-    _i2cAddress = i2cAddress;
-  }
-
   void setCommands(std::vector<BusCmd_Command_struct>commands,
                    taskVarIndex_t                    taskVarIndex,
                    uint8_t                           loopStart,
@@ -180,6 +191,7 @@ private:
   String replacePluginValues(const String& inVar);
   bool   processCommands(struct EventStruct *event);
 
+  IBusCmd_Handler*_iBusCmd_Handler = nullptr;
 
   ESPEASY_RULES_FLOAT_TYPE _value{};
 
@@ -187,7 +199,6 @@ private:
   taskIndex_t    _taskIndex;
   int16_t        _enPin;
   int16_t        _rstPin;
-  uint8_t        _i2cAddress;
   bool           _valueIsSet = false;
   bool           _evalIsSet  = false;
   bool           _showLog    = false;
