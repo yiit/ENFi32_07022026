@@ -289,40 +289,6 @@ bool I2C_write16_LE_reg(uint8_t i2caddr, uint8_t reg, uint16_t value) {
 }
 
 // **************************************************************************/
-// Writes a 24 bit value over I2C to a register
-// **************************************************************************/
-bool I2C_write24_LE_reg(uint8_t i2caddr, uint8_t reg, uint32_t value) {
-  return I2C_write24_reg(i2caddr, reg, ((value & 0xFF) << 16) | (value & 0x00FF00) | ((value & 0xFF0000) >> 16));
-}
-
-// **************************************************************************/
-// Writes a 32 bit value over I2C to a register
-// **************************************************************************/
-bool I2C_write32_LE_reg(uint8_t i2caddr, uint8_t reg, uint32_t value) {
-  return I2C_write32_reg(i2caddr, reg, ((value & 0xFF) << 24) | ((value & 0xFF00) << 16) |
-                         ((value & 0xFF0000) >> 16) | ((value & 0xFF000000) >> 24));
-}
-
-// **************************************************************************/
-// Writes an 16 bit value over I2C to a 16 bit register
-// **************************************************************************/
-bool I2C_write16_reg16(uint8_t i2caddr, uint16_t reg, uint16_t value) {
-  Wire.beginTransmission(i2caddr);
-  Wire.write((uint8_t)(reg >> 8));
-  Wire.write((uint8_t)reg);
-  Wire.write((uint8_t)(value >> 8));
-  Wire.write((uint8_t)value);
-  return Wire.endTransmission() == 0;
-}
-
-// **************************************************************************/
-// Writes an 16 bit value over I2C to a 16 bit register
-// **************************************************************************/
-bool I2C_write16_LE_reg16(uint8_t i2caddr, uint16_t reg, uint16_t value) {
-  return I2C_write16_reg(i2caddr, reg, (value << 8) | (value >> 8));
-}
-
-// **************************************************************************/
 // Writes length bytes over I2C to a register
 // **************************************************************************/
 bool I2C_writeBytes_reg(uint8_t i2caddr, uint8_t reg, uint8_t *buffer, uint8_t length) {

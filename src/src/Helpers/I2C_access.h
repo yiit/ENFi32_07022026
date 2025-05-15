@@ -101,34 +101,6 @@ bool I2C_write16_LE_reg(uint8_t  i2caddr,
                         uint16_t value);
 
 // **************************************************************************/
-// Writes an 24 bit value over I2C to a register
-// **************************************************************************/
-bool I2C_write24_LE_reg(uint8_t  i2caddr,
-                        uint8_t  reg,
-                        uint32_t value);
-
-// **************************************************************************/
-// Writes an 24 bit value over I2C to a register
-// **************************************************************************/
-bool I2C_write32_LE_reg(uint8_t  i2caddr,
-                        uint8_t  reg,
-                        uint32_t value);
-
-// **************************************************************************/
-// Writes an 16 bit value over I2C to a 16 bit register
-// **************************************************************************/
-bool I2C_write16_reg16(uint8_t  i2caddr,
-                       uint16_t reg,
-                       uint16_t value);
-
-// **************************************************************************/
-// Writes an 16 bit value over I2C to a 16 bit register
-// **************************************************************************/
-bool I2C_write16_LE_reg16(uint8_t  i2caddr,
-                          uint16_t reg,
-                          uint16_t value);
-
-// **************************************************************************/
 // Writes length bytes over I2C to a register
 // **************************************************************************/
 bool I2C_writeBytes_reg(uint8_t  i2caddr,
