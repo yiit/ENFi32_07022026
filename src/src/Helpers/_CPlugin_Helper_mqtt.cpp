@@ -453,11 +453,13 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                 // FIXME Ensure this is the correct way of retrieval, will at least/only work for P001...
                 const bool inversedState = Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED == discoveryItems[s].VType;
 
-                if (pluginDeviceClass.isEmpty()) { pluginDeviceClass = F("power"); } // default
-                const String deviceClass = strformat(F("%s\",\"frc_upd\":true,\"pl_on\":\"%d\",\"pl_off\":\"%d"),
-                                                     pluginDeviceClass.c_str(), !inversedState, inversedState);
-
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  String valueDeviceClass = parseStringKeepCase(pluginDeviceClass, v + 1); // Separate device classes per value
+
+                  if (valueDeviceClass.isEmpty()) { valueDeviceClass = F("power"); } // default
+                  const String deviceClass = strformat(F("%s\",\"frc_upd\":true,\"pl_on\":\"%d\",\"pl_off\":\"%d"),
+                                                       valueDeviceClass.c_str(), !inversedState, inversedState);
+
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
