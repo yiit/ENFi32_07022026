@@ -6,7 +6,7 @@ var commonAtoms = ["And", "Or"];
 var commonKeywords = ["If", "Else", "Elseif", "Endif"];
 var commonCommands = ["AccessInfo", "Background", "Build", "ClearAccessBlock", "ClearRTCam", "Config", "ControllerDisable",
   "ControllerEnable", "DateTime", "Debug", "Dec", "DeepSleep", "DisablePriorityTask", "DNS", "DST", "EraseSDKWiFi", "ExecuteRules", "FactoryReset", "Gateway", "I2Cscanner", "Inc",
-  "IP", "Let", "Load", "LogEntry", "LogPortStatus", "LoopTimerSet", "LoopTimerSet_ms", "LoopTimerSetAndRun", "LoopTimerSetAndRun_ms", "MemInfo", "MemInfoDetail", "Name", "Password", "PostToHTTP", "Publish", "PublishR",
+  "IP", "Let", "LetStr", "Load", "LogEntry", "LogPortStatus", "LoopTimerSet", "LoopTimerSet_ms", "LoopTimerSetAndRun", "LoopTimerSetAndRun_ms", "MemInfo", "MemInfoDetail", "Name", "Password", "PostToHTTP", "Publish", "PublishR",
   "Reboot", "Save", "SendTo", "SendToHTTP", "SendToUDP", "SendToUDPMix", "Settings", "Subnet", "Subscribe", "TaskClear", "TaskClearAll",
   "TaskDisable", "TaskEnable", "TaskRun", "TaskValueSet", "TaskValueSetAndRun", "TimerPause", "TimerResume", "TimerSet", "TimerSet_ms", "TimeZone",
   "UdpPort", "UdpTest", "Unit", "UseNTP", "WdConfig", "WdRead", "WiFi", "WiFiAllowAP", "WiFiAPMode", "WiFiConnect", "WiFiDisconnect", "WiFiKey",
@@ -178,11 +178,11 @@ var AnythingElse = [
   //Ethernet
   "%ethwifimode%", "%ethconnected%", "%ethduplex%", "%ethspeed%", "%ethstate%", "%ethspeedstate%",
   //Standard Conversions
-  "%c_w_dir%", "%c_c2f%", "%c_ms2Bft%", "%c_dew_th%", "%c_alt_pres_sea%", "%c_sea_pres_alt%", "%c_cm2imp%", "%c_mm2imp%",
+  "%c_w_dir%", "%c_c2f%", "%c_ms2Bft%", "%c_dew_th%", "%c_alt_pres_sea%", "%c_sea_pres_alt%", "%c_cm2imp%", "%c_isnum%", "%c_mm2imp%",
   "%c_m2day%", "%c_m2dh%", "%c_m2dhm%", "%c_s2dhms%", "%c_random%", "%c_2hex%", "%c_u2ip%", "%c_uname%", "%c_uage%", "%c_ubuild%", "%c_ubuildstr%",
   "%c_uload%", "%c_utype%", "%c_utypestr%",
   //Variables
-  "var", "int"
+  "var", "int", "str", "length"
 ];
 
 //merging displayspecific commands of P095,P096,P116,P131 into commonPlugins
