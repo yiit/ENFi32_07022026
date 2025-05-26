@@ -415,6 +415,9 @@ The conversion always outputs a string, but not all of these can be converted ba
      - Convert to the ESP-Type (string) of the remote unit. (Added: 2024/04/21)
 
        See ``%c_utype%(<unit>)`` for the names and numbers used.
+   * - Check if numeric value: ``%c_isnum%(test)``
+     - Check if numeric value: ``1``
+     - Check if the content of a string variable (set with ``LetStr`` command) contains a numeric value. 0 = false, 1 = true (Added: 2025/05/25)
 
 
 Task Formulas

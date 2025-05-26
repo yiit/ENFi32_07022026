@@ -256,6 +256,26 @@ As of mega-201803.. we have the possibility to use AND/OR:
 Up to two AND/OR can be used per if statement, that means that you can test
 three float values and if the statement is true/false corresponding action will take place.
 
+String comparisons
+------------------
+
+Added: 2025-05-25
+
+Support for string variables also supports the use of string comparisons with the ``if`` statement. String comparisons are **case-sensitive**, so if non-case-sensitive comparisons are needed, using ``[str#<var>#V#l]`` will output the content in lower-case (without changing the stored content).
+
+.. code-block:: none
+
+  on zigbee2mqtt/eria_dimswitch_1#action do
+    LetStr,onoff,[zigbee2mqtt/eria_dimswitch_1#action]
+    if [str#onoff#V#l]=on
+      gpio,12,1 // on
+    else
+      gpio,12,0 // off
+    endif
+  endon
+
+(Example adapted from :ref:`P037_page`)
+
 Trigger
 -------
 
@@ -755,6 +775,19 @@ Added: 2023-12-01
 
 Short-hand notation can be nested like this: ``[int#%v%v7%%]`` or use simple calculations like this: ``[int#%v=7+%v100%%]``
 This allows to simply switch a number of variable offsets in rules by only changing 1 variable.
+
+String variables
+----------------
+
+Added: 2025-05-25: Support for String variables. (ESP32 builds only, because of memory restictions on ESP8266 platform)
+
+To store string/text data in internal variables, a new command ``LetStr,<varname>,<value>`` has been introduced. These variables are stored independent from the numeric values that are stored with the ``Let`` command.
+
+For using the content of a string variable, ``[str#<var>]`` should be used. This form also supports formatting and justification options, described below.
+
+If the value contains spaces or commas, the ``<value>`` must be wrapped in quotes to store all data. String concatenation can be achieved by assigning the value to the same variable, like ``LetStr,test,"[str#test] extra text containing spaces appended to variable 'test'"``. The space before ``extra`` is *also* included in the new content.
+
+A string variable that was not set to any value is assumed to hold the pseudo-value of an empty string.
 
 
 
