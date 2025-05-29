@@ -239,7 +239,7 @@ bool rulesProcessingFile(const String& fileName,
 /********************************************************************************************\
    Parse string commands
  \*********************************************************************************************/
-bool get_next_inner_bracket(const String& line, int& startIndex, int& closingIndex, char closingBracket)
+bool get_next_inner_bracket(const String& line, unsigned int& startIndex, int& closingIndex, char closingBracket)
 {
   if (line.length() <= 1) {
     // Not possible to have opening and closing bracket on a line this short.
@@ -263,7 +263,7 @@ bool get_next_inner_bracket(const String& line, int& startIndex, int& closingInd
     return false; 
   }
 
-  for (int i = (closingIndex - 1); i > startIndex; --i) {
+  for (int i = (closingIndex - 1); (i >= startIndex) && (i >= 0); --i) {
     if (line[i] == openingBracket) {
       startIndex = i;
       return true;
@@ -459,7 +459,7 @@ enum class string_commands_e {
 
 
 void parse_string_commands(String& line) {
-  int startIndex = 0;
+  unsigned int startIndex = 0;
   int closingIndex;
 
   bool mustReplaceMaskedChars = false;
