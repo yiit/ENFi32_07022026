@@ -415,10 +415,59 @@ The conversion always outputs a string, but not all of these can be converted ba
      - Convert to the ESP-Type (string) of the remote unit. (Added: 2024/04/21)
 
        See ``%c_utype%(<unit>)`` for the names and numbers used.
-   * - Check if numeric value: ``%c_isnum%(test)``
-     - Check if numeric value: ``1``
-     - Check if the content of a string variable (set with ``LetStr`` command) contains a numeric value. 0 = false, 1 = true (Added: 2025/05/25)
+   * - Check if numeric value (test:'123'): ``%c_isnum%(test)``
+     - Check if numeric value (test:'123'): ``1``
+     - Check if the content of a string variable (set with ``LetStr`` command) contains a numeric value. 0 = false, 1 = true
 
+       (Added: 2025/05/25, only available when String Variables feature is included in the build)
+
+   * - Format (testf:'Out $6.2f M$g'): ``%c_strf%(testf,123.45,2)``
+     - Format 1 or 2 values using a format specification.
+     - For formatting values, similar to C ``printf`` function, only supporting floating point formatting specifiers, and using ``$`` instead of the '%' trigger character used by printf.
+     
+       (Added: 2025/05/27, only available when String Variables feature is included in the build)
+
+       Supported format specs: A string variable, containing 1 or 2 format specifiers. This format string must be set using the ``LetStr`` command in a string variable. Or alternatively, a direct format string can be provided, that must *not* be quoted, and *not* contain any commas.
+
+       ``$[flags][width][.precision]specifier``
+
+       ``specifier``:
+
+       * ``f``: Decimal floating point, lowercase
+       * ``D``: Decimal floating point, uppercase
+       * ``e``: Scientific notation (mantissa/exponent), lowercase
+       * ``E``: Scientific notation (mantissa/exponent), uppercase
+       * ``g``: Use the shortest representation, $e or $f
+       * ``G``: Use the shortest representation, $E or $F
+       * ``%``: Output a percent sign (this can also be achieved by using ``%%`` where the '%' is intended)
+
+       ``flags``:
+
+       * ``-``: Left-justify within the given field width
+       * ``+``: Forces to preceed the result with a plus or minus sign (+ or -) even for positive numbers
+       * ``#``: Forces the output to contain a decimal point even if no more digits follow
+       * ``0``: Left-pads the number with zeroes (0) instead of spaces when padding is specified
+
+       ``width``:
+
+       * ``(number)``: Minimum number of characters to be output, padded with spaces unless ``0`` flag is specified, not truncated when the output is wider
+
+       ``.precision``:
+
+       * ``.(number)``: For ``e``, ``E``, ``f`` and ``F`` specifiers, this is the number of digits to be printed after the decimal point (by default, this is 6). 
+       * ``.(number)``: For ``g`` and ``G`` specifiers, this is the maximum number of significant digits to be printed.
+
+       (This is a summary of the C ``printf`` specification, adjusted for this function. Other printf features are not, or only partially, supported!)
+
+       **Examples**:
+
+       Output a value with minimal decimals: ``$g`` This can be used for output of integer values as all ESPEasy internal values are of floating point nature.
+
+       Output a temperature with 1 decimal: ``$.1f {D}C``
+
+       Output humidity with a percent sign: ``$g$% RH`` (remove spaces to preserve some display-space)
+
+       .. warning:: If more than 2, or not listed here, format specifiers are used in the format string, then this may cause unexpected behavior of the ESP, because of out-of-bounds memory access!
 
 Task Formulas
 ^^^^^^^^^^^^^

@@ -1408,6 +1408,47 @@ bool getConvertArgument2(const __FlashStringHelper * marker, const String& s, fl
 bool getConvertArgumentStr(const __FlashStringHelper * marker, const String& s, String& argument, int& startIndex, int& endIndex) {
   return getConvertArgumentString(marker, s, argument, startIndex, endIndex);
 }
+
+#define _MAX_STRFORMAT_ARGUMENTS 2 // Max. 2 numeric arguments for now to avoid strformat() from crashing when reading the 3rd argument that's not there
+bool getConvertArgumentStrFormat(const __FlashStringHelper * marker, const String& s, String& argStr, float& arg1, float& arg2, int& startIndex, int& endIndex) {
+  String argumentString;
+
+  if (getConvertArgumentString(marker, s, argumentString, startIndex, endIndex)) {
+    const int pos_comma = argumentString.indexOf(',');
+    
+    if (pos_comma == -1) { return false; } // At least 2 arguments required
+    
+    argStr = getCustomStringVar(argumentString.substring(0, pos_comma)); // Get String variable content
+
+    if (argStr.isEmpty()) { // Not found or invalid variable name: probably provided a formatstring (not quoted, no commas!)
+      argStr = argumentString.substring(0, pos_comma);
+    }
+
+    int pos_dollar = argStr.indexOf('$');
+    int dollarCount{};
+    while (pos_dollar != -1) {
+      ++dollarCount;
+      ++pos_dollar;
+      pos_dollar = argStr.indexOf('$', pos_dollar);
+    }
+
+    // We only support, 1 or 2, $ formatting characters to avoid crashes and confusion with shorthand variables
+    if ((dollarCount == 0) || (dollarCount > _MAX_STRFORMAT_ARGUMENTS)) { return false; }
+
+    argStr.replace('$', '%'); // Change to regular strformat() format specifiers
+
+    const int pos_comma2 = argumentString.indexOf(',', pos_comma + 1);
+
+    if (pos_comma2 == -1) {
+      return validFloatFromString(argumentString.substring(pos_comma + 1), arg1);
+    }
+
+    return validFloatFromString(argumentString.substring(pos_comma + 1, pos_comma2), arg1)
+           && validFloatFromString(argumentString.substring(pos_comma2 + 1), arg2);
+  }
+  return false;
+}
+#undef _MAX_STRFORMAT_ARGUMENTS
 #endif // if FEATURE_STRING_VARIABLES
 
 bool getConvertArgumentString(const __FlashStringHelper * marker, const String& s, String& argumentString, int& startIndex, int& endIndex) {
@@ -1475,6 +1516,12 @@ bool getConvertArgumentStr(const __FlashStringHelper * marker, ConvertArgumentDa
   return getConvertArgumentStr(marker, data.str, data.str1, data.startIndex, data.endIndex);
 }
 
+#if FEATURE_STRING_VARIABLES
+bool getConvertArgumentStrFormat(const __FlashStringHelper * marker, ConvertArgumentData& data) {
+  return getConvertArgumentStrFormat(marker, data.str, data.str1, data.arg1, data.arg2, data.startIndex, data.endIndex);
+}
+#endif // if FEATURE_STRING_VARIABLES
+
 // Parse conversions marked with "%conv_marker%(float)"
 // Must be called last, since all sensor values must be converted, processed, etc.
 void parseStandardConversions(String& s, bool useURLencode) {
@@ -1535,6 +1582,11 @@ void parseStandardConversions(String& s, bool useURLencode) {
   #define SMART_CONV(T, FUN) \
   while (getConvertArgumentStr((T), data)) { repl(data, (FUN)); }
   SMART_CONV(F("%c_isnum%"),  String(validDoubleFromString(getCustomStringVar(data.str1), tmp) ? 1 : 0))
+  #undef SMART_CONV
+  // 1 string and 1 or 2 numeric arguments
+  #define SMART_CONV(T, FUN) \
+  while (getConvertArgumentStrFormat((T), data)) { repl(data, (FUN)); }
+  SMART_CONV(F("%c_strf%"),   strformat(data.str1, data.arg1, data.arg2))
   #undef SMART_CONV
   #endif // if FEATURE_STRING_VARIABLES
 }

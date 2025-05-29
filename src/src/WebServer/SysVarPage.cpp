@@ -414,10 +414,17 @@ void handle_sysvars() {
       #endif // if FEATURE_ESPEASY_P2P
       #if FEATURE_STRING_VARIABLES
       // addFormSeparator(3,
-      F("Check if numeric value: %c_isnum%(test)"),
+      F("Check if numeric value (test:'123'): %c_isnum%(test)"),
+      F("Format (testf:'Out $6.2f M$g'): %c_strf%(testf,123.45,2)"),
       #endif // if FEATURE_STRING_VARIABLES
     };
 
+    #if FEATURE_STRING_VARIABLES
+    const String test  = getCustomStringVar(F("test")); // Save current values
+    const String testf = getCustomStringVar(F("testf"));
+    setCustomStringVar(F("test"),  F("123"));
+    setCustomStringVar(F("testf"), F("Out $6.2f M$g"));
+    #endif // if FEATURE_STRING_VARIABLES
     for (unsigned int i = 0; i < NR_ELEMENTS(StdConversions); ++i) {
       if ((i == 6) ||
           (i == 8) ||
@@ -437,6 +444,10 @@ void handle_sysvars() {
       }
       addSysVar_html(StdConversions[i]);
     }
+    #if FEATURE_STRING_VARIABLES
+    setCustomStringVar(F("test"),  test); // Restore values
+    setCustomStringVar(F("testf"), testf);
+    #endif // if FEATURE_STRING_VARIABLES
   }
   html_end_table();
   html_end_form();

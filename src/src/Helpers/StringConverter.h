@@ -422,6 +422,16 @@ bool getConvertArgument2(const __FlashStringHelper * marker,
                          int         & startIndex,
                          int         & endIndex);
 
+#if FEATURE_STRING_VARIABLES
+bool getConvertArgumentStrFormat(const __FlashStringHelper *marker,
+                                 const String             & s,
+                                 String                   & argStr,
+                                 float                    & arg1,
+                                 float                    & arg2,
+                                 int                      & startIndex,
+                                 int                      & endIndex);
+#endif // if FEATURE_STRING_VARIABLES
+
 bool getConvertArgumentStr(const __FlashStringHelper *marker,
                            const String             & s,
                            String                   & argument,
