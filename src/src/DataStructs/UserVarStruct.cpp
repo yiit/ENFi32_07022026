@@ -475,7 +475,11 @@ bool UserVarStruct::applyFormulaAndSet(taskIndex_t                     taskIndex
                                        const ESPEASY_RULES_FLOAT_TYPE& value,
                                        Sensor_VType                    sensorType)
 {
-  if (!Cache.hasFormula(taskIndex, varNr)) {
+  if (!Cache.hasFormula(taskIndex, varNr)
+      #if FEATURE_STRING_VARIABLES
+      || Cache.getTaskDeviceFormula(taskIndex, varNr)[1] == TASK_VALUE_PRESENTATION_PREFIX_CHAR
+      #endif // if FEATURE_STRING_VARIABLES
+     ) {
     _rawData[taskIndex].set(varNr, value, sensorType);
     return true;
   }
