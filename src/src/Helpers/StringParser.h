@@ -15,6 +15,10 @@ bool hasEscapedCharacter(String& str, const char EscapeChar);
 // So far \\% \\[ \\] \\{ \\} \\( and \\) are used (all with single backslash!)
 void   stripEscapeCharacters(String& str);
 
+#if FEATURE_STRING_VARIABLES
+String parseTemplateAndCalculate(String& tmpString);
+#endif // if FEATURE_STRING_VARIABLES
+
 String parseTemplate(String& tmpString);
 
 String parseTemplate(String& tmpString,

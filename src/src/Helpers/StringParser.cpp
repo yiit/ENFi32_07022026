@@ -43,6 +43,21 @@ void stripEscapeCharacters(String& str)
   }
 }
 
+#if FEATURE_STRING_VARIABLES
+String parseTemplateAndCalculate(String& tmpString) {
+  String str = parseTemplate(tmpString);
+  ESPEASY_RULES_FLOAT_TYPE result{};
+  if (!str.isEmpty() && (str[0] == '=') && !isError(Calculate(str.substring(1), result, true))) {
+    # if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+    str = doubleToString(result, 6, true);
+    # else // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+    str = floatToString(result, 6, true);
+    # endif // if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
+  }
+  return str;
+}
+#endif // if FEATURE_STRING_VARIABLES
+
 String parseTemplate(String& tmpString)
 {
   return parseTemplate(tmpString, false);
