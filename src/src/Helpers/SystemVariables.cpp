@@ -238,7 +238,9 @@ String SystemVariables::getSystemVariable(SystemVariables::Enum enumval) {
     case UNIXDAY:           intvalue = node_time.getUnixTime() / 86400; break;
     case UNIXDAY_SEC:       intvalue = node_time.getUnixTime() % 86400; break;
     case UNIXTIME:          return String(node_time.getUnixTime());
+    #ifndef LIMIT_BUILD_SIZE
     case LOCALUNIXTIME:     return String(node_time.getLocalUnixTime());
+    #endif // ifndef LIMIT_BUILD_SIZE
     case UPTIME:            intvalue = getUptimeMinutes(); break;
     case UPTIME_MS:         return ull2String(getMicros64() / 1000);
     #if FEATURE_ADC_VCC
@@ -664,7 +666,9 @@ const __FlashStringHelper * SystemVariables::toFlashString(SystemVariables::Enum
     case Enum::UNIXDAY:            return F("unixday");
     case Enum::UNIXDAY_SEC:        return F("unixday_sec");
     case Enum::UNIXTIME:           return F("unixtime");
+    #ifndef LIMIT_BUILD_SIZE
     case Enum::LOCALUNIXTIME:      return F("localunixtime");
+    #endif // ifndef LIMIT_BUILD_SIZE
     case Enum::UPTIME:             return F("uptime");
     case Enum::UPTIME_MS:          return F("uptime_ms");
     case Enum::VCC:                return F("vcc");

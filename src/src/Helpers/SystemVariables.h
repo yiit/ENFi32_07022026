@@ -116,7 +116,9 @@ public:
     UNIXDAY,
     UNIXDAY_SEC,
     UNIXTIME,
+    #ifndef LIMIT_BUILD_SIZE
     LOCALUNIXTIME,
+    #endif // ifndef LIMIT_BUILD_SIZE
     UPTIME,
     UPTIME_MS,
     VCC,

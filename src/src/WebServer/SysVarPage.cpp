@@ -201,7 +201,9 @@ void handle_sysvars() {
       SystemVariables::UPTIME,
       SystemVariables::UPTIME_MS,
       SystemVariables::UNIXTIME,
+      #ifndef LIMIT_BUILD_SIZE
       SystemVariables::LOCALUNIXTIME,
+      #endif // ifndef LIMIT_BUILD_SIZE
       SystemVariables::UNIXDAY,
       SystemVariables::UNIXDAY_SEC,
     };
