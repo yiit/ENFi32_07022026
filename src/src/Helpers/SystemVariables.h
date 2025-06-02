@@ -117,7 +117,7 @@ public:
     UNIXDAY_SEC,
     UNIXTIME,
     #ifndef LIMIT_BUILD_SIZE
-    LOCALUNIXTIME,
+    UNIXTIME_LCL,
     #endif // ifndef LIMIT_BUILD_SIZE
     UPTIME,
     UPTIME_MS,

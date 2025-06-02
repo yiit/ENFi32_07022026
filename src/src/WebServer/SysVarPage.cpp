@@ -202,7 +202,7 @@ void handle_sysvars() {
       SystemVariables::UPTIME_MS,
       SystemVariables::UNIXTIME,
       #ifndef LIMIT_BUILD_SIZE
-      SystemVariables::LOCALUNIXTIME,
+      SystemVariables::UNIXTIME_LCL,
       #endif // ifndef LIMIT_BUILD_SIZE
       SystemVariables::UNIXDAY,
       SystemVariables::UNIXDAY_SEC,
@@ -402,8 +402,8 @@ void handle_sysvars() {
       F("Mins to hcm:  %c_m2hcm%(482)"),
       F("Secs to dhms: %c_s2dhms%(100000)"),
       #if FEATURE_STRING_VARIABLES
-      F("Timestamp to date/time: %c_ts2date%(%localunixtime%)"),
-      F("Timestamp to date/time am/pm: %c_ts2date%(%localunixtime%,1)"),
+      F("Timestamp to date/time: %c_ts2date%(%unixtime_lcl%)"),
+      F("Timestamp to date/time am/pm: %c_ts2date%(%unixtime_lcl%,1)"),
       #endif // if FEATURE_STRING_VARIABLES
 
       // addFormSeparator(3,

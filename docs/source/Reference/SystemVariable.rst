@@ -185,7 +185,7 @@ More uses of these system variables can be seen in the rules section and formula
        
        Example: 1521731277 = 2018-03-22 15:07:57
      - Yes
-   * - ``%localunixtime%``
+   * - ``%unixtime_lcl%``
      - 1748813303
      - Local Unix time (seconds since epoch, 1970-01-01 00:00:00) with Time-zone and DST applied. (Added: 2025/06/01, not available in Limited builds)
        
