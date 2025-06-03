@@ -404,6 +404,7 @@ void handle_sysvars() {
       #if FEATURE_STRING_VARIABLES
       F("Timestamp to date/time: %c_ts2date%(%unixtime_lcl%)"),
       F("Timestamp to date/time am/pm: %c_ts2date%(%unixtime_lcl%,1)"),
+      F("Timestamp to weekday: %c_ts2wday%(%unixtime_lcl%)"),
       #endif // if FEATURE_STRING_VARIABLES
 
       // addFormSeparator(3,
@@ -431,7 +432,7 @@ void handle_sysvars() {
 
     uint16_t off = 0;
     #if FEATURE_STRING_VARIABLES
-    off = 2;
+    off = 3;
     const String test  = getCustomStringVar(F("test")); // Save current values
     const String testf = getCustomStringVar(F("testf"));
     setCustomStringVar(F("test"),  F("123"));

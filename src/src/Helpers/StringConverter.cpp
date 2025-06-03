@@ -1598,6 +1598,9 @@ void parseStandardConversions(String& s, bool useURLencode) {
   SMART_CONV(F("%c_utype%"),  String(getTypeForUnit(data.arg1)))
   SMART_CONV(F("%c_utypestr%"), getTypeStringForUnit(data.arg1))
   #endif // if FEATURE_ESPEASY_P2P
+  #if FEATURE_STRING_VARIABLES
+  SMART_CONV(F("%c_ts2wday%"),  get_weekday_from_timestamp(static_cast<uint32_t>(data.arg1)))
+  #endif // if FEATURE_STRING_VARIABLES
   #undef SMART_CONV
 
   // Conversions with 2 parameters
@@ -1643,6 +1646,13 @@ String get_date_time_from_timestamp(time_t unix_timestamp, bool am_pm) {
   ts = *localtime(&unix_timestamp);
 
   return formatDateTimeString(ts, '-', ':', ' ', am_pm);
+}
+
+String get_weekday_from_timestamp(time_t unix_timestamp) {
+  struct tm ts;
+  ts = *localtime(&unix_timestamp);
+
+  return String(ts.tm_wday);
 }
 #endif // if FEATURE_STRING_VARIABLES
 

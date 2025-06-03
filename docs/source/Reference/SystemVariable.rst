@@ -379,6 +379,9 @@ The conversion always outputs a string, but not all of these can be converted ba
        Optionally takes a second argument <> 0 to use AM/PM time notation.
 
        ``%c_ts2date%(1748813303, 1)`` -> ``2025-06-01 09:28:32 PM``
+   * - Unix Timestamp to weekday: ``%c_ts2wday%(%unixtime_lcl%)``
+     - Unix Timestamp to weekday: ``2``
+     - Return the numeric weekday (dow) index, 0..6 (sun..sat), so it can be used with f.e. ``{lookup:%c_ts2wday%(%unixtime_lcl%):3:sunmontuewedthufrisat}`` to show a 3 character day name, that can easily be translated into your desired languag, and the length adjusted as desired.
    * - Random(L,H): ``%c_random%(0, 1)``
      - Random(L,H): ``0.123``
      - Generate random number in the given range L ... H (Added: 2025/04/29)
