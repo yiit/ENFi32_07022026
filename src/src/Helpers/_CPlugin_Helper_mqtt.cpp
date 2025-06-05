@@ -287,7 +287,7 @@ int Plugin_QueryVType_BinarySensor(uint8_t value_nr) {
 }
 
 int Plugin_QueryVType_BinarySensorInv(uint8_t value_nr) {
-  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH);
+  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED);
 }
 
 int Plugin_QueryVType_Analog(uint8_t value_nr) {
