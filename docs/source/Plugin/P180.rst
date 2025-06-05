@@ -94,6 +94,13 @@ Plugin Commands available
 
 .. include:: P180_commands.repl
 
+Get Config Values
+^^^^^^^^^^^^^^^^^
+
+.. include:: P180_config_values.repl
+
+|
+
 I2C Commands
 ------------
 

@@ -6,6 +6,9 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-06-04 tonhuisman: Add [<taskname>#log] to Get Config to fetch the current Parsing and execution log setting
+ * 2025-06-03 tonhuisman: Restore PLUGIN_GET_CONFIG_VALUE support, to allow I2C operations to be executed and return a value without
+ *                        defining extra I2C Command definitions. Not available for LIMIT_BUILD_SIZE builds
  * 2025-05-13 tonhuisman: Add support for String (str) data-format handling
  * 2025-05-12 tonhuisman: Refactor I2C handling into replaceble BusCmd_Handler interface & I2C implemented handler
  * 2025-05-10 tonhuisman: Refactor I2C Command processor to BusCmd command processor helper (phase 1 refactor)
@@ -91,6 +94,17 @@
  * geni2c,cmd,<I2C-commands>[,<TaskVarIndex>[,<cache-name>]] : Parse command sequence (opt. into cache), execute and store value in TaskVar
  * getI2C,exec,<cache-name>[,<TaskVarIndex>] : Execute command sequence from cache and store value in TaskVar
  * getI2C,log,<0|1> : Set the Logging option disabled or enabled. Not saved automatically.
+ */
+
+/** Get Config Value support:
+ * [<taskname>#log] : Fetch current state of Parsing and execution log, 0 or 1.
+ * Use variable like:
+ * [<taskname>#<varname>,<I2C-commands>]
+ * - <taskname> must match the current task name
+ * - <varname> can be any valid value name, except one that is already used by the plugin or 'log'
+ * - <I2C-commands> a sequence of I2C commands, as described above. The value command should be avoided, as it will set any of the
+ *   values possibly in use, and not return the last value retrieved fron I2C commands.
+ *   The resulting value will be returned.
  */
 
 # define PLUGIN_180
@@ -360,6 +374,19 @@ boolean Plugin_180(uint8_t function, struct EventStruct *event, String& string)
 
       break;
     }
+
+    # ifndef LIMIT_BUILD_SIZE
+    case PLUGIN_GET_CONFIG_VALUE:
+    {
+      P180_data_struct *P180_data = static_cast<P180_data_struct *>(getPluginTaskData(event->TaskIndex));
+
+      if (nullptr != P180_data) {
+        success = P180_data->plugin_get_config(event, string);
+      }
+
+      break;
+    }
+    # endif // ifndef LIMIT_BUILD_SIZE
   }
   return success;
 }

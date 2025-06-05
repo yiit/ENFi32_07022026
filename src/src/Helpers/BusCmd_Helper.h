@@ -2,6 +2,7 @@
 #define _HELPERS_BUSCMD_HELPER_H
 
 /** Changelog:
+ * 2025-06-03 tonhuisman: Add PLUGIN_GET_CONFIG_VALUE support, guarded with ifndef LIMIT_BUILD_SIZE
  * 2025-05-13 tonhuisman: Add String format support, guarded with FEATURE_BUSCMD_STRING
  * 2025-05-10 tonhuisman: Extracted from Plugin P180 I2C Generic into a separate Bus Command processor
  */
@@ -69,6 +70,7 @@ enum class BusCmd_CommandSource_e : uint8_t {
   PluginOncePerSecond,
   PluginTenPerSecond,
   PluginFiftyPerSecond,
+  PluginGetConfigVar,
 };
 
 struct BusCmd_Command_struct {
@@ -146,11 +148,14 @@ struct BusCmd_Helper_struct {
                        uint8_t         loopLimit);
   virtual ~BusCmd_Helper_struct();
 
-  bool                              plugin_read(struct EventStruct *event);
-  bool                              plugin_once_a_second(struct EventStruct *event);
-  bool                              plugin_ten_per_second(struct EventStruct *event);
-  bool                              plugin_fifty_per_second(struct EventStruct *event);
-
+  bool plugin_read(struct EventStruct *event);
+  bool plugin_once_a_second(struct EventStruct *event);
+  bool plugin_ten_per_second(struct EventStruct *event);
+  bool plugin_fifty_per_second(struct EventStruct *event);
+  #ifndef LIMIT_BUILD_SIZE
+  bool plugin_get_config(struct EventStruct *event,
+                         String            & string);
+  #endif // ifndef LIMIT_BUILD_SIZE
 
   std::vector<BusCmd_Command_struct>parseBusCmdCommands(const String& name,
                                                         const String& line);

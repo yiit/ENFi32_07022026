@@ -187,4 +187,22 @@ bool P180_data_struct::plugin_write(struct EventStruct *event,
   return success;
 }
 
+/*********************************************************************************************
+ * Handle get config value retrieval processing
+ ********************************************************************************************/
+# ifndef LIMIT_BUILD_SIZE
+bool P180_data_struct::plugin_get_config(struct EventStruct *event,
+                                         String            & string) {
+  bool success         = false;
+  const bool hasBusCmd = nullptr != busCmd_Helper;
+
+  if (hasBusCmd) {
+    success = busCmd_Helper->plugin_get_config(event, string);
+  }
+
+  return success;
+}
+
+# endif // ifndef LIMIT_BUILD_SIZE
+
 #endif // ifdef USES_P180

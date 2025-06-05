@@ -53,6 +53,10 @@ struct P180_data_struct : public PluginTaskData_base {
   bool plugin_fifty_per_second(struct EventStruct *event);
   bool plugin_write(struct EventStruct *event,
                     String            & string);
+  # ifndef LIMIT_BUILD_SIZE
+  bool plugin_get_config(struct EventStruct *event,
+                         String            & string);
+  # endif // ifndef LIMIT_BUILD_SIZE
 
 private:
 
