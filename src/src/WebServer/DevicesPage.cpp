@@ -823,6 +823,8 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
                 String valueName = it->first.substring(search.length(), it->first.indexOf('-'));
                 const String key2 = strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
                 const String vname2 = getCustomStringVar(key2);
+                const String keyUoM = strformat(F(TASK_VALUE_UOM_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
+                const String uom    = getCustomStringVar(keyUoM);
                 if (!vname2.isEmpty()) {
                   valueName = vname2;
                 }
@@ -830,6 +832,9 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
                   String value(it->second);
                   value = parseTemplateAndCalculate(value);
                   String presentation = getCustomStringVar(strformat(F(TASK_VALUE_PRESENTATION_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str()));
+                  if (!uom.isEmpty()) {
+                    value = strformat(F("%s %s"), value.c_str(), uom.c_str());
+                  }
                   if (!presentation.isEmpty()) {
                     stripEscapeCharacters(presentation);
                     presentation.replace(F("%value%"), value);

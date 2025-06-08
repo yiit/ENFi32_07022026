@@ -453,7 +453,6 @@ void handle_json()
 
         for (uint8_t x = 0; x < valueCount; x++)
         {
-          addHtml('{');
           uint8_t nrDecimals = Cache.getTaskDeviceValueDecimals(TaskIndex, x);
           String  value      = formatUserVarNoCheck(&TempEvent, x);
           #if FEATURE_STRING_VARIABLES
@@ -474,6 +473,7 @@ void handle_json()
                                              #else // if FEATURE_STRING_VARIABLES
                                              EMPTY_STRING,
                                              #endif // if FEATURE_STRING_VARIABLES
+                                             EMPTY_STRING, // TODO: pass UoM
                                              x < (valueCount - 1));
         }
         #if FEATURE_STRING_VARIABLES
@@ -491,6 +491,8 @@ void handle_json()
               String valueName = it->first.substring(search.length(), it->first.indexOf('-'));
               const String key2 = strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
               const String vname2 = getCustomStringVar(key2);
+              const String keyUoM = strformat(F(TASK_VALUE_UOM_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
+              const String uom    = getCustomStringVar(keyUoM); // FIXME add check for UoM setting
               if (!vname2.isEmpty()) {
                 valueName = vname2;
               }
@@ -509,6 +511,7 @@ void handle_json()
                                                   nrDecimals,
                                                   value,
                                                   presentation,
+                                                  uom,
                                                   false); // No comma here
                 ++varNr;
               }
@@ -625,7 +628,9 @@ void handle_json_stream_task_value_data(uint16_t       valueNumber,
                                         uint8_t        nrDecimals,
                                         const String & value,
                                         const String & presentation,
+                                        const String & uom,
                                         bool           appendComma) {
+  addHtml('{');
   stream_next_json_object_value(F("ValueNumber"), valueNumber);
   stream_next_json_object_value(F("Name"),        valueName);
   stream_next_json_object_value(F("NrDecimals"),  nrDecimals);
@@ -634,6 +639,9 @@ void handle_json_stream_task_value_data(uint16_t       valueNumber,
     stream_next_json_object_value(F("Presentation"), presentation);
   }
   #endif // if FEATURE_STRING_VARIABLES
+  if (!uom.isEmpty()) {
+    stream_next_json_object_value(F("UoM"), uom);
+  }
   stream_last_json_object_value(F("Value"),       value);
 
   if (appendComma) {

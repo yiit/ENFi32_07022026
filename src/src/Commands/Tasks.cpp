@@ -241,7 +241,7 @@ const __FlashStringHelper * Command_Task_ValueSet(struct EventStruct *event, con
 #if FEATURE_STRING_VARIABLES
 const __FlashStringHelper * Command_Task_ValueSetDerived(struct EventStruct *event, const char *Line)
 {
-  return taskValueSetString(event, Line, F(TASK_VALUE_DERIVED_PREFIX_TEMPLATE));
+  return taskValueSetString(event, Line, F(TASK_VALUE_DERIVED_PREFIX_TEMPLATE), F(TASK_VALUE_UOM_PREFIX_TEMPLATE));
 }
 
 const __FlashStringHelper * Command_Task_ValueSetPresentation(struct EventStruct *event, const char *Line)
@@ -249,7 +249,7 @@ const __FlashStringHelper * Command_Task_ValueSetPresentation(struct EventStruct
   return taskValueSetString(event, Line, F(TASK_VALUE_PRESENTATION_PREFIX_TEMPLATE));
 }
 
-const __FlashStringHelper * taskValueSetString(struct EventStruct *event, const char *Line, const __FlashStringHelper * storageTemplate)
+const __FlashStringHelper * taskValueSetString(struct EventStruct *event, const char *Line, const __FlashStringHelper * storageTemplate, const __FlashStringHelper * uomTemplate)
 {
   String taskName;
   taskIndex_t tmpTaskIndex = INVALID_TASK_INDEX;
@@ -284,10 +284,16 @@ const __FlashStringHelper * taskValueSetString(struct EventStruct *event, const 
     String orgValueName(valueName);
     valueName.toLowerCase();
     String key = strformat(storageTemplate, taskName.c_str(), valueName.c_str());
-    String key2 = strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
+    const String key2 = strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
     setCustomStringVar(key, argument);
     if (getCustomStringVar(key2).isEmpty() || argument.isEmpty()) {
       setCustomStringVar(key2, argument.isEmpty() ? EMPTY_STRING : orgValueName);
+    }
+    if (uomTemplate != nullptr) { // We have a Unit of Measure template
+      if (GetArgv(Line, argument, 5)) { // check for extra argument holding UoM
+        key = strformat(uomTemplate, taskName.c_str(), valueName.c_str());
+        setCustomStringVar(key, argument);
+      }
     }
     // addLog(LOG_LEVEL_INFO, strformat(F("TaskValueSetStorage: key: %s, argument: %s"), key.c_str(), argument.c_str())); // FIXME
     return return_command_success_flashstr();

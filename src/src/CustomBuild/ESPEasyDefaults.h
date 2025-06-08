@@ -471,6 +471,7 @@
 
 #if FEATURE_STRING_VARIABLES
 # define TASK_VALUE_DERIVED_PREFIX_TEMPLATE       "_%s_%s-derived" // Includes a not-allowed varname character (-) to prevent undesired manipulation via LetStr
+# define TASK_VALUE_UOM_PREFIX_TEMPLATE           "_%s_%s-uom"
 # define TASK_VALUE_NAME_PREFIX_TEMPLATE          "_%s_%s-name"
 # define TASK_VALUE_PRESENTATION_PREFIX_TEMPLATE  "_%s_%s-presentation"
 # define TASK_VALUE_PRESENTATION_PREFIX_STRING    "$" // Keep these string and char prefixes the same!
