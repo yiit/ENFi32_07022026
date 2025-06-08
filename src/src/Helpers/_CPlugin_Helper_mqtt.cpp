@@ -459,6 +459,11 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   if (valueDeviceClass.isEmpty()) { valueDeviceClass = F("power"); } // default
                   const String deviceClass = strformat(F("%s\",\"frc_upd\":true,\"pl_on\":\"%d\",\"pl_off\":\"%d"),
                                                        valueDeviceClass.c_str(), !inversedState, inversedState);
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom;
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
 
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
@@ -467,7 +472,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
 
                                                                                  // Use deviceClass to pass in TriggerState
                                                                    !inversedState ? F("1") : F("0"),
-                                                                   EMPTY_STRING, // No unit of measure
+                                                                   EMPTY_STRING, // No unit of measure used
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -478,7 +483,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                    ControllerSettings,
                                                                    F("binary_sensor"),
                                                                    deviceClass,
-                                                                   EMPTY_STRING, // No unit of measure
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -506,12 +511,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   }
 
                   for (v = fromV; v < maxV; ++v) {
+                    #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                    const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("°C"));
+                    #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                    const String uom = F("°C");
+                    #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                     success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                      ControllerIndex,
                                                                      ControllerSettings,
                                                                      F("sensor"),
                                                                      F("temperature"),
-                                                                     F("°C"),
+                                                                     uom,
                                                                      &TempEvent,
                                                                      deviceElement,
                                                                      success,
@@ -531,12 +541,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   }
 
                   for (v = fromV; v < maxV; ++v) {
+                    #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                    const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("%"));
+                    #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                    const String uom = F("%");
+                    #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                     success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                      ControllerIndex,
                                                                      ControllerSettings,
                                                                      F("sensor"),
                                                                      F("humidity"),
-                                                                     F("%"),
+                                                                     uom,
                                                                      &TempEvent,
                                                                      deviceElement,
                                                                      success,
@@ -552,12 +567,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   if (Sensor_VType::SENSOR_TYPE_TEMP_EMPTY_BARO == discoveryItems[s].VType) {
                     v++; // Skip 2nd value = 'EMPTY'
                   }
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("hPa"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("hPa");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("pressure"),
-                                                                   F("hPa"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -569,12 +589,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_DISTANCE_ONLY:
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("cm"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("cm");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("distance"),
-                                                                   F("cm"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -591,12 +616,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                  F("pm10"));
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("µg/m³"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("µg/m³");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    dev,
-                                                                   F("µg/m³"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -612,13 +642,18 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                 const __FlashStringHelper*dev = Sensor_VType::SENSOR_TYPE_CO2_ONLY == discoveryItems[s].VType ? F("carbon_dioxide") :
                                                 Sensor_VType::SENSOR_TYPE_AQI_ONLY == discoveryItems[s].VType ? F("aqi") :
                                                 Sensor_VType::SENSOR_TYPE_NOX_ONLY == discoveryItems[s].VType ? F("nitrogen_dioxide") :
-                                                F("volatile_organic_compounds");
-                const __FlashStringHelper*uom = Sensor_VType::SENSOR_TYPE_CO2_ONLY == discoveryItems[s].VType ? F("ppm") :
-                                                Sensor_VType::SENSOR_TYPE_AQI_ONLY == discoveryItems[s].VType ? F("") :
-                                                Sensor_VType::SENSOR_TYPE_NOX_ONLY == discoveryItems[s].VType ? F("µg/m³") :
-                                                F("ppd");
+                                                   F("volatile_organic_compounds");
+                const __FlashStringHelper*uomDef = Sensor_VType::SENSOR_TYPE_CO2_ONLY == discoveryItems[s].VType ? F("ppm") :
+                                                   Sensor_VType::SENSOR_TYPE_AQI_ONLY == discoveryItems[s].VType ? F("") :
+                                                   Sensor_VType::SENSOR_TYPE_NOX_ONLY == discoveryItems[s].VType ? F("µg/m³") :
+                                                   F("ppd");
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), uomDef);
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom(uomDef);
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -635,12 +670,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_WEIGHT_ONLY:
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("kg"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("kg");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("mdi:scale"), // Icon
-                                                                   F("kg"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -650,12 +690,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_MOISTURE_ONLY:
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("%"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("%");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("mdi:cup-water"), // Icon
-                                                                   F("%"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -666,11 +711,16 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_CURRENT_ONLY:
               {
                 const __FlashStringHelper*dev = Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY == discoveryItems[s].VType ?
-                                                F("voltage") : F("current");
-                const __FlashStringHelper*uom = Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY == discoveryItems[s].VType ?
-                                                F("V") : F("A");
+                                                   F("voltage") : F("current");
+                const __FlashStringHelper*uomDef = Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY == discoveryItems[s].VType ?
+                                                   F("V") : F("A");
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), uomDef);
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom(uomDef);
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -690,13 +740,18 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY:
               {
                 const __FlashStringHelper*dev = Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY == discoveryItems[s].VType ?
-                                                F("power_factor") : F("power");
-                const __FlashStringHelper*uom = Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY == discoveryItems[s].VType ? F("Cos φ") :
-                                                Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY == discoveryItems[s].VType ? F("kWh") :
-                                                Sensor_VType::SENSOR_TYPE_REACTIVE_POWER_ONLY == discoveryItems[s].VType ? F("var") :
-                                                F("VA");
+                                                   F("power_factor") : F("power");
+                const __FlashStringHelper*uomDef = Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY == discoveryItems[s].VType ? F("Cos φ") :
+                                                   Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY == discoveryItems[s].VType ? F("kWh") :
+                                                   Sensor_VType::SENSOR_TYPE_REACTIVE_POWER_ONLY == discoveryItems[s].VType ? F("var") :
+                                                   F("VA");
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), uomDef);
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom(uomDef);
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -713,12 +768,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_LUX_ONLY:
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("lx"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("lx");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("illuminance"),
-                                                                   F("lx"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -730,11 +790,16 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY:
               case Sensor_VType::SENSOR_TYPE_COLOR_BLUE_ONLY:
               {
-                const __FlashStringHelper*uom = Sensor_VType::SENSOR_TYPE_COLOR_RED_ONLY == discoveryItems[s].VType ? F("R") :
-                                                Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY == discoveryItems[s].VType ? F("G") :
-                                                F("B");
+                const __FlashStringHelper*uomDef = Sensor_VType::SENSOR_TYPE_COLOR_RED_ONLY == discoveryItems[s].VType ? F("R") :
+                                                   Sensor_VType::SENSOR_TYPE_COLOR_GREEN_ONLY == discoveryItems[s].VType ? F("G") :
+                                                   F("B");
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), uomDef);
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom(uomDef);
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -751,12 +816,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_COLOR_TEMP_ONLY:
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), F("K"));
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = F("K");
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
                                                                    F("sensor"),
                                                                    F("mdi:temperature-kelvin"),
-                                                                   F("K"),
+                                                                   uom,
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
@@ -768,10 +838,15 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY:
               case Sensor_VType::SENSOR_TYPE_IR_ONLY:
               {
-                const __FlashStringHelper*uom = (Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY == discoveryItems[s].VType ? F("UV index") :
-                                                 F("W/m²"));
+                const __FlashStringHelper*uomDef = (Sensor_VType::SENSOR_TYPE_UV_INDEX_ONLY == discoveryItems[s].VType ? F("UV index") :
+                                                    F("W/m²"));
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  #  if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom = toUnitOfMeasureName(Cache.getTaskVarUnitOfMeasure(x, v), uomDef);
+                  #  else // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
+                  const String uom(uomDef);
+                  #  endif // if defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
