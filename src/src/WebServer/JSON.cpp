@@ -499,18 +499,11 @@ void handle_json()
                 stripEscapeCharacters(value);
                 value = parseTemplate(value);
                 ESPEASY_RULES_FLOAT_TYPE floatvalue{};
-                uint8_t nrDecimals = 255;
-                if (validDoubleFromString(value, floatvalue)) {
-                  nrDecimals = maxNrDecimals_fpType(floatvalue);
-                }
+                uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
                 bool hasPresentation;
                 const String presentation = formatUserVarForPresentation(&TempEvent, INVALID_TASKVAR_INDEX, hasPresentation, value, DeviceIndex, valueName);
-                if (mustConsiderAsJSONString(value)) {
-                  // Flag as not to treat as a float
-                  nrDecimals = 255;
-                }
+
                 stream_comma_newline(); // Push out a comma and newline
-                addHtml('{');
                 handle_json_stream_task_value_data(varNr + 1,
                                                   valueName,
                                                   nrDecimals,
