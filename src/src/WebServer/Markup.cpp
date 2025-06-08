@@ -374,12 +374,13 @@ const char unit_of_measure_list[] PROGMEM = // *** DO NOT CHANGE ORDER, SAVED IN
  "bit/s|kbit/s|Mbit/s|Gbit/s|B/s|kB/s|MB/s|GB/s|KiB/s|MiB/s|GiB/s|" // 95..105
  ; // *** DO NOT CHANGE ORDER, SAVED IN TASK SETTINGS! ***
 
-String toUnitOfMeasureName(const uint32_t unitOfMeasureIndex) {
+String toUnitOfMeasureName(const uint32_t unitOfMeasureIndex,
+                           const String & defUoM) {
   char tmp[10]{};
 
   String result(GetTextIndexed(tmp, sizeof(tmp), unitOfMeasureIndex, unit_of_measure_list));
 
-  return result;
+  return result.isEmpty() ? defUoM : result;
 }
 
 
