@@ -274,6 +274,22 @@ String parseTemplate_padded(String& tmpString, uint8_t minimal_lineSize, bool us
               // isHandled = true;
             }
           }
+          #if FEATURE_STRING_VARIABLES
+          if (!isHandled) {
+            String value;
+            const String valName = parseString(valueName, 1);
+            String derived = getCustomStringVar(strformat(F(TASK_VALUE_DERIVED_PREFIX_TEMPLATE), deviceName.c_str(), valName.c_str()));
+            if (!derived.isEmpty()) {
+              value = parseTemplateAndCalculate(derived);
+              if (!value.isEmpty()) {
+                transformValue(newString, minimal_lineSize, std::move(value), format, tmpString,
+                               taskIndex, INVALID_TASKVAR_INDEX, valName // for handling $ format option
+                              );
+                isHandled = true;
+              }
+            }
+          }
+          #endif // if FEATURE_STRING_VARIABLES
         }
       }
 
