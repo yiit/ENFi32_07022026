@@ -289,6 +289,24 @@ String parseTemplate_padded(String& tmpString, uint8_t minimal_lineSize, bool us
               }
             }
           }
+
+          // TODO: Insert TaskValue attribute support from PR #5328 here
+
+          if (!isHandled && valueName.indexOf('.') > -1) {
+            String value;
+            const String fullValueName = parseString(valueName, 1);
+            const String valName       = parseString(fullValueName, 1, '.');
+            const String command       = parseString(fullValueName, 2, '.');
+            if (equals(command, F("uom"))) { // Fetch UnitOfMeasure
+              value = getCustomStringVar(strformat(F(TASK_VALUE_UOM_PREFIX_TEMPLATE), deviceName.c_str(), valName.c_str()));
+            }
+            if (!value.isEmpty()) {
+              transformValue(newString, minimal_lineSize, std::move(value), format, tmpString,
+                              taskIndex, INVALID_TASKVAR_INDEX, valName
+                            );
+              // isHandled = true;
+            }
+          }
           #endif // if FEATURE_STRING_VARIABLES
         }
       }
