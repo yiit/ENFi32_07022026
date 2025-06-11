@@ -320,6 +320,7 @@ int Plugin_QueryVType_Weight(uint8_t value_nr) {
 
 #  if FEATURE_MQTT_DEVICECLASS
 const char mqtt_binary_deviceclass_names[] PROGMEM =
+  "|"                                                               // Default/0 is empty value
   "power|light|plug|door|garage_door|cold|heat|lock|tamper|window|" // Guessed some often used options to be listed first
   "battery|battery_charging|carbon_monoxide|connectivity|gas|"      // power is selected as the default
   "moisture|motion|moving|occupancy|opening|presence|problem|"      // *** DO NOT CHANGE VALUE ORDER!!!
@@ -450,7 +451,6 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_SWITCH:
               case Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED:
               {
-                // FIXME Ensure this is the correct way of retrieval, will at least/only work for P001...
                 const bool inversedState = Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED == discoveryItems[s].VType;
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
