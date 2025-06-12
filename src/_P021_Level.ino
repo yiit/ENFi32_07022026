@@ -829,10 +829,11 @@ void P021_evaluate(struct EventStruct *event)
       break;
   }
 
+  relay_output ^= bitRead(P021_FLAGS, P021_INV_OUTPUT); // Invert when selected
+
   // Actuate the output pin taking output invert flag into account
   if (validGpio(P021_GPIO_RELAY))
   {
-    relay_output ^= bitRead(P021_FLAGS, P021_INV_OUTPUT); // Invert when selected
     digitalWrite(P021_GPIO_RELAY, relay_output ? HIGH : LOW);
   }
 
