@@ -66,6 +66,27 @@ void setCustomStringVar(String indexName, const String& value) {
   customStringVar[indexName] = value;
 }
 
+void clearCustomStringVar(String indexName) {
+  indexName.toLowerCase();
+  // std::map doesn't handle 2nd heap well, so make sure we keep using the default heap.
+  # ifdef USE_SECOND_HEAP
+  HeapSelectDram ephemeral;
+  # endif // ifdef USE_SECOND_HEAP
+
+  auto it = customStringVar.find(indexName);
+
+  if (it != customStringVar.end()) {
+    customStringVar.erase(it);
+  }
+}
+
+bool hasCustomStringVar(String indexName) {
+  indexName.toLowerCase();
+  auto it = customStringVar.find(indexName);
+
+  return it != customStringVar.end();
+}
+
 bool getNextCustomStringVar(String& indexName, String& value) {
   String valueName(indexName);
   valueName.toLowerCase();

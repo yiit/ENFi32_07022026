@@ -32,6 +32,8 @@ bool getNextCustomFloatVar(String& index, ESPEASY_RULES_FLOAT_TYPE& value);
 #if FEATURE_STRING_VARIABLES
 String getCustomStringVar(String index, String defaultValue = EMPTY_STRING);
 void setCustomStringVar(String index, const String& value);
+void clearCustomStringVar(String index);
+bool hasCustomStringVar(String index);
 
 bool getNextCustomStringVar(String& index, String& value);
 #endif // if FEATURE_STRING_VARIABLES
