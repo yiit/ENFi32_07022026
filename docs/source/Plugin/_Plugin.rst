@@ -245,7 +245,7 @@ Unit of Measure
 
 On selected builds (ESP32 only, can be enabled in ESP8266 Custom builds) per value a Unit of Measure can be selected.
 
-If set the UoM will be space-appended to the value when displayed on the Devices page, and later used in the MQTT AutoDiscovery messages so the receiving server can use that for presentation. When set it is also included in the JSON output as ``UoM`` per taskvalue, available at the ``/json`` endpoint of the ESP, to be used by external systems like EasyFetch.
+If set the UoM will be space-appended to the value when displayed on the Devices page, used in the labels for the Stats display, and later used in the MQTT AutoDiscovery messages so the receiving server can use that for presentation. When set it is also included in the JSON output as ``UoM`` per taskvalue, available at the ``/json`` endpoint of the ESP, to be used by external systems like EasyFetch.
 
 A list of 100+ Unit of Measure values is available (derived of what's supported by Home Assistant):
 
