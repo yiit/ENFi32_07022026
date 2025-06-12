@@ -407,8 +407,10 @@ void handle_sysvars() {
       F("Timestamp to weekday: %c_ts2wday%(%unixtime_lcl%)"),
       #endif // if FEATURE_STRING_VARIABLES
 
-      // addFormSeparator(3,
+
+#ifndef LIMIT_BUILD_SIZE
       F("Random: %c_random%(0, 100)"),
+#endif
 
       F("To HEX: %c_2hex%(100000) or: %c_2hex%(100000,6)"),
 
@@ -430,7 +432,10 @@ void handle_sysvars() {
       #endif // if FEATURE_STRING_VARIABLES
     };
 
-    uint16_t off = 0;
+    int16_t off = 0;
+    #ifdef LIMIT_BUILD_SIZE
+    off = -1;
+    #endif // ifdef LIMIT_BUILD_SIZE
     #if FEATURE_STRING_VARIABLES
     off = 3;
     const String test  = getCustomStringVar(F("test")); // Save current values
@@ -439,7 +444,7 @@ void handle_sysvars() {
     setCustomStringVar(F("testf"), F("Out $6.2f M$g"));
     #endif // if FEATURE_STRING_VARIABLES
     constexpr uint16_t nrStdConv = NR_ELEMENTS(StdConversions);
-    for (uint16_t i = 0; i < nrStdConv; ++i) {
+    for (int16_t i = 0; i < nrStdConv; ++i) {
       if ((i == 6u) ||
           (i == 8u) ||
           (i == (13u + off))
