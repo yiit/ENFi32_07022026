@@ -203,19 +203,7 @@ Show the temperature both in Celcius and Fahrenheit:
 
   $%value% {D}C %c_c2f%(%value%) {D}F
 
-This presentation feature is a limited version that's available via the ``TaskValueSetPresentation`` command, that doesn't need adding commands to Rules that are set during startup.
-
-
-Stats
-^^^^^
-
-(Added: 2022/07/11)
-
-This checkbox allows to collect some historic data of this task value.
-On ESP32 it will collect upto 64 samples. On ESP8266 this is limited to 16 samples due to memory.
-
-When checked, the last N samples of each checked task value will be shown in a chart in the "Statistics" section.
-
+This presentation feature is a limited version (in length) of what's available via the ``TaskValueSetPresentation`` command, that doesn't need adding commands to Rules that are set during startup.
 
 
 Decimals
@@ -226,6 +214,28 @@ For example, when referring to a task value on a display via ``[bme#temperature]
 
 See :ref:`Rules: Formatting referred values <Formatting values>` on how this can be customized.
 Just remember such formatting cannot "make up" more decimals than what was set here in the task setup.
+
+
+Stats
+^^^^^
+
+(Added: 2022/07/11)
+
+This checkbox allows to collect some historic data of this task value.
+On ESP32 it will collect upto 255 samples. On ESP8266 this is limited to 16 samples due to memory.
+
+When checked, the last N samples of each checked task value will be shown in a chart in the "Statistics" section.
+
+
+Hide
+^^^^
+
+When Hide is checked, the value will be hidden from the graph by default, but can be enabled by clicking the colored tag above the graph.
+
+Axis
+^^^^
+
+Per Value you can select on what axis (Left or Right, 1..4) the value should be shown. This helps keeping the graph charts usable when the value units are in different ranges/magnitudes.
 
 
 Unit of Measure
