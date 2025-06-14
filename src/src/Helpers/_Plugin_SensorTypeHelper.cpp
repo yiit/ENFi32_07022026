@@ -61,6 +61,19 @@ void sensorTypeHelper_webformLoad_simple(struct EventStruct *event, int pconfigI
   sensorTypeHelper_webformLoad(event, pconfigIndex, optionCount, optionValues);
 }
 
+void sensorTypeHelper_Selector(const String& id, int optionCount, const uint8_t options[], Sensor_VType choice) {
+  addSelector_Head(id);
+
+  for (uint8_t x = 0; x < optionCount; x++)
+  {
+    String name = getSensorTypeLabel(static_cast<Sensor_VType>(options[x]));
+    addSelector_Item(name,
+                     options[x],
+                     choice == static_cast<Sensor_VType>(options[x]));
+  }
+  addSelector_Foot();
+}
+
 void sensorTypeHelper_webformLoad(struct EventStruct *event, int pconfigIndex, int optionCount, const uint8_t options[])
 {
   sensorTypeHelper_webformLoad(event, pconfigIndex, optionCount, options, true, 0);
@@ -104,19 +117,12 @@ void sensorTypeHelper_webformLoad(struct EventStruct *event, int pconfigIndex, i
   }
   if (showSubHeader) {
     addRowLabel(outputTypeLabel);
-  } else {
+  } else if (valueIndex >= 0) {
     addRowLabel(strformat(F("Value %d type"), valueIndex));
   }
-  addSelector_Head(sensorTypeHelper_webformID(pconfigIndex));
 
-  for (uint8_t x = 0; x < optionCount; x++)
-  {
-    String name = getSensorTypeLabel(static_cast<Sensor_VType>(options[x]));
-    addSelector_Item(name,
-                     options[x],
-                     choice == static_cast<Sensor_VType>(options[x]));
-  }
-  addSelector_Foot();
+  sensorTypeHelper_Selector(sensorTypeHelper_webformID(pconfigIndex), optionCount, options, choice);
+
   if (showSubHeader) {
     String note;
     note  = F("Changing '");

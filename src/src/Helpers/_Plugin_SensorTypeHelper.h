@@ -9,6 +9,7 @@ void sensorTypeHelper_webformLoad_allTypes(struct EventStruct *event, int pconfi
 
 void sensorTypeHelper_webformLoad_simple(struct EventStruct *event, int pconfigIndex);
 
+void sensorTypeHelper_Selector(const String& id, int optionCount, const uint8_t options[], Sensor_VType choice);
 void sensorTypeHelper_webformLoad(struct EventStruct *event, int pconfigIndex, int optionCount, const uint8_t options[]);
 void sensorTypeHelper_webformLoad(struct EventStruct *event, int pconfigIndex, int optionCount, const uint8_t options[], bool showSubHeader, int valueIndex);
 
