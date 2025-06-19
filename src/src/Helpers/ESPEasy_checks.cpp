@@ -120,11 +120,7 @@ void run_compiletime_checks() {
   #endif
   check_size<LogStruct,                             LogStructSize>(); // Is not stored
   check_size<DeviceStruct,                          12u>(); // Is not stored
-  #if FEATURE_MQTT_TLS || FEATURE_MQTT_DISCOVER
-  check_size<ProtocolStruct,                        6u>();
-  #else
-  check_size<ProtocolStruct,                        4u>();
-  #endif
+  check_size<ProtocolStruct,                        8u>();
   #if FEATURE_NOTIFIER
   check_size<NotificationStruct,                    3u>();
   #endif // if FEATURE_NOTIFIER

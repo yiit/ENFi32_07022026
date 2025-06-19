@@ -40,9 +40,19 @@ struct DiscoveryItem {
   DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex)
     : VType(_VType), valueCount(_valueCount), varIndex(_varIndex) {}
 
+  #  if FEATURE_STRING_VARIABLES
+  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex, const String& _varName, const String& _uom)
+    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex), varName(_varName), uom(_uom) {}
+
+  #  endif // if FEATURE_STRING_VARIABLES
+
   Sensor_VType   VType;
   int            valueCount;
   taskVarIndex_t varIndex;
+  #  if FEATURE_STRING_VARIABLES
+  String varName;
+  String uom;
+  #  endif // if FEATURE_STRING_VARIABLES
 };
 
 bool MQTT_SendAutoDiscovery(controllerIndex_t ControllerIndex,
@@ -60,7 +70,8 @@ String MQTT_DiscoveryBuildValueTopic(const String            & topic,
                                      uint8_t                   taskValueIndex,
                                      const __FlashStringHelper*deviceClass,
                                      const String            & uniqueId,
-                                     const String            & elementId);
+                                     const String            & elementId,
+                                     const String            & valueName);
 
 bool MQTT_DiscoveryPublish(controllerIndex_t ControllerIndex,
                            const String    & topic,
@@ -71,6 +82,7 @@ bool MQTT_DiscoveryPublish(controllerIndex_t ControllerIndex,
 
 bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                            uint8_t                   taskValue,
+                                           const String            & valueName,
                                            controllerIndex_t         ControllerIndex,
                                            ControllerSettingsStruct& ControllerSettings,
                                            const __FlashStringHelper*componentClass,
@@ -83,6 +95,16 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                            bool                      hasIcon,
                                            const String            & elementId,
                                            bool                      sendTrigger = false);
+
+String MQTT_DiscoveryHelperGetValueName(taskIndex_t   taskIndex,
+                                        uint8_t       taskVarIndex,
+                                        DiscoveryItem discoveryItem);
+
+String MQTT_DiscoveryHelperGetValueUoM(taskIndex_t   taskIndex,
+                                       uint8_t       taskVarIndex,
+                                       DiscoveryItem discoveryItem,
+                                       const String& defaultUoM = EMPTY_STRING);
+
 # endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
 #endif // ifndef CPLUGIN_HELPER_MQTT_H

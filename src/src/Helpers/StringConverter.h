@@ -424,6 +424,12 @@ void parseElementIdVariable(String     & s,
                            bool          useURLencode);
 #endif
 
+#if FEATURE_STRING_VARIABLES
+void parseValNameVariable(String      & s,
+                          const String& valname,
+                          bool          useURLencode);
+#endif // if FEATURE_STRING_VARIABLES
+
 void parseSystemVariables(String& s,
                           bool useURLencode);
 

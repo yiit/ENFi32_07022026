@@ -16,9 +16,10 @@
 // #######################################################################################################
 
 /** Changelog:
+ * 2025-06-17 tonhuisman: Enable sending Derived values when available
  * 2024-11-29 tonhuisman: Add Discovery trigger setting
  * 2024-11-11 tonhuisman: Add AutoDiscovery options
- *                        Home Assistant suggested discovery topic: "homeassistant/%devclass%/%sysname%/%tskname%"
+ *                        Home Assistant suggested discovery topic: "homeassistant/%devclass%/%unique_id%" (updated)
  * 2023-08-18 tonhuisman: Clean up source for pull request
  * 2023-03-15 tonhuisman: Add processing of topic endpoint /set to issue a TaskValueSet,taskname,taskvalue,payload command for
  *                        topic %sysname%/#/taskname/valuename/set
@@ -58,6 +59,9 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
       # if FEATURE_MQTT_DISCOVER
       proto.mqttAutoDiscover = true;
       # endif // if FEATURE_MQTT_DISCOVER
+      # if FEATURE_STRING_VARIABLES
+      proto.allowSendDerived = true;
+      # endif // if FEATURE_STRING_VARIABLES
       break;
     }
 

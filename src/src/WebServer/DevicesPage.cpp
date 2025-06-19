@@ -392,19 +392,21 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
   #if FEATURE_STRING_VARIABLES
   Settings.ShowDerivedTaskValues(taskIndex, isFormItemChecked(F("TSDV")));
   Settings.EventAndLogDerivedTaskValues(taskIndex, isFormItemChecked(F("TELD")));
-  Settings.SendDerivedTaskValues(taskIndex, isFormItemChecked(F("TSND")));
   #endif // if FEATURE_STRING_VARIABLES
-
+  
   for (controllerIndex_t controllerNr = 0; controllerNr < CONTROLLER_MAX; controllerNr++)
   {
     Settings.TaskDeviceID[controllerNr][taskIndex]       = getFormItemInt(getPluginCustomArgName(F("TDID"), controllerNr));
     Settings.TaskDeviceSendData[controllerNr][taskIndex] = isFormItemChecked(getPluginCustomArgName(F("TDSD"), controllerNr));
     # if FEATURE_MQTT_DISCOVER
-
+    
     if (isFormItemChecked(getPluginCustomArgName(F("TDDSC"), controllerNr))) {
       discoverController = controllerNr;
     }
     # endif // if FEATURE_MQTT_DISCOVER
+    #if FEATURE_STRING_VARIABLES
+    Settings.SendDerivedTaskValues(taskIndex, controllerNr, isFormItemChecked(getPluginCustomArgName(F("TSND"), controllerNr)));
+    #endif // if FEATURE_STRING_VARIABLES
   }
 
   if (device.PullUpOption) {
@@ -859,18 +861,16 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
           if (Settings.ShowDerivedTaskValues(x)) {
             String taskName = getTaskDeviceName(x);
             taskName.toLowerCase();
-            String search = strformat(F(TASK_VALUE_DERIVED_PREFIX_TEMPLATE), taskName.c_str(), FsP(F("X")));
-            const String postfix = search.substring(search.indexOf('X') + 1);
-            search = search.substring(0, search.indexOf('X')); // Cut off left of valuename
+            String postfix;
+            const String search = getDerivedValueSearchAndPostfix(taskName, postfix);
 
             auto it = customStringVar.begin();
             while (it != customStringVar.end()) {
               if (it->first.startsWith(search) && it->first.endsWith(postfix)) {
                 String valueName = it->first.substring(search.length(), it->first.indexOf('-'));
-                const String key2 = strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
-                const String vname2 = getCustomStringVar(key2);
-                const String keyUoM = strformat(F(TASK_VALUE_UOM_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str());
-                const String uom    = getCustomStringVar(keyUoM);
+                String uom;
+                String vType;
+                const String vname2 = getDerivedValueNameUomAndVType(taskName, valueName, uom, vType);
                 if (!vname2.isEmpty()) {
                   valueName = vname2;
                 }
@@ -1555,7 +1555,6 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
     #if FEATURE_STRING_VARIABLES
     addFormCheckBox(F("Show derived values"),            F("TSDV"), Settings.ShowDerivedTaskValues(taskIndex));
     addFormCheckBox(F("Event &amp; Log derived values"), F("TELD"), Settings.EventAndLogDerivedTaskValues(taskIndex));
-    addFormCheckBox(F("Send derived values"),            F("TSND"), Settings.SendDerivedTaskValues(taskIndex), true); // FIXME enable when SendDerivedTaskValues feature is implemented
     #endif // if FEATURE_STRING_VARIABLES
 
     bool separatorAdded = false;
@@ -1590,6 +1589,10 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
                                     getProtocolStruct(ProtocolIndex).mqttAutoDiscover &&
                                     Settings.TaskDeviceSendData[controllerNr][taskIndex]);
         # endif // if FEATURE_MQTT_DISCOVER
+        # if FEATURE_STRING_VARIABLES
+        const bool allowSendDerived = (validProtocolIndex(ProtocolIndex) &&
+                                       getProtocolStruct(ProtocolIndex).allowSendDerived);
+        # endif // if FEATURE_STRING_VARIABLES
 
         if (showControllerIDX
             # if FEATURE_MQTT_DISCOVER
@@ -1607,6 +1610,19 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
             getPluginCustomArgName(F("TDID"), controllerNr), // ="taskdeviceid"
             Settings.TaskDeviceID[controllerNr][taskIndex], 0, DOMOTICZ_MAX_IDX);
         }
+        # if FEATURE_STRING_VARIABLES
+        if (allowSendDerived) {
+          html_TD();
+          addHtml(F("Send derived:"));
+          html_TD();
+          addCheckBox(getPluginCustomArgName(F("TSND"), controllerNr), Settings.SendDerivedTaskValues(taskIndex, controllerNr), false
+                      #  if FEATURE_TOOLTIPS
+                      , F("Send derived values")
+                      #  endif // if FEATURE_TOOLTIPS
+                     );
+        }
+        # endif // if FEATURE_STRING_VARIABLES
+
         # if FEATURE_MQTT_DISCOVER
 
         if (showMqttGroup &&

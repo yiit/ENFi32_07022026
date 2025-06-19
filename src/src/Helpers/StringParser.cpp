@@ -57,6 +57,40 @@ String parseTemplateAndCalculate(String& tmpString) {
   }
   return str;
 }
+
+uint8_t getDerivedValueCountForTask(taskIndex_t taskIndex) {
+  uint8_t derivedVars = 0;
+  String postfix;
+  const String search = getDerivedValueSearchAndPostfix(getTaskDeviceName(taskIndex), postfix);
+
+  auto it = customStringVar.begin();
+
+  while (it != customStringVar.end()) {
+    if (it->first.startsWith(search) && it->first.endsWith(postfix)) {
+      ++derivedVars;
+    }
+    ++it;
+  }
+  return derivedVars;
+}
+
+String getDerivedValueSearchAndPostfix(String taskName, String& postfix) {
+  taskName.toLowerCase();
+  const String search = strformat(F(TASK_VALUE_DERIVED_PREFIX_TEMPLATE), taskName.c_str(), FsP(F("X")));
+  postfix = search.substring(search.indexOf('X') + 1);
+  return search.substring(0, search.indexOf('X')); // Cut off left of valuename
+}
+
+String getDerivedValueNameUomAndVType(String taskName, String valueName, String& uom, String& vType) {
+  taskName.toLowerCase();
+  valueName.toLowerCase();
+  vType = getCustomStringVar(strformat(F(TASK_VALUE_VTYPE_PREFIX_TEMPLATE), 
+                                       taskName.c_str(), valueName.c_str()));
+  uom   = getCustomStringVar(strformat(F(TASK_VALUE_UOM_PREFIX_TEMPLATE),
+                                       taskName.c_str(), valueName.c_str()));
+  return  getCustomStringVar(strformat(F(TASK_VALUE_NAME_PREFIX_TEMPLATE), 
+                                       taskName.c_str(), valueName.c_str()));
+}
 #endif // if FEATURE_STRING_VARIABLES
 
 String parseTemplate(String& tmpString)
