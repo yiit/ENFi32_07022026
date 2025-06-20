@@ -2,8 +2,11 @@
 
 #ifdef ESP32C5
 # include <driver/gpio.h>
+# include <soc/spi_pins.h>
 
 # include "../Helpers/Hardware_device_info.h"
+
+
 
 // ********************************************************************************
 // Get info of a specific GPIO pin
@@ -21,33 +24,18 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
 
   // FIXME TD-er: Implement for ESP32-C5
   // See:
-  // - https://docs.espressif.com/projects/esp-idf/en/v5.0/esp32c3/hw-reference/esp32c3/user-guide-devkitm-1.html
-  // - https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/api-reference/peripherals/gpio.html
+  // - https://docs.espressif.com/projects/esp-idf/en/v5.0/esp32c5/hw-reference/esp32c3/user-guide-devkitm-1.html
+  // - https://docs.espressif.com/projects/esp-idf/en/latest/esp32c5/api-reference/peripherals/gpio.html
   // Datasheet: https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf
 
-  if (gpio == 11) {
-    if (getChipFeatures().embeddedFlash /* || !flashVddPinCanBeUsedAsGPIO() */) {
-      // See: https://www.letscontrolit.com/forum/viewtopic.php?p=71880#p71874
-      //
-      // By default VDD_SPI is the power supply pin for embedded flash or external flash.
-      // It can only be used as GPIO11 only when the chip is connected to an
-      // external flash, and this flash is powered by an external power supply
-      input  = false;
-      output = false;
-    }
-    warning = true;
-  }
-
-  if (isFlashInterfacePin_ESPEasy(gpio)) {
+  if (isFlashInterfacePin_ESPEasy(gpio) || isPSRAMInterfacePin(gpio)) {
     if (getChipFeatures().embeddedFlash) {
       // Connected to the integrated SPI flash.
       input  = false;
       output = false;
     } else {
       // See: https://www.letscontrolit.com/forum/viewtopic.php?p=71880#p71874
-      if ((gpio == 12) || (gpio == 13)) {
-        // SPIHD/GPIO12
-        // SPIWP/GPIO13
+      if ((gpio == MSPI_IOMUX_PIN_NUM_HD) || (gpio == MSPI_IOMUX_PIN_NUM_WP)) {
         if ((ESP.getFlashChipMode() != FM_DOUT) &&
             (ESP.getFlashChipMode() != FM_DIO)) {
           input  = false;
@@ -64,31 +52,44 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
     warning = true;
   }
 
-  // GPIO 18: USB_D-
-  // GPIO 19: USB_D+
-
-  // GPIO 20: U0RXD
-  // GPIO 21: U0TXD
-
   return (input || output);
+}
+
+bool isBootModePin(int gpio)
+{
+  return gpio == 28; 
 }
 
 bool isBootStrapPin(int gpio)
 {
-  if (gpio == 2) {
-    // Strapping pin which must be high during boot
+  //  Boot mode             | GPIO26 | GPIO27 | GPIO28
+  //  
+  //  SPI Boot              |   Any  |   Any  |    1
+  //  Joint Download Boot 0 |   Any  |    1   |    0
+  //  Joint Download Boot 1 |    0   |    0   |    0   
+/*
+  Joint Download Boot 0 mode supports the following download methods:
+  - USB-Serial-JTAG Download Boot
+  - UART Download Boot
+  - SPI Slave Download Boot (chip revision v0.1 only)
+
+  Joint Download Boot 1 mode supports the following download methods:
+  - UART Download Boot
+  - SDIO Download Boot
+*/
+  if (gpio == 26 || gpio == 27 || gpio == 28) {
+    // Strapping pin setting boot mode
     return true;
   }
 
-  if (gpio == 8) {
-    // Strapping pin which must be high during flashing
+
+  if (gpio == 7) {
+    // Strapping pin JTAG signal source
     return true;
   }
 
-  if (gpio == 9) {
-    // Strapping pin to force download mode (like GPIO-0 on ESP8266/ESP32-classic)
-    return true;
-  }
+  // Ignoring strapping pins GPIO-2, -3, 25
+  // as they should never cause issues for users.
   return false;
 }
 
@@ -125,22 +126,12 @@ bool getADC_gpio_info(int gpio_pin, int& adc, int& ch, int& t)
   ch  = -1;
   t   = -1;
 
-  if ((gpio_pin >= 0) && (gpio_pin <= 4)) {
+  // GPIO 1 ... 6 -> Channel 0 ... 5
+  if ((gpio_pin > 0) && (gpio_pin <= 6)) {
     adc = 1;
-    ch  = gpio_pin;
+    ch  = gpio_pin - 1;
     return true;
   }
-  # if ESP_IDF_VERSION_MAJOR >= 5
-
-  // Support for ADC2 has been dropped.
-  # else // if ESP_IDF_VERSION_MAJOR >= 5
-
-  if (gpio_pin == 5) {
-    adc = 2;
-    ch  = 0;
-    return true;
-  }
-  # endif // if ESP_IDF_VERSION_MAJOR >= 5
   return false;
 }
 

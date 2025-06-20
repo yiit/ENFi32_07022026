@@ -25,6 +25,10 @@ bool isFlashInterfacePin_ESPEasy(int gpio) {
     case MSPI_IOMUX_PIN_NUM_MOSI:
     case MSPI_IOMUX_PIN_NUM_MISO:
       return true;
+
+    case 19:
+      // special pin to power flash
+      return true;
   }
   return false;
 
@@ -63,12 +67,14 @@ int32_t getEmbeddedPSRAMSize()
   return 0;
 }
 
+
 # ifndef isPSRAMInterfacePin
 bool isPSRAMInterfacePin(int gpio) {
-  return false;
+  return FoundPSRAM() ? ((gpio) >= MSPI_IOMUX_PIN_NUM_CS1 && (gpio) <= MSPI_IOMUX_PIN_NUM_MOSI) : false;
 }
 
 # endif // ifndef isPSRAMInterfacePin
+
 
 
 const __FlashStringHelper* getChipModel(uint32_t chip_model, uint32_t chip_revision, uint32_t pkg_version, bool single_core)

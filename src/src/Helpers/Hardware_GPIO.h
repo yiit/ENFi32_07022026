@@ -17,6 +17,7 @@ bool getGpioInfo(int   gpio,
                  bool& input,
                  bool& output,
                  bool& warning);
+bool isBootModePin(int gpio);
 
 bool isBootStrapPin(int gpio);
 

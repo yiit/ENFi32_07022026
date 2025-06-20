@@ -373,6 +373,11 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose,
   }
   #endif // if FEATURE_ETHERNET
 
+ 
+  if (isBootModePin(gpio)) {
+    return F("Boot Mode");
+  }
+
   if (isBootStrapPin(gpio)) {
     return F("Boot Strapping");
   }

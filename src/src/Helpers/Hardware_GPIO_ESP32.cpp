@@ -82,6 +82,12 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
   return (input || output);
 }
 
+bool isBootModePin(int gpio)
+{
+  return gpio == 0; 
+}
+
+
 bool isBootStrapPin(int gpio)
 {
   // GPIO 0 & 2 can't be used as an input. State during boot is dependent on boot mode.

@@ -45,9 +45,7 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
       output = false;
     } else {
       // See: https://www.letscontrolit.com/forum/viewtopic.php?p=71880#p71874
-      if ((gpio == 12) || (gpio == 13)) {
-        // SPIHD/GPIO12
-        // SPIWP/GPIO13
+      if ((gpio == MSPI_IOMUX_PIN_NUM_HD) || (gpio == MSPI_IOMUX_PIN_NUM_WP)) {
         if ((ESP.getFlashChipMode() != FM_DOUT) &&
             (ESP.getFlashChipMode() != FM_DIO)) {
           input  = false;
@@ -71,6 +69,11 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
   // GPIO 21: U0TXD
 
   return (input || output);
+}
+
+bool isBootModePin(int gpio)
+{
+  return gpio == 9; 
 }
 
 bool isBootStrapPin(int gpio)
