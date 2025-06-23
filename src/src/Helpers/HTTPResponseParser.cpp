@@ -90,8 +90,10 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
       const String str = http.getString();
 
       if (str.length() > RESPONSE_MAX_LENGTH) {
-        addLog(LOG_LEVEL_ERROR,
-               strformat(F("Response exceeds %d characters which could cause instabilities or crashes!"), RESPONSE_MAX_LENGTH));
+        if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+          addLog(LOG_LEVEL_ERROR,
+                 strformat(F("Response exceeds %d characters which could cause instabilities or crashes!"), RESPONSE_MAX_LENGTH));
+        }
       }
 
       auto processAndQueueParams = [](const String& url, const String& str, const String& eventName) {
@@ -115,10 +117,12 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
                                        while (commaIndex != -1) {
                                          if (keyCount >= WEATHER_KEYS_MAX) {
                                            // Stop adding keys if array is full
-                                           addLog(LOG_LEVEL_ERROR,
-                                                  strformat(F(
-                                                              "More than %d keys in the URL, this could cause instabilities or crashes! Try to split up the calls.."),
-                                                            WEATHER_KEYS_MAX));
+                                           if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+                                             addLog(LOG_LEVEL_ERROR,
+                                                    strformat(F(
+                                                                "More than %d keys in the URL, this could cause instabilities or crashes! Try to split up the calls.."),
+                                                              WEATHER_KEYS_MAX));
+                                           }
                                            break;
                                          }
                                          String key = params.substring(startIndex, commaIndex);
@@ -193,11 +197,11 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
     if ((uri.indexOf(F("#json")) != -1) || (uri.indexOf(F("?json")) != -1)) {
       int numJson = 0; // Default value
 
-      // Check if the URL ends with a number
-      if ((uri.length() > 0) && isDigit(uri.charAt(uri.length() - 1))) {
-        // Find the position of the last non-digit character
-        int i = uri.length() - 1;
+      int i = uri.length() - 1;
 
+      // Check if the URL ends with a number
+      if ((i > -1) && isDigit(uri.charAt(i))) {
+        // Find the position of the last non-digit character
         while (i >= 0 && isDigit(uri.charAt(i))) {
           i--;
         }
@@ -209,8 +213,10 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
       const String message = http.getString();
 
       if (message.length() > RESPONSE_MAX_LENGTH) {
-        addLog(LOG_LEVEL_ERROR,
-               strformat(F("Response exceeds %d characters which could cause instabilities or crashes!"), RESPONSE_MAX_LENGTH));
+        if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+          addLog(LOG_LEVEL_ERROR,
+                 strformat(F("Response exceeds %d characters which could cause instabilities or crashes!"), RESPONSE_MAX_LENGTH));
+        }
       }
 
       DynamicJsonDocument*root       = nullptr;
@@ -251,7 +257,9 @@ void eventFromResponse(const String& host, const int& httpCode, const String& ur
           // Process the keys from the file
           readAndProcessJsonKeys(root, numJson);
         } else {
-          addLog(LOG_LEVEL_ERROR, strformat(F("Parsing JSON failed: %s"), error.c_str()));
+          if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+            addLog(LOG_LEVEL_ERROR, strformat(F("Parsing JSON failed: %s"), error.c_str()));
+          }
         }
 
         // Cleanup JSON resources
@@ -280,7 +288,9 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
 #  endif // ifdef ESP8266
 
   if (!fileExists(fileName)) {
-    addLogMove(LOG_LEVEL_ERROR, strformat(F("%s does not exist!"), fileName.c_str()));
+    if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+      addLogMove(LOG_LEVEL_ERROR, strformat(F("%s does not exist!"), fileName.c_str()));
+    }
     return;
   }
   File keyFile = ESPEASY_FS.open(fileName, "r");
@@ -311,7 +321,9 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     keyCount++;
 
     if (keyCount > MAX_KEYS) {
-      addLogMove(LOG_LEVEL_ERROR, strformat(F("Warning: More than %d keys in %s"), MAX_KEYS, fileName.c_str()));
+      if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
+        addLogMove(LOG_LEVEL_ERROR, strformat(F("Warning: More than %d keys in %s"), MAX_KEYS, fileName.c_str()));
+      }
     }
 
     // Process the key and navigate the JSON
@@ -319,7 +331,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     size_t start = 0, end;
 
     while ((end = key.indexOf('.', start)) != (unsigned int)-1) {
-      String part = key.substring(start, end);
+      const String part = key.substring(start, end);
       value = value[part];
 
       if (value.isNull()) {
@@ -330,7 +342,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
 
     // Handle the last part of the key
     if (!value.isNull()) {
-      String lastPart = key.substring(start);
+      const String lastPart = key.substring(start);
       value = value[lastPart];
       successfullyProcessedCount++;
     }
@@ -340,7 +352,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
       if (value.is<int>()) {
         csvOutput += String(value.as<int>());
       } else if (value.is<float>()) {
-        csvOutput += doubleToString(value.as<double>(), nr_decimals, 1);
+        csvOutput += doubleToString(value.as<double>(), nr_decimals, true);
       } else if (value.is<const char *>()) {
         csvOutput += String(value.as<const char *>());
       } else if (value.is<JsonArray>()) {
@@ -353,7 +365,7 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
           if (element.is<int>()) {
             csvOutput += String(element.as<int>());
           } else if (element.is<float>()) {
-            csvOutput += doubleToString(element.as<double>(), nr_decimals, 1);
+            csvOutput += doubleToString(element.as<double>(), nr_decimals, true);
           } else if (element.is<const char *>()) {
             csvOutput += String(element.as<const char *>());
           } else {
@@ -385,11 +397,13 @@ void readAndProcessJsonKeys(DynamicJsonDocument *root, int numJson) {
     }
 
     // Log the results
-    addLog(LOG_LEVEL_INFO, strformat(F("Successfully processed %d out of %d keys"), successfullyProcessedCount, keyCount));
-    eventQueue.addMove(strformat(F("JsonReply%s%s=%s"),
-                                 numJson != 0 ? "#" : "",
-                                 toStringNoZero(numJson).c_str(),
-                                 csvOutput.c_str()));
+    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+      addLog(LOG_LEVEL_INFO, strformat(F("Successfully processed %d out of %d keys"), successfullyProcessedCount, keyCount));
+      eventQueue.addMove(strformat(F("JsonReply%s%s=%s"),
+                                   numJson != 0 ? "#" : "",
+                                   toStringNoZero(numJson).c_str(),
+                                   csvOutput.c_str()));
+    }
   }
 }
 
