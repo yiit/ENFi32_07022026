@@ -3,6 +3,7 @@
 #ifdef USES_P111
 
 # include "../PluginStructs/P111_data_struct.h"
+# include "../Helpers/PrintToString.h"
 
 // Needed also here for PlatformIO's library finder as the .h file
 // is in a directory which is excluded in the src_filter
@@ -215,6 +216,20 @@ uint8_t P111_data_struct::readPassiveTargetID(uint8_t *uid,
     uid[i] = mfrc522->uid.uidByte[i];
   }
   *uidLength = 4;
+
+
+  #ifndef BUILD_NO_DEBUG
+  if (loglevelActiveFor(LOG_LEVEL_DEBUG))
+  {
+    PrintToString p2str;
+    mfrc522->PICC_DumpToSerial(&(mfrc522->uid), p2str);
+    if (p2str.length()) {
+      addLog(LOG_LEVEL_DEBUG, concat(F("MFRC522: "), p2str.get()));
+    }
+  }
+  #endif
+
+
   mfrc522->PICC_HaltA(); // Stop reading
   return P111_NO_ERROR;
 }
@@ -269,7 +284,7 @@ bool P111_data_struct::plugin_ten_per_second(struct EventStruct *event) {
         } else {
           log += F("Old Tag: ");
         }
-        log += key;
+        log += formatToHex_decimal(key);
 
         if (!removedTag) {
           log += F(" card: ");

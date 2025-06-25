@@ -367,12 +367,12 @@ public:
 	static const __FlashStringHelper *PICC_GetTypeName(PICC_Type type);
 	
 	// Support functions for debuging
-	void PCD_DumpVersionToSerial();
-	void PICC_DumpToSerial(Uid *uid);
-	void PICC_DumpDetailsToSerial(Uid *uid);
-	void PICC_DumpMifareClassicToSerial(Uid *uid, PICC_Type piccType, MIFARE_Key *key);
-	void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, uint8_t sector);
-	void PICC_DumpMifareUltralightToSerial();
+	void PCD_DumpVersionToSerial(Print &logPrint);
+	void PICC_DumpToSerial(Uid *uid, Print &logPrint);
+	void PICC_DumpDetailsToSerial(Uid *uid, Print &logPrint);
+	void PICC_DumpMifareClassicToSerial(Uid *uid, PICC_Type piccType, MIFARE_Key *key, Print &logPrint);
+	void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, uint8_t sector, Print &logPrint);
+	void PICC_DumpMifareUltralightToSerial(Print &logPrint);
 	
 	// Advanced functions for MIFARE
 	void MIFARE_SetAccessBits(uint8_t *accessBitBuffer, uint8_t g0, uint8_t g1, uint8_t g2, uint8_t g3);
