@@ -146,11 +146,13 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
         }
         LoadControllerSettings(event->ControllerIndex, *ControllerSettings);
 
+        const String online = parseStringKeepCase(ControllerSettings->MqttAutoDiscoveryConfig, 2, '|');
+
         // AutoDiscovery enabled?
         if (ControllerSettings->mqtt_autoDiscovery()
             && (ControllerSettings->MqttAutoDiscoveryTrigger[0] != '\0')
             && event->String1.equals(ControllerSettings->MqttAutoDiscoveryTrigger)
-            && event->String2.equals(F("online")) // FIXME Should be configurable?
+            && event->String2.equals(online.isEmpty() ? F("online") : online)
             ) {
           // We have received the Discovery request topic
           // Generate random time-offset in 0.1 sec, range 1..10 seconds
