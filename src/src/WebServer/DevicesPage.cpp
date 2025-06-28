@@ -1709,7 +1709,7 @@ void devicePage_show_task_values(taskIndex_t taskIndex, deviceIndex_t DeviceInde
 # endif // if FEATURE_PLUGIN_STATS
 
     #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    html_table_header(F("Unit of Measure"), 50);
+    html_table_header(F("Unit of Measure"), 300);
     ++colCount;
     #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
 
