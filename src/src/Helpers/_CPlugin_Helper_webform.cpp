@@ -67,7 +67,7 @@ const __FlashStringHelper* toString(ControllerSettingsStruct::VarType parameterI
     case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_OPTION:    return F("Enable Auto Discovery");
     case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TRIGGER:   return F("Discovery Trigger topic");
     case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_TOPIC:     return F("Auto Discovery topic");
-    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_CONFIG:    return F("Config suffix (/config)");
+    case ControllerSettingsStruct::CONTROLLER_AUTO_DISCOVERY_CONFIG:    return F("Config suffix|online message (/config|online)");
     case ControllerSettingsStruct::CONTROLLER_RETAINED_DISCOVERY_OPTION: return F("Retain Discovery");
     # endif // if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
 

@@ -1161,7 +1161,7 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
     const bool   retainDsc = ControllerSettings.mqtt_retainDiscovery();
     const String discoveryTopic(ControllerSettings.MqttAutoDiscoveryTopic);
     const String publishTopic(ControllerSettings.Publish);
-    const String discoveryConfig(ControllerSettings.MqttAutoDiscoveryConfig);
+    const String discoveryConfig(parseStringKeepCase(ControllerSettings.MqttAutoDiscoveryConfig, 1, '|'));
 
     const String uniqueId = MQTT_TaskValueUniqueName(taskName, valueName);
     const String publish  = MQTT_DiscoveryBuildValueTopic(publishTopic,

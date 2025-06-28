@@ -337,7 +337,7 @@ void handle_controllers_ControllerSettingsPage(controllerIndex_t controllerindex
   }
   addSelector_Foot(true);
 
-  addHelpButton(F("EasyProtocols"));
+  // addHelpButton(F("EasyProtocols")); // Documentation on Wiki is outdated
 
   const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(controllerindex);
   const ProtocolStruct& proto         = getProtocolStruct(ProtocolIndex);
