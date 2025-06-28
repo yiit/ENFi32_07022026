@@ -255,7 +255,12 @@ A list of 150+ Unit of Measure values is available (derived of what's supported 
 ``ft/s, kn, mW, MW, GW, TW, BTU/(h·ft²), pH, cbar, mmHg, kPa, mA, µA, mV, µV, kV, cm², km², mm²,`` ``in², ft², yd², mi², ac, ha, kHz, MHz, mWh, MWh, GWh, TWh, cal, kcal, Mcal,``
 ``Gcal, J, kJ, MJ, GJ, var, kvar, varh, kvarh, st, mg/dL, mmol/L, µSv, µSv/h, m³/s, ft³/min,`` ``L/h, L/min, L/s, gal/min, mL/s``
 
-Displaying the Unit of Measure can be disabled by unchecking the **Show Unit of Measure** checkbox on the Tools/Advanced page.
+Displaying the Unit of Measure in the Devices overview page can be disabled by unchecking the **Show Unit of Measure** checkbox on the Tools/Advanced page.
+
+The **Unit of Measure** selector is, because of the vast number of options, divided into categories, here's a partial preview (the 'empty' value is selected):
+
+.. image:: Task_config_page_UoM_selector_part.png
+
 
 Value Type
 ^^^^^^^^^^
