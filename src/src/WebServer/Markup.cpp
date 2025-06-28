@@ -476,6 +476,10 @@ void addUnitOfMeasureSelector(const String& id,
                       , EMPTY_STRING
                       #endif // if FEATURE_TOOLTIPS
                      );
+  addSelector_Item( // Empty first value
+    F(""),
+    0,
+    unitOfMeasure == 0);
 
   for (uint16_t idx = 0; idx < asize; ++idx) {
     const uint16_t uomIdx = pgm_read_word_near(&unit_of_measure_map[idx]);
@@ -483,9 +487,7 @@ void addUnitOfMeasureSelector(const String& id,
       addSelector_Item(
         toUnitOfMeasureName(uomIdx),
         uomIdx,
-        unitOfMeasure == uomIdx,
-        false,
-        EMPTY_STRING);
+        unitOfMeasure == uomIdx);
     } else {
       if (!firstGrp) {
         addSelector_OptGroupFoot();
