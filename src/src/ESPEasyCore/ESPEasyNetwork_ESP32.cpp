@@ -24,6 +24,11 @@
 # include <ETH.h>
 #endif
 
+#if FEATURE_USE_IPV6
+# include <esp_netif.h>
+#endif
+
+
 void setNetworkMedium(NetworkMedium_t new_medium) {
 #if !(FEATURE_ETHERNET)
 
