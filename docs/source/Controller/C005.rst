@@ -123,6 +123,8 @@ Supported variables:
 2) Home assistant MQTT Broker startup, sending an ``online`` message (see below) in the topic ``homeassistant/status``
 3) An explicit AutoDiscovery message for a single task by enabling the **Resend MQTT Discovery** checkbox and saving the task settings.
 
+When Auto Discovery is triggered, it will be started after a random, non-blocking, delay between 1 and 30 seconds to spread the load on the MQTT Broker f.e. after a restart of Home assistant, requesting for a discovery, or after a power failure and many ESPEasy devices starting at nearly the same time.
+
 * **Auto Discovery topic**: The topic that should be used for sending the Discovery data. For Home assistant, this should be set to ``homeassistant/%devclass%/%unique_id%``, the available variables are the same as for the **Controller Publish** settinng, and extended with these:
 
 Extra variables:
