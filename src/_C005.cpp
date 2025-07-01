@@ -90,7 +90,7 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
             // (ControllerSettings->MqttAutoDiscoveryTrigger[0] != 0) &&
             (ControllerSettings->MqttAutoDiscoveryTopic[0] != 0)) {
           mqttDiscoveryController = event->ControllerIndex;
-          mqttDiscoveryTimeout    = random(10, 100);
+          mqttDiscoveryTimeout    = random(10, MQTT_DISCOVERY_MAX_DELAY_0_1_SECONDS);
 
           if (loglevelActiveFor(LOG_LEVEL_INFO)) {
             addLog(LOG_LEVEL_INFO, strformat(F("C005 : INIT: AutoDiscovery for Controller %d in %.1f sec."),
@@ -155,8 +155,8 @@ bool CPlugin_005(CPlugin::Function function, struct EventStruct *event, String& 
             && event->String2.equals(online.isEmpty() ? F("online") : online)
             ) {
           // We have received the Discovery request topic
-          // Generate random time-offset in 0.1 sec, range 1..10 seconds
-          mqttDiscoveryTimeout = random(10, 100);
+          // Generate random time-offset in 0.1 sec, range 1..30 seconds
+          mqttDiscoveryTimeout = random(10, MQTT_DISCOVERY_MAX_DELAY_0_1_SECONDS);
 
           if (loglevelActiveFor(LOG_LEVEL_INFO)) {
             addLog(LOG_LEVEL_INFO, strformat(F("C005 : Request for AutoDiscovery received. %.1f sec."),

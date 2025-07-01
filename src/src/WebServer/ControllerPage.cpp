@@ -102,8 +102,8 @@ void handle_controllers() {
             // && (ControllerSettings->MqttAutoDiscoveryTrigger[0] != 0)
             && (ControllerSettings->MqttAutoDiscoveryTopic[0] != 0)
             ) {
-          // Generate random time-offset in 0.1 sec, range 1..10 seconds
-          mqttDiscoveryTimeout = random(10, 100);
+          // Generate random time-offset in 0.1 sec, range 1..30 seconds
+          mqttDiscoveryTimeout = random(10, MQTT_DISCOVERY_MAX_DELAY_0_1_SECONDS);
 
           if (loglevelActiveFor(LOG_LEVEL_INFO)) {
             addLog(LOG_LEVEL_INFO, strformat(F("MQTT : Start AutoDiscovery on Save. Starting in %.1f sec."), mqttDiscoveryTimeout / 10));

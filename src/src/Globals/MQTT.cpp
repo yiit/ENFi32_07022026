@@ -35,7 +35,6 @@ controllerIndex_t mqttDiscoveryController = INVALID_CONTROLLER_INDEX;
 taskIndex_t mqttDiscoverOnlyTask          = INVALID_TASK_INDEX;
 uint32_t    mqttDiscoveryTimeout          = 0; // Decremented in 10 per second, random timeout before discovery is sent, for broker load
                                                // distribution
-// uint32_t mqttDiscoveryLastRun = 0; // FIXME Leave a minimum time between discoveries?
 # endif // if FEATURE_MQTT_DISCOVER
 #endif // if FEATURE_MQTT
 

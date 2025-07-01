@@ -486,7 +486,7 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
 
     if (validControllerIndex(discoverController) && validControllerIndex(mqttDiscoveryController)) {
       mqttDiscoverOnlyTask = taskIndex;
-      mqttDiscoveryTimeout = random(10, 100);
+      mqttDiscoveryTimeout = random(10, MQTT_DISCOVERY_MAX_DELAY_0_1_SECONDS);
 
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         addLog(LOG_LEVEL_INFO, strformat(F("MQTT : Resend AutoDiscovery for Task %d on Controller %d in %.1f sec."),
