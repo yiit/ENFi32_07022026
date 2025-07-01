@@ -487,8 +487,6 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
           #  if FEATURE_STRING_VARIABLES
 
           if (Settings.SendDerivedTaskValues(x, ControllerIndex)) {
-            String taskNameLC(taskName);
-            taskNameLC.toLowerCase();
             String postfix;
             const String search = getDerivedValueSearchAndPostfix(taskName, postfix);
 
