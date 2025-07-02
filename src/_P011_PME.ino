@@ -8,6 +8,7 @@
 
 /** Changelog:
  * 2025-05-15 tonhuisman: Optimize I2C function calls
+ * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery (not supported for PME)
  * 2024-04-14 tonhuisman: Add support for Get Config Values, to obtain a port state/value without instantiating a task for each pin.
  *                        Only a single, enabled, task is required to handle the Get Config Values.
  *                        Variables: [<TaskName>#D<port>] and [<TaskName>#A,<port>]
@@ -64,6 +65,15 @@ boolean Plugin_011(uint8_t function, struct EventStruct *event, String& string)
       strcpy_P(ExtraTaskSettings.TaskDeviceValueNames[0], PSTR(PLUGIN_VALUENAME1_011));
       break;
     }
+
+    # if FEATURE_MQTT_DISCOVER
+    case PLUGIN_GET_DISCOVERY_VTYPES:
+    {
+      event->Par1 = static_cast<int>(Sensor_VType::SENSOR_TYPE_NONE); // Not yet supported
+      success     = true;
+      break;
+    }
+    # endif // if FEATURE_MQTT_DISCOVER
 
     case PLUGIN_I2C_HAS_ADDRESS:
     {
