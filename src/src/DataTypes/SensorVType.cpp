@@ -89,6 +89,9 @@ uint8_t getValueCountFromSensorType(Sensor_VType sensorType, bool log)
     case Sensor_VType::SENSOR_TYPE_NOX_ONLY:
     case Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED:
     case Sensor_VType::SENSOR_TYPE_WIND_SPEED:
+    case Sensor_VType::SENSOR_TYPE_DURATION:
+    case Sensor_VType::SENSOR_TYPE_DATE:
+    case Sensor_VType::SENSOR_TYPE_TIMESTAMP:
       return 1;
   }
   #ifndef BUILD_NO_DEBUG
@@ -168,6 +171,9 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_NOX_ONLY:         return F("NOx");
     case Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED:  return F("Switch (inv.)");
     case Sensor_VType::SENSOR_TYPE_WIND_SPEED:       return F("Wind speed");
+    case Sensor_VType::SENSOR_TYPE_DURATION:         return F("Duration");
+    case Sensor_VType::SENSOR_TYPE_DATE:             return F("Date");
+    case Sensor_VType::SENSOR_TYPE_TIMESTAMP:        return F("Timestamp");
     #else // if FEATURE_MQTT_DISCOVER || FEATURE_CUSTOM_TASKVAR_VTYPE
     case Sensor_VType::SENSOR_TYPE_ANALOG_ONLY:
     case Sensor_VType::SENSOR_TYPE_TEMP_ONLY:
@@ -201,6 +207,9 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_NOX_ONLY:
     case Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED:
     case Sensor_VType::SENSOR_TYPE_WIND_SPEED:
+    case Sensor_VType::SENSOR_TYPE_DURATION:
+    case Sensor_VType::SENSOR_TYPE_DATE:
+    case Sensor_VType::SENSOR_TYPE_TIMESTAMP:
       break;
     #endif // if FEATURE_MQTT_DISCOVER || FEATURE_CUSTOM_TASKVAR_VTYPE
   }

@@ -66,6 +66,9 @@ enum class Sensor_VType : uint8_t {
   SENSOR_TYPE_NOX_ONLY        = 129,
   SENSOR_TYPE_SWITCH_INVERTED = 130,
   SENSOR_TYPE_WIND_SPEED      = 131,
+  SENSOR_TYPE_DURATION        = 132,
+  SENSOR_TYPE_DATE            = 133,
+  SENSOR_TYPE_TIMESTAMP       = 134,
 
   SENSOR_TYPE_NOT_SET = 255
 };

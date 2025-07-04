@@ -477,12 +477,17 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
           const String elementIds = groupId != 0 && !usesControllerIDX ?
                                      strformat(F("group_%u"), groupId) :
                                      strformat(F("%s_%s"),    hostName.c_str(), taskName.c_str());
+          const String docLink = makeDocLink(strformat(
+                                               F("Plugin/%s.html"),
+                                               get_formatted_Plugin_number(Settings.getPluginID_for_task(x)).c_str()), true);
 
-          // dev = device, ids = identifiers, mf = manufacturer, sw = sw_version
+          // dev = device, ids = identifiers, mf = manufacturer, sw = sw_version, o = origin, url = support_url
           const String deviceElement = strformat(F(",\"dev\":{\"name\":\"%s\",\"ids\":[\"%s\"],"
-                                                   "\"mf\":\"ESPEasy\",\"sw\":\"%s\"}"),
+                                                   "\"mf\":\"ESPEasy\",\"sw\":\"%s\"},"
+                                                   "\"o\":{\"name\":\"%s\",\"sw\":\"%s\",\"url\":\"%s\"}"),
                                                  elementName.c_str(), elementIds.c_str(),
-                                                 getSystemBuildString().c_str());
+                                                 getSystemBuildString().c_str(),
+                                                 elementName.c_str(), getSystemBuildString().c_str(), docLink.c_str());
 
           #  if FEATURE_STRING_VARIABLES
 
@@ -931,6 +936,33 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                 break;
               }
 
+              case Sensor_VType::SENSOR_TYPE_DURATION:
+              case Sensor_VType::SENSOR_TYPE_DATE:
+              case Sensor_VType::SENSOR_TYPE_TIMESTAMP:
+              {
+                const __FlashStringHelper*dev = Sensor_VType::SENSOR_TYPE_DURATION == discoveryItems[s].VType ? F("duration") :
+                                                Sensor_VType::SENSOR_TYPE_DATE == discoveryItems[s].VType ? F("date") :
+                                                F("timestamp");
+                const __FlashStringHelper*uomDef = (Sensor_VType::SENSOR_TYPE_DURATION == discoveryItems[s].VType ? F("min") :
+                                                    F(""));
+
+                for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
+                  const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
+                  const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s], uomDef);
+                  success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
+                                                                   ControllerIndex,
+                                                                   ControllerSettings,
+                                                                   F("sensor"),
+                                                                   dev,
+                                                                   uom,
+                                                                   &TempEvent,
+                                                                   deviceElement,
+                                                                   success,
+                                                                   false, false, elementIds);
+                }
+                break;
+              }
+
 
               case Sensor_VType::SENSOR_TYPE_ANALOG_ONLY:
               case Sensor_VType::SENSOR_TYPE_GPS_ONLY:
@@ -1026,9 +1058,8 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
   if (PluginCall(PLUGIN_GET_DISCOVERY_VTYPES, &TempEvent, deviceClass)) {
     #  ifndef BUILD_NO_DEBUG
 
-    // FIXME change this log to DEBUG level
-    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-      addLog(LOG_LEVEL_INFO, strformat(F("MQTT : AutoDiscovery using Plugin-defined config (%d)"), discoveryItems.size()));
+    if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
+      addLog(LOG_LEVEL_DEBUG, strformat(F("MQTT : AutoDiscovery using Plugin-defined config (%d)"), discoveryItems.size()));
     }
     #  endif // ifndef BUILD_NO_DEBUG
 
@@ -1050,9 +1081,8 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
 
     #  ifndef BUILD_NO_DEBUG
 
-    // FIXME change this log to DEBUG level
-    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-      addLog(LOG_LEVEL_INFO, strformat(F("MQTT : AutoDiscovery Plugin specific config added (%d)"), discoveryItems.size()));
+    if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
+      addLog(LOG_LEVEL_DEBUG, strformat(F("MQTT : AutoDiscovery Plugin specific config added (%d)"), discoveryItems.size()));
     }
     #  endif // ifndef BUILD_NO_DEBUG
   } else {
@@ -1062,9 +1092,8 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
 
       #  ifndef BUILD_NO_DEBUG
 
-      // FIXME change this log to DEBUG level
-      if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-        addLog(LOG_LEVEL_INFO, strformat(F("MQTT : AutoDiscovery Default Plugin config (%d)"), discoveryItems.size()));
+      if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
+        addLog(LOG_LEVEL_DEBUG, strformat(F("MQTT : AutoDiscovery Default Plugin config (%d)"), discoveryItems.size()));
       }
       #  endif // ifndef BUILD_NO_DEBUG
     }
@@ -1151,6 +1180,7 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                            bool                      sendTrigger) {
   if (!valueName.isEmpty()) {
     const String withSet   = hasSet ? F(",\"cmd_t\":\"~/set\"") : EMPTY_STRING;
+    const String schema    = hasSet ? EMPTY_STRING : "\"schema\":\"basic\",";
     const String devOrIcon = hasIcon ? F("ic") : F("dev_cla");
     const String withUoM   = !unitOfMeasure.isEmpty() ?
                              strformat(F(",\"unit_of_meas\":\"%s\""), unitOfMeasure.c_str()) :
@@ -1176,10 +1206,10 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                                               uniqueId,
                                                               elementId,
                                                               valueName);
-    const String discoveryMessage = strformat(F("{\"~\":\"%s\",\"name\":\"%s %s\",\"uniq_id\":\"%s\",\"schema\":\"basic\","
+    const String discoveryMessage = strformat(F("{\"~\":\"%s\",\"name\":\"%s %s\",\"uniq_id\":\"%s\",%s"
                                                 "\"%s\":\"%s\"%s%s,\"stat_t\":\"~\""
                                                 "%s}"), // deviceElement last
-                                              publish.c_str(), taskName.c_str(), valueName.c_str(), uniqueId.c_str(),
+                                              publish.c_str(), taskName.c_str(), valueName.c_str(), uniqueId.c_str(), schema.c_str(),
                                               devOrIcon.c_str(), deviceClass.c_str(), withUoM.c_str(), withSet.c_str(),
                                               deviceElement.c_str());
     const String triggerMessage = strformat(F("{\"atype\":\"trigger\",\"t\":\"%s\",\"pl\":\"{\\\"TRIG\\\":\\\"%s\\\"}\","

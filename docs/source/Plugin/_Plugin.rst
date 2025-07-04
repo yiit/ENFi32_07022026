@@ -269,11 +269,15 @@ Value Type
 
 On selected builds and for some plugins only, the Value Type selection is available. This selection is available when either the type of value per Value field is selectable by the user, or can have too many options to determine explicitly.
 
-The options included here are all possible value types supported by ESPEasy that represent a *single* value, excluding options like Temp/Hum, Temp/Baro/Hum etc., and are used during the MQTT AutoDiscovery process. ``None`` indicates no value type is selected.
+The options included here are all possible value types supported by ESPEasy that represent a *single* value, excluding options like Temp/Hum, Temp/Baro/Hum etc. ``None`` indicates no value type is selected.
 
 Available options: ``Single, Switch, Dimmer, UInt32 (1x), String, Int32 (1x), UInt64 (1x), Int64 (1x),`` ``Double (1x), Analog, Temp, Hum, Lux, Distance, Direction, Dust PM2.5,``
 ``Dust PM1.0, Dust PM10, Moisture, (e)CO2, GPS, UV, UV Index, IR, Weight, Voltage,`` ``Current, Power Usage, Power Factor, Apparent Power Usage, TVOC, Baro,``
-``Red, Green, Blue, Color temperature, Reactive Power, AQI, NOx, Switch (inv.), Wind speed``
+``Red, Green, Blue, Color temperature, Reactive Power, AQI, NOx, Switch (inv.),`` ``Wind speed, Duration, Date, Timestamp``
+
+.. note:: When available, this setting is required for the Value to be included in the MQTT AutoDiscovery process.
+
+NB: ``Date`` and ``Timestamp`` Value Types can only be sent using Derived Values, as regular Values don't support the required formatting. Also, the Unit of Measure (when applicable) has to be provided there. The data should match ISO8601 format.
 
 |
 

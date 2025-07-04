@@ -67,8 +67,7 @@ void sensorTypeHelper_Selector(const String& id, int optionCount, const uint8_t 
   for (uint8_t x = 0; x < optionCount; x++)
   {
     const Sensor_VType optionVType = static_cast<Sensor_VType>(options[x]);
-    String name = getSensorTypeLabel(optionVType);
-    addSelector_Item(name,
+    addSelector_Item(getSensorTypeLabel(optionVType),
                      options[x],
                      choice == optionVType);
   }
