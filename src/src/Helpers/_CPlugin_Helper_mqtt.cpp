@@ -769,46 +769,12 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
                                   std::vector<DiscoveryItem>& discoveryItems,
                                   int                         valueCount,
                                   String                    & deviceClass) {
-  const deviceIndex_t DeviceIndex = getDeviceIndex_from_TaskIndex(TaskIndex);
-  const size_t orgLen             = discoveryItems.size();
-  Sensor_VType VType              = Device[DeviceIndex].VType;
-
-  // For those plugin IDs that don't have an explicitly set VType, or the wrong VType set
-  // Deliberately ignored/skipped for now:
-  // case 3:   // Pulse: Needs special handling/not usable?
-  // case 8:   // RFID Wiegand
-  // case 17:  // RFID PN532
-  // case 33:  // Dummy: Needs special handling/not usable?
-  // case 40:  // RFID ID12
-  // case 58:  // Keypad: Not a switch
-  // case 59:  // Encoder: Not a switch
-  // case 61:  // Keypad: Not a switch
-  // case 62:  // Touch Keypad: Not a switch
-  // case 63:  // Touch Keypad: Not a switch
-  // case 111: // RFID RC522
-
-  // TODO: To be reviewed/considered later/custom/special handled:
-  // case 26:  // Sysinfo: Needs special handling/not usable?
-  // case 45:  // MPU6050
-  // case 50:  // TCS34725 RGB: Needs special handling
-  // case 64:  // APDS9960: Needs special handling
-  // case 66:  // VEML6040 RGB: Needs special handling
-  // case 71:  // Kamstrup Heat
-  // case 82:  // GPS: Needs special handling
-  // case 92:  // DL-bus: Needs special handling
-  // case 93:  // Mitsubishi Heatpump
-  // case 103: // Atlas EZO: Needs special handling
-  // case 112: // AS7265x: Needs special handling
-  // case 139: // AXP2101
-  // case 159: // LD2410
-  // case 163: // RadSens
-  // case 169: // AS3935 Lightning
-  // case 176: // Victron VE.Direct: Needs user-configurable Sensor_VType + Unit_of_measure per value
-
-  // Plugin ID numbers not listed in the above switch statement either have the correct Sensor_VType value set in DeviceStruct,
-  // or have PLUGIN_GET_DISCOVERY_VTYPES implemented
-
+  const size_t orgLen = discoveryItems.size();
   struct EventStruct TempEvent(TaskIndex);
+  String dummy;
+
+  PluginCall(PLUGIN_GET_DEVICEVTYPE, &TempEvent, dummy);
+  Sensor_VType VType = TempEvent.sensorType;
 
   deviceClass.clear();
 
@@ -848,7 +814,26 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
   } else {
     // Use Device VType setting
     if (Sensor_VType::SENSOR_TYPE_NONE != VType) {
-      discoveryItems.push_back(DiscoveryItem(VType, valueCount, 0));
+      // Expand combined VTypes into separate single-value VTypes
+      if (Sensor_VType::SENSOR_TYPE_TEMP_HUM == VType) {
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_TEMP_ONLY, 1, 0));
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_HUM_ONLY, 1, 1));
+      } else
+      if (Sensor_VType::SENSOR_TYPE_TEMP_BARO == VType) {
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_TEMP_ONLY, 1, 0));
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_BARO_ONLY, 1, 1));
+      } else
+      if (Sensor_VType::SENSOR_TYPE_TEMP_HUM_BARO == VType) {
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_TEMP_ONLY, 1, 0));
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_HUM_ONLY, 1, 1));
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_BARO_ONLY, 1, 2));
+      } else
+      if (Sensor_VType::SENSOR_TYPE_TEMP_EMPTY_BARO == VType) {
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_TEMP_ONLY, 1, 0));
+        discoveryItems.push_back(DiscoveryItem(Sensor_VType::SENSOR_TYPE_BARO_ONLY, 1, 2));
+      } else {
+        discoveryItems.push_back(DiscoveryItem(VType, valueCount, 0));
+      }
 
       #  ifndef BUILD_NO_DEBUG
 
