@@ -49,7 +49,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
         Function = NWPlugin::Function::NWPLUGIN_INIT;
       }
 
-            for (networkIndex_t x = 0; x < CONTROLLER_MAX; x++) {
+      for (networkIndex_t x = 0; x < NETWORK_MAX; x++) {
         if (Settings.getNWPluginID_for_network(x) && Settings.getNetworkEnabled(x)) {
           event->NetworkIndex = x;
           String command;
@@ -72,6 +72,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
       }
       break;
     }
+
     // calls to specific network
     case NWPlugin::Function::NWPLUGIN_INIT:
     case NWPlugin::Function::NWPLUGIN_EXIT:
@@ -81,7 +82,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOST_CONFIG:
     {
       const networkIndex_t networkIndex = event->NetworkIndex;
-      bool success                            = false;
+      bool success                      = false;
 
       if (validNetworkIndex(networkIndex)) {
         if (Settings.getNetworkEnabled(networkIndex) && supportedNWPluginID(Settings.getNWPluginID_for_network(networkIndex)))
@@ -95,7 +96,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
         #ifdef ESP32
 
         if (Function == NWPlugin::Function::NWPLUGIN_EXIT) {
-//          Cache.clearNetworkSettings(networkIndex);
+          //          Cache.clearNetworkSettings(networkIndex);
         }
         #endif // ifdef ESP32
       }
@@ -114,12 +115,12 @@ bool validNetworkDriverIndex(networkDriverIndex_t index) { return validNetworkDr
    return index < NETWORK_MAX;
    }
  */
-bool validNWPluginID(nwpluginID_t nwpluginID) { 
+bool validNWPluginID(nwpluginID_t nwpluginID) {
   return getNetworkDriverIndex_from_NWPluginID_(nwpluginID) !=
          INVALID_NETWORKDRIVER_INDEX;
 }
 
-bool supportedNWPluginID(nwpluginID_t nwpluginID) { 
+bool supportedNWPluginID(nwpluginID_t nwpluginID) {
   return validNetworkDriverIndex(
     getNetworkDriverIndex_from_NWPluginID_(nwpluginID));
 }
@@ -135,9 +136,7 @@ networkDriverIndex_t getNetworkDriverIndex_from_NWPluginID(nwpluginID_t nwplugin
   return getNetworkDriverIndex_from_NWPluginID_(nwpluginID);
 }
 
-nwpluginID_t getNWPluginID_from_NetworkDriverIndex(networkDriverIndex_t index) { 
-  return getNWPluginID_from_NetworkDriverIndex_(index); 
-}
+nwpluginID_t getNWPluginID_from_NetworkDriverIndex(networkDriverIndex_t index) { return getNWPluginID_from_NetworkDriverIndex_(index); }
 
 nwpluginID_t getNWPluginID_from_NetworkIndex(networkIndex_t index) {
   const networkDriverIndex_t networkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(index);
