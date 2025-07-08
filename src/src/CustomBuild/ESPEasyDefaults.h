@@ -8,6 +8,10 @@
 
 #include "../Helpers/Hardware_defines.h"
 
+#ifdef ESP32P4
+#include <pins_arduino.h>
+#endif
+
 // ********************************************************************************
 //   User specific configuration
 // ********************************************************************************
@@ -261,25 +265,49 @@
 #define DEFAULT_PIN_RESET_BUTTON         (-1)
 #endif
 #ifndef DEFAULT_ETH_PHY_ADDR
+#ifdef ESP32P4
+#define DEFAULT_ETH_PHY_ADDR             1
+#else
 #define DEFAULT_ETH_PHY_ADDR             0
 #endif
+#endif
 #ifndef DEFAULT_ETH_PHY_TYPE
+#ifdef ESP32P4
+#define DEFAULT_ETH_PHY_TYPE             EthPhyType_t::TLK110
+#else
 #define DEFAULT_ETH_PHY_TYPE             EthPhyType_t::notSet
 #endif
+#endif
 #ifndef DEFAULT_ETH_PIN_MDC
+#ifdef ESP32P4
+#define DEFAULT_ETH_PIN_MDC              ETH_PHY_MDC
+#else
 #define DEFAULT_ETH_PIN_MDC              -1
 #endif
+#endif
 #ifndef DEFAULT_ETH_PIN_MDIO
+#ifdef ESP32P4
+#define DEFAULT_ETH_PIN_MDIO             ETH_PHY_MDIO
+#else
 #define DEFAULT_ETH_PIN_MDIO             -1
 #endif
+#endif
 #ifndef DEFAULT_ETH_PIN_POWER
+#ifdef ESP32P4
+#define DEFAULT_ETH_PIN_POWER            ETH_PHY_POWER
+#else
 #define DEFAULT_ETH_PIN_POWER            -1
+#endif
 #endif
 #ifndef DEFAULT_ETH_CLOCK_MODE
 #define DEFAULT_ETH_CLOCK_MODE           EthClockMode_t::Ext_crystal_osc
 #endif
 #ifndef DEFAULT_NETWORK_MEDIUM
+#ifdef ESP32P4
   #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::WIFI
+#else
+  #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::WIFI
+#endif
 #endif
 #ifndef DEFAULT_JSON_BOOL_WITHOUT_QUOTES
 #define DEFAULT_JSON_BOOL_WITHOUT_QUOTES false

@@ -247,6 +247,10 @@ uint32_t getFlashChipSpeed() {
   // for which patches have been submitted and somehow they managed to merge it completely wrong.
   return ESP.getFlashChipSpeed();
 # else // if ESP_IDF_STILL_NEEDS_SPI_REGISTERS_FIXED
+#ifdef ESP32P4
+  // TODO TD-er: Implement
+  return 80000000;
+#else
 
   // All ESP32-variants have the SPI flash wired to SPI peripheral 1
   const uint32_t spi_clock = REG_READ(SPI_CLOCK_REG(1));
@@ -262,6 +266,7 @@ uint32_t getFlashChipSpeed() {
     return getApbFrequency();
   }
   return spiClockDivToFrequency(spi_clock);
+#endif
 # endif // if ESP_IDF_STILL_NEEDS_SPI_REGISTERS_FIXED
   #endif // ifdef ESP8266
 }
