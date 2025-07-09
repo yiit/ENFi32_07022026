@@ -151,4 +151,44 @@ const __FlashStringHelper* Command_WiFi_Erase(struct EventStruct *event, const c
     : return_command_failed_flashstr();
 }
 
+
+# ifdef ESP32P4
+#  include "esp_hosted.h"
+
+// Perform OTA update on the esp-hosted-mcu firmware of the external WiFi module (typically ESP32-C6)
+String Command_Wifi_OTA_hosted_mcu(
+  struct EventStruct *event, const char *Line)
+{
+
+  String url;
+
+  if (GetArgv(Line, url, 2)) {
+    if (!url.startsWith(F("http://"))) {
+      String str(concat(F("OTA update esp-hosted-mcu not HTTP url: "), url));
+      addLog(LOG_LEVEL_ERROR, str);
+      return str;
+    }
+
+    if (!url.endsWith(F("network_adapter.bin"))) {
+      String str(concat(F("OTA update esp-hosted-mcu not correct file: "), url));
+      addLog(LOG_LEVEL_ERROR, str);
+      return str;
+    }
+    addLog(LOG_LEVEL_INFO, concat(F("OTA update esp-hosted-mcu: "), url));
+
+
+    esp_err_t err = esp_hosted_slave_ota(url.c_str());
+
+    if (err != ESP_OK) {
+      String str(strformat(F("Failed to start OTA update: %s"), esp_err_to_name(err)));
+      addLog(LOG_LEVEL_ERROR, str);
+      return str;
+    }
+  }
+  return return_command_success_flashstr();
+}
+
+# endif // ifdef ESP32P4
+
+
 #endif

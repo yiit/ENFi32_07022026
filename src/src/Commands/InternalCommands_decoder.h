@@ -237,6 +237,9 @@ enum class ESPEasy_cmd_e : uint8_t {
   wifikey,
   wifikey2,
   wifimode,
+#ifdef ESP32P4
+  wifiotahostedmcu,
+#endif
   wifiscan,
   wifissid,
   wifissid2,

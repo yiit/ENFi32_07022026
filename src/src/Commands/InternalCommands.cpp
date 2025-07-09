@@ -485,6 +485,9 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::wifikey:                    COMMAND_CASE_R(Command_Wifi_Key,        1);      // WiFi.h
     case ESPEasy_cmd_e::wifikey2:                   COMMAND_CASE_R(Command_Wifi_Key2,       1);      // WiFi.h
     case ESPEasy_cmd_e::wifimode:                   COMMAND_CASE_R(Command_Wifi_Mode,       1);      // WiFi.h
+#ifdef ESP32P4
+    case ESPEasy_cmd_e::wifiotahostedmcu:           COMMAND_CASE_R(Command_Wifi_OTA_hosted_mcu,    1);      // WiFi.h
+#endif
     case ESPEasy_cmd_e::wifiscan:                   COMMAND_CASE_R(Command_Wifi_Scan,       0);      // WiFi.h
     case ESPEasy_cmd_e::wifissid:                   COMMAND_CASE_R(Command_Wifi_SSID,       1);      // WiFi.h
     case ESPEasy_cmd_e::wifissid2:                  COMMAND_CASE_R(Command_Wifi_SSID2,      1);      // WiFi.h
