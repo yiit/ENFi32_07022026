@@ -354,10 +354,10 @@ const char mqtt_valueType_default_ha_uom_names[] PROGMEM = // !! Offset, startin
   "µg/m³|µg/m³|µg/m³|%|ppm||" // DUSTPM2_5_ONLY .. GPS_ONLY
   "W/m²|UV Index|W/m²|kg|" // UV_ONLY .. WEIGHT_ONLY
   "V|A|kWh|Cos φ|VA|" // VOLTAGE_ONLY .. APPRNT_POWER_USG_ONLY
-  "ppd|hPa|R|G|B|" // TVOC_ONLY .. COLOR_BLUE_ONLY
+  "ppd|hPa|lx|lx|lx|" // TVOC_ONLY .. COLOR_BLUE_ONLY
   "K|var||µg/m³|" // COLOR_TEMP_ONLY .. NOX_ONLY
   "|m/s|min||" // SWITCH_INVERTED .. DATE
-  "|bit/s|bit|dB|dBm|" // TIMESTAMP .. SIGNAL_STRENGTH
+  "|bit/s|B|dB|dBm|" // TIMESTAMP .. SIGNAL_STRENGTH
   ;
 
 /**
