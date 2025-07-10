@@ -300,7 +300,7 @@
 #endif
 #endif
 #ifndef DEFAULT_ETH_CLOCK_MODE
-#define DEFAULT_ETH_CLOCK_MODE           EthClockMode_t::Ext_crystal_osc
+#define DEFAULT_ETH_CLOCK_MODE           static_cast<EthClockMode_t>(0)
 #endif
 #ifndef DEFAULT_NETWORK_MEDIUM
 #ifdef ESP32P4

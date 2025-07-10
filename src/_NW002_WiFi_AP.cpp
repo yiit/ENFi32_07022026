@@ -25,6 +25,9 @@
 # include "src/WebServer/Markup.h"
 # include "src/ESPEasyCore/ESPEasyWifi_abstracted.h"
 
+# include "src/WebServer/HTML_Print.h"
+# include "src/WebServer/HTML_wrappers.h"
+
 bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String& string)
 {
   bool success = false;
@@ -127,6 +130,11 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
       addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
   # endif // if FEATURE_ETHERNET
 
+      addRowLabel(F("Driver Info"));
+
+      HTML_Print htmlPrint;
+      addHtml(F("<br>"));
+      WiFi.AP.printTo(htmlPrint);
 
       break;
     }
@@ -136,6 +144,10 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
       break;
     }
 
+    case NWPlugin::Function::NWPLUGIN_EXIT:
+    {
+      break;
+    }
 
     default:
       break;

@@ -401,7 +401,7 @@ public:
   }
 
   bool getNetworkEnabled(networkIndex_t index) const {
-    if (validNetworkIndex(index)) bitRead(NetworkEnabled_bits, index);
+    if (validNetworkIndex(index)) return bitRead(NetworkEnabled_bits, index);
     return false;
   }
 
@@ -574,7 +574,7 @@ public:
   int8_t          ETH_Pin_mdio_irq = -1;
   int8_t          ETH_Pin_power_rst = -1;
   EthPhyType_t    ETH_Phy_Type = EthPhyType_t::notSet;
-  EthClockMode_t  ETH_Clock_Mode = EthClockMode_t::Ext_crystal_osc;
+  EthClockMode_t  ETH_Clock_Mode = static_cast<EthClockMode_t>(0);
   uint8_t         ETH_IP[4] = {0};
   uint8_t         ETH_Gateway[4] = {0};
   uint8_t         ETH_Subnet[4] = {0};

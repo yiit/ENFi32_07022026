@@ -26,6 +26,13 @@
 # include "src/WebServer/Markup.h"
 # include "src/ESPEasyCore/ESPEasyWifi_abstracted.h"
 
+# include "src/WebServer/HTML_Print.h"
+# include "src/WebServer/HTML_wrappers.h"
+
+# ifdef ESP32P4
+#  include <esp_hosted.h>
+# endif
+
 bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String& string)
 {
   bool success = false;
@@ -146,11 +153,7 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
 # ifndef ESP32
       Settings.WaitWiFiConnect(isFormItemChecked(LabelType::WAIT_WIFI_CONNECT));
 # endif
-      Settings.HiddenSSID_SlowConnectPerBSSID(isFormItemChecked(LabelType::HIDDEN_SSID_SLOW_CONNECT));
       Settings.SDK_WiFi_autoreconnect(isFormItemChecked(LabelType::SDK_WIFI_AUTORECONNECT));
-# ifdef ESP32
-      Settings.PassiveWiFiScan(isFormItemChecked(LabelType::WIFI_PASSIVE_SCAN));
-# endif
 # if CONFIG_SOC_WIFI_SUPPORT_5G
       Settings.WiFi_band_mode(static_cast<wifi_band_mode_t>(getFormItemInt(getInternalLabel(LabelType::WIFI_BAND_MODE))));
 # endif
@@ -168,6 +171,25 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
     {
       addFormSubHeader(F("Wifi Settings"));
 
+      // TODO Add pin configuration for ESP32P4.
+      // ESP32-C5 may use different SDIO pins.
+      // See: https://github.com/espressif/esp-hosted-mcu/blob/main/docs/sdio.md#esp32-p4-function-ev-board-host-pin-mapping
+
+
+# ifdef ESP32P4
+      {
+        addRowLabel(F("ESP Hosted Firmware"));
+        esp_hosted_coprocessor_fwver_t ver_info;
+        esp_hosted_get_coprocessor_fwversion(&ver_info);
+        addHtml(strformat(
+                  F("%d.%d.%d"),
+                  ver_info.major1,
+                  ver_info.minor1,
+                  ver_info.patch1));
+      }
+# endif // ifdef ESP32P4
+
+
       addFormTextBox(getLabel(LabelType::SSID), F("ssid"), SecuritySettings.WifiSSID, 31);
       addFormPasswordBox(F("WPA Key"), F("key"), SecuritySettings.WifiKey, 63);
       addFormTextBox(F("Fallback SSID"), F("ssid2"), SecuritySettings.WifiSSID2, 31);
@@ -175,12 +197,10 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       addFormNote(F("WPA Key must be at least 8 characters long"));
 
       addFormCheckBox(LabelType::CONNECT_HIDDEN_SSID,      Settings.IncludeHiddenSSID());
-
+      addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT, Settings.HiddenSSID_SlowConnectPerBSSID());
 # ifdef ESP32
       addFormCheckBox(LabelType::WIFI_PASSIVE_SCAN,        Settings.PassiveWiFiScan());
 # endif
-
-      addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT, Settings.HiddenSSID_SlowConnectPerBSSID());
 
       addFormSubHeader(F("WiFi IP Settings"));
 
@@ -238,20 +258,30 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       addFormCheckBox(LabelType::WAIT_WIFI_CONNECT,           Settings.WaitWiFiConnect());
 # endif
       addFormCheckBox(LabelType::SDK_WIFI_AUTORECONNECT,      Settings.SDK_WiFi_autoreconnect());
-      addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT,    Settings.HiddenSSID_SlowConnectPerBSSID());
-# ifdef ESP32
-      addFormCheckBox(LabelType::WIFI_PASSIVE_SCAN,           Settings.PassiveWiFiScan());
-# endif
 
 # ifdef SUPPORT_ARP
-      addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP, Settings.gratuitousARP());
+      addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP,         Settings.gratuitousARP());
 # endif // ifdef SUPPORT_ARP
 
+      addRowLabel(F("Driver Info"));
+
+      HTML_Print htmlPrint;
+      addHtml(F("<br>"));
+      WiFi.STA.printTo(htmlPrint);
+
+      // TODO TD-er: Must remove this later, as it also prints your WiFi passwd.
+      addHtml(F("<br>"));
+      WiFi.printDiag(htmlPrint);
 
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_INIT:
+    {
+      break;
+    }
+
+    case NWPlugin::Function::NWPLUGIN_EXIT:
     {
       break;
     }

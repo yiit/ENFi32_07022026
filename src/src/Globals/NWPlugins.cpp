@@ -74,6 +74,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
     }
 
     // calls to specific network
+    case NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS:
     case NWPlugin::Function::NWPLUGIN_INIT:
     case NWPlugin::Function::NWPLUGIN_EXIT:
     case NWPlugin::Function::NWPLUGIN_GET_DEVICENAME:

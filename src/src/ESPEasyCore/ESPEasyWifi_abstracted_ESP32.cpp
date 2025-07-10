@@ -351,7 +351,7 @@ float GetRSSIthreshold(float& maxTXpwr) {
 
 WiFiConnectionProtocol getConnectionProtocol()
 {
-  #ifndef ESP32P4
+//  #ifndef ESP32P4
   if (WiFi.RSSI() < 0) {
     wifi_phy_mode_t phymode;
     esp_wifi_sta_get_negotiated_phymode(&phymode);
@@ -372,7 +372,7 @@ WiFiConnectionProtocol getConnectionProtocol()
 #  endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
     }
   }
-  #endif
+//  #endif
   return WiFiConnectionProtocol::Unknown;
 }
 

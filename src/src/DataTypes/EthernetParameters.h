@@ -5,12 +5,31 @@
 
 
 // Is stored in settings
+#ifdef ESP32P4
+// Clock pin can only be GPIO 32 / 44 / 50 (default)
+enum class EthClockMode_t : uint8_t {
+  Default               = 0,
+  Ext_crystal           = 1,
+  Int_50MHz             = 2,
+  /*
+  Ext_crystal_GPIO_32   = (1 | (32 << 2)),
+  Ext_crystal_GPIO_44   = (1 | (44 << 2)),
+  Ext_crystal_GPIO_50   = (1 | (50 << 2)),
+  Int_50MHz_GPIO_32     = (2 | (32 << 2)),
+  Int_50MHz_GPIO_44     = (2 | (44 << 2)),
+  Int_50MHz_GPIO_50     = (2 | (50 << 2)),
+  */
+
+};
+#endif
+#if CONFIG_IDF_TARGET_ESP32
 enum class EthClockMode_t : uint8_t {
   Ext_crystal_osc       = 0,
   Int_50MHz_GPIO_0      = 1,
   Int_50MHz_GPIO_16     = 2,
   Int_50MHz_GPIO_17_inv = 3
 };
+#endif
 
 bool   isValid(EthClockMode_t clockMode);
 

@@ -197,6 +197,7 @@ void saveNetworkParameterForm(NetworkSettingsStruct        & NetworkSettings,
 
     case NetworkSettingsStruct::NETWORK_ENABLED:
       Settings.setNetworkEnabled(networkindex, isFormItemChecked(internalName));
+      addLog(LOG_LEVEL_INFO, concat(F("Save NW_Enabled: "), internalName) + ' ' + isFormItemChecked(internalName) + ' ' + Settings.getNetworkEnabled(networkindex));
       break;
   }
 }

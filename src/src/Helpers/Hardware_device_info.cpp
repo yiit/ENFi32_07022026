@@ -249,7 +249,8 @@ uint32_t getFlashChipSpeed() {
 # else // if ESP_IDF_STILL_NEEDS_SPI_REGISTERS_FIXED
 #ifdef ESP32P4
   // TODO TD-er: Implement
-  return 80000000;
+//  return 80000000;
+  return ESP.getFlashChipSpeed();
 #else
 
   // All ESP32-variants have the SPI flash wired to SPI peripheral 1

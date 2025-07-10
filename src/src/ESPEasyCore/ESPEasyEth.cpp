@@ -281,7 +281,12 @@ void ethPower(bool enable) {
 
     GPIO_Write(PLUGIN_GPIO, Settings.ETH_Pin_power_rst, enable ? 1 : 0);
     if (!enable) {
-      if (Settings.ETH_Clock_Mode == EthClockMode_t::Ext_crystal_osc) {
+      #if CONFIG_IDF_TARGET_ESP32P4
+      const bool isExternalCrystal = Settings.ETH_Clock_Mode == EthClockMode_t::Ext_crystal;
+      #else
+      const bool isExternalCrystal = Settings.ETH_Clock_Mode == EthClockMode_t::Ext_crystal_osc;
+      #endif
+      if (isExternalCrystal) {
         delay(600); // Give some time to discharge any capacitors
         // Delay is needed to make sure no clock signal remains present which may cause the ESP to boot into flash mode.
       }

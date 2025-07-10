@@ -49,6 +49,11 @@ void handle_networks()
 
     if (Settings.getNWPluginID_for_network(networkindex) != nwpluginID)
     {
+      addLog(LOG_LEVEL_INFO, strformat(
+               F("HandleNW: Driver changed from %d to %d"),
+               Settings.getNWPluginID_for_network(networkindex).value,
+               nwpluginID.value));
+
       // NetworkDriver has changed.
       Settings.setNWPluginID_for_network(networkindex, nwpluginID);
 
@@ -65,6 +70,10 @@ void handle_networks()
     else
     {
       // there is a networkDriverIndex selected
+      addLog(LOG_LEVEL_INFO, concat(
+               F("HandleNW: Driver selected: "),
+               nwpluginID.value) + (nwpluginID.isValid() ? F("valid") : F("invalid")));
+
       if (nwpluginID.isValid())
       {
         mustInit = true;
@@ -91,9 +100,9 @@ void handle_networks()
         struct EventStruct TempEvent;
         TempEvent.NetworkIndex = networkindex;
         String dummy;
-        NWPlugin::Function cfunction =
+        NWPlugin::Function nfunction =
           Settings.getNetworkEnabled(networkindex) ? NWPlugin::Function::NWPLUGIN_INIT : NWPlugin::Function::NWPLUGIN_EXIT;
-        NWPluginCall(NetworkDriverIndex, cfunction, &TempEvent, dummy);
+        NWPluginCall(NetworkDriverIndex, nfunction, &TempEvent, dummy);
       }
     }
 
@@ -114,7 +123,21 @@ void handle_networks()
   TXBuffer.endStream();
 }
 
-void handle_networks_clearLoadDefaults(networkIndex_t networkindex, NetworkSettingsStruct& NetworkSettings) {}
+void handle_networks_clearLoadDefaults(networkIndex_t networkindex, NetworkSettingsStruct& NetworkSettings) {
+  networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(networkindex);
+
+  if (validNetworkDriverIndex(NetworkDriverIndex)) {
+    struct EventStruct TempEvent;
+    TempEvent.NetworkIndex = networkindex;
+
+    String dummy;
+    NWPluginCall(
+      NetworkDriverIndex,
+      NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS, &TempEvent, dummy);
+  }
+
+  // TODO TD-er: Must also check NetworkDriverStruct to see if something else must be done
+}
 
 void handle_networks_CopySubmittedSettings(networkIndex_t networkindex, NetworkSettingsStruct& NetworkSettings)
 {

@@ -15,8 +15,8 @@ const __FlashStringHelper* getChipModel(uint32_t chip_model, uint32_t chip_revis
 
 int32_t getEmbeddedFlashSize()
 {
-  // TODO TD-er: Implement
-  return 16;
+  // Returned size in MB
+  return  ESP.getFlashChipSize() >> 20;
 }
 
 int32_t getEmbeddedPSRAMSize()
@@ -26,8 +26,8 @@ int32_t getEmbeddedPSRAMSize()
  // TODO TD-er: Must check whether this is true
   switch (psram_cap) {
     case 0: return 0;
-    case 1: return 8;
-    case 2: return 2;
+    case 1: return 16;
+    case 2: return 32;
   }
 
   // Unknown value, thus mark as negative value
@@ -36,14 +36,18 @@ int32_t getEmbeddedPSRAMSize()
 
 # ifndef isPSRAMInterfacePin
 bool isPSRAMInterfacePin(int gpio) {
-  // TODO TD-er: Implement
+  // PSRAM and flash do not use GPIO pins
+  // The ESP32-P4 chip has dedicated pins for external flash and in-package PSRAM. 
+  // Such pins can not be used for other purpose.
   return false;
 }
 
 # endif // ifndef isPSRAMInterfacePin
 
 bool isFlashInterfacePin_ESPEasy(int gpio) {
-  // TODO TD-er: Implement
+  // PSRAM and flash do not use GPIO pins
+  // The ESP32-P4 chip has dedicated pins for external flash and in-package PSRAM. 
+  // Such pins can not be used for other purpose.
   return false;
 }
 
