@@ -29,6 +29,9 @@
 # include "src/WebServer/HTML_Print.h"
 # include "src/WebServer/HTML_wrappers.h"
 
+# include "src/Helpers/_NWPlugin_Helper_webform.h"
+# include "src/Helpers/PrintToString.h"
+
 # ifdef ESP32P4
 #  include <esp_hosted.h>
 # endif
@@ -57,7 +60,7 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       success = WiFi.STA.connected();
 
       if (success) {
-        string = strformat(F("%s (ch: %d)<br>%s"),
+        string = strformat(F("%s (ch: %d)\n%s"),
                            WiFi.STA.SSID().c_str(),
                            WiFi.channel(),
                            WiFi.STA.BSSIDstr().c_str());
@@ -66,7 +69,7 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       success = WiFi.isConnected();
 
       if (success) {
-        string = strformat(F("%s (ch: %d)<br>%s"),
+        string = strformat(F("%s (ch: %d)\n%s"),
                            WiFi.SSID().c_str(),
                            WiFi.channel(),
                            WiFi.BSSIDstr().c_str());
@@ -99,8 +102,11 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
 # ifdef ESP32
-      string = WiFi.STA.localIP().toString();
-# else
+      PrintToString str;
+      printAllIpAddresses(&WiFi.STA, str);
+      string = str.get();
+      //      string = WiFi.STA.localIP().toString();
+# else // ifdef ESP32
       string = WiFi.localIP().toString();
 # endif // ifdef ESP32
       break;
@@ -263,16 +269,17 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP,         Settings.gratuitousARP());
 # endif // ifdef SUPPORT_ARP
 
+# ifdef ESP32
       addRowLabel(F("Driver Info"));
 
       HTML_Print htmlPrint;
-      addHtml(F("<br>"));
+      addHtml(F("\n"));
       WiFi.STA.printTo(htmlPrint);
 
       // TODO TD-er: Must remove this later, as it also prints your WiFi passwd.
-      addHtml(F("<br>"));
+      addHtml(F("\n"));
       WiFi.printDiag(htmlPrint);
-
+# endif // ifdef ESP32
       break;
     }
 

@@ -28,6 +28,9 @@
 # include "src/WebServer/HTML_Print.h"
 # include "src/WebServer/HTML_wrappers.h"
 
+# include "src/Helpers/_NWPlugin_Helper_webform.h"
+# include "src/Helpers/PrintToString.h"
+
 # include <pins_arduino.h>
 
 bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String& string)
@@ -44,16 +47,16 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS:
     {
-      #if CONFIG_IDF_TARGET_ESP32P4
-      Settings.ETH_Clock_Mode = EthClockMode_t::Default;
-      Settings.ETH_Phy_Type = EthPhyType_t::TLK110;
-      Settings.ETH_Phy_Addr = ETH_PHY_ADDR;
-      Settings.ETH_Pin_mdc_cs = ETH_PHY_MDC;
-      Settings.ETH_Pin_mdio_irq = ETH_PHY_MDIO;
+      # if CONFIG_IDF_TARGET_ESP32P4
+      Settings.ETH_Clock_Mode    = EthClockMode_t::Ext_crystal;
+      Settings.ETH_Phy_Type      = EthPhyType_t::TLK110;
+      Settings.ETH_Phy_Addr      = ETH_PHY_ADDR;
+      Settings.ETH_Pin_mdc_cs    = ETH_PHY_MDC;
+      Settings.ETH_Pin_mdio_irq  = ETH_PHY_MDIO;
       Settings.ETH_Pin_power_rst = ETH_PHY_POWER;
-      #else
+      # else // if CONFIG_IDF_TARGET_ESP32P4
       Settings.ETH_Clock_Mode = EthClockMode_t::Ext_crystal_osc;
-      #endif
+      # endif // if CONFIG_IDF_TARGET_ESP32P4
       break;
     }
 
@@ -68,9 +71,10 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
       success = ETH.connected();
 
       if (ETH.linkUp()) {
-        string = concat(ETH.linkSpeed(), ETH.fullDuplex() ? F("M FD") : F("M HD"));
+        string  = ETH.linkSpeed();
+        string += ETH.fullDuplex() ? F("M FD") : F("M HD");
 
-        if (!ETH.autoNegotiation()) { string += F("(man)"); }
+        if (!ETH.autoNegotiation()) { string += F("(manual)"); }
       }
       break;
     }
@@ -89,7 +93,11 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
-      string = ETH.localIP().toString();
+      PrintToString str;
+      printAllIpAddresses(&ETH, str);
+      string = str.get();
+
+      // string = ETH.localIP().toString();
       break;
     }
 
@@ -138,7 +146,9 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
           toString(NetworkMedium_t::Ethernet)
         };
         const FormSelectorOptions  selector(NR_ELEMENTS(ethWifiOptions), ethWifiOptions);
-        selector.addSelector(F("ethwifi"), static_cast<int>(Settings.NetworkMedium));
+        selector.addSelector(
+          F("ethwifi"),
+          static_cast<int>(Settings.NetworkMedium));
       }
       addFormNote(F("Change Switch between WiFi and Ethernet requires reboot to activate"));
       {
@@ -247,22 +257,36 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
 # if CONFIG_ETH_USE_ESP32_EMAC
       addRowLabel_tr_id(F("Ethernet Clock"), F("ethclock"));
       {
-        #if CONFIG_IDF_TARGET_ESP32
+        #  if CONFIG_IDF_TARGET_ESP32
         const __FlashStringHelper *ethClockOptions[] = {
           toString(EthClockMode_t::Ext_crystal_osc),
           toString(EthClockMode_t::Int_50MHz_GPIO_0),
           toString(EthClockMode_t::Int_50MHz_GPIO_16),
           toString(EthClockMode_t::Int_50MHz_GPIO_17_inv)
         };
-        #endif
-        #if CONFIG_IDF_TARGET_ESP32P4
+        const int indices[] = {
+          static_cast<int>(EthClockMode_t::Ext_crystal_osc),
+          static_cast<int>(EthClockMode_t::Int_50MHz_GPIO_0),
+          static_cast<int>(EthClockMode_t::Int_50MHz_GPIO_16),
+          static_cast<int>(EthClockMode_t::Int_50MHz_GPIO_17_inv)
+        };
+        #  endif // if CONFIG_IDF_TARGET_ESP32
+        #  if CONFIG_IDF_TARGET_ESP32P4
         const __FlashStringHelper *ethClockOptions[] = {
-          toString(EthClockMode_t::Default),
+          //          toString(EthClockMode_t::Default),
           toString(EthClockMode_t::Ext_crystal),
           toString(EthClockMode_t::Int_50MHz)
         };
-        #endif
-        const FormSelectorOptions  selector(NR_ELEMENTS(ethClockOptions), ethClockOptions);
+        const int indices[] = {
+          //          static_cast<int>(EthClockMode_t::Default),
+          static_cast<int>(EthClockMode_t::Ext_crystal),
+          static_cast<int>(EthClockMode_t::Int_50MHz)
+        };
+        #  endif // if CONFIG_IDF_TARGET_ESP32P4
+        const FormSelectorOptions selector(
+          NR_ELEMENTS(ethClockOptions),
+          ethClockOptions,
+          indices);
         selector.addSelector(F("ethclock"), static_cast<int>(Settings.ETH_Clock_Mode));
       }
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
@@ -278,7 +302,7 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
-//      ETHConnectRelaxed();
+      ETHConnectRelaxed();
       break;
     }
 

@@ -25,6 +25,9 @@
 # include "src/WebServer/Markup.h"
 # include "src/ESPEasyCore/ESPEasyWifi_abstracted.h"
 
+# include "src/Helpers/_NWPlugin_Helper_webform.h"
+# include "src/Helpers/PrintToString.h"
+
 # include "src/WebServer/HTML_Print.h"
 # include "src/WebServer/HTML_wrappers.h"
 
@@ -56,7 +59,8 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
 
       if (num > 0) {
         success = true;
-        string  = concat(num, F(" client"));
+        string  = num;
+        string += F(" client");
 
         if (num > 1) { string += 's'; }
       }
@@ -66,7 +70,7 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
 # ifdef ESP32
-      string = WiFi.AP.getHostname();
+      string = WiFi.AP.SSID();
 # else
       string = WiFi.softAPSSID();
 # endif // ifdef ESP32
@@ -86,8 +90,12 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
 # ifdef ESP32
-      string = WiFi.AP.localIP().toString();
-# else
+      PrintToString str;
+      printAllIpAddresses(&WiFi.AP, str);
+      string = str.get();
+
+      //      string = WiFi.AP.localIP().toString();
+# else // ifdef ESP32
       string = WiFi.softAPIP().toString();
 # endif // ifdef ESP32
       break;
@@ -130,11 +138,13 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
       addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
   # endif // if FEATURE_ETHERNET
 
+# ifdef ESP32
       addRowLabel(F("Driver Info"));
 
       HTML_Print htmlPrint;
       addHtml(F("<br>"));
       WiFi.AP.printTo(htmlPrint);
+# endif // ifdef ESP32
 
       break;
     }

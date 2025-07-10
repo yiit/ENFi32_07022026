@@ -32,5 +32,8 @@ void saveNetworkParameterForm(NetworkSettingsStruct        & NetworkSettings,
                               networkIndex_t                 networkindex,
                               NetworkSettingsStruct::VarType varType);
 
+#ifdef ESP32
+bool printAllIpAddresses(NetworkInterface* networkInterface, Print &out);
+#endif
 
 #endif // ifndef HELPERS__NWPLUGIN_HELPER_WEBFORM_H

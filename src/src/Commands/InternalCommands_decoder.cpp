@@ -292,7 +292,7 @@ const char Internal_commands_w[] PROGMEM =
   "wifikey|"
   "wifikey2|"
   "wifimode|"
-#ifdef ESP32P4
+# ifndef SOC_WIFI_SUPPORTED
   "wifiotahostedmcu|"
 #endif
   "wifiscan|"

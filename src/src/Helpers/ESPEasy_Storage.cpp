@@ -692,7 +692,7 @@ bool Erase_WiFi_Calibration() {
   #endif
 
   #ifdef ESP32
-  #ifdef ESP32P4
+  # ifndef SOC_WIFI_SUPPORTED
   return false;
   #else
   WifiDisconnect();

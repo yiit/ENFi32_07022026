@@ -417,7 +417,7 @@ bool setProtocol(wifi_interface_t ifx, uint16_t protocol_2GHz, uint16_t protocol
 #  else // if CONFIG_SOC_WIFI_SUPPORT_5G
 
 bool setProtocol(wifi_interface_t ifx, uint8_t protocol_2GHz) { 
-  #ifdef ESP32P4
+  # ifndef SOC_WIFI_SUPPORTED
   return false;
   #else
   return esp_wifi_set_protocol(ifx, protocol_2GHz) == ESP_OK; 
@@ -443,7 +443,7 @@ void setConnectionSpeed(bool ForceWiFi_bg_mode)
   // However since HT40 is using nearly all channels on 2.4 GHz WiFi,
   // Thus you are more likely to experience disturbances.
   // The response speed and stability is better at HT20 for ESP units.
-  #ifdef ESP32P4
+  # ifndef SOC_WIFI_SUPPORTED
   return;
   #else
   esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT20);

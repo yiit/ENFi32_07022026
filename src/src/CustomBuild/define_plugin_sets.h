@@ -3511,7 +3511,7 @@ To create/register a plugin, you have to :
 #endif
 
 #ifndef FEATURE_SET_WIFI_TX_PWR
-  #ifdef ESP32P4
+  # ifndef SOC_WIFI_SUPPORTED
     #define FEATURE_SET_WIFI_TX_PWR   0
   #else
     #ifdef ESP32

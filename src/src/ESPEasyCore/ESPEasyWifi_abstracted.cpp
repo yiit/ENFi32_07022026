@@ -48,7 +48,7 @@ bool setAP(bool enable)  { return setSTA_AP(WifiIsSTA(WiFi.getMode()), enable); 
 
 bool setSTA_AP(bool sta_enable, bool ap_enable)
 {
-#ifdef ESP32P4
+# ifndef SOC_WIFI_SUPPORTED
   return true;
 #else
   if (ap_enable) {

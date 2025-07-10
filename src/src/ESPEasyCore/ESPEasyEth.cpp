@@ -204,7 +204,9 @@ bool ETHConnectRelaxed() {
       }
     } else {
 # if CONFIG_ETH_USE_ESP32_EMAC
+#ifndef ESP32P4
     ethResetGPIOpins();
+#endif
     EthEventData.ethInitSuccess = ETH.begin( 
       to_ESP_phy_type(Settings.ETH_Phy_Type),
       Settings.ETH_Phy_Addr,
@@ -307,6 +309,7 @@ void ethResetGPIOpins() {
   gpio_reset_pin((gpio_num_t)Settings.ETH_Pin_mdc_cs);
   gpio_reset_pin((gpio_num_t)Settings.ETH_Pin_mdio_irq);
 # if CONFIG_ETH_USE_ESP32_EMAC
+
   gpio_reset_pin(GPIO_NUM_19);    // EMAC_TXD0 - hardcoded
   gpio_reset_pin(GPIO_NUM_21);    // EMAC_TX_EN - hardcoded
   gpio_reset_pin(GPIO_NUM_22);    // EMAC_TXD1 - hardcoded

@@ -279,7 +279,7 @@ WiFiConnectionProtocol getConnectionProtocol() { return ESPEasy::net::wifi::getC
 # ifdef ESP32
 
 int64_t WiFi_get_TSF_time() { 
-  #ifdef ESP32P4
+  # ifndef SOC_WIFI_SUPPORTED
   return 0;
   #else
   return esp_wifi_get_tsf_time(WIFI_IF_STA); 

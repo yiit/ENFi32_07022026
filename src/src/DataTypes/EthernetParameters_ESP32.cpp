@@ -4,7 +4,8 @@
 #if CONFIG_IDF_TARGET_ESP32
 
 bool isValid(EthClockMode_t clockMode) {
-  switch (clockMode) {
+  switch (clockMode)
+  {
     case  EthClockMode_t::Ext_crystal_osc:
     case  EthClockMode_t::Int_50MHz_GPIO_0:
     case  EthClockMode_t::Int_50MHz_GPIO_16:
@@ -27,7 +28,8 @@ bool isGpioUsedInETHClockMode(EthClockMode_t clockMode,
 }
 
 const __FlashStringHelper* toString(EthClockMode_t clockMode) {
-  switch (clockMode) {
+  switch (clockMode)
+  {
     case  EthClockMode_t::Ext_crystal_osc:       return F("External crystal oscillator");
     case  EthClockMode_t::Int_50MHz_GPIO_0:      return F("50MHz APLL Output on GPIO0");
     case  EthClockMode_t::Int_50MHz_GPIO_16:     return F("50MHz APLL Output on GPIO16");
@@ -38,5 +40,4 @@ const __FlashStringHelper* toString(EthClockMode_t clockMode) {
   return F("Unknown");
 }
 
-
-#endif
+#endif // if CONFIG_IDF_TARGET_ESP32

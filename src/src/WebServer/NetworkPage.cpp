@@ -233,6 +233,7 @@ void handle_networks_ShowAllNetworksTable()
         }
 
         if (!str.isEmpty()) {
+          str.replace(F("\n"), F("<br>"));
           addHtml(str);
         }
 

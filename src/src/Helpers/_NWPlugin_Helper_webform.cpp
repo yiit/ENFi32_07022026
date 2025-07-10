@@ -201,3 +201,25 @@ void saveNetworkParameterForm(NetworkSettingsStruct        & NetworkSettings,
       break;
   }
 }
+
+#ifdef ESP32
+bool printAllIpAddresses(NetworkInterface* networkInterface, Print &out)
+{
+  if (!networkInterface) return false;
+   out.println(networkInterface->localIP());
+
+  #if CONFIG_LWIP_IPV6
+  static const char *types[] = {"UNKNOWN", "GLOBAL", "LINK_LOCAL", "SITE_LOCAL", "UNIQUE_LOCAL", "IPV4_MAPPED_IPV6"};
+  esp_ip6_addr_t if_ip6[CONFIG_LWIP_IPV6_NUM_ADDRESSES];
+  int v6addrs = esp_netif_get_all_ip6(networkInterface->netif(), if_ip6);
+  for (int i = 0; i < v6addrs; ++i) {
+   out.print(types[esp_netif_ip6_get_addr_type(&if_ip6[i])]);
+   out.print(": ");
+   IPAddress(IPv6, (const uint8_t *)if_ip6[i].addr, if_ip6[i].zone).printTo(out, true);
+   out.println();
+  }
+#endif
+  
+  return true;
+}
+#endif
