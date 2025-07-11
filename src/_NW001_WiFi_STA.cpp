@@ -53,6 +53,14 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       string = F(NWPLUGIN_NAME_001);
       break;
     }
+# ifdef ESP32
+    case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
+    {
+      event->networkInterface = &WiFi.STA;
+      success                 = event->networkInterface != nullptr;
+      break;
+    }
+# endif // ifdef ESP32
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
@@ -78,39 +86,28 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       break;
     }
 
+# ifdef ESP8266
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
-# ifdef ESP32
-      string = WiFi.STA.getHostname();
-# else
-      string = WiFi.hostname();
-# endif // ifdef ESP32
+      string  = WiFi.hostname();
+      success = true;
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
     {
-# ifdef ESP32
-      string = WiFi.STA.macAddress();
-# else
-      string = WiFi.macAddress();
-# endif // ifdef ESP32
-
+      string  = WiFi.macAddress();
+      success = true;
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
-# ifdef ESP32
-      PrintToString str;
-      success = print_IP_address(static_cast<NWPlugin::IP_type>(event->Par1), &WiFi.STA, str);
-      string = str.get();
-      //      string = WiFi.STA.localIP().toString();
-# else // ifdef ESP32
-      string = WiFi.localIP().toString();
-# endif // ifdef ESP32
+      string  = WiFi.localIP().toString();
+      success = true;
       break;
     }
+# endif // ifdef ESP8266
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {

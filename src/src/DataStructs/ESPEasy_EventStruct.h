@@ -10,6 +10,9 @@
 #include "../DataTypes/NetworkIndex.h"
 #include "../DataStructs/DeviceStruct.h"
 
+#ifdef ESP32
+class NetworkInterface;
+#endif
 
 /*********************************************************************************************\
 * EventStruct
@@ -55,6 +58,9 @@ public:
   String        String3;
   String        String4;
   String        String5;
+  #ifdef ESP32
+  NetworkInterface* networkInterface = nullptr;
+  #endif
 
 
   uint32_t      timestamp_sec = 0u;

@@ -8,6 +8,7 @@
 
 #include "../Globals/Settings.h"
 #include "../Helpers/_NWPlugin_init.h"
+#include "../Helpers/PrintToString.h"
 
 bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event) {
   #ifdef USE_SECOND_HEAP
@@ -58,7 +59,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
             command = str;
           }
 
-          if (NWPluginCall(
+          if (NWPluginCall_(
                 getNetworkDriverIndex_from_NetworkIndex(x),
                 Function,
                 event,
@@ -80,7 +81,15 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_GET_DEVICENAME:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
+#ifdef ESP32
+    case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
+#endif
+    case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
+    case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
+    case NWPlugin::Function::NWPLUGIN_DRIVER_TEMPLATE:
+    case NWPlugin::Function::NWPLUGIN_GET_PARAMETER_DISPLAY_NAME:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
@@ -91,18 +100,60 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
       if (validNetworkIndex(networkIndex)) {
         if (Settings.getNetworkEnabled(networkIndex) && supportedNWPluginID(Settings.getNWPluginID_for_network(networkIndex)))
         {
-          success = NWPluginCall(
-            getNetworkDriverIndex_from_NetworkIndex(networkIndex),
+          const networkDriverIndex_t networkDriverIndex =
+            getNetworkDriverIndex_from_NetworkIndex(networkIndex);
+
+          success = NWPluginCall_(
+            networkDriverIndex,
             Function,
             event,
             str);
+#ifdef ESP32
+
+          if (!success && NWPlugin::canQueryViaNetworkInterface(Function)) {
+            String dummy_str;
+
+            if (NWPluginCall_(
+                  networkDriverIndex,
+                  NWPlugin::Function::NWPLUGIN_GET_INTERFACE,
+                  event,
+                  dummy_str)) {
+              if (event->networkInterface != nullptr) {
+                switch (Function)
+                {
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
+                    str     = event->networkInterface->getHostname();
+                    success = true;
+                    break;
+
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
+                    str     = event->networkInterface->macAddress();
+                    success = true;
+                    break;
+
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
+                  {
+                    PrintToString prstr;
+                    success = NWPlugin::print_IP_address(
+                      static_cast<NWPlugin::IP_type>(event->Par1),
+                      event->networkInterface,
+                      prstr);
+                    str = prstr.get();
+                    break;
+                  }
+                  default: break;
+                }
+              }
+            }
+          }
+#endif // ifdef ESP32
         }
-        #ifdef ESP32
+#ifdef ESP32
 
         if (Function == NWPlugin::Function::NWPLUGIN_EXIT) {
           //          Cache.clearNetworkSettings(networkIndex);
         }
-        #endif // ifdef ESP32
+#endif // ifdef ESP32
       }
       return success;
     }
@@ -114,8 +165,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
 bool validNetworkDriverIndex(networkDriverIndex_t index) { return validNetworkDriverIndex_init(index); }
 
 
-//bool getIP(networkDriverIndex_t index, NWPlugin::IP_type ip_type){}
-
+// bool getIP(networkDriverIndex_t index, NWPlugin::IP_type ip_type){}
 
 /*
    bool validNetworkIndex(networkIndex_t index)
@@ -156,7 +206,7 @@ String getNWPluginNameFromNetworkDriverIndex(networkDriverIndex_t NetworkDriverI
   String networkName;
 
   if (validNetworkDriverIndex(NetworkDriverIndex)) {
-    NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_DEVICENAME, nullptr, networkName);
+    NWPluginCall_(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_DEVICENAME, nullptr, networkName);
   }
   return networkName;
 }

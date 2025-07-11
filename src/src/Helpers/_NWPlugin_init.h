@@ -19,7 +19,8 @@ nwpluginID_t getHighestIncludedNWPluginID();
 
 NetworkDriverStruct& getNetworkDriverStruct(networkDriverIndex_t networkDriverIndex);
 
-bool NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string);
+// Should only be called from NWPluginCall, or maybe for very special occasions
+bool NWPluginCall_(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string);
 
 
 void NWPluginSetup();

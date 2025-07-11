@@ -104,7 +104,7 @@ void run_compiletime_checks() {
   check_max_size<ExtraTaskSettingsStruct,           DAT_TASKS_SIZE>();
   #ifdef ESP32  // ESP_IDF_VERSION_MAJOR > 3
   // String class has increased with 4 bytes
-  check_size<EventStruct,                           124u>(); // Is not stored
+  check_size<EventStruct,                           128u>(); // Is not stored
   #else
   check_size<EventStruct,                           104u>(); // Is not stored
   #endif

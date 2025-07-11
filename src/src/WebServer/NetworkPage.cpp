@@ -18,6 +18,8 @@
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/ESPEasy_Storage.h"
 
+# include "../Helpers/PrintToString.h"
+
 void handle_networks()
 {
 # ifndef BUILD_NO_RAM_TRACKER
@@ -102,7 +104,7 @@ void handle_networks()
         String dummy;
         NWPlugin::Function nfunction =
           Settings.getNetworkEnabled(networkindex) ? NWPlugin::Function::NWPLUGIN_INIT : NWPlugin::Function::NWPLUGIN_EXIT;
-        NWPluginCall(NetworkDriverIndex, nfunction, &TempEvent, dummy);
+        NWPluginCall_(NetworkDriverIndex, nfunction, &TempEvent, dummy);
       }
     }
 
@@ -131,7 +133,7 @@ void handle_networks_clearLoadDefaults(networkIndex_t networkindex, NetworkSetti
     TempEvent.NetworkIndex = networkindex;
 
     String dummy;
-    NWPluginCall(
+    NWPluginCall_(
       NetworkDriverIndex,
       NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS, &TempEvent, dummy);
   }
@@ -158,7 +160,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(networkIndex_t networkin
 
     // Call network plugin to save CustomNetworkSettings
     String dummy;
-    NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    NWPluginCall_(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 
 }
@@ -219,6 +221,7 @@ void handle_networks_ShowAllNetworksTable()
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
       };
+
       const networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(x);
 
       for (uint8_t i = 0; i < NR_ELEMENTS(functions); ++i) {
@@ -227,7 +230,9 @@ void handle_networks_ShowAllNetworksTable()
         TempEvent.NetworkIndex = x;
 
         String str;
-        const bool res = NWPluginCall(NetworkDriverIndex, functions[i], &TempEvent, str);
+
+        // const bool res = NWPluginCall_(NetworkDriverIndex, functions[i], &TempEvent, str);
+        const bool res = NWPluginCall(functions[i], &TempEvent, str);
 
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED) {
           if (!res || str.isEmpty()) {
@@ -304,12 +309,13 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
     TempEvent.NetworkIndex = networkindex;
 
     String str;
-    NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
+    NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 
     addFormSubHeader(F("IP Config"));
 
     const NWPlugin::IP_type ip_types[] = {
       NWPlugin::IP_type::inet,
+      NWPlugin::IP_type::network_id_cdr,
       NWPlugin::IP_type::netmask,
       NWPlugin::IP_type::broadcast,
       NWPlugin::IP_type::gateway,
@@ -326,13 +332,16 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
 
     };
 
-    for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
-      TempEvent.Par1 = static_cast<int>(ip_types[i]);
+    if (NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
+    {
+      for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
 
-      if (NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP, &TempEvent, str))
-      {
-        addRowLabel(NWPlugin::toString(ip_types[i]));
-        addHtml(str);
+        PrintToString str;
+
+        if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
+          addRowLabel(NWPlugin::toString(ip_types[i]));
+          addHtml_pre(str.get());
+        }
       }
     }
 

@@ -154,8 +154,11 @@ public:
 
   };
 
+#ifdef ESP32
+
   enum class IP_type {
-   inet,
+   inet = 0,  // Keep index at 0 as default query
+   network_id_cdr,
    netmask,
    broadcast,
    gateway,
@@ -172,7 +175,15 @@ public:
 
   };
 
+  static bool canQueryViaNetworkInterface(Function function);
+
   static const __FlashStringHelper* toString(IP_type ip_type);
+
+  static IPAddress get_IP_address(NWPlugin::IP_type ip_type, NetworkInterface* networkInterface);
+
+  static bool print_IP_address(NWPlugin::IP_type ip_type, NetworkInterface* networkInterface, Print &out);
+
+#endif
 
 }; // class NWPlugin
 

@@ -1040,8 +1040,8 @@ constexpr /*nwpluginID_t*/ uint8_t NetworkDriverIndex_to_NWPlugin_id[] PROGMEM =
 
 
 typedef bool (*NWPlugin_ptr_t)(NWPlugin::Function,
-                      struct EventStruct *,
-                      String&);
+                               struct EventStruct *,
+                               String&);
 
 const NWPlugin_ptr_t PROGMEM NWPlugin_ptr[] =
 {
@@ -2070,7 +2070,8 @@ const NWPlugin_ptr_t PROGMEM NWPlugin_ptr[] =
 constexpr size_t NetworkDriverIndex_to_NWPlugin_id_size = sizeof(NetworkDriverIndex_to_NWPlugin_id);
 
 // Highest NWPlugin ID included in the build
-constexpr size_t Highest_NWPlugin_id = NetworkDriverIndex_to_NWPlugin_id_size == 0 ? 0 : NetworkDriverIndex_to_NWPlugin_id[NetworkDriverIndex_to_NWPlugin_id_size - 1];
+constexpr size_t Highest_NWPlugin_id = NetworkDriverIndex_to_NWPlugin_id_size ==
+                                       0 ? 0 : NetworkDriverIndex_to_NWPlugin_id[NetworkDriverIndex_to_NWPlugin_id_size - 1];
 
 constexpr size_t NWPlugin_id_to_NetworkDriverIndex_size = Highest_NWPlugin_id + 1;
 
@@ -2089,8 +2090,6 @@ NetworkDriverStruct& getNetworkDriverStruct(networkDriverIndex_t networkDriverIn
   }
   return NetworkDriverArray[networkDriverIndex.value];
 }
-
-
 
 networkDriverIndex_t getNetworkDriverIndex_from_NWPluginID_(nwpluginID_t nwpluginID)
 {
@@ -2116,19 +2115,15 @@ bool validNetworkDriverIndex_init(networkDriverIndex_t networkDriverIndex)
   return networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size;
 }
 
-nwpluginID_t getHighestIncludedNWPluginID()
-{ 
-  return nwpluginID_t::toPluginID(Highest_NWPlugin_id);
-}
+nwpluginID_t getHighestIncludedNWPluginID() { return nwpluginID_t::toPluginID(Highest_NWPlugin_id); }
 
-
-bool NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string)
+bool         NWPluginCall_(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string)
 {
   if (networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size)
   {
     START_TIMER;
     NWPlugin_ptr_t nwplugin_call = (NWPlugin_ptr_t)pgm_read_ptr(NWPlugin_ptr + networkDriverIndex.value);
-    const bool res = nwplugin_call(Function, event, string);
+    const bool     res           = nwplugin_call(Function, event, string);
     STOP_TIMER_NETWORK(networkDriverIndex, Function);
     return res;
   }
@@ -2147,6 +2142,7 @@ void NWPluginSetup()
   }
 
   networkDriverIndex_t networkDriverIndex{};
+
   for (; networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size; ++networkDriverIndex)
   {
     const nwpluginID_t nwpluginID = getNWPluginID_from_NetworkDriverIndex(networkDriverIndex);
@@ -2156,7 +2152,7 @@ void NWPluginSetup()
       struct EventStruct TempEvent;
       TempEvent.idx = networkDriverIndex.value;
       String dummy;
-      NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_DRIVER_ADD, &TempEvent, dummy);
+      NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_DRIVER_ADD, &TempEvent, dummy);
     }
   }
   setupDone = true;

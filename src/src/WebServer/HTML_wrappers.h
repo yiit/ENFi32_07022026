@@ -121,6 +121,8 @@ void addHtml(const char& char1);
 void addHtml(const char& char1, const char& char2);
 void addHtml(const __FlashStringHelper * html);
 void addHtml(const String& html);
+// Add text wrapped in <pre> ... </pre>  (monospaced formatted)
+void addHtml_pre(const String& html);
 void addHtml(String&& html);
 void addHtmlInt(int8_t int_val);
 void addHtmlInt(int16_t int_val);

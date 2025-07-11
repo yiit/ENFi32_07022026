@@ -1,23 +1,115 @@
 #include "../DataTypes/ESPEasy_plugin_functions.h"
 
+#ifdef ESP32
+
+# include <esp_netif.h>
+
+bool NWPlugin::canQueryViaNetworkInterface(NWPlugin::Function function)
+{
+  switch (function)
+  {
+    // TD-er: Do not try to fetch hostname via base class. No idea why, but it doesn't work well
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
+      return true;
+    default: break;
+  }
+  return false;
+}
+
 const __FlashStringHelper * NWPlugin::toString(NWPlugin::IP_type ip_type)
 {
   switch (ip_type)
   {
     case NWPlugin::IP_type::inet:              return F("Inet");
+    case NWPlugin::IP_type::network_id_cdr:    return F("Network/CDR");
     case NWPlugin::IP_type::netmask:           return F("Netmask");
     case NWPlugin::IP_type::broadcast:         return F("Broadcast");
     case NWPlugin::IP_type::gateway:           return F("Gateway");
     case NWPlugin::IP_type::dns1:              return F("Dns1");
     case NWPlugin::IP_type::dns2:              return F("Dns2");
-#if CONFIG_LWIP_IPV6
+# if CONFIG_LWIP_IPV6
     case NWPlugin::IP_type::ipv6_unknown:      return F("IPv6 unknown");
     case NWPlugin::IP_type::ipv6_global:       return F("IPv6 global");
     case NWPlugin::IP_type::ipv6_link_local:   return F("IPv6 link local");
     case NWPlugin::IP_type::ipv6_site_local:   return F("IPv6 site local");
     case NWPlugin::IP_type::ipv6_unique_local: return F("IPv6 unique local");
     case NWPlugin::IP_type::ipv4_mapped_ipv6:  return F("IPv4 mapped IPv6");
-#endif // if CONFIG_LWIP_IPV6
+# endif // if CONFIG_LWIP_IPV6
   }
   return F("unknown");
 }
+
+bool NWPlugin::print_IP_address(NWPlugin::IP_type ip_type, NetworkInterface*networkInterface, Print& out)
+{
+  const IPAddress ip(get_IP_address(ip_type, networkInterface));
+  const size_t    nrBytes = ip.printTo(out, true) > 0;
+
+  if (ip.type() == IPv4) {
+    const uint32_t val(ip);
+
+    if (val == 0) { return false; }
+  }
+
+  if (ip_type == NWPlugin::IP_type::network_id_cdr) {
+    out.print('/');
+    out.print(networkInterface->subnetCIDR());
+  }
+  return nrBytes > 0;
+}
+
+IPAddress NWPlugin::get_IP_address(NWPlugin::IP_type ip_type, NetworkInterface*networkInterface)
+{
+  IPAddress ip;
+
+  if (networkInterface) {
+# if CONFIG_LWIP_IPV6
+    esp_ip6_addr_type_t ip6_addr_type = ESP_IP6_ADDR_IS_UNKNOWN;
+# endif
+
+    switch (ip_type)
+    {
+      case NWPlugin::IP_type::inet:           return networkInterface->localIP();
+      case NWPlugin::IP_type::network_id_cdr: return networkInterface->networkID();
+      case NWPlugin::IP_type::netmask:        return networkInterface->subnetMask();
+      case NWPlugin::IP_type::broadcast:      return networkInterface->broadcastIP();
+      case NWPlugin::IP_type::gateway:        return networkInterface->gatewayIP();
+      case NWPlugin::IP_type::dns1:           return networkInterface->dnsIP(0);
+      case NWPlugin::IP_type::dns2:           return networkInterface->dnsIP(1);
+# if CONFIG_LWIP_IPV6
+      case NWPlugin::IP_type::ipv6_unknown:      ip6_addr_type = ESP_IP6_ADDR_IS_UNKNOWN;
+        break;
+      case NWPlugin::IP_type::ipv6_global:       ip6_addr_type = ESP_IP6_ADDR_IS_GLOBAL;
+        break;
+      case NWPlugin::IP_type::ipv6_link_local:   ip6_addr_type = ESP_IP6_ADDR_IS_LINK_LOCAL;
+        break;
+      case NWPlugin::IP_type::ipv6_site_local:   ip6_addr_type = ESP_IP6_ADDR_IS_SITE_LOCAL;
+        break;
+      case NWPlugin::IP_type::ipv6_unique_local: ip6_addr_type = ESP_IP6_ADDR_IS_UNIQUE_LOCAL;
+        break;
+      case NWPlugin::IP_type::ipv4_mapped_ipv6:  ip6_addr_type = ESP_IP6_ADDR_IS_IPV4_MAPPED_IPV6;
+        break;
+# endif // if CONFIG_LWIP_IPV6
+      default:
+        return ip;
+    }
+# if CONFIG_LWIP_IPV6
+
+    if (networkInterface->netif()) {
+      esp_ip6_addr_t if_ip6[CONFIG_LWIP_IPV6_NUM_ADDRESSES];
+      int v6addrs = esp_netif_get_all_ip6(networkInterface->netif(), if_ip6);
+
+      for (int i = 0; i < v6addrs; ++i) {
+        if (esp_netif_ip6_get_addr_type(&if_ip6[i]) == ip6_addr_type) {
+          return IPAddress(IPv6, (const uint8_t *)if_ip6[i].addr, if_ip6[i].zone);
+        }
+      }
+    }
+# endif // if CONFIG_LWIP_IPV6
+  }
+
+  return ip;
+}
+
+#endif // ifdef ESP32

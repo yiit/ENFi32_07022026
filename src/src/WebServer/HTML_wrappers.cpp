@@ -397,6 +397,12 @@ void addHtml(String&& html) {
   TXBuffer += html;
 }
 
+void addHtml_pre(const String& html) {
+  addHtml(F("<pre>"));
+  addHtml(html);
+  addHtml(F("</pre>"));
+}
+
 void addHtmlInt(int8_t int_val) {
   addHtml(String(int_val));
 }

@@ -49,6 +49,16 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
       break;
     }
 
+# ifdef ESP32
+    case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
+    {
+      event->networkInterface = &WiFi.AP;
+      success                 = event->networkInterface != nullptr;
+      break;
+    }
+# endif // ifdef ESP32
+
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
 # ifdef ESP32
@@ -74,32 +84,25 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
 # else
       string = WiFi.softAPSSID();
 # endif // ifdef ESP32
+      success = true;
       break;
     }
 
+# ifdef ESP8266
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
     {
-# ifdef ESP32
-      string = WiFi.AP.macAddress();
-# else
-      string = WiFi.softAPmacAddress();
-# endif // ifdef ESP32
+      string  = WiFi.softAPmacAddress();
+      success = true;
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
-# ifdef ESP32
-      PrintToString str;
-      success = print_IP_address(static_cast<NWPlugin::IP_type>(event->Par1), &WiFi.AP, str);
-      string = str.get();
-
-      //      string = WiFi.AP.localIP().toString();
-# else // ifdef ESP32
-      string = WiFi.softAPIP().toString();
-# endif // ifdef ESP32
+      string  = WiFi.softAPIP().toString();
+      success = true;
       break;
     }
+# endif // ifdef ESP8266
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {

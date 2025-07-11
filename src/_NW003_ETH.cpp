@@ -66,38 +66,26 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
       break;
     }
 
+    # ifdef ESP32
+    case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
+    {
+      event->networkInterface = &ETH;
+      success                 = event->networkInterface != nullptr;
+      break;
+    }
+# endif // ifdef ESP32
+
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
       success = ETH.connected();
 
       if (ETH.linkUp()) {
         string  = ETH.linkSpeed();
-        string += ETH.fullDuplex() ? F("M FD") : F("M HD");
+        string += ETH.fullDuplex() ? F("Mbps FD") : F("Mbps HD");
 
         if (!ETH.autoNegotiation()) { string += F("(manual)"); }
       }
-      break;
-    }
-
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
-    {
-      string = ETH.getHostname();
-      break;
-    }
-
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_MAC:
-    {
-      string = ETH.macAddress();
-      break;
-    }
-
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
-    {
-      PrintToString str;
-      success = print_IP_address(static_cast<NWPlugin::IP_type>(event->Par1), &ETH, str);
-      string = str.get();
-
-      // string = ETH.localIP().toString();
       break;
     }
 
