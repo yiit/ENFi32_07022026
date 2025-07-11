@@ -311,36 +311,76 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
     String str;
     NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 
-    addFormSubHeader(F("IP Config"));
-
-    const NWPlugin::IP_type ip_types[] = {
-      NWPlugin::IP_type::inet,
-      NWPlugin::IP_type::network_id_cdr,
-      NWPlugin::IP_type::netmask,
-      NWPlugin::IP_type::broadcast,
-      NWPlugin::IP_type::gateway,
-      NWPlugin::IP_type::dns1,
-      NWPlugin::IP_type::dns2,
-# if CONFIG_LWIP_IPV6
-      NWPlugin::IP_type::ipv6_unknown,
-      NWPlugin::IP_type::ipv6_global,
-      NWPlugin::IP_type::ipv6_link_local,
-      NWPlugin::IP_type::ipv6_site_local,
-      NWPlugin::IP_type::ipv6_unique_local,
-      NWPlugin::IP_type::ipv4_mapped_ipv6,
-# endif // if CONFIG_LWIP_IPV6
-
-    };
-
     if (NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
-      for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
+      {
+        addFormSubHeader(F("Network Interface"));
+        addRowLabel(F("MAC Address"));
+        addHtml_pre(TempEvent.networkInterface->macAddress());
 
-        PrintToString str;
+        const NWPlugin::NetforkFlags flags[] = {
+          NWPlugin::NetforkFlags::DHCP_client,
+          NWPlugin::NetforkFlags::DHCP_server,
+          NWPlugin::NetforkFlags::AutoUp,
+          NWPlugin::NetforkFlags::GratuituousArp,
+          NWPlugin::NetforkFlags::EventIPmodified,
+          NWPlugin::NetforkFlags::isPPP,
+          NWPlugin::NetforkFlags::isBridge,
+# if CONFIG_LWIP_IPV6
+          NWPlugin::NetforkFlags::MLD_v6_report,
+          NWPlugin::NetforkFlags::IPv6_autoconf_enabled,
+# endif // if CONFIG_LWIP_IPV6
+        };
 
-        if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
-          addRowLabel(NWPlugin::toString(ip_types[i]));
-          addHtml_pre(str.get());
+        addRowLabel(F("Flags"));
+        String labels_str;
+
+        for (size_t i = 0; i < NR_ELEMENTS(flags); ++i) {
+          if (NWPlugin::isFlagSet(flags[i], TempEvent.networkInterface)) {
+            if (!labels_str.isEmpty()) {
+              labels_str += F("<br>");
+            }
+            labels_str += NWPlugin::toString(flags[i]);
+
+            if (flags[i] == NWPlugin::NetforkFlags::DHCP_client) {
+              if (TempEvent.networkInterface->getStatusBits() & ESP_NETIF_HAS_STATIC_IP_BIT) {
+                labels_str += F(" (static IP)");
+              }
+            }
+          }
+        }
+        addHtml_pre(labels_str);
+      }
+      {
+        addFormSubHeader(F("IP Config"));
+
+        const NWPlugin::IP_type ip_types[] = {
+          NWPlugin::IP_type::inet,
+          NWPlugin::IP_type::network_id_cdr,
+          NWPlugin::IP_type::netmask,
+          NWPlugin::IP_type::broadcast,
+          NWPlugin::IP_type::gateway,
+          NWPlugin::IP_type::dns1,
+          NWPlugin::IP_type::dns2,
+# if CONFIG_LWIP_IPV6
+          NWPlugin::IP_type::ipv6_unknown,
+          NWPlugin::IP_type::ipv6_global,
+          NWPlugin::IP_type::ipv6_link_local,
+          NWPlugin::IP_type::ipv6_site_local,
+          NWPlugin::IP_type::ipv6_unique_local,
+          NWPlugin::IP_type::ipv4_mapped_ipv6,
+# endif // if CONFIG_LWIP_IPV6
+
+        };
+
+        for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
+
+          PrintToString str;
+
+          if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
+            addRowLabel(NWPlugin::toString(ip_types[i]));
+            addHtml_pre(str.get());
+          }
         }
       }
     }

@@ -112,4 +112,34 @@ IPAddress NWPlugin::get_IP_address(NWPlugin::IP_type ip_type, NetworkInterface*n
   return ip;
 }
 
+const __FlashStringHelper * NWPlugin::toString(NWPlugin::NetforkFlags flag)
+{
+  switch (flag)
+  {
+    case NWPlugin::NetforkFlags::DHCP_client:           return F("DHCP Client");
+    case NWPlugin::NetforkFlags::DHCP_server:           return F("DHCP Server");
+    case NWPlugin::NetforkFlags::AutoUp:                return F("Auto Up");
+    case NWPlugin::NetforkFlags::GratuituousArp:        return F("Gratuituous Arp");
+    case NWPlugin::NetforkFlags::EventIPmodified:       return F("Send Event when IP Modified");
+    case NWPlugin::NetforkFlags::isPPP:                 return F("PPP");
+    case NWPlugin::NetforkFlags::isBridge:              return F("Bridge");
+    case NWPlugin::NetforkFlags::MLD_v6_report:         return F("MLD IPv6 Report");
+    case NWPlugin::NetforkFlags::IPv6_autoconf_enabled: return F("IPv6 Autoconf");
+
+  }
+  return F("unknown");
+}
+
+bool NWPlugin::isFlagSet(NWPlugin::NetforkFlags flag, NetworkInterface*networkInterface)
+{
+  if (networkInterface == nullptr) { return false; }
+  auto netif = networkInterface->netif();
+
+  if (netif == nullptr) { return false; }
+  const auto flags = esp_netif_get_flags(netif);
+
+  const uint32_t mask = static_cast<int>(flag);
+  return flags & mask;
+}
+
 #endif // ifdef ESP32

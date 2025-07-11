@@ -141,14 +141,6 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
       addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
   # endif // if FEATURE_ETHERNET
 
-# ifdef ESP32
-      addRowLabel(F("Driver Info"));
-
-      HTML_Print htmlPrint;
-      addHtml(F("<br>"));
-      WiFi.AP.printTo(htmlPrint);
-# endif // ifdef ESP32
-
       break;
     }
 

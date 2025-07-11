@@ -266,17 +266,6 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
       addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP,         Settings.gratuitousARP());
 # endif // ifdef SUPPORT_ARP
 
-# ifdef ESP32
-      addRowLabel(F("Driver Info"));
-
-      HTML_Print htmlPrint;
-      addHtml(F("\n"));
-      WiFi.STA.printTo(htmlPrint);
-
-      // TODO TD-er: Must remove this later, as it also prints your WiFi passwd.
-      addHtml(F("\n"));
-      WiFi.printDiag(htmlPrint);
-# endif // ifdef ESP32
       break;
     }
 

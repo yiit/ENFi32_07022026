@@ -128,9 +128,9 @@ public:
   // As these function values are also used in the timing stats, make sure there is no overlap with the PLUGIN_xxx numbering.
 
   enum class Function {
-    NWPLUGIN_DRIVER_ADD = 192,  // Called at boot for letting a network adapter adding itself to list of available controllers
-    NWPLUGIN_CONNECT_SUCCESS,   // Only used for timing stats
-    NWPLUGIN_CONNECT_FAIL,      // Only used for timing stats
+    NWPLUGIN_DRIVER_ADD = 192, // Called at boot for letting a network adapter adding itself to list of available controllers
+    NWPLUGIN_CONNECT_SUCCESS,  // Only used for timing stats
+    NWPLUGIN_CONNECT_FAIL,     // Only used for timing stats
     NWPLUGIN_DRIVER_TEMPLATE,
     NWPLUGIN_LOAD_DEFAULTS,
     NWPLUGIN_GET_DEVICENAME,
@@ -138,54 +138,78 @@ public:
     NWPLUGIN_WEBFORM_LOAD,
     NWPLUGIN_GET_PARAMETER_DISPLAY_NAME,
     NWPLUGIN_INIT,
-    NWPLUGIN_TEN_PER_SECOND,          // Called 10x per second (typical for checking new data instead of waiting)
-    NWPLUGIN_FIFTY_PER_SECOND,        // Called 50x per second (typical for checking new data instead of waiting)
+    NWPLUGIN_TEN_PER_SECOND,   // Called 10x per second (typical for checking new data instead of waiting)
+    NWPLUGIN_FIFTY_PER_SECOND, // Called 50x per second (typical for checking new data instead of waiting)
     NWPLUGIN_INIT_ALL,
     NWPLUGIN_EXIT,
-    NWPLUGIN_WRITE,                   // Send commands to a network adapter.
+    NWPLUGIN_WRITE,            // Send commands to a network adapter.
     #ifdef ESP32
     NWPLUGIN_GET_INTERFACE,
     #endif
-    NWPLUGIN_WEBFORM_SHOW_CONNECTED,  // Used for showing connected state/speed
-    NWPLUGIN_WEBFORM_SHOW_HOSTNAME,   // Used for showing hostname
-    NWPLUGIN_WEBFORM_SHOW_MAC,        // Used for showing MAC
-    NWPLUGIN_WEBFORM_SHOW_IP ,        // Used for showing IP
-    NWPLUGIN_WEBFORM_SHOW_PORT // Used for showing host information for the network adapter.
+    NWPLUGIN_WEBFORM_SHOW_CONNECTED, // Used for showing connected state/speed
+    NWPLUGIN_WEBFORM_SHOW_HOSTNAME,  // Used for showing hostname
+    NWPLUGIN_WEBFORM_SHOW_MAC,       // Used for showing MAC
+    NWPLUGIN_WEBFORM_SHOW_IP,        // Used for showing IP
+    NWPLUGIN_WEBFORM_SHOW_PORT       // Used for showing host information for the network adapter.
 
   };
 
 #ifdef ESP32
+  static bool canQueryViaNetworkInterface(Function function);
 
   enum class IP_type {
-   inet = 0,  // Keep index at 0 as default query
-   network_id_cdr,
-   netmask,
-   broadcast,
-   gateway,
-   dns1,
-   dns2,
+    inet = 0, // Keep index at 0 as default query
+    network_id_cdr,
+    netmask,
+    broadcast,
+    gateway,
+    dns1,
+    dns2,
 # if CONFIG_LWIP_IPV6
-   ipv6_unknown,
-   ipv6_global,
-   ipv6_link_local,
-   ipv6_site_local,
-   ipv6_unique_local,
-   ipv4_mapped_ipv6
-# endif
+    ipv6_unknown,
+    ipv6_global,
+    ipv6_link_local,
+    ipv6_site_local,
+    ipv6_unique_local,
+    ipv4_mapped_ipv6
+# endif // if CONFIG_LWIP_IPV6
 
   };
 
-  static bool canQueryViaNetworkInterface(Function function);
 
   static const __FlashStringHelper* toString(IP_type ip_type);
 
-  static IPAddress get_IP_address(NWPlugin::IP_type ip_type, NetworkInterface* networkInterface);
+  static IPAddress                  get_IP_address(NWPlugin::IP_type ip_type,
+                                                   NetworkInterface *networkInterface);
 
-  static bool print_IP_address(NWPlugin::IP_type ip_type, NetworkInterface* networkInterface, Print &out);
+  static bool                       print_IP_address(NWPlugin::IP_type ip_type,
+                                                     NetworkInterface *networkInterface,
+                                                     Print           & out);
 
-#endif
+
+  enum class NetforkFlags {
+    DHCP_client           = ESP_NETIF_DHCP_CLIENT,
+    DHCP_server           = ESP_NETIF_DHCP_SERVER,
+    AutoUp                = ESP_NETIF_FLAG_AUTOUP,
+    GratuituousArp        = ESP_NETIF_FLAG_GARP,
+    EventIPmodified       = ESP_NETIF_FLAG_EVENT_IP_MODIFIED,
+    isPPP                 = ESP_NETIF_FLAG_IS_PPP,
+    isBridge              = ESP_NETIF_FLAG_IS_BRIDGE,
+    MLD_v6_report         = ESP_NETIF_FLAG_MLDV6_REPORT,
+    IPv6_autoconf_enabled = ESP_NETIF_FLAG_IPV6_AUTOCONFIG_ENABLED
+
+  };
+
+  static const __FlashStringHelper* toString(NetforkFlags flag);
+
+  static bool                       isFlagSet(NetforkFlags     flag,
+                                              NetworkInterface*networkInterface);
+
+
+#endif // ifdef ESP32
 
 }; // class NWPlugin
+
 
 // ********************************************************************************
 //   NPlugin (Notification) function calls

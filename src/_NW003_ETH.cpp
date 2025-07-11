@@ -279,12 +279,6 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
       }
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
 
-      addRowLabel(F("Driver Info"));
-
-      HTML_Print htmlPrint;
-      addHtml(F("<br>"));
-      ETH.printTo(htmlPrint);
-
       break;
     }
 
