@@ -594,7 +594,8 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                 uint8_t v = discoveryItems[s].varIndex;
 
                 // Temperature
-                if (Sensor_VType::SENSOR_TYPE_HUM_ONLY != discoveryItems[s].VType) {
+                if ((Sensor_VType::SENSOR_TYPE_HUM_ONLY != discoveryItems[s].VType) &&
+                    (Sensor_VType::SENSOR_TYPE_BARO_ONLY != discoveryItems[s].VType)) {
                   uint8_t fromV = v;
                   uint8_t maxV  = v + 1;
 
@@ -655,20 +656,29 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   if (Sensor_VType::SENSOR_TYPE_TEMP_EMPTY_BARO == discoveryItems[s].VType) {
                     v++; // Skip 2nd value = 'EMPTY'
                   }
-                  const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
-                  const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s],
-                                                                           getValueType2DefaultHAUoM(Sensor_VType::SENSOR_TYPE_BARO_ONLY));
-                  success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
-                                                                   ControllerIndex,
-                                                                   ControllerSettings,
-                                                                   F("sensor"),
-                                                                   getValueType2HADeviceClass(Sensor_VType::SENSOR_TYPE_BARO_ONLY),
-                                                                   uom,
-                                                                   &TempEvent,
-                                                                   deviceElement,
-                                                                   success,
-                                                                   false, false, elementIds);
-                  v++;
+                  uint8_t fromV = v;
+                  uint8_t maxV  = v + 1;
+
+                  if (Sensor_VType::SENSOR_TYPE_BARO_ONLY == discoveryItems[s].VType) {
+                    maxV = fromV + discoveryItems[s].valueCount; // SENSOR_TYPE_BARO_ONLY Can have multiple values
+                  }
+
+                  for (v = fromV; v < maxV; ++v) {
+                    const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
+                    const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s],
+                                                                             getValueType2DefaultHAUoM(Sensor_VType::SENSOR_TYPE_BARO_ONLY));
+                    success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
+                                                                     ControllerIndex,
+                                                                     ControllerSettings,
+                                                                     F("sensor"),
+                                                                     getValueType2HADeviceClass(Sensor_VType::SENSOR_TYPE_BARO_ONLY),
+                                                                     uom,
+                                                                     &TempEvent,
+                                                                     deviceElement,
+                                                                     success,
+                                                                     false, false, elementIds);
+                    v++;
+                  }
                 }
                 break;
               }
