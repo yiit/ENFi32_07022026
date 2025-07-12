@@ -3848,7 +3848,7 @@ To create/register a plugin, you have to :
     #undef USES_NW002
   #endif
 #endif
-#if FEATURE_ETHERNET
+#if FEATURE_ETHERNET && CONFIG_ETH_USE_ESP32_EMAC
   #ifndef USES_NW003
     #define USES_NW003
   #endif
@@ -3857,6 +3857,17 @@ To create/register a plugin, you have to :
     #undef USES_NW003
   #endif
 #endif
+
+#if FEATURE_ETHERNET && CONFIG_ETH_USE_SPI_ETHERNET
+  #ifndef USES_NW004
+    #define USES_NW004
+  #endif
+#else
+  #ifdef USES_NW004
+    #undef USES_NW004
+  #endif
+#endif
+
 
 #if FEATURE_PPP_MODEM
   #ifndef USES_NW005

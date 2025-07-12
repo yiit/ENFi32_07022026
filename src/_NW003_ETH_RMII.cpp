@@ -3,12 +3,12 @@
 #ifdef USES_NW003
 
 // #######################################################################################################
-// ########################### Network Plugin 003: Ethernet ##############################################
+// ########################### Network Plugin 003: Ethernet RMII #########################################
 // #######################################################################################################
 
 # define NWPLUGIN_003
 # define NWPLUGIN_ID_003         3
-# define NWPLUGIN_NAME_003       "Ethernet"
+# define NWPLUGIN_NAME_003       "Ethernet (RMII)"
 
 # include "src/DataStructs/ESPEasy_EventStruct.h"
 # include "src/Globals/NWPlugins.h"
