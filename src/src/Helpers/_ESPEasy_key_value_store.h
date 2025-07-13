@@ -4,6 +4,8 @@
 #include "../../ESPEasy_common.h"
 
 #include "../DataTypes/ESPEasy_key_value_store_data.h"
+#include "../DataTypes/SettingsType.h"
+
 #include <map>
 
 // Generic storage layer, which on a low level will store everything as a string.
@@ -46,8 +48,8 @@ public:
   };
 
 
-  bool   load();  // TODO TD-er: Implement
-  bool   store(); // TODO TD-er: Implement
+  bool   load(SettingsType::Enum settingsType, int index, uint32_t offset_in_block); 
+  bool   store(SettingsType::Enum settingsType, int index, uint32_t offset_in_block); 
 
   // Count all data to estimate how much storage space it would require to store everything in a somewhat compact form.
   size_t getStorageSize() const;
@@ -70,6 +72,8 @@ public:
                 String & value) const;
   void setValue(uint32_t      key,
                 const String& value);
+  void setValue(uint32_t      key,
+                String&& value);
 
   bool getValue(uint32_t key,
                 int8_t & value) const;
@@ -140,7 +144,27 @@ public:
                 uint32_t      key,
                 const String& value);
 
+  String getLastError() const { return _lastError; }
+
 private:
+
+  bool getValue(StorageType& storageType,
+                uint32_t     key,
+                ESPEasy_key_value_store_4byte_data_t& value) const;
+
+  void setValue(StorageType & storageType,
+                uint32_t      key,
+                const ESPEasy_key_value_store_4byte_data_t& value);
+
+  bool getValue(StorageType& storageType,
+                uint32_t     key,
+                ESPEasy_key_value_store_8byte_data_t& value) const;
+
+  void setValue(StorageType & storageType,
+                uint32_t      key,
+                const ESPEasy_key_value_store_8byte_data_t& value);
+
+
 
   // Query cache to see if we have any of the asked storage type
   bool hasStorageType(StorageType storageType) const;
@@ -148,11 +172,15 @@ private:
   // Update cache to indicate we have at least one of the given storage type
   void setHasStorageType(StorageType storageType);
 
-  std::map<uint32_t, String>_string_data{};
+  String _lastError;
+
+  std::map<uint32_t, String> _string_data{};
   std::map<uint32_t, ESPEasy_key_value_store_4byte_data_t>_4byte_data{};
   std::map<uint32_t, ESPEasy_key_value_store_8byte_data_t>_8byte_data{};
 
   uint32_t _storage_type_present_cache{};
+
+  // TODO TD-er: Add checksum and invalidate whenever anyting is being stored.
 
 }; // class ESPEasy_key_value_store
 

@@ -1,6 +1,8 @@
 #include "../Helpers/_ESPEasy_key_value_store.h"
 
 #include "../Helpers/StringConverter_Numerical.h"
+#include "../Helpers/ESPEasy_Storage.h"
+#include "../Helpers/StringConverter.h"
 
 uint32_t combine_StorageType_and_key(
   ESPEasy_key_value_store::StorageType storageType,
@@ -16,9 +18,16 @@ uint32_t combine_StorageType_and_key(
   return res;
 }
 
-ESPEasy_key_value_store::StorageType get_StorageType_from_key(uint32_t key)
+ESPEasy_key_value_store::StorageType get_StorageType_from_combined_key(uint32_t combined_key)
 {
-  return static_cast<ESPEasy_key_value_store::StorageType>(key >> 24);
+  return static_cast<ESPEasy_key_value_store::StorageType>(combined_key >> 24);
+}
+
+uint32_t getKey_from_combined_key(uint32_t combined_key)
+{
+  const uint32_t res = combined_key & ((1 << 24) - 1);
+
+  return res;
 }
 
 size_t getStorageSizePerType(ESPEasy_key_value_store::StorageType storageType)
@@ -45,11 +54,205 @@ size_t getStorageSizePerType(ESPEasy_key_value_store::StorageType storageType)
   return 0;
 }
 
-// TODO TD-er: Implement
-bool   ESPEasy_key_value_store::load()  { return false; }
+bool ESPEasy_key_value_store::load(SettingsType::Enum settingsType, int index, uint32_t offset_in_block)
+{
+  int offset, max_size;
+
+  if (!SettingsType::getSettingsParameters(settingsType, index, offset, max_size))
+  {
+    _lastError = F("KVS: Invalid index");
+    #ifndef BUILD_NO_DEBUG
+    addLog(LOG_LEVEL_DEBUG, _lastError);
+    #endif // ifndef BUILD_NO_DEBUG
+    return false;
+  }
+
+  const uint32_t bufferSize = 128;
+
+  char buffer[bufferSize] = { 0 };
+  const uint8_t*buf_start = (const uint8_t *)buffer;
+  String   result;
+  uint32_t readPos = offset_in_block;
+
+  // Read header:
+  // - uint8_t:    version of storage layer
+  // - uint8_t[3]: rawSize (offset to start of checksum)
+  result += LoadFromFile(settingsType,
+                         index,
+                         reinterpret_cast<uint8_t *>(&buffer),
+                         4, // readSize
+                         readPos);
+  readPos += 4;
+
+
+  // TODO TD-er: Compute checksum
+
+  const uint8_t version          = buffer[0];
+  const size_t  payloadSize      = (buffer[1] << 16) | (buffer[2] << 8) | buffer[0];
+  const size_t  totalSize        = 4 + payloadSize + 16; // header + payload + checksum
+  const size_t  startChecksumPos = offset_in_block + 4 + payloadSize;
+
+  if ((offset_in_block + totalSize) > max_size) {
+    _lastError = strformat(F("KVS: Total size %d + offset %d exceeds max size %d"), totalSize, offset_in_block, max_size);
+    #ifndef BUILD_NO_DEBUG
+    addLog(LOG_LEVEL_DEBUG, _lastError);
+    #endif // ifndef BUILD_NO_DEBUG
+    return false;
+  }
+
+  size_t bytesLeftPartialString{};
+  String partialString;
+  ESPEasy_key_value_store::StorageType storageType{};
+  size_t   sizePerType{};
+  uint32_t key{};
+
+  while (readPos < startChecksumPos) {
+    // This loop always starts at the beginning of a key/value type,
+    // except when we're parsing a string which may be longer than the buffer
+    const uint32_t readSize = std::min(bufferSize, max_size - readPos);
+    result += LoadFromFile(settingsType,
+                           index,
+                           reinterpret_cast<uint8_t *>(&buffer),
+                           readSize,
+                           readPos);
+    uint32_t bufPos           = 0;
+    bool     loadNextFromFile = false;
+
+    for (; !loadNextFromFile && (bufPos + 3) < readSize;) {
+#define LOG_READPOS_OFFSET (readPos + (bufPos - bufPos_start_loop))
+      const uint32_t bufPos_start_loop = bufPos;
+
+      if (!bytesLeftPartialString) {
+        // Parse StorageType + key
+        const ESPEasy_key_value_store_4byte_data_t combined_key(buf_start + bufPos);
+        storageType = get_StorageType_from_combined_key(combined_key.getUint32());
+        sizePerType = getStorageSizePerType(storageType);
+        key         = getKey_from_combined_key(combined_key.getUint32());
+
+        if (sizePerType < 4) {
+          // Should not happen
+          _lastError = strformat(F("KVS: Invalid storage type %d at readPos %d"), static_cast<int>(storageType), LOG_READPOS_OFFSET);
+          addLog(LOG_LEVEL_ERROR, _lastError);
+          return false;
+        }
+      }
+
+      switch (storageType)
+      {
+        case ESPEasy_key_value_store::StorageType::bool_false:
+        {
+          // Store bool 'false'
+          const bool res = false;
+          setValue(key, res);
+          bufPos += 4;
+          break;
+        }
+        case ESPEasy_key_value_store::StorageType::bool_type:
+        case ESPEasy_key_value_store::StorageType::bool_true:
+        {
+          // Store bool 'true'
+          const bool res = true;
+          setValue(key, res);
+          bufPos += 4;
+          break;
+        }
+
+        case ESPEasy_key_value_store::StorageType::string_type:
+        {
+          if (bytesLeftPartialString == 0) {
+            // Found new string type
+            // Read expected size in next 2 bytes
+            if ((readSize - bufPos) < 2) {
+              // Read next block
+              loadNextFromFile = true;
+            } else {
+              bufPos                += 4;
+              bytesLeftPartialString = (buffer[bufPos] << 8) | buffer[bufPos + 1];
+              bufPos                += 2;
+
+              if (!partialString.reserve(bytesLeftPartialString))
+              {
+                _lastError = strformat(F("KVS: Could not allocate string size %d at readPos %d"), bytesLeftPartialString, LOG_READPOS_OFFSET);
+                addLog(LOG_LEVEL_ERROR, _lastError);
+                return false;
+              }
+            }
+          }
+
+          while (bytesLeftPartialString > 0 && bufPos < readSize) {
+            const char c = buffer[bufPos];
+            --bytesLeftPartialString;
+            ++bufPos;
+
+            if (c != '\0') {
+              partialString += c;
+            } else if (bytesLeftPartialString > 0) {
+              // What to do here if bytesLeftPartialString != 0 ????
+              _lastError = strformat(F("KVS: Unexpected end-of-string, expected %d more at readPos %d"),
+                                     bytesLeftPartialString,
+                                     LOG_READPOS_OFFSET);
+              addLog(LOG_LEVEL_ERROR, _lastError);
+              return false;
+            }
+          }
+
+          if ((bytesLeftPartialString == 0) && (partialString.length() > 0)) {
+            setValue(key, std::move(partialString));
+            partialString.clear();
+          }
+          break;
+
+        }
+
+        default:
+        {
+          if ((readSize - bufPos) < sizePerType) {
+            // Read next block
+            loadNextFromFile = true;
+          } else {
+            bufPos += 4;
+            const size_t bytesLeftPerType = sizePerType - 4;
+
+            if (bytesLeftPerType == 8) {
+              // 8-byte value type
+              const ESPEasy_key_value_store_8byte_data_t data_8byte(buf_start + bufPos);
+              setValue(storageType, key, data_8byte);
+            } else if (bytesLeftPerType > 0) {
+              if (bytesLeftPerType == 4) {
+                const ESPEasy_key_value_store_4byte_data_t data_4byte(buf_start + bufPos);
+                setValue(storageType, key, data_4byte);
+              } else {
+                ESPEasy_key_value_store_4byte_data_t data_4byte{};
+
+                // FIXME TD-er: Need to check the byte order
+                memcpy(data_4byte.getBinary(), buf_start + bufPos, bytesLeftPerType);
+                setValue(storageType, key, data_4byte);
+              }
+            }
+            bufPos += bytesLeftPerType;
+          }
+
+          break;
+        }
+      }
+
+      if ((bufPos_start_loop == bufPos) && !loadNextFromFile) {
+        _lastError = strformat(F("KVS: BUG! Did not increment bufPos while processing StorageType %d at readPos %d"),
+                               static_cast<int>(storageType), LOG_READPOS_OFFSET);
+        addLog(LOG_LEVEL_ERROR, _lastError);
+        return false;
+      }
+      readPos += (bufPos - bufPos_start_loop);
+      #undef LOG_READPOS_OFFSET
+    }
+  }
+
+  // TODO TD-er: Read checksum
+  return true;
+}
 
 // TODO TD-er: Implement
-bool   ESPEasy_key_value_store::store() { return false; }
+bool   ESPEasy_key_value_store::store(SettingsType::Enum settingsType, int index, uint32_t offset_in_block) { return false; }
 
 size_t ESPEasy_key_value_store::getStorageSize() const
 {
@@ -57,8 +260,9 @@ size_t ESPEasy_key_value_store::getStorageSize() const
 
   for (auto it = _string_data.begin(); it != _string_data.end(); ++it)
   {
-    res += 4; // key size
-    res += it->second.length();
+    res += 4;                       // key size
+    res += 2;                       // string length
+    res += it->second.length() + 1; // include 0-termination
   }
 
   for (auto it = _4byte_data.begin(); it != _4byte_data.end(); ++it)
@@ -128,6 +332,18 @@ void ESPEasy_key_value_store::setValue(uint32_t key, const String& value)
 {
   _string_data[key] = value;
   setHasStorageType(ESPEasy_key_value_store::StorageType::string_type);
+}
+
+void ESPEasy_key_value_store::setValue(uint32_t key, String&& value)
+{
+  auto it = _string_data.find(key);
+
+  if (it == _string_data.end()) {
+    // Does not yet exist.
+    _string_data.emplace(key, std::move(value));
+  } else {
+    it->second = std::move(value);
+  }
 }
 
 #define GET_4BYTE_TYPE(T, GF)                                        \
@@ -267,14 +483,14 @@ bool ESPEasy_key_value_store::getValue(StorageType& storageType, uint32_t key, S
     case ESPEasy_key_value_store::StorageType::string_type:
       getValue(key, value);
       break;
-    GET_4BYTE_TYPE_AS_STRING(bool_type,   bool)
-    GET_4BYTE_TYPE_AS_STRING(int8_type,   int8_t)
-    GET_4BYTE_TYPE_AS_STRING(uint8_type,  uint8_t)
-    GET_4BYTE_TYPE_AS_STRING(int16_type,  int16_t)
-    GET_4BYTE_TYPE_AS_STRING(uint16_type, uint16_t)
-    GET_4BYTE_TYPE_AS_STRING(int32_type,  int32_t)
-    GET_4BYTE_TYPE_AS_STRING(uint32_type, uint32_t)
-    GET_4BYTE_TYPE_AS_STRING(float_type,  float)
+      GET_4BYTE_TYPE_AS_STRING(bool_type,   bool)
+      GET_4BYTE_TYPE_AS_STRING(int8_type,   int8_t)
+      GET_4BYTE_TYPE_AS_STRING(uint8_type,  uint8_t)
+      GET_4BYTE_TYPE_AS_STRING(int16_type,  int16_t)
+      GET_4BYTE_TYPE_AS_STRING(uint16_type, uint16_t)
+      GET_4BYTE_TYPE_AS_STRING(int32_type,  int32_t)
+      GET_4BYTE_TYPE_AS_STRING(uint32_type, uint32_t)
+      GET_4BYTE_TYPE_AS_STRING(float_type,  float)
 
     case ESPEasy_key_value_store::StorageType::int64_type:
     {
@@ -321,6 +537,62 @@ bool ESPEasy_key_value_store::getValue(StorageType& storageType, uint32_t key, S
 // TODO TD-er: Implement
 void ESPEasy_key_value_store::setValue(StorageType& storageType, uint32_t key, const String& value) {}
 
+bool ESPEasy_key_value_store::getValue(
+  StorageType                         & storageType,
+  uint32_t                              key,
+  ESPEasy_key_value_store_4byte_data_t& value) const
+{
+  auto it = _4byte_data.find(combine_StorageType_and_key(storageType, key));
+
+  if (it == _4byte_data.end()) { return false; }
+  memcpy(value.getBinary(), it->second.getBinary(), 4);
+  return true;
+}
+
+void ESPEasy_key_value_store::setValue(
+  StorageType                               & storageType,
+  uint32_t                                    key,
+  const ESPEasy_key_value_store_4byte_data_t& value)
+{
+  auto combined_key = combine_StorageType_and_key(storageType, key);
+  auto it           = _4byte_data.find(combined_key);
+
+  if (it == _4byte_data.end()) {
+    // new entry
+    _4byte_data.emplace(combined_key, value);
+  } else {
+    memcpy(it->second.getBinary(), value.getBinary(), 4);
+  }
+}
+
+bool ESPEasy_key_value_store::getValue(
+  StorageType                         & storageType,
+  uint32_t                              key,
+  ESPEasy_key_value_store_8byte_data_t& value) const
+{
+  auto it = _8byte_data.find(combine_StorageType_and_key(storageType, key));
+
+  if (it == _8byte_data.end()) { return false; }
+  memcpy(value.getBinary(), it->second.getBinary(), 8);
+  return true;
+}
+
+void ESPEasy_key_value_store::setValue(
+  StorageType                               & storageType,
+  uint32_t                                    key,
+  const ESPEasy_key_value_store_8byte_data_t& value)
+{
+  auto combined_key = combine_StorageType_and_key(storageType, key);
+  auto it           = _8byte_data.find(combined_key);
+
+  if (it == _8byte_data.end()) {
+    // new entry
+    _8byte_data.emplace(combined_key, value);
+  } else {
+    memcpy(it->second.getBinary(), value.getBinary(), 8);
+  }
+}
+
 bool ESPEasy_key_value_store::hasStorageType(StorageType storageType) const
 {
   const uint32_t bitnr         = static_cast<uint32_t>(storageType);
@@ -338,4 +610,6 @@ void ESPEasy_key_value_store::setHasStorageType(StorageType storageType)
   if (bitnr < max_bitnr) {
     bitSet(_storage_type_present_cache, bitnr);
   }
+
+  // TODO TD-er: Whenever this is called, there has been a change, so invalidate checksum
 }

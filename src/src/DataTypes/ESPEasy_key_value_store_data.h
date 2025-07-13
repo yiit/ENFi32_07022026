@@ -12,6 +12,8 @@ public:
 
   ESPEasy_key_value_store_4byte_data_t(const ESPEasy_key_value_store_4byte_data_t& other);
 
+  ESPEasy_key_value_store_4byte_data_t(const uint8_t* data);
+
   ESPEasy_key_value_store_4byte_data_t& operator=(const ESPEasy_key_value_store_4byte_data_t& other);
 
   void                                  clear();
@@ -25,6 +27,9 @@ public:
 
   float                                 getFloat() const;
   void                                  setFloat(float value);
+
+  uint8_t*  getBinary() { return binary; }
+  const uint8_t*  getBinary() const { return binary; }
 
 private:
 
@@ -40,6 +45,8 @@ public:
 
   ESPEasy_key_value_store_8byte_data_t(const ESPEasy_key_value_store_8byte_data_t& other);
 
+  ESPEasy_key_value_store_8byte_data_t(const uint8_t* data);
+
   ESPEasy_key_value_store_8byte_data_t& operator=(const ESPEasy_key_value_store_8byte_data_t& other);
 
   void                                  clear();
@@ -53,6 +60,9 @@ public:
 
   double                                getDouble() const;
   void                                  setDouble(double value);
+
+  uint8_t*  getBinary() { return binary; }
+  const uint8_t*  getBinary() const { return binary; }
 
 private:
 
