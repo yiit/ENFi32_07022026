@@ -93,15 +93,20 @@ String toValueTypeCategory(const uint32_t valueType) {
   return result;
 }
 
+/* *INDENT-OFF* */
+
 const uint16_t value_type_map[] PROGMEM = {
-  1024, 2,   3,   4,   8,   101,   102,  122, 21,  131,                                                  // Environment
-  1025, 106, 107, 108, 110, 121,   128,  129,                                                            // Gases
-  1026, 116, 117, 118, 119, 120,   127,                                                                  // Energy
+  0,                                                                                                     // None
+  1024, 2,   3,   4,   8,   101, 102, 122, 21,  131,                                                     // Environment
+  1025, 106, 107, 108, 110, 121, 128, 129,                                                               // Gases
+  1026, 116, 117, 118, 119, 120, 127,                                                                    // Energy
   1027, 132, 133, 134,                                                                                   // Time
-  1028, 100, 104, 105, 109, 111,   115,  135, 136, 137, 138,                                             // Size
-  1029, 103, 112, 113, 114, 123,   124,  125, 126,                                                       // Light
-  1030, 1,   5,   6,   7,   10,    130,  11,  22,  20,  31,32, 33, 40, 41, 42, 43, 50, 51, 60, 61, 70, 71, // Other
+  1028, 100, 104, 105, 109, 111, 115, 135, 136, 137, 138,                                                // Size
+  1029, 103, 112, 113, 114, 123, 124, 125, 126,                                                          // Light
+  1030, 1,   5,   6,   7,   10,  130, 11,  22,  20,  31, 32, 33, 40, 41, 42, 43, 50, 51, 60, 61, 70, 71, // Other
 };
+
+/* *INDENT-ON* */
 
 void sensorTypeCategoriesHelper_Selector(const String& id,
                                          int           optionCount,
@@ -118,10 +123,6 @@ void sensorTypeCategoriesHelper_Selector(const String& id,
                       , F("¹: Used for MQTT AutoDiscovery")
                       # endif // if FEATURE_TOOLTIPS
                       );
-  addSelector_Item( // Empty first value
-    getSensorTypeLabel(Sensor_VType::SENSOR_TYPE_NONE),
-    0,
-    iChoice == 0);
 
   for (uint16_t idx = 0; idx < asize; ++idx) {
     const uint16_t vtIdx = pgm_read_word_near(&value_type_map[idx]);
