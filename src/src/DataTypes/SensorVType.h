@@ -120,6 +120,9 @@ String getValueType2HADeviceClass(Sensor_VType sensorType);
 String getValueType2DefaultHAUoM(Sensor_VType sensorType);
 # endif // if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
 
+#if FEATURE_CUSTOM_TASKVAR_VTYPE
+bool isMQTTDiscoverySensorType(Sensor_VType sensorType);
+#endif // if FEATURE_CUSTOM_TASKVAR_VTYPE
 
 
 #endif

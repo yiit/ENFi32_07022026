@@ -1815,7 +1815,7 @@ void devicePage_show_task_values(taskIndex_t taskIndex, deviceIndex_t DeviceInde
       #if FEATURE_CUSTOM_TASKVAR_VTYPE
       if (device.CustomVTypeVar) {
         html_TD();
-        sensorTypeHelper_Selector(
+        sensorTypeCategoriesHelper_Selector(
           getPluginCustomArgName(F("TDTV"), varNr),
           singleOptions.size(),
           &singleOptions[0],

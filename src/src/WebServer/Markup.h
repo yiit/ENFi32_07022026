@@ -99,6 +99,9 @@ void addSelector_Item(const String& option,
 
 void addSelector_Foot(bool reloadonchange = false);
 
+void addSelector_OptGroup(const String& label);
+void addSelector_OptGroupFoot();
+
 void addUnit(const __FlashStringHelper *unit);
 void addUnit(const String& unit);
 void addUnit(char unit);
