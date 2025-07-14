@@ -142,13 +142,18 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
       initNWPluginData(event->NetworkIndex, new (std::nothrow) NW005_data_struct_PPP_modem);
       NW005_data_struct_PPP_modem *NW_data = static_cast<NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
       if (NW_data) {
-        
+        NW_data->testWrite();
+
       }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_EXIT:
     {
+      NW005_data_struct_PPP_modem *NW_data = static_cast<NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
+      if (NW_data) {
+        NW_data->testRead();        
+      }
       break;
     }
 

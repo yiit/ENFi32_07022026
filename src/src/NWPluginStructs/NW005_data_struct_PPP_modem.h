@@ -8,13 +8,16 @@
 
 struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 
-    NW005_data_struct_PPP_modem() = default;
+  NW005_data_struct_PPP_modem();
+  ~NW005_data_struct_PPP_modem();
 
+  void testWrite();
 
+  void testRead();
 
 };
 
 
-#endif
+#endif // ifdef USES_NW005
 
-#endif
+#endif // ifndef NWPLUGINSTRUCT_NW005_DATA_STRUCT_PPP_MODEM_H

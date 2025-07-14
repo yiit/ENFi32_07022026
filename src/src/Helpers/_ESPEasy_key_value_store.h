@@ -56,19 +56,27 @@ public:
 
   };
 
-  State getState() const { return _state; }
+  static uint32_t combine_StorageType_and_key(
+    ESPEasy_key_value_store::StorageType storageType,
+    uint32_t                             key);
 
-  bool  isEmpty() const;
+  static ESPEasy_key_value_store::StorageType get_StorageType_from_combined_key(uint32_t combined_key);
 
-  void  clear();
+  static uint32_t                             getKey_from_combined_key(uint32_t combined_key);
+
+  State                                       getState() const { return _state; }
+
+  bool                                        isEmpty() const;
+
+  void                                        clear();
 
 
-  bool  load(SettingsType::Enum settingsType,
-             int                index,
-             uint32_t           offset_in_block);
-  bool  store(SettingsType::Enum settingsType,
-              int                index,
-              uint32_t           offset_in_block);
+  bool                                        load(SettingsType::Enum settingsType,
+                                                   int                index,
+                                                   uint32_t           offset_in_block);
+  bool                                        store(SettingsType::Enum settingsType,
+                                                    int                index,
+                                                    uint32_t           offset_in_block);
 
   // Count all data to estimate how much storage space it would require to store everything in a somewhat compact form.
   size_t getPayloadStorageSize() const;
@@ -154,18 +162,20 @@ public:
 
   // Generic get function for any given storageType/key and represent its value as a string.
   // Return false when storageType/key is not present.
-  bool getValue(StorageType& storageType,
-                uint32_t     key,
-                String     & value) const;
+  bool getValueAsString(const StorageType& storageType,
+                        uint32_t     key,
+                        String     & value) const;
 
   // Generic set function for any given storageType/key.
   // Given value is a string representation of that storage type.
   // TODO TD-er: Implement
-  void setValue(StorageType & storageType,
+  void setValue(const StorageType & storageType,
                 uint32_t      key,
                 const String& value);
 
   String getLastError() const { return _lastError; }
+
+  void   dump() const;
 
 private:
 

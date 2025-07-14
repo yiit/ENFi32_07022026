@@ -4,7 +4,7 @@
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/StringConverter.h"
 
-uint32_t combine_StorageType_and_key(
+uint32_t ESPEasy_key_value_store::combine_StorageType_and_key(
   ESPEasy_key_value_store::StorageType storageType,
   uint32_t                             key)
 {
@@ -18,12 +18,12 @@ uint32_t combine_StorageType_and_key(
   return res;
 }
 
-ESPEasy_key_value_store::StorageType get_StorageType_from_combined_key(uint32_t combined_key)
+ESPEasy_key_value_store::StorageType ESPEasy_key_value_store::get_StorageType_from_combined_key(uint32_t combined_key)
 {
   return static_cast<ESPEasy_key_value_store::StorageType>(combined_key >> 24);
 }
 
-uint32_t getKey_from_combined_key(uint32_t combined_key)
+uint32_t ESPEasy_key_value_store::getKey_from_combined_key(uint32_t combined_key)
 {
   const uint32_t res = combined_key & ((1 << 24) - 1);
 
@@ -525,20 +525,21 @@ bool ESPEasy_key_value_store::hasKey(StorageType storageType, uint32_t key) cons
 {
   if (!hasStorageType(storageType)) { return false; }
 
+  const uint32_t combined_key = combine_StorageType_and_key(storageType, key);
+
   if (storageType == ESPEasy_key_value_store::StorageType::string_type)
   {
-    return _string_data.find(key) != _string_data.end();
+    return _string_data.find(combined_key) != _string_data.end();
   }
-  const uint32_t combined_key = combine_StorageType_and_key(storageType, key);
-  const size_t   size         = getStorageSizePerType(storageType);
+  const size_t size = getStorageSizePerType(storageType);
 
   if (size == 12)
   {
-    return _8byte_data.find(key) != _8byte_data.end();
+    return _8byte_data.find(combined_key) != _8byte_data.end();
   }
 
   if (size >= 4) {
-    return _4byte_data.find(key) != _4byte_data.end();
+    return _4byte_data.find(combined_key) != _4byte_data.end();
   }
   return false;
 }
@@ -733,7 +734,7 @@ void ESPEasy_key_value_store::setValue(uint32_t key, const bool& value) { SET_4B
               break;                                    \
             }
 
-bool ESPEasy_key_value_store::getValue(StorageType& storageType, uint32_t key, String& value) const
+bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, uint32_t key, String& value) const
 {
   if (!hasKey(storageType, key)) { return false; }
 
@@ -794,7 +795,7 @@ bool ESPEasy_key_value_store::getValue(StorageType& storageType, uint32_t key, S
 }
 
 // TODO TD-er: Implement
-void ESPEasy_key_value_store::setValue(StorageType& storageType, uint32_t key, const String& value) {}
+void ESPEasy_key_value_store::setValue(const StorageType& storageType, uint32_t key, const String& value) {}
 
 bool ESPEasy_key_value_store::getValue(
   StorageType                         & storageType,
@@ -876,4 +877,55 @@ void ESPEasy_key_value_store::setHasStorageType(StorageType storageType)
   }
 
   // TODO TD-er: Whenever this is called, there has been a change, so invalidate checksum
+}
+
+void ESPEasy_key_value_store::dump() const
+{
+  addLog(LOG_LEVEL_INFO, strformat(F("KVS: Payload Storage size : %d"), getPayloadStorageSize()));
+
+  for (auto it = _string_data.begin(); it != _string_data.end(); ++it)
+  {
+
+    String val;
+
+    if (!getValueAsString(
+          get_StorageType_from_combined_key(it->first),
+          getKey_from_combined_key(it->first),
+          val)) {
+      val = '-';
+    }
+
+    addLog(LOG_LEVEL_INFO, strformat(
+             F("KVS: type: %d, combined-key: %x, key: %d, value: '%s' '%s'"),
+             get_StorageType_from_combined_key(it->first),
+             it->first, getKey_from_combined_key(it->first),
+             it->second.c_str(),
+             val.c_str()));
+
+  }
+
+  for (auto it = _4byte_data.begin(); it != _4byte_data.end(); ++it)
+  {
+    String val;
+
+    if (!getValueAsString(
+          get_StorageType_from_combined_key(it->first),
+          getKey_from_combined_key(it->first),
+          val)) {
+      val = '-';
+    }
+
+    addLog(LOG_LEVEL_INFO, strformat(
+             F("KVS: type: %d, comb: %x, key: %d, val: '%x %x %x %x' strval: '%s'"),
+             get_StorageType_from_combined_key(it->first),
+             it->first, getKey_from_combined_key(it->first),
+             it->second.getBinary()[0],
+             it->second.getBinary()[1],
+             it->second.getBinary()[2],
+             it->second.getBinary()[3],
+             val.c_str()
+             ));
+
+  }
+
 }

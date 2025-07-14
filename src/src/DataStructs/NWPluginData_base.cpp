@@ -8,6 +8,7 @@
 #include "../Helpers/_ESPEasy_key_value_store.h"
 
 
+NWPluginData_base::NWPluginData_base() : _kvs(nullptr), _baseClassOnly(false) {}
 
 NWPluginData_base::~NWPluginData_base()
 {
@@ -20,8 +21,10 @@ bool NWPluginData_base::plugin_write_base(struct EventStruct *event,
 
 bool NWPluginData_base::init_KVS()
 {
+  if (_kvs == nullptr) {
     _kvs = new (std::nothrow) ESPEasy_key_value_store;
-    return _kvs != nullptr;
+  }
+  return _kvs != nullptr;
 }
 
 bool NWPluginData_base::_load()

@@ -41,7 +41,7 @@ bool initNWPluginData(networkIndex_t networkIndex, NWPluginData_base *data) {
 
   if (data != nullptr) {
     if (Settings.getNetworkEnabled(networkIndex)) {
-      if (!NWPlugin_task_data[networkIndex]->init_KVS()) {
+      if (!data->init_KVS()) {
         delete data;
         data = nullptr;
       } else {

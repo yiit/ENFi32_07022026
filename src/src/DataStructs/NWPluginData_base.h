@@ -6,9 +6,7 @@
 
 #include "../DataTypes/NWPluginID.h"
 #include "../DataTypes/NetworkIndex.h"
-
-// FW declaration, so we can use a simple pointer here and only include it in the cpp
-class ESPEasy_key_value_store;
+#include "../Helpers/_ESPEasy_key_value_store.h"
 
 // ==============================================
 // Data used by instances of NW-plugins.
@@ -18,7 +16,7 @@ class ESPEasy_key_value_store;
 // N.B. in order to use this, a data object must inherit from this base class.
 //      This is a compile time check.
 struct NWPluginData_base {
-  NWPluginData_base() = default;
+  NWPluginData_base();
 
   virtual ~NWPluginData_base();
 
@@ -49,7 +47,7 @@ protected:
   // Save settings from the _kvs to the settings
   bool _store();
 
-  ESPEasy_key_value_store *_kvs{};
+  ESPEasy_key_value_store *_kvs=nullptr;
 
   bool _baseClassOnly = false;
 };
