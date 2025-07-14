@@ -11,7 +11,7 @@ ESPEasy_key_value_store_4byte_data_t::ESPEasy_key_value_store_4byte_data_t(const
   memcpy(binary, other.binary, sizeof(binary));
 }
 
-ESPEasy_key_value_store_4byte_data_t::ESPEasy_key_value_store_4byte_data_t(const uint8_t* data)
+ESPEasy_key_value_store_4byte_data_t::ESPEasy_key_value_store_4byte_data_t(const uint8_t*data)
 {
   memcpy(binary, data, sizeof(binary));
 }

@@ -134,7 +134,7 @@ bool ESPEasy_key_value_store::load(SettingsType::Enum settingsType, int index, u
         sizePerType = getStorageSizePerType(storageType);
         key         = getKey_from_combined_key(combined_key.getUint32());
 
-        if (sizePerType < 4 && storageType != ESPEasy_key_value_store::StorageType::string_type) {
+        if ((sizePerType < 4) && (storageType != ESPEasy_key_value_store::StorageType::string_type)) {
           // Should not happen as those should not be stored in the file
           _lastError = strformat(F("KVS: Invalid storage type %d at readPos %d"), static_cast<int>(storageType), LOG_READPOS_OFFSET);
           addLog(LOG_LEVEL_ERROR, _lastError);

@@ -5,117 +5,117 @@
 bool isValid(EthPhyType_t phyType) {
   switch (phyType)
   {
-#if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:
     case EthPhyType_t::TLK110:
     case EthPhyType_t::RTL8201:
-# if ETH_TYPE_JL1101_SUPPORTED
+#  if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:
-# endif
+#  endif
     case EthPhyType_t::DP83848:
     case EthPhyType_t::KSZ8041:
     case EthPhyType_t::KSZ8081:
       return true;
-#endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC
 
-#if ESP_IDF_VERSION_MAJOR >= 5
-# if CONFIG_ETH_SPI_ETHERNET_DM9051
+# if ESP_IDF_VERSION_MAJOR >= 5
+#  if CONFIG_ETH_SPI_ETHERNET_DM9051
     case EthPhyType_t::DM9051: return true;
-# endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
-# if CONFIG_ETH_SPI_ETHERNET_W5500
+#  endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
+#  if CONFIG_ETH_SPI_ETHERNET_W5500
     case EthPhyType_t::W5500:  return true;
-# endif // if CONFIG_ETH_SPI_ETHERNET_W5500
-# if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#  endif // if CONFIG_ETH_SPI_ETHERNET_W5500
+#  if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
     case EthPhyType_t::KSZ8851: return true;
-# endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
-#endif // if ESP_IDF_VERSION_MAJOR >= 5
+#  endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+# endif // if ESP_IDF_VERSION_MAJOR >= 5
     case EthPhyType_t::notSet:
       break;
   }
   return false;
 }
 
-#if FEATURE_ETHERNET
+# if FEATURE_ETHERNET
 
 bool isSPI_EthernetType(EthPhyType_t phyType) {
-# if ESP_IDF_VERSION_MAJOR >= 5
+#  if ESP_IDF_VERSION_MAJOR >= 5
   return
-#  if CONFIG_ETH_SPI_ETHERNET_DM9051
+#   if CONFIG_ETH_SPI_ETHERNET_DM9051
     phyType ==  EthPhyType_t::DM9051 ||
-#  endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
-#  if CONFIG_ETH_SPI_ETHERNET_W5500
+#   endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
+#   if CONFIG_ETH_SPI_ETHERNET_W5500
     phyType ==  EthPhyType_t::W5500 ||
-#  endif // if CONFIG_ETH_SPI_ETHERNET_W5500
-#  if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#   endif // if CONFIG_ETH_SPI_ETHERNET_W5500
+#   if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
     phyType ==  EthPhyType_t::KSZ8851 ||
-#  endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#   endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
     false;
-# else // if ESP_IDF_VERSION_MAJOR >= 5
+#  else // if ESP_IDF_VERSION_MAJOR >= 5
   return false;
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
 }
 
 eth_phy_type_t to_ESP_phy_type(EthPhyType_t phyType)
 {
   switch (phyType)
   {
-# if CONFIG_ETH_USE_ESP32_EMAC
+#  if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:  return ETH_PHY_LAN8720;
     case EthPhyType_t::TLK110:   return ETH_PHY_TLK110;
     case EthPhyType_t::RTL8201:  return ETH_PHY_RTL8201;
-#  if ETH_TYPE_JL1101_SUPPORTED
+#   if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:   return ETH_PHY_JL1101;
-#  endif
+#   endif
     case EthPhyType_t::DP83848:  return ETH_PHY_DP83848;
     case EthPhyType_t::KSZ8041:  return ETH_PHY_KSZ8041;
     case EthPhyType_t::KSZ8081:  return ETH_PHY_KSZ8081;
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+#  endif // if CONFIG_ETH_USE_ESP32_EMAC
 
-# if ESP_IDF_VERSION_MAJOR >= 5
-#  if CONFIG_ETH_SPI_ETHERNET_DM9051
+#  if ESP_IDF_VERSION_MAJOR >= 5
+#   if CONFIG_ETH_SPI_ETHERNET_DM9051
     case EthPhyType_t::DM9051:   return ETH_PHY_DM9051;
-#  endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
-#  if CONFIG_ETH_SPI_ETHERNET_W5500
+#   endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
+#   if CONFIG_ETH_SPI_ETHERNET_W5500
     case EthPhyType_t::W5500:   return ETH_PHY_W5500;
-#  endif // if CONFIG_ETH_SPI_ETHERNET_W5500
-#  if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#   endif // if CONFIG_ETH_SPI_ETHERNET_W5500
+#   if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
     case EthPhyType_t::KSZ8851:   return ETH_PHY_KSZ8851;
-#  endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
+#   endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
     case EthPhyType_t::notSet:
       break;
   }
   return ETH_PHY_MAX;
 }
 
-#endif // if FEATURE_ETHERNET
+# endif // if FEATURE_ETHERNET
 
 const __FlashStringHelper* toString(EthPhyType_t phyType) {
   switch (phyType)
   {
-#if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC
     case EthPhyType_t::LAN8720:  return F("LAN8710 / LAN8720");
     case EthPhyType_t::TLK110:   return F("TLK110 / IP101");
     case EthPhyType_t::RTL8201:  return F("RTL8201");
-# if ETH_TYPE_JL1101_SUPPORTED
+#  if ETH_TYPE_JL1101_SUPPORTED
     case EthPhyType_t::JL1101:   return F("JL1101");
-# endif
+#  endif
     case EthPhyType_t::DP83848:  return F("DP83848");
     case EthPhyType_t::KSZ8041:  return F("KSZ8041");
     case EthPhyType_t::KSZ8081:  return F("KSZ8081");
-#endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC
 
-#if ESP_IDF_VERSION_MAJOR >= 5
-# if CONFIG_ETH_SPI_ETHERNET_DM9051
+# if ESP_IDF_VERSION_MAJOR >= 5
+#  if CONFIG_ETH_SPI_ETHERNET_DM9051
     case EthPhyType_t::DM9051:   return F("DM9051(SPI)");
-# endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
-# if CONFIG_ETH_SPI_ETHERNET_W5500
+#  endif // if CONFIG_ETH_SPI_ETHERNET_DM9051
+#  if CONFIG_ETH_SPI_ETHERNET_W5500
     case EthPhyType_t::W5500:   return F("W5500(SPI)");
-# endif // if CONFIG_ETH_SPI_ETHERNET_W5500
-# if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+#  endif // if CONFIG_ETH_SPI_ETHERNET_W5500
+#  if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
     case EthPhyType_t::KSZ8851:   return F("KSZ8851(SPI)");
-# endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
-#endif // if ESP_IDF_VERSION_MAJOR >= 5
+#  endif // if CONFIG_ETH_SPI_ETHERNET_KSZ8851SNL
+# endif // if ESP_IDF_VERSION_MAJOR >= 5
     case EthPhyType_t::notSet:
       break;
 
@@ -123,4 +123,5 @@ const __FlashStringHelper* toString(EthPhyType_t phyType) {
   }
   return F("- None -");
 }
-#endif
+
+#endif // if FEATURE_ETHERNET

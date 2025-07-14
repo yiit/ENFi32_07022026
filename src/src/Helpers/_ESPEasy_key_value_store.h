@@ -48,8 +48,12 @@ public:
   };
 
 
-  bool   load(SettingsType::Enum settingsType, int index, uint32_t offset_in_block); 
-  bool   store(SettingsType::Enum settingsType, int index, uint32_t offset_in_block); 
+  bool load(SettingsType::Enum settingsType,
+            int                index,
+            uint32_t           offset_in_block);
+  bool store(SettingsType::Enum settingsType,
+             int                index,
+             uint32_t           offset_in_block);
 
   // Count all data to estimate how much storage space it would require to store everything in a somewhat compact form.
   size_t getPayloadStorageSize() const;
@@ -72,7 +76,7 @@ public:
                 String & value) const;
   void setValue(uint32_t      key,
                 const String& value);
-  void setValue(uint32_t      key,
+  void setValue(uint32_t key,
                 String&& value);
 
   bool getValue(uint32_t key,
@@ -148,22 +152,21 @@ public:
 
 private:
 
-  bool getValue(StorageType& storageType,
-                uint32_t     key,
+  bool getValue(StorageType                         & storageType,
+                uint32_t                              key,
                 ESPEasy_key_value_store_4byte_data_t& value) const;
 
-  void setValue(StorageType & storageType,
-                uint32_t      key,
+  void setValue(StorageType                               & storageType,
+                uint32_t                                    key,
                 const ESPEasy_key_value_store_4byte_data_t& value);
 
-  bool getValue(StorageType& storageType,
-                uint32_t     key,
+  bool getValue(StorageType                         & storageType,
+                uint32_t                              key,
                 ESPEasy_key_value_store_8byte_data_t& value) const;
 
-  void setValue(StorageType & storageType,
-                uint32_t      key,
+  void setValue(StorageType                               & storageType,
+                uint32_t                                    key,
                 const ESPEasy_key_value_store_8byte_data_t& value);
-
 
 
   // Query cache to see if we have any of the asked storage type
@@ -174,7 +177,7 @@ private:
 
   String _lastError;
 
-  std::map<uint32_t, String> _string_data{};
+  std::map<uint32_t, String>_string_data{};
   std::map<uint32_t, ESPEasy_key_value_store_4byte_data_t>_4byte_data{};
   std::map<uint32_t, ESPEasy_key_value_store_8byte_data_t>_8byte_data{};
 

@@ -11,11 +11,10 @@ ESPEasy_key_value_store_8byte_data_t::ESPEasy_key_value_store_8byte_data_t(const
   memcpy(binary, other.binary, sizeof(binary));
 }
 
-ESPEasy_key_value_store_8byte_data_t::ESPEasy_key_value_store_8byte_data_t(const uint8_t* data)
+ESPEasy_key_value_store_8byte_data_t::ESPEasy_key_value_store_8byte_data_t(const uint8_t*data)
 {
   memcpy(binary, data, sizeof(binary));
 }
-
 
 ESPEasy_key_value_store_8byte_data_t& ESPEasy_key_value_store_8byte_data_t::operator=(const ESPEasy_key_value_store_8byte_data_t& other)
 {

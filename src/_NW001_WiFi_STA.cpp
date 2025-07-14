@@ -182,7 +182,7 @@ bool NWPlugin_001(NWPlugin::Function function, struct EventStruct *event, String
 # ifdef ESP32P4
       {
         addRowLabel(F("ESP Hosted Firmware"));
-        esp_hosted_coprocessor_fwver_t ver_info;
+        esp_hosted_coprocessor_fwver_t ver_info{};
         esp_hosted_get_coprocessor_fwversion(&ver_info);
         addHtml(strformat(
                   F("%d.%d.%d"),
