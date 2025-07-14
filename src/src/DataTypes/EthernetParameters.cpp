@@ -1,5 +1,7 @@
 #include "../DataTypes/EthernetParameters.h"
 
+#if FEATURE_ETHERNET
+
 bool isValid(EthPhyType_t phyType) {
   switch (phyType)
   {
@@ -121,3 +123,4 @@ const __FlashStringHelper* toString(EthPhyType_t phyType) {
   }
   return F("- None -");
 }
+#endif

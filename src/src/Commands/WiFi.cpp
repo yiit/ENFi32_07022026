@@ -152,7 +152,7 @@ const __FlashStringHelper* Command_WiFi_Erase(struct EventStruct *event, const c
 }
 
 
-# ifdef ESP32P4
+#if FEATURE_OTA_FW_UPDATE_ESP_HOSTED_MCU
 #  include "esp_hosted.h"
 
 // Perform OTA update on the esp-hosted-mcu firmware of the external WiFi module (typically ESP32-C6)

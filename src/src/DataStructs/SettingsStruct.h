@@ -573,8 +573,13 @@ public:
   int8_t          ETH_Pin_mdc_cs = -1;
   int8_t          ETH_Pin_mdio_irq = -1;
   int8_t          ETH_Pin_power_rst = -1;
+#if FEATURE_ETHERNET
   EthPhyType_t    ETH_Phy_Type = EthPhyType_t::notSet;
   EthClockMode_t  ETH_Clock_Mode = static_cast<EthClockMode_t>(0);
+#else
+  uint8_t         ETH_Phy_Type{};
+  uint8_t         ETH_Clock_Mode{};
+#endif
   uint8_t         ETH_IP[4] = {0};
   uint8_t         ETH_Gateway[4] = {0};
   uint8_t         ETH_Subnet[4] = {0};

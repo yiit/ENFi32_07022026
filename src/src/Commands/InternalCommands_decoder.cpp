@@ -292,7 +292,7 @@ const char Internal_commands_w[] PROGMEM =
   "wifikey|"
   "wifikey2|"
   "wifimode|"
-# ifndef SOC_WIFI_SUPPORTED
+#if FEATURE_OTA_FW_UPDATE_ESP_HOSTED_MCU
   "wifiotahostedmcu|"
 #endif
   "wifiscan|"

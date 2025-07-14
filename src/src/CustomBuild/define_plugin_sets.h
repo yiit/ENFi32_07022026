@@ -3880,6 +3880,12 @@ To create/register a plugin, you have to :
 #endif
 
 
+#if !defined(SOC_WIFI_SUPPORTED) && defined(ESP32)
+#define FEATURE_OTA_FW_UPDATE_ESP_HOSTED_MCU   1
+#else 
+#define FEATURE_OTA_FW_UPDATE_ESP_HOSTED_MCU   0
+#endif
+
 
 #if defined(USES_NW003) || defined(USES_NW004) || defined(USES_NW005)
 # ifndef FEATURE_STORE_NETWORK_INTERFACE_SETTINGS

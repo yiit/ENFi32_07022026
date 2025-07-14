@@ -310,7 +310,7 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
 
     String str;
     NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
-
+#ifdef ESP32
     if (NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
       {
@@ -384,6 +384,7 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
         }
       }
     }
+#endif
 
     addFormSeparator(2);
 

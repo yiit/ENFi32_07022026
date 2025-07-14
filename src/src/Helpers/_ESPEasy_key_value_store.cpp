@@ -93,7 +93,7 @@ bool ESPEasy_key_value_store::load(SettingsType::Enum settingsType, int index, u
   const size_t totalSize        = 4 + payloadSize + 16; // header + payload + checksum
   const size_t startChecksumPos = offset_in_block + 4 + payloadSize;
 
-  if ((offset_in_block + totalSize) > max_size) {
+  if ((offset_in_block + totalSize) > static_cast<size_t>(max_size)) {
     _lastError = strformat(F("KVS: Total size %d + offset %d exceeds max size %d"), totalSize, offset_in_block, max_size);
     #ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_DEBUG, _lastError);
@@ -280,8 +280,8 @@ bool ESPEasy_key_value_store::store(SettingsType::Enum settingsType, int index, 
 
   String result;
 
-  int writePos = offset_in_block;
-  int bufPos   = 0;
+  size_t writePos = offset_in_block;
+  size_t bufPos   = 0;
 
   // Write header
   buffer[bufPos++] = 0;                                 // TODO TD-er: Add version
@@ -289,7 +289,7 @@ bool ESPEasy_key_value_store::store(SettingsType::Enum settingsType, int index, 
   const size_t totalSize        = 4 + payloadSize + 16; // header + payload + checksum
   const size_t startChecksumPos = offset_in_block + 4 + payloadSize;
 
-  if ((offset_in_block + totalSize) > max_size) {
+  if ((offset_in_block + totalSize) > static_cast<size_t>(max_size)) {
     _lastError = strformat(F("KVS: Total size %d + offset %d exceeds max size %d"), totalSize, offset_in_block, max_size);
     #ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_DEBUG, _lastError);

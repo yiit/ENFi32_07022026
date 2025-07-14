@@ -237,7 +237,7 @@ enum class ESPEasy_cmd_e : uint8_t {
   wifikey,
   wifikey2,
   wifimode,
-# ifndef SOC_WIFI_SUPPORTED
+#if FEATURE_OTA_FW_UPDATE_ESP_HOSTED_MCU
   wifiotahostedmcu,
 #endif
   wifiscan,

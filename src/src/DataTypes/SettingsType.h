@@ -19,7 +19,9 @@ public:
 #if FEATURE_ALTERNATIVE_CDN_URL
     CdnSettings_Type,
 #endif
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
     NetworkInterfaceSettings_Type,
+#endif
 
 
     SettingsType_MAX

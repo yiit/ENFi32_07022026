@@ -8,11 +8,15 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
   i2c_sda(DEFAULT_PIN_I2C_SDA),
   i2c_scl(DEFAULT_PIN_I2C_SCL),
   eth_phyaddr(DEFAULT_ETH_PHY_ADDR),
+#if FEATURE_ETHERNET
   eth_phytype(DEFAULT_ETH_PHY_TYPE),
+#endif
   eth_mdc(DEFAULT_ETH_PIN_MDC),
   eth_mdio(DEFAULT_ETH_PIN_MDIO),
   eth_power(DEFAULT_ETH_PIN_POWER),
+#if FEATURE_ETHERNET
   eth_clock_mode(DEFAULT_ETH_CLOCK_MODE),
+#endif
   network_medium(DEFAULT_NETWORK_MEDIUM)
 
 {

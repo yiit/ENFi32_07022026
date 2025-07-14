@@ -1,7 +1,7 @@
 #include "../DataTypes/EthernetParameters.h"
 
 
-#if CONFIG_IDF_TARGET_ESP32
+#if CONFIG_IDF_TARGET_ESP32 && FEATURE_ETHERNET
 
 bool isValid(EthClockMode_t clockMode) {
   switch (clockMode)

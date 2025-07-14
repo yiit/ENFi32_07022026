@@ -1,7 +1,7 @@
 #include "../DataTypes/EthernetParameters.h"
 
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_IDF_TARGET_ESP32P4 && FEATURE_ETHERNET
 
 # include <pins_arduino.h>
 

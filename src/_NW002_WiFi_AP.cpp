@@ -39,7 +39,7 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
   {
     case NWPlugin::Function::NWPLUGIN_DRIVER_ADD:
     {
-      NetworkDriverStruct& nw = getNetworkDriverStruct(networkDriverIndex_t::toNetworkDriverIndex(event->idx));
+//      NetworkDriverStruct& nw = getNetworkDriverStruct(networkDriverIndex_t::toNetworkDriverIndex(event->idx));
       break;
     }
 

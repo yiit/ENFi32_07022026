@@ -3,6 +3,7 @@
 
 #include "../../ESPEasy_common.h"
 
+#if FEATURE_ETHERNET
 
 // Is stored in settings
 #ifdef ESP32P4
@@ -78,5 +79,5 @@ eth_phy_type_t to_ESP_phy_type(EthPhyType_t phyType);
 
 const __FlashStringHelper * toString(EthPhyType_t phyType);
 
-
+#endif
 #endif // DATASTRUCTS_ETHERNETPARAMETERS_H
