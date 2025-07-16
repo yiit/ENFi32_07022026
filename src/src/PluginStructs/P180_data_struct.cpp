@@ -33,24 +33,10 @@ P180_data_struct::P180_data_struct(struct EventStruct *event) {
       }
     }
   }
-
-  # if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER // When feature is available
-
-  for (uint8_t i = 0; i < VARS_PER_TASK; ++i) {
-    if (i < P180_NR_OUTPUT_VALUES) {
-      _vTypes[i] = static_cast<Sensor_VType>(PCONFIG(P180_VALUE_OFFSET + i));
-    } else {
-      _vTypes[i] = Sensor_VType::SENSOR_TYPE_SINGLE;
-    }
-  }
-  # endif // if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER
 }
 
 P180_data_struct::~P180_data_struct() {
   _strings->clear();
-  # if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER // When feature is available
-  _vTypes.clear();
-  # endif // if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER
 }
 
 bool P180_data_struct::plugin_init(struct EventStruct *event) {

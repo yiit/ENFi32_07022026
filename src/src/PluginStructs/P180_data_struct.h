@@ -72,9 +72,6 @@ private:
   bool        _showLog       = false;
 
   String _strings[P180_CUSTOM_BUFFER_SIZE];
-  # if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER // When feature is available
-  Sensor_VType _vTypes[VARS_PER_TASK];
-  # endif // if defined(FEATURE_MQTT_DISCOVER) && FEATURE_MQTT_DISCOVER
 };
 
 #endif // ifdef USES_P180
