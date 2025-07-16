@@ -7,20 +7,47 @@
 WebFormItemParams::WebFormItemParams(
   const String                       & label,
   const String                       & id,
-  ESPEasy_key_value_store::StorageType storageType)
-  : _label(label), _id(id), _storageType(storageType) {}
+  ESPEasy_key_value_store::StorageType storageType,
+  uint32_t                             key)
+  : _label(label), _id(id), _storageType(storageType), _key(key) {}
 
 WebFormItemParams::WebFormItemParams(
   const __FlashStringHelper           *label,
   const __FlashStringHelper           *id,
-  ESPEasy_key_value_store::StorageType storageType)
-  : _label(label), _id(id), _storageType(storageType) {}
+  ESPEasy_key_value_store::StorageType storageType,
+  uint32_t                             key)
+  : _label(label), _id(id), _storageType(storageType), _key(key) {}
+
+#define CORRECT_RANGE(T, CT)                                                                  \
+          case ESPEasy_key_value_store::StorageType::T:                                       \
+            if (_max > std::numeric_limits<CT>::max()) _max = std::numeric_limits<CT>::max(); \
+            if (_min < std::numeric_limits<CT>::min()) _min = std::numeric_limits<CT>::min(); \
+            break;
+
+void WebFormItemParams::checkRanges()
+{
+  switch (_storageType)
+  {
+  CORRECT_RANGE(int8_type,   int8_t)
+  CORRECT_RANGE(uint8_type,  uint8_t)
+  CORRECT_RANGE(int16_type,  int16_t)
+  CORRECT_RANGE(uint16_type, uint16_t)
+  CORRECT_RANGE(int32_type,  int32_t)
+  CORRECT_RANGE(uint32_type, uint32_t)
+  CORRECT_RANGE(float_type,  float)
+  CORRECT_RANGE(uint64_type, uint64_t)
+  CORRECT_RANGE(int64_type,  int64_t)
+
+    //  CORRECT_RANGE(double_type, double)
+    default: break;
+  }
+}
 
 bool showWebformItem(const ESPEasy_key_value_store& store,
-                     uint32_t                       key,
-                     const WebFormItemParams      & params)
+                     WebFormItemParams              params)
 {
-  String id = params._id.isEmpty() ? concat(F("KVS_ID_"), key) : params._id;
+  params.checkRanges();
+  String id = params._id.isEmpty() ? concat(F("KVS_ID_"), params._key) : params._id;
 
   switch (params._storageType)
   {
@@ -28,7 +55,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
     {
       String value;
 
-      if (!store.getValueAsString(key, value)) { return false; }
+      if (!store.getValueAsString(params._key, value)) { value = params._defaultStringValue; }
       addFormTextBox(
         params._label,
         id,
@@ -50,13 +77,13 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
     case ESPEasy_key_value_store::StorageType::int32_type:
     case ESPEasy_key_value_store::StorageType::uint32_type:
     {
-      String valueAsString;
+      int64_t value;
 
-      if (!store.getValueAsString(key, valueAsString)) { return false; }
+      if (!store.getValueAsInt(params._key, value)) { value = params._defaultIntValue; }
       addFormNumericBox(
         params._label,
         id,
-        valueAsString.toInt(),
+        value,
         params._min,
         params._max,
 #if FEATURE_TOOLTIPS
@@ -83,7 +110,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
     {
       float value{};
 
-      if (!store.getValue(key, value)) { return false; }
+      if (!store.getValue(params._key, value)) { value = params._defaultFloatValue; }
       addFormFloatNumberBox(
         params._label,
         id,
@@ -106,7 +133,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
     {
       bool value{};
 
-      if (!store.getValue(key, value)) { return false; }
+      if (!store.getValue(params._key, value)) { value = params._defaultIntValue != 0; }
       addFormCheckBox(
         params._label,
         id,
@@ -119,6 +146,17 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
   }
   return false;
 }
+
+void showFormSelector(const ESPEasy_key_value_store& store,
+    FormSelectorOptions& selector,
+    const WebFormItemParams&       params)
+{
+    int64_t value{};
+    if (!store.getValueAsInt(params._key, value)) { value = params._defaultIntValue; }
+
+    selector.addFormSelector(params._label, params._id, value);    
+}
+
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,

@@ -9,11 +9,17 @@
 struct WebFormItemParams {
   WebFormItemParams(const String                       & label,
                     const String                       & id,
-                    ESPEasy_key_value_store::StorageType storageType);
+                    ESPEasy_key_value_store::StorageType storageType,
+                    uint32_t                             key = 0);
 
   WebFormItemParams(const __FlashStringHelper           *label,
                     const __FlashStringHelper           *id,
-                    ESPEasy_key_value_store::StorageType storageType);
+                    ESPEasy_key_value_store::StorageType storageType,
+                    uint32_t                             key = 0);
+
+
+  void checkRanges();
+
   String _label;
   String _id;
 #if FEATURE_TOOLTIPS
@@ -24,17 +30,26 @@ struct WebFormItemParams {
   uint8_t                              _nrDecimals{};
   float                                _stepsize    = 1;
   ESPEasy_key_value_store::StorageType _storageType = ESPEasy_key_value_store::StorageType::not_set;
+  uint32_t                             _key{};
   int                                  _maxLength{};
   bool                                 _disabled{};
   bool                                 _readOnly{};
   bool                                 _required{};
   String                               _pattern;
 
+  int64_t _defaultIntValue{};
+  double _defaultFloatValue{};
+  String _defaultStringValue;
+
+
 };
 
 bool showWebformItem(const ESPEasy_key_value_store& store,
-                     uint32_t                       key,
-                     const WebFormItemParams      & params);
+                      WebFormItemParams       params);
+
+void showFormSelector(const ESPEasy_key_value_store& store,
+    FormSelectorOptions& selector,
+    const WebFormItemParams&       params);
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,

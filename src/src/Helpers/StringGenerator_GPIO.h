@@ -56,6 +56,9 @@ String formatGpioLabel(int  gpio,
 String formatGpioName(const __FlashStringHelper * label,
                       gpio_direction direction,
                       bool           optional = false);
+String formatGpioName(const String& label,
+                      gpio_direction direction,
+                      bool           optional = false);
 
 String formatGpioName_input(const __FlashStringHelper * label);
 String formatGpioName_output(const __FlashStringHelper * label);

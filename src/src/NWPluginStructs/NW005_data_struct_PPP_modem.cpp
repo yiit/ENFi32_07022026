@@ -3,9 +3,11 @@
 #ifdef USES_NW005
 
 # include "../Helpers/StringConverter.h"
-
-# include "../WebServer/Markup_Forms.h"
 # include "../Helpers/_Plugin_Helper_serial.h"
+
+# include "../WebServer/Markup.h"
+# include "../WebServer/Markup_Forms.h"
+# include "../WebServer/ESPEasy_key_value_store_webform.h"
 
 # include <ESPEasySerialPort.h>
 # include <PPP.h>
@@ -56,6 +58,14 @@ const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString
 NW005_data_struct_PPP_modem::NW005_data_struct_PPP_modem(networkIndex_t networkIndex)
   : NWPluginData_base(nwpluginID_t(5), networkIndex)
 {}
+
+WebFormItemParams NW005_makeWebFormItemParams(uint32_t key) {
+  ESPEasy_key_value_store::StorageType storageType;
+  const __FlashStringHelper*label = NW005_getLabelString(key, true, storageType);
+  const __FlashStringHelper*id    = NW005_getLabelString(key, false, storageType);
+
+  return WebFormItemParams(label, id, storageType, key);
+}
 
 NW005_data_struct_PPP_modem::~NW005_data_struct_PPP_modem() {
   PPP.end();
@@ -122,11 +132,8 @@ void NW005_data_struct_PPP_modem::webform_load(struct EventStruct *event)
       toString(NW005_modem_model::SIM800)
     };
 
-    int8_t model{};
-    _kvs->getValue(NW005_KEY_MODEM_MODEL, model);
     FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
-    selector.addFormSelector(F("Modem Model"), F("mmodel"), model);
-
+    showFormSelector(*_kvs, selector, NW005_makeWebFormItemParams(NW005_KEY_MODEM_MODEL));
   }
 
   {
@@ -170,25 +177,80 @@ void NW005_data_struct_PPP_modem::webform_load(struct EventStruct *event)
 # endif
     };
 
-    int8_t port{};
-    _kvs->getValue(NW005_KEY_SERIAL_PORT, port);
-    FormSelectorOptions selector(NR_ESPEASY_SERIAL_TYPES, options, ids);
-    selector.addFormSelector(F("Serial Port"), F("serPort"), port);
-
+    FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
+    showFormSelector(*_kvs, selector, NW005_makeWebFormItemParams(NW005_KEY_SERIAL_PORT));
   }
 
   for (int i = NW005_KEY_PIN_RX; i <= NW005_KEY_PIN_RESET; ++i)
   {
     ESPEasy_key_value_store::StorageType storageType;
-    const __FlashStringHelper *label = NW005_getLabelString(i, true, storageType);
-    const __FlashStringHelper *id    = NW005_getLabelString(i, false, storageType);
-    int8_t pin                       = -1;
-    _kvs->getValue(i, pin);
-    addFormPinSelect(PinSelectPurpose::Generic, label, id, pin);
-  }
-  uint8_t flow_ctrl{};
+    PinSelectPurpose purpose      = PinSelectPurpose::Generic;
+    String label                  = NW005_getLabelString(i, true, storageType);
+    const __FlashStringHelper *id = NW005_getLabelString(i, false, storageType);
 
-  _kvs->getValue(NW005_KEY_FLOWCTRL, flow_ctrl);
+    switch (i)
+    {
+      case NW005_KEY_PIN_RX:
+        purpose = PinSelectPurpose::Serial_input;
+        label   = formatGpioName_serialRX(false);
+        break;
+      case NW005_KEY_PIN_TX:
+        purpose = PinSelectPurpose::Serial_output;
+        label   = formatGpioName_serialTX(false);
+        break;
+      case NW005_KEY_PIN_CTS:
+        purpose = PinSelectPurpose::Generic_input;
+        label   = formatGpioName(
+          label, gpio_direction::gpio_input, true);
+        break;
+      case NW005_KEY_PIN_RTS:
+        purpose = PinSelectPurpose::Generic_output;
+        label   = formatGpioName(
+          label, gpio_direction::gpio_output, true);
+        break;
+      case NW005_KEY_PIN_RESET:
+        purpose = PinSelectPurpose::Generic_output;
+        label   = formatGpioName(
+          label, gpio_direction::gpio_output, true);
+        break;
+    }
+
+    int8_t pin = -1;
+    _kvs->getValue(i, pin);
+    addFormPinSelect(purpose, label, id, pin);
+  }
+  showWebformItem(
+    *_kvs,
+    NW005_makeWebFormItemParams(NW005_KEY_PIN_RESET_ACTIVE_LOW));
+  {
+    auto params = NW005_makeWebFormItemParams(NW005_KEY_PIN_RESET_DELAY);
+    params._max             = 2000;
+    params._defaultIntValue = 200;
+    showWebformItem(*_kvs, params);
+    addUnit(F("ms"));
+
+  }
+  {
+    const int ids[] = {
+      ESP_MODEM_FLOW_CONTROL_NONE,
+      ESP_MODEM_FLOW_CONTROL_SW,
+      ESP_MODEM_FLOW_CONTROL_HW
+    };
+    const __FlashStringHelper*options[] = {
+      F("None"),
+      F("Software"),
+      F("Hardware")
+    };
+
+    FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
+    showFormSelector(*_kvs, selector, NW005_makeWebFormItemParams(NW005_KEY_FLOWCTRL));
+  }
+  {
+    auto params = NW005_makeWebFormItemParams(NW005_KEY_BAUDRATE);
+    params._max = 10000000;
+    showWebformItem(*_kvs, params);
+
+  }
 
 }
 

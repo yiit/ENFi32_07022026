@@ -164,7 +164,7 @@ boolean Plugin_017(uint8_t function, struct EventStruct *event, String& string)
 
       // 0.25 to 60 seconds
       addFormNumericBox(F("Automatic Tag removal after"), F("removetime"), P017_REMOVAL_TIMEOUT, 250, 60000);
-      addUnit(F("mSec."));
+      addUnit(F("ms"));
 
       addFormNumericBox(F("Value to set on Tag removal"), F("removevalue"), P017_NO_TAG_DETECTED_VALUE, 0, 2147483647);
 

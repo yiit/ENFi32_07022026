@@ -38,7 +38,15 @@ String formatGpioLabel(int gpio, bool includeWarning) {
 }
 
 String formatGpioName(const __FlashStringHelper * label, gpio_direction direction, bool optional) {
-  int reserveLength = 5 /* "GPIO " */ + 8 /* "&#8644; " */ + strlen_P((PGM_P)label);
+  return formatGpioName(String(label), direction, optional);
+}
+
+String formatGpioName(const String& label,
+                      gpio_direction direction,
+                      bool           optional)
+{
+
+  int reserveLength = 5 /* "GPIO " */ + 8 /* "&#8644; " */ + label.length();
 
   if (optional) {
     reserveLength += 11;
