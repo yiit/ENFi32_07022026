@@ -906,6 +906,18 @@ bool ESPEasy_key_value_store::getValueAsInt(
   return false;
 }
 
+  int64_t ESPEasy_key_value_store::getValueAsInt_or_default(uint32_t key, int64_t default_value) const
+  {
+    int64_t value = default_value;
+    if (getValueAsInt(key, value)) return value;
+    return default_value;
+  }
+  int64_t ESPEasy_key_value_store::getValueAsInt(uint32_t key) const
+  {
+    return getValueAsInt_or_default(key, 0);
+  }
+
+
 #define GET_4BYTE_INT_TYPE_FROM_STRING(T, CT)           \
           case ESPEasy_key_value_store::StorageType::T: \
             {                                           \

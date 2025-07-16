@@ -5,12 +5,16 @@
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/_Plugin_Helper_serial.h"
 
+# include "../WebServer/HTML_wrappers.h"
 # include "../WebServer/Markup.h"
 # include "../WebServer/Markup_Forms.h"
 # include "../WebServer/ESPEasy_key_value_store_webform.h"
 
 # include <ESPEasySerialPort.h>
 # include <PPP.h>
+
+//# include <esp_modem_api.h>
+//#include <esp_modem_c_api_types.h>
 
 // Keys as used in the Key-value-store
 # define NW005_KEY_SERIAL_PORT          1
@@ -24,6 +28,8 @@
 # define NW005_KEY_BAUDRATE             9
 # define NW005_KEY_FLOWCTRL             10
 # define NW005_KEY_MODEM_MODEL          11
+# define NW005_KEY_APN                  12
+# define NW005_KEY_PIN                  13
 
 const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString, ESPEasy_key_value_store::StorageType& storageType)
 {
@@ -50,6 +56,12 @@ const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString
     case NW005_KEY_FLOWCTRL:
       return displayString ? F("Flow Control") : F("flowctrl");
     case NW005_KEY_MODEM_MODEL: return displayString ? F("Modem Model") : F("mmodel");
+    case NW005_KEY_APN:
+      storageType = ESPEasy_key_value_store::StorageType::string_type;
+      return displayString ? F("Access Point Name (APN)") : F("apn");
+    case NW005_KEY_PIN:
+      storageType = ESPEasy_key_value_store::StorageType::string_type;
+      return displayString ? F("SIM Card Pin") : F("pin");
 
   }
   return F("");
@@ -113,6 +125,8 @@ ppp_modem_model_t to_ppp_modem_model_t(NW005_modem_model NW005_modemmodel)
 void NW005_data_struct_PPP_modem::webform_load(struct EventStruct *event)
 {
   _load();
+
+  addFormSubHeader(F("Device Settings"));
   {
     const int ids[] = {
       static_cast<int>(NW005_modem_model::generic),
@@ -244,13 +258,123 @@ void NW005_data_struct_PPP_modem::webform_load(struct EventStruct *event)
 
     FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
     showFormSelector(*_kvs, selector, NW005_makeWebFormItemParams(NW005_KEY_FLOWCTRL));
+    addFormNote(F("Only set flow control if RTS and CTS are used"));
   }
   {
     auto params = NW005_makeWebFormItemParams(NW005_KEY_BAUDRATE);
-    params._max = 10000000;
+    params._max             = 10000000;
+    params._defaultIntValue = 115200;
     showWebformItem(*_kvs, params);
-
   }
+
+  addFormSubHeader(F("Connection"));
+  {
+    auto params = NW005_makeWebFormItemParams(NW005_KEY_APN);
+    params._maxLength = 64;
+    showWebformItem(*_kvs, params);
+  }
+  {
+    auto params = NW005_makeWebFormItemParams(NW005_KEY_PIN);
+    params._maxLength = 4;
+    showWebformItem(*_kvs, params);
+    addFormNote(F("Only numerical digits"));
+  }
+
+  if (!_modem_initialized) { return; }
+
+  addFormSubHeader(F("Modem State"));
+  addRowLabel(F("Modem Model"));
+  addHtml_pre(PPP.moduleName());
+  addRowLabel(F("IMEI"));
+  addHtml_pre(PPP.IMEI());
+
+  addRowLabel(F("IMSI"));
+  addHtml_pre(PPP.IMSI());
+
+  if (PPP.attached()) {
+    addRowLabel(F("Operator Name"));
+    addHtml_pre(PPP.operatorName());
+  }
+
+  addRowLabel(F("RSSI"));
+  addHtmlInt(PPP.RSSI());
+
+  addRowLabel(F("BER"));
+  addHtmlInt(PPP.BER());
+
+  addRowLabel(F("Radio State"));
+  addHtml((PPP.radioState() == 0) ? F("Minimal") : F("Full"));
+
+  int networkMode = PPP.networkMode();
+
+  if (networkMode >= 0) {
+    addRowLabel(F("Network Mode"));
+
+    // TODO TD-er: Must 'decode' the mode into GSM, LTE, etc.
+    addHtmlInt(networkMode);
+  }
+
+  int batVolt = PPP.batteryVoltage();
+
+  if (batVolt >= 0) {
+    addRowLabel(F("Battery Voltage"));
+    addHtmlInt(batVolt);
+  }
+
+  int batLevel = PPP.batteryLevel();
+
+  if (batLevel >= 0) {
+    addRowLabel(F("Battery Level"));
+    addHtmlInt(batLevel);
+  }
+
+  int batStatus = PPP.batteryStatus();
+
+  if (batStatus >= 0) {
+    addRowLabel(F("Battery Status"));
+    addHtmlInt(batStatus);
+  }
+
+  // TODO TD-er: Disabled for now, missing PdpContext
+  /*
+  esp_modem_dce_t *handle = PPP.handle();
+
+  if (handle) {
+    int state{};
+
+    if (esp_modem_get_network_registration_state(handle, state) == ESP_OK) {
+      addRowLabel(F("Network Registration State"));
+      const __FlashStringHelper*str = F("Unknown");
+
+      switch (state)
+      {
+        case 0: str = F("Not registered, MT is not currently searching an operator to register to");
+          break;
+        case 1: str = F("Registered, home network");
+          break;
+        case 2: str = F("Not registered, but MT is currently trying to attach or searching an operator to register to");
+          break;
+        case 3: str = F("Registration denied");
+          break;
+        case 4: str = F("Unknown");
+          break;
+        case 5: str = F("Registered, Roaming");
+          break;
+        case 6: str = F("Registered, for SMS only, home network (NB-IoT only)");
+          break;
+        case 7: str = F("Registered, for SMS only, roaming (NB-IoT only)");
+          break;
+        case 8: str = F("Attached for emergency bearer services only");
+          break;
+        case 9: str = F("Registered for CSFB not preferred, home network");
+          break;
+        case 10: str = F("Registered for CSFB not preferred, roaming");
+          break;
+      }
+      addHtml(str);
+    }
+  }
+*/
 
 }
 
@@ -267,7 +391,9 @@ void NW005_data_struct_PPP_modem::webform_save(struct EventStruct *event)
     NW005_KEY_PIN_RESET_DELAY,
     NW005_KEY_BAUDRATE,
     NW005_KEY_FLOWCTRL,
-    NW005_KEY_MODEM_MODEL
+    NW005_KEY_MODEM_MODEL,
+    NW005_KEY_APN,
+    NW005_KEY_PIN
   };
 
 
@@ -275,35 +401,66 @@ void NW005_data_struct_PPP_modem::webform_save(struct EventStruct *event)
   {
     ESPEasy_key_value_store::StorageType storageType;
     const __FlashStringHelper *id = NW005_getLabelString(keys[i], false, storageType);
-    _kvs->setValue(storageType, keys[i], webArg(id));
+    storeWebformItem(*_kvs, keys[i], storageType, id);
   }
   _store();
 }
 
 bool NW005_data_struct_PPP_modem::init(struct EventStruct *event)
 {
-  if (!_KVS_initialized()) { return false; }
+  if (!_KVS_initialized()) {
+    addLog(LOG_LEVEL_ERROR, F("PPP: Could not initialize storage"));
+    return false;
+  }
 
-  if (!_load()) { return false; }
-  int8_t tx, rx, rts, cts, rst = -1;
-  _kvs->getValue(NW005_KEY_PIN_TX,    tx);
-  _kvs->getValue(NW005_KEY_PIN_RX,    rx);
-  _kvs->getValue(NW005_KEY_PIN_RTS,   rts);
-  _kvs->getValue(NW005_KEY_PIN_CTS,   cts);
-  _kvs->getValue(NW005_KEY_PIN_RESET, rst);
+  if (!_load()) {
+    addLog(LOG_LEVEL_ERROR, F("PPP: Could not load settings"));
+    return false;
+  }
 
-  PPP.setResetPin(rst);
+  PPP.setResetPin(
+    _kvs->getValueAsInt_or_default(NW005_KEY_PIN_RESET, -1),
+    _kvs->getValueAsInt_or_default(NW005_KEY_PIN_RESET_ACTIVE_LOW, 0),
+    _kvs->getValueAsInt_or_default(NW005_KEY_PIN_RESET_DELAY, 200));
 
-  if (!PPP.setPins(tx, rx, rts, cts)) { return false; }
+  const int rtsPin               = _kvs->getValueAsInt_or_default(NW005_KEY_PIN_RTS, -1);
+  const int ctsPin               = _kvs->getValueAsInt_or_default(NW005_KEY_PIN_CTS, -1);
+  esp_modem_flow_ctrl_t flow_ctl = static_cast<esp_modem_flow_ctrl_t>(_kvs->getValueAsInt_or_default(NW005_KEY_FLOWCTRL,
+                                                                                                     ESP_MODEM_FLOW_CONTROL_NONE));
 
-  ppp_modem_model_t model = PPP_MODEM_GENERIC;
-  {
-    int8_t modemModel = PPP_MODEM_GENERIC;
-
-    if (_kvs->getValue(NW005_KEY_MODEM_MODEL, modemModel)) {
-      ppp_modem_model_t model = to_ppp_modem_model_t(static_cast<NW005_modem_model>(modemModel));
+  if ((rtsPin < 0) || (ctsPin < 0)) {
+    if (flow_ctl != ESP_MODEM_FLOW_CONTROL_NONE) {
+      addLog(LOG_LEVEL_INFO, F("PPP: Disable flow control as RTS/CTS are not set"));
+      flow_ctl = ESP_MODEM_FLOW_CONTROL_NONE;
     }
   }
+
+  if (!PPP.setPins(
+        _kvs->getValueAsInt_or_default(NW005_KEY_PIN_TX, -1),
+        _kvs->getValueAsInt_or_default(NW005_KEY_PIN_RX, -1),
+        rtsPin,
+        ctsPin,
+        flow_ctl))
+  {
+    addLog(LOG_LEVEL_ERROR, F("PPP: Could not set pins"));
+    return false;
+  }
+  {
+    String apn;
+    _kvs->getValue(NW005_KEY_APN, apn);
+    PPP.setApn(apn.c_str());
+  }
+  {
+    String pin;
+    _kvs->getValue(NW005_KEY_PIN, pin);
+
+    if (pin.length() >= 4) {
+      PPP.setPin(pin.c_str());
+    }
+  }
+
+  ppp_modem_model_t model = to_ppp_modem_model_t(static_cast<NW005_modem_model>(
+                                                   _kvs->getValueAsInt_or_default(NW005_KEY_MODEM_MODEL, PPP_MODEM_GENERIC)));
   int serialPort = 1;
   {
     int8_t serial = 1;
@@ -337,11 +494,16 @@ bool NW005_data_struct_PPP_modem::init(struct EventStruct *event)
       }
     }
   }
-  uint32_t baud_rate = 115200;
-  _kvs->getValue(NW005_KEY_BAUDRATE, baud_rate);
+  uint32_t baud_rate = _kvs->getValueAsInt_or_default(NW005_KEY_BAUDRATE, 115200);
 
-  if (!PPP.begin(model, serialPort, baud_rate)) { return false; }
+  if (!PPP.begin(model, serialPort, baud_rate)) {
+    addLog(LOG_LEVEL_ERROR, F("PPP: Error PPP.begin"));
+    return false;
+  }
 
+  addLog(LOG_LEVEL_INFO, strformat(F("PPP: Module Name: %s, IMEI: %s"),
+                                   PPP.moduleName().c_str(),
+                                   PPP.IMEI().c_str()));
 
   _modem_initialized = true;
   return true;

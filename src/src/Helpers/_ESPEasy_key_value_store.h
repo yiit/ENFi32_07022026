@@ -177,6 +177,9 @@ public:
   bool getValueAsInt(uint32_t key,
                         int64_t & value) const;
 
+  int64_t getValueAsInt_or_default(uint32_t key, int64_t default_value) const;
+  int64_t getValueAsInt(uint32_t key) const;
+
   // Generic set function for any given storageType/key.
   // Given value is a string representation of that storage type.
   // TODO TD-er: Implement

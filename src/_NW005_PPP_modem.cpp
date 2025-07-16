@@ -69,6 +69,15 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
+      success = PPP.connected();
+
+      if (success) {
+        string = strformat(
+          F("%s (%d dBm)"),
+          PPP.operatorName().c_str(),
+          PPP.RSSI());
+      }
+
       break;
     }
 
