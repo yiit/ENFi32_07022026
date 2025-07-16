@@ -575,7 +575,11 @@ public:
   int8_t          ETH_Pin_power_rst = -1;
 #if FEATURE_ETHERNET
   EthPhyType_t    ETH_Phy_Type = EthPhyType_t::notSet;
+# if CONFIG_ETH_USE_ESP32_EMAC
   EthClockMode_t  ETH_Clock_Mode = static_cast<EthClockMode_t>(0);
+#else
+  uint8_t         ETH_Clock_Mode{};
+#endif
 #else
   uint8_t         ETH_Phy_Type{};
   uint8_t         ETH_Clock_Mode{};

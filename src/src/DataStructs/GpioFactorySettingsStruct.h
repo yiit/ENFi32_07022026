@@ -24,7 +24,7 @@ struct GpioFactorySettingsStruct {
   int8_t          eth_mdc;
   int8_t          eth_mdio;
   int8_t          eth_power;
-#if FEATURE_ETHERNET
+#if FEATURE_ETHERNET && CONFIG_ETH_USE_ESP32_EMAC
   EthClockMode_t  eth_clock_mode;
 #else
   uint8_t  eth_clock_mode{};

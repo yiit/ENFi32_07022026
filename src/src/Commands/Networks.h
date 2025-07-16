@@ -19,7 +19,9 @@ String Command_ETH_Pin_mdc (struct EventStruct *event, const char* Line);
 String Command_ETH_Pin_mdio (struct EventStruct *event, const char* Line);
 String Command_ETH_Pin_power (struct EventStruct *event, const char* Line);
 String Command_ETH_Phy_Type (struct EventStruct *event, const char* Line);
+# if CONFIG_ETH_USE_ESP32_EMAC
 String Command_ETH_Clock_Mode (struct EventStruct *event, const char* Line);
+#endif
 String Command_ETH_IP (struct EventStruct *event, const char* Line);
 String Command_ETH_Gateway (struct EventStruct *event, const char* Line);
 String Command_ETH_Subnet (struct EventStruct *event, const char* Line);

@@ -47,6 +47,7 @@ bool NWPlugin_004(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS:
     {
+        /*
       # if CONFIG_IDF_TARGET_ESP32P4
       Settings.ETH_Clock_Mode    = EthClockMode_t::Ext_crystal;
       Settings.ETH_Phy_Type      = EthPhyType_t::TLK110;
@@ -57,6 +58,7 @@ bool NWPlugin_004(NWPlugin::Function function, struct EventStruct *event, String
       # else // if CONFIG_IDF_TARGET_ESP32P4
       Settings.ETH_Clock_Mode = EthClockMode_t::Ext_crystal_osc;
       # endif // if CONFIG_IDF_TARGET_ESP32P4
+      */
       break;
     }
 

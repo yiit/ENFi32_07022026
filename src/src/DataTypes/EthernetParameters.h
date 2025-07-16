@@ -37,12 +37,15 @@ enum class EthClockMode_t : uint8_t {
 
 # endif // if CONFIG_IDF_TARGET_ESP32
 
+# if CONFIG_ETH_USE_ESP32_EMAC
+
 bool                       isValid(EthClockMode_t clockMode);
 
 const __FlashStringHelper* toString(EthClockMode_t clockMode);
 
 bool                       isGpioUsedInETHClockMode(EthClockMode_t clockMode,
                                                     int8_t         gpio);
+#endif
 
 // Is stored in settings
 enum class EthPhyType_t : uint8_t {

@@ -93,7 +93,7 @@ String Command_ETH_Phy_Type (struct EventStruct *event, const char* Line)
 {
   return Command_GetORSetInt8_t(event, F("ETH_Phy_Type:"), Line, reinterpret_cast<int8_t*>(&Settings.ETH_Phy_Type),1);
 }
-
+# if CONFIG_ETH_USE_ESP32_EMAC
 String Command_ETH_Clock_Mode (struct EventStruct *event, const char* Line)
 {
   return Command_GetORSetETH(event, 
@@ -103,6 +103,7 @@ String Command_ETH_Clock_Mode (struct EventStruct *event, const char* Line)
                              reinterpret_cast<uint8_t*>(&Settings.ETH_Clock_Mode),
                              1);
 }
+#endif
 
 String Command_ETH_IP (struct EventStruct *event, const char* Line)
 {

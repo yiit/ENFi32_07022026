@@ -92,7 +92,7 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
         NW_data->webform_save(event);
 
         if (mustCleanup) { delete NW_data; }
-
+        success = true;
       }
 
       break;
@@ -110,6 +110,7 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
 
       if (NW_data) {
         NW_data->webform_load(event);
+        success = true;
 
         if (mustCleanup) { delete NW_data; }
 
@@ -124,8 +125,7 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
       NW005_data_struct_PPP_modem *NW_data = static_cast<NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
       if (NW_data) {
-        //        NW_data->testWrite();
-
+        success = NW_data->init(event);
       }
       break;
     }
@@ -135,7 +135,7 @@ bool NWPlugin_005(NWPlugin::Function function, struct EventStruct *event, String
       NW005_data_struct_PPP_modem *NW_data = static_cast<NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
       if (NW_data) {
-        //        NW_data->testRead();
+        success = NW_data->exit(event);
       }
       break;
     }

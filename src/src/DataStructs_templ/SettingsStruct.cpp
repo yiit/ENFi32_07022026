@@ -1247,7 +1247,11 @@ bool SettingsStruct_tmpl<N_TASKS>::isEthernetPinOptional(int8_t pin) const {
   #if FEATURE_ETHERNET
   if (pin < 0) return false;
   if (NetworkMedium == NetworkMedium_t::Ethernet) {
-    if (!isSPI_EthernetType(ETH_Phy_Type) && isGpioUsedInETHClockMode(ETH_Clock_Mode, pin)) return true;
+    if (!isSPI_EthernetType(ETH_Phy_Type) 
+# if CONFIG_ETH_USE_ESP32_EMAC
+    && isGpioUsedInETHClockMode(ETH_Clock_Mode, pin)
+  #endif
+  ) return true;
     if (ETH_Pin_mdc_cs == pin) return true;
     if (ETH_Pin_mdio_irq == pin) return true;
     if (ETH_Pin_power_rst == pin) return true;

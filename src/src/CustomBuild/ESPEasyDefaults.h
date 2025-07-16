@@ -300,7 +300,11 @@
 #endif
 #endif
 #ifndef DEFAULT_ETH_CLOCK_MODE
+# if CONFIG_ETH_USE_ESP32_EMAC
 #define DEFAULT_ETH_CLOCK_MODE           static_cast<EthClockMode_t>(0)
+#else
+#define DEFAULT_ETH_CLOCK_MODE           (0)
+#endif
 #endif
 #ifndef DEFAULT_NETWORK_MEDIUM
 #ifdef ESP32P4
