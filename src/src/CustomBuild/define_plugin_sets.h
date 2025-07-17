@@ -3233,7 +3233,12 @@ To create/register a plugin, you have to :
 
 #ifndef FEATURE_PPP_MODEM
 #ifdef ESP32
+#ifdef ESP32_4M
+// For now we need to keep build size in mind
+#define FEATURE_PPP_MODEM                     0
+#else
 #define FEATURE_PPP_MODEM                     1
+#endif
 #else
 #define FEATURE_PPP_MODEM                     0
 #endif
