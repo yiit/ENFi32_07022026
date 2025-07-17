@@ -273,6 +273,8 @@ The options included here are all possible value types supported by ESPEasy that
 
 Available options, grouped per category:
 
+**Basic**: ``Single``
+
 **Environment**: ``Temp¹, Hum¹, Baro¹, Wind speed¹``
 
 **Dust/Gases**: ``Dust PM2.5¹, Dust PM1.0¹, Dust PM10¹, (e)CO2¹, TVOC¹, AQI¹, NOx¹``
@@ -285,7 +287,7 @@ Available options, grouped per category:
 
 **Light**: ``Lux¹, UV¹, UV Index¹, IR¹, Red¹, Green¹, Blue¹, Color temperature¹``
 
-**Other**: ``Single, Switch¹, Switch (inv.)¹, Dimmer, String, UInt32 (1x), Int32 (1x), UInt64 (1x), Int64 (1x), Double (1x)``
+**Other**: ``Switch¹, Switch (inv.)¹, Dimmer, String, UInt32 (1x), Int32 (1x), UInt64 (1x), Int64 (1x), Double (1x)``
 
 Value Types marked with ``¹`` are supported for use in MQTT AutoDiscovery.
 
