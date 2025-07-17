@@ -75,13 +75,14 @@ void sensorTypeHelper_Selector(const String& id, int optionCount, const uint8_t 
 
 #if FEATURE_CUSTOM_TASKVAR_VTYPE
 const char value_type_categories[] PROGMEM =
-  "Environment|" // 1024
-  "Dust/Gases|"  // 1025
-  "Energy|"      // 1026
-  "Time|"        // 1027
-  "Size|"        // 1028
-  "Light|"       // 1029
-  "Other|"       // 1030
+  "Basic|"       // 1024
+  "Environment|" // 1025
+  "Dust/Gases|"  // 1026
+  "Energy|"      // 1027
+  "Time|"        // 1028
+  "Size|"        // 1029
+  "Light|"       // 1030
+  "Other|"       // 1031
 ;
 
 String toValueTypeCategory(const uint32_t valueType) {
@@ -96,14 +97,15 @@ String toValueTypeCategory(const uint32_t valueType) {
 /* *INDENT-OFF* */
 
 const uint16_t value_type_map[] PROGMEM = {
-  0,                                                                                                     // None
-  1024, 2,   3,   4,   8,   101, 102, 122, 21,  131,                                                     // Environment
-  1025, 106, 107, 108, 110, 121, 128, 129,                                                               // Gases
-  1026, 116, 117, 118, 119, 120, 127,                                                                    // Energy
-  1027, 132, 133, 134,                                                                                   // Time
-  1028, 100, 104, 105, 109, 111, 115, 135, 136, 137, 138,                                                // Size
-  1029, 103, 112, 113, 114, 123, 124, 125, 126,                                                          // Light
-  1030, 1,   5,   6,   7,   10,  130, 11,  22,  20,  31, 32, 33, 40, 41, 42, 43, 50, 51, 60, 61, 70, 71, // Other
+  0,                                                                                     // None
+  1024, 1,   5,   6,   7,                                                                // Basic
+  1025, 2,   3,   4,   8,   101, 102, 122, 21,  131,                                     // Environment
+  1026, 106, 107, 108, 110, 121, 128, 129,                                               // Gases
+  1027, 116, 117, 118, 119, 120, 127,                                                    // Energy
+  1028, 132, 133, 134,                                                                   // Time
+  1029, 100, 104, 105, 109, 111, 115, 135, 136, 137, 138,                                // Size
+  1030, 103, 112, 113, 114, 123, 124, 125, 126,                                          // Light
+  1031, 10,  130, 11,  22,  20,  31,  32,  33,  40,  41, 42, 43, 50, 51, 60, 61, 70, 71, // Other
 };
 
 /* *INDENT-ON* */
@@ -230,7 +232,14 @@ void sensorTypeHelper_webformLoad(struct EventStruct *event,
     addRowLabel(strformat(F("Value %d type"), valueIndex));
   }
 
-  sensorTypeHelper_Selector(sensorTypeHelper_webformID(pconfigIndex), optionCount, options, choice);
+  #if FEATURE_CUSTOM_TASKVAR_VTYPE
+  if (optionCount > 4) { // Don't handle the 'Simple' selector categorized
+    sensorTypeCategoriesHelper_Selector(sensorTypeHelper_webformID(pconfigIndex), optionCount, options, choice);
+  } else
+  #endif // if FEATURE_CUSTOM_TASKVAR_VTYPE
+  {
+    sensorTypeHelper_Selector(sensorTypeHelper_webformID(pconfigIndex), optionCount, options, choice);
+  }
 
   if (showSubHeader) {
     String note;
