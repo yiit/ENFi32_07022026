@@ -312,7 +312,7 @@
 #endif
 #ifndef DEFAULT_NETWORK_MEDIUM
 #ifdef ESP32P4
-  #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::WIFI
+  #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::Ethernet
 #else
   #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::WIFI
 #endif
