@@ -39,7 +39,7 @@
 
 
 bool validDeviceIndex(deviceIndex_t index) {
-  return validDeviceIndex_init(index);
+  return do_check_validDeviceIndex(index);
 }
 
 /*
@@ -127,7 +127,7 @@ String getPluginNameFromDeviceIndex(deviceIndex_t deviceIndex) {
   String deviceName;
 
   if (validDeviceIndex(deviceIndex)) {
-    PluginCall(deviceIndex, PLUGIN_GET_DEVICENAME, nullptr, deviceName);
+    do_PluginCall(deviceIndex, PLUGIN_GET_DEVICENAME, nullptr, deviceName);
   }
   return deviceName;
 }
@@ -149,7 +149,7 @@ bool checkPluginI2CAddressFromDeviceIndex(deviceIndex_t deviceIndex, uint8_t i2c
     String dummy;
     struct EventStruct TempEvent;
     TempEvent.Par1 = i2cAddress;
-    hasI2CAddress  = PluginCall(deviceIndex, PLUGIN_I2C_HAS_ADDRESS, &TempEvent, dummy);
+    hasI2CAddress  = do_PluginCall(deviceIndex, PLUGIN_I2C_HAS_ADDRESS, &TempEvent, dummy);
   }
   return hasI2CAddress;
 }
@@ -168,7 +168,7 @@ bool getPluginDisplayParametersFromTaskIndex(taskIndex_t taskIndex, uint16_t& x,
       struct EventStruct TempEvent;
       TempEvent.setTaskIndex(taskIndex);
 
-      if (PluginCall(deviceIndex, PLUGIN_GET_DISPLAY_PARAMETERS, &TempEvent, dummy)) {
+      if (do_PluginCall(deviceIndex, PLUGIN_GET_DISPLAY_PARAMETERS, &TempEvent, dummy)) {
         x          = TempEvent.Par1;
         y          = TempEvent.Par2;
         r          = TempEvent.Par3;
@@ -191,7 +191,7 @@ uint8_t getTaskI2CAddress(taskIndex_t taskIndex) {
     TempEvent.setTaskIndex(taskIndex);
     TempEvent.Par1 = 0;
 
-    if (PluginCall(deviceIndex, PLUGIN_I2C_GET_ADDRESS, &TempEvent, dummy)) {
+    if (do_PluginCall(deviceIndex, PLUGIN_I2C_GET_ADDRESS, &TempEvent, dummy)) {
       getI2CAddress = TempEvent.Par1;
     }
   }
@@ -430,7 +430,7 @@ bool PluginCallForTask(taskIndex_t taskIndex, uint8_t Function, EventStruct *Tem
           }
 
           START_TIMER;
-          retval = (PluginCall(DeviceIndex, Function, TempEvent, command));
+          retval = (do_PluginCall(DeviceIndex, Function, TempEvent, command));
 
           STOP_TIMER_TASK(DeviceIndex, Function);
 
@@ -546,7 +546,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
             I2CSelectHighClockSpeed(i2cBus); // Switch to requested bus, no need to switch back,
                                              // next I2C plugin call will switch to desired bus
             #endif // if FEATURE_I2C_MULTIPLE
-            PluginCall(DeviceIndex, Function, &TempEvent, str);
+            do_PluginCall(DeviceIndex, Function, &TempEvent, str);
             STOP_TIMER_TASK(DeviceIndex, Function);
           }
         }
@@ -653,7 +653,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
             if (Function == PLUGIN_REQUEST) {
               // @FIXME TD-er: work-around as long as gpio command is still performed in P001_switch.
               for (deviceIndex_t deviceIndex = 0; validDeviceIndex(deviceIndex); deviceIndex++) {
-                if (PluginCall(deviceIndex, Function, event, str)) {
+                if (do_PluginCall(deviceIndex, Function, event, str)) {
                   delay(0); // SMY: call delay(0) unconditionally
                   CPluginCall(CPlugin::Function::CPLUGIN_ACKNOWLEDGE, event, str);
                   return true;
@@ -871,7 +871,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
           // It may be better if ranges are set in the call for default values and error values set via PLUGIN_INIT.
           // Also these may be plugin specific so perhaps create a helper function to load/save these values and call these helpers from the
           // plugin code.
-          PluginCall(DeviceIndex, PLUGIN_INIT_VALUE_RANGES, event, str); // Initialize value range(s)
+          do_PluginCall(DeviceIndex, PLUGIN_INIT_VALUE_RANGES, event, str); // Initialize value range(s)
         }
 
         if ((Function == PLUGIN_INIT)
@@ -895,7 +895,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
         }
 
         if (performPluginCall) {
-          retval = PluginCall(DeviceIndex, Function, event, str);
+          retval = do_PluginCall(DeviceIndex, Function, event, str);
         } else {
           retval = event->Source == EventValueSource::Enum::VALUE_SOURCE_UDP;
         }
@@ -904,7 +904,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
           if (!retval) {
             String errorStr;
 
-            if (PluginCall(DeviceIndex, PLUGIN_READ_ERROR_OCCURED, event, errorStr))
+            if (do_PluginCall(DeviceIndex, PLUGIN_READ_ERROR_OCCURED, event, errorStr))
             {
               // Apparently the last read call resulted in an error
               // Send event indicating the error.
@@ -1044,7 +1044,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
           }
         }
 
-        bool retval =  PluginCall(DeviceIndex, Function, event, str);
+        bool retval =  do_PluginCall(DeviceIndex, Function, event, str);
 
         // Calls may have updated ExtraTaskSettings, so validate them.
         ExtraTaskSettings.validate();
@@ -1106,7 +1106,7 @@ bool PluginCall(uint8_t Function, struct EventStruct *event, String& str)
         if (Function == PLUGIN_GET_DEVICEVTYPE) {
           event->sensorType = Device[DeviceIndex].VType;
         }
-        bool retval =  PluginCall(DeviceIndex, Function, event, str);
+        bool retval =  do_PluginCall(DeviceIndex, Function, event, str);
 
         if (Function == PLUGIN_GET_DEVICEVALUECOUNT) {
           // Check if we have a valid value count.

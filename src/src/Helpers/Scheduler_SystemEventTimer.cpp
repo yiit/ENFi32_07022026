@@ -200,7 +200,7 @@ void ESPEasy_Scheduler::process_system_event_queue() {
           // FIXME TD-er: LoadTaskSettings should only be called when needed, not pre-emptive.
           LoadTaskSettings(ScheduledEventQueue.front().event.TaskIndex);
         }
-        PluginCall(deviceIndex,
+        do_PluginCall(deviceIndex,
                    Function,
                    &ScheduledEventQueue.front().event,
                    tmpString);
