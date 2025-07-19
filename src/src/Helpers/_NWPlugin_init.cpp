@@ -2091,7 +2091,7 @@ NetworkDriverStruct& getNetworkDriverStruct(networkDriverIndex_t networkDriverIn
   return NetworkDriverArray[networkDriverIndex.value];
 }
 
-networkDriverIndex_t getNetworkDriverIndex_from_NWPluginID_(nwpluginID_t nwpluginID)
+networkDriverIndex_t do_getNetworkDriverIndex_from_NWPluginID(nwpluginID_t nwpluginID)
 {
   if (nwpluginID.value < NWPlugin_id_to_NetworkDriverIndex_size)
   {
@@ -2100,7 +2100,7 @@ networkDriverIndex_t getNetworkDriverIndex_from_NWPluginID_(nwpluginID_t nwplugi
   return INVALID_NETWORKDRIVER_INDEX;
 }
 
-nwpluginID_t getNWPluginID_from_NetworkDriverIndex_(networkDriverIndex_t networkDriverIndex)
+nwpluginID_t do_getNWPluginID_from_NetworkDriverIndex(networkDriverIndex_t networkDriverIndex)
 {
   if (networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size)
   {
@@ -2110,14 +2110,14 @@ nwpluginID_t getNWPluginID_from_NetworkDriverIndex_(networkDriverIndex_t network
   return INVALID_NW_PLUGIN_ID;
 }
 
-bool validNetworkDriverIndex_init(networkDriverIndex_t networkDriverIndex)
+bool do_check_validNetworkDriverIndex(networkDriverIndex_t networkDriverIndex)
 {
   return networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size;
 }
 
 nwpluginID_t getHighestIncludedNWPluginID() { return nwpluginID_t::toPluginID(Highest_NWPlugin_id); }
 
-bool         NWPluginCall_(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string)
+bool         do_NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string)
 {
   if (networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size)
   {
@@ -2152,7 +2152,7 @@ void NWPluginSetup()
       struct EventStruct TempEvent;
       TempEvent.idx = networkDriverIndex.value;
       String dummy;
-      NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_DRIVER_ADD, &TempEvent, dummy);
+      do_NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_DRIVER_ADD, &TempEvent, dummy);
     }
   }
   setupDone = true;

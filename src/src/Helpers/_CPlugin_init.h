@@ -11,15 +11,16 @@
 
 struct EventStruct;
 
-protocolIndex_t getProtocolIndex_from_CPluginID_(cpluginID_t pluginID);
-cpluginID_t getCPluginID_from_ProtocolIndex_(protocolIndex_t protocolIndex);
-bool validProtocolIndex_init(protocolIndex_t protocolIndex);
+protocolIndex_t do_getProtocolIndex_from_CPluginID(cpluginID_t pluginID);
+cpluginID_t do_getCPluginID_from_ProtocolIndex(protocolIndex_t protocolIndex);
+bool do_check_validProtocolIndex(protocolIndex_t protocolIndex);
 
 cpluginID_t getHighestIncludedCPluginID();
 
 ProtocolStruct& getProtocolStruct(protocolIndex_t protocolIndex);
 
-bool CPluginCall(protocolIndex_t protocolIndex, CPlugin::Function Function, struct EventStruct *event, String& string);
+// Should only be called from CPluginCall, or maybe for very special occasions
+bool do_CPluginCall(protocolIndex_t protocolIndex, CPlugin::Function Function, struct EventStruct *event, String& string);
 
 
 void CPluginSetup();

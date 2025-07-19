@@ -131,7 +131,7 @@ void handle_controllers() {
         String dummy;
         CPlugin::Function cfunction =
           Settings.ControllerEnabled[controllerindex] ? CPlugin::Function::CPLUGIN_INIT : CPlugin::Function::CPLUGIN_EXIT;
-        CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy);
+        do_CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy);
       }
     }
   }
@@ -179,7 +179,7 @@ void handle_controllers_clearLoadDefaults(uint8_t controllerindex, ControllerSet
 
   if (proto.usesTemplate) {
     String dummy;
-    CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE, &TempEvent, dummy);
+    do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE, &TempEvent, dummy);
   }
   safe_strncpy(ControllerSettings.Subscribe,            TempEvent.String1.c_str(), sizeof(ControllerSettings.Subscribe));
   safe_strncpy(ControllerSettings.Publish,              TempEvent.String2.c_str(), sizeof(ControllerSettings.Publish));
@@ -218,7 +218,7 @@ void handle_controllers_CopySubmittedSettings_CPluginCall(uint8_t controllerinde
 
     // Call controller plugin to save CustomControllerSettings
     String dummy;
-    CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 }
 
@@ -277,7 +277,7 @@ void handle_controllers_ShowAllControllersTable()
         const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(x);
         {
           String hostDescription;
-          CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG, 0, hostDescription);
+          do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG, 0, hostDescription);
 
           if (!hostDescription.isEmpty()) {
             addHtml(hostDescription);
@@ -496,7 +496,7 @@ void handle_controllers_ControllerSettingsPage(controllerIndex_t controllerindex
       TempEvent.ControllerIndex = controllerindex;
 
       String webformLoadString;
-      CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_LOAD, &TempEvent, webformLoadString);
+      do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_LOAD, &TempEvent, webformLoadString);
 
       if (webformLoadString.length() > 0) {
         addHtmlError(F("Bug in CPlugin::Function::CPLUGIN_WEBFORM_LOAD, should not append to string, use addHtml() instead"));

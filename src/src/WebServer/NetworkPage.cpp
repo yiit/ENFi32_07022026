@@ -104,7 +104,7 @@ void handle_networks()
         String dummy;
         NWPlugin::Function nfunction =
           Settings.getNetworkEnabled(networkindex) ? NWPlugin::Function::NWPLUGIN_INIT : NWPlugin::Function::NWPLUGIN_EXIT;
-        NWPluginCall_(NetworkDriverIndex, nfunction, &TempEvent, dummy);
+        do_NWPluginCall(NetworkDriverIndex, nfunction, &TempEvent, dummy);
       }
     }
 
@@ -133,7 +133,7 @@ void handle_networks_clearLoadDefaults(networkIndex_t networkindex, NetworkSetti
     TempEvent.NetworkIndex = networkindex;
 
     String dummy;
-    NWPluginCall_(
+    do_NWPluginCall(
       NetworkDriverIndex,
       NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS, &TempEvent, dummy);
   }
@@ -160,7 +160,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(networkIndex_t networkin
 
     // Call network plugin to save CustomNetworkSettings
     String dummy;
-    NWPluginCall_(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    do_NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 
 }
@@ -231,7 +231,7 @@ void handle_networks_ShowAllNetworksTable()
 
         String str;
 
-        // const bool res = NWPluginCall_(NetworkDriverIndex, functions[i], &TempEvent, str);
+        // const bool res = do_NWPluginCall(NetworkDriverIndex, functions[i], &TempEvent, str);
         const bool res = NWPluginCall(functions[i], &TempEvent, str);
 
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED) {
@@ -309,9 +309,9 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
     TempEvent.NetworkIndex = networkindex;
 
     String str;
-    NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
+    do_NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 #ifdef ESP32
-    if (NWPluginCall_(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
+    if (do_NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
       {
         addFormSubHeader(F("Network Interface"));

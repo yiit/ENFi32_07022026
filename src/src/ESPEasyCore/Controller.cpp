@@ -70,7 +70,7 @@ void sendData(struct EventStruct *event, bool sendEvents)
 
       if (validUserVar(event)) {
         String dummy;
-        CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, event, dummy);
+        do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, event, dummy);
       }
 #ifndef BUILD_NO_DEBUG
       else {

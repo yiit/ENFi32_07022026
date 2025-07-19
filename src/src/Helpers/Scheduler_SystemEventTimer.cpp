@@ -3,12 +3,14 @@
 #include "../DataStructs/Scheduler_SystemEventQueueTimerID.h"
 #include "../DataStructs/TimingStats.h"
 
-#include "../Globals/CPlugins.h"
+//#include "../Globals/CPlugins.h"
 #include "../Globals/Device.h"
 #include "../Globals/NPlugins.h"
 #include "../Globals/RTC.h"
 
 #include "../Helpers/_Plugin_init.h"
+#include "../Helpers/_CPlugin_init.h"
+#include "../Helpers/_NWPlugin_init.h"
 #include "../Helpers/ESPEasyRTC.h"
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/StringConverter.h"
@@ -206,7 +208,7 @@ void ESPEasy_Scheduler::process_system_event_queue() {
       break;
     }
     case SchedulerPluginPtrType_e::ControllerPlugin:
-      CPluginCall(Index,
+      do_CPluginCall(Index,
                   static_cast<CPlugin::Function>(Function),
                   &ScheduledEventQueue.front().event,
                   tmpString);

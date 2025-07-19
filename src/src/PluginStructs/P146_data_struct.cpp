@@ -385,7 +385,7 @@ bool P146_data_struct::sendViaOriginalTask(
           String dummy;
 
           // FIXME TD-er: Must think about how to include the timestamp
-          if (CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, &tmpEvent, dummy)) {
+          if (do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, &tmpEvent, dummy)) {
             // FIXME TD-er: What to do when multiple controllers are selected and one fails?
             // Also, what if we only sent 1 value instead of all?
             success = true;

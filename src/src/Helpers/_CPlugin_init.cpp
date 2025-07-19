@@ -2090,7 +2090,7 @@ ProtocolStruct& getProtocolStruct(protocolIndex_t protocolIndex)
   return ProtocolArray[protocolIndex];
 }
 
-protocolIndex_t getProtocolIndex_from_CPluginID_(cpluginID_t cpluginID)
+protocolIndex_t do_getProtocolIndex_from_CPluginID(cpluginID_t cpluginID)
 {
   if (cpluginID < CPlugin_id_to_ProtocolIndex_size)
   {
@@ -2099,7 +2099,7 @@ protocolIndex_t getProtocolIndex_from_CPluginID_(cpluginID_t cpluginID)
   return INVALID_PROTOCOL_INDEX;
 }
 
-cpluginID_t getCPluginID_from_ProtocolIndex_(protocolIndex_t protocolIndex)
+cpluginID_t do_getCPluginID_from_ProtocolIndex(protocolIndex_t protocolIndex)
 {
   if (protocolIndex < ProtocolIndex_to_CPlugin_id_size)
   {
@@ -2109,7 +2109,7 @@ cpluginID_t getCPluginID_from_ProtocolIndex_(protocolIndex_t protocolIndex)
   return INVALID_C_PLUGIN_ID;
 }
 
-bool validProtocolIndex_init(protocolIndex_t protocolIndex)
+bool do_check_validProtocolIndex(protocolIndex_t protocolIndex)
 {
   return protocolIndex < ProtocolIndex_to_CPlugin_id_size;
 }
@@ -2120,7 +2120,7 @@ cpluginID_t getHighestIncludedCPluginID()
 }
 
 
-bool CPluginCall(protocolIndex_t protocolIndex, CPlugin::Function Function, struct EventStruct *event, String& string)
+bool do_CPluginCall(protocolIndex_t protocolIndex, CPlugin::Function Function, struct EventStruct *event, String& string)
 {
   if (protocolIndex < ProtocolIndex_to_CPlugin_id_size)
   {
@@ -2146,14 +2146,14 @@ void CPluginSetup()
 
   for (protocolIndex_t protocolIndex = 0; protocolIndex < ProtocolIndex_to_CPlugin_id_size; ++protocolIndex)
   {
-    const cpluginID_t cpluginID = getCPluginID_from_ProtocolIndex_(protocolIndex);
+    const cpluginID_t cpluginID = do_getCPluginID_from_ProtocolIndex(protocolIndex);
 
     if (INVALID_C_PLUGIN_ID != cpluginID) {
       CPlugin_id_to_ProtocolIndex[cpluginID] = protocolIndex;
       struct EventStruct TempEvent;
       TempEvent.idx = protocolIndex;
       String dummy;
-      CPluginCall(protocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_ADD, &TempEvent, dummy);
+      do_CPluginCall(protocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_ADD, &TempEvent, dummy);
     }
   }
   setupDone = true;

@@ -11,16 +11,16 @@
 
 struct EventStruct;
 
-networkDriverIndex_t getNetworkDriverIndex_from_NWPluginID_(nwpluginID_t pluginID);
-nwpluginID_t getNWPluginID_from_NetworkDriverIndex_(networkDriverIndex_t networkDriverIndex);
-bool validNetworkDriverIndex_init(networkDriverIndex_t networkDriverIndex);
+networkDriverIndex_t do_getNetworkDriverIndex_from_NWPluginID(nwpluginID_t pluginID);
+nwpluginID_t do_getNWPluginID_from_NetworkDriverIndex(networkDriverIndex_t networkDriverIndex);
+bool do_check_validNetworkDriverIndex(networkDriverIndex_t networkDriverIndex);
 
 nwpluginID_t getHighestIncludedNWPluginID();
 
 NetworkDriverStruct& getNetworkDriverStruct(networkDriverIndex_t networkDriverIndex);
 
 // Should only be called from NWPluginCall, or maybe for very special occasions
-bool NWPluginCall_(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string);
+bool do_NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, struct EventStruct *event, String& string);
 
 
 void NWPluginSetup();

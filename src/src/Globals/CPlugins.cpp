@@ -69,7 +69,7 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
             command = str;
           }
 
-          if (CPluginCall(
+          if (do_CPluginCall(
                 getProtocolIndex_from_ControllerIndex(x),
                 Function,
                 event,
@@ -106,7 +106,7 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
           if (Function == CPlugin::Function::CPLUGIN_PROTOCOL_SEND) {
             checkDeviceVTypeForTask(event);
           }
-          success = CPluginCall(
+          success = do_CPluginCall(
             getProtocolIndex_from_ControllerIndex(controllerindex),
             Function,
             event,
@@ -135,7 +135,7 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
 
       for (controllerIndex_t x = 0; x < CONTROLLER_MAX; x++) {
         if (Settings.ControllerEnabled[x] && supportedCPluginID(Settings.Protocol[x])) {
-          CPluginCall(
+          do_CPluginCall(
             getProtocolIndex_from_ControllerIndex(x),
             Function,
             event,
@@ -175,7 +175,7 @@ controllerIndex_t findFirstEnabledControllerWithId(cpluginID_t cpluginid) {
 
 bool validProtocolIndex(protocolIndex_t index)
 {
-  return validProtocolIndex_init(index);
+  return do_check_validProtocolIndex(index);
 }
 
 /*
@@ -186,27 +186,27 @@ bool validProtocolIndex(protocolIndex_t index)
  */
 bool validCPluginID(cpluginID_t cpluginID)
 {
-  return getProtocolIndex_from_CPluginID_(cpluginID) != INVALID_PROTOCOL_INDEX;
+  return do_getProtocolIndex_from_CPluginID(cpluginID) != INVALID_PROTOCOL_INDEX;
 }
 
 bool supportedCPluginID(cpluginID_t cpluginID)
 {
-  return validProtocolIndex(getProtocolIndex_from_CPluginID_(cpluginID));
+  return validProtocolIndex(do_getProtocolIndex_from_CPluginID(cpluginID));
 }
 
 protocolIndex_t getProtocolIndex_from_ControllerIndex(controllerIndex_t index) {
   if (validControllerIndex(index)) {
-    return getProtocolIndex_from_CPluginID_(Settings.Protocol[index]);
+    return do_getProtocolIndex_from_CPluginID(Settings.Protocol[index]);
   }
   return INVALID_PROTOCOL_INDEX;
 }
 
 protocolIndex_t getProtocolIndex_from_CPluginID(cpluginID_t cpluginID) {
-  return getProtocolIndex_from_CPluginID_(cpluginID);
+  return do_getProtocolIndex_from_CPluginID(cpluginID);
 }
 
 cpluginID_t getCPluginID_from_ProtocolIndex(protocolIndex_t index) {
-  return getCPluginID_from_ProtocolIndex_(index);
+  return do_getCPluginID_from_ProtocolIndex(index);
 }
 
 cpluginID_t getCPluginID_from_ControllerIndex(controllerIndex_t index) {
@@ -219,13 +219,13 @@ String getCPluginNameFromProtocolIndex(protocolIndex_t ProtocolIndex) {
   String controllerName;
 
   if (validProtocolIndex(ProtocolIndex)) {
-    CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_GET_DEVICENAME, nullptr, controllerName);
+    do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_GET_DEVICENAME, nullptr, controllerName);
   }
   return controllerName;
 }
 
 String getCPluginNameFromCPluginID(cpluginID_t cpluginID) {
-  protocolIndex_t protocolIndex = getProtocolIndex_from_CPluginID_(cpluginID);
+  protocolIndex_t protocolIndex = do_getProtocolIndex_from_CPluginID(cpluginID);
 
   if (!validProtocolIndex(protocolIndex)) {
     return strformat(F("CPlugin %d not included in build"), cpluginID);
