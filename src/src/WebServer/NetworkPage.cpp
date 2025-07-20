@@ -31,6 +31,7 @@ void handle_networks()
   TXBuffer.startStream();
   sendHeadandTail_stdtemplate(_HEAD);
 
+
   // 'index' value in the URL
   uint8_t networkindex  = getFormItemInt(F("index"), 0);
   boolean networkNotSet = networkindex == 0;
@@ -159,6 +160,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(networkIndex_t networkin
     TempEvent.NetworkIndex = networkindex;
 
     // Call network plugin to save CustomNetworkSettings
+    addLog(LOG_LEVEL_INFO, F("Call network plugin to save CustomNetworkSettings"));
     String dummy;
     do_NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
@@ -277,9 +279,6 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
       Settings.getNWPluginID_for_network(networkindex));
   const NetworkDriverStruct& cur_driver = getNetworkDriverStruct(networkDriverIndex);
 
-  const bool networkDriverSelectorDisabled = cur_driver.alwaysPresent && validNetworkIndex(cur_driver.fixedNetworkIndex) &&
-                                             networkindex == cur_driver.fixedNetworkIndex;
-
 
   // Show network settings page
   {
@@ -288,25 +287,38 @@ void handle_networks_NetworkSettingsPage(networkIndex_t networkindex) {
     addRowLabel(F("Network Driver"));
     const nwpluginID_t choice = Settings.getNWPluginID_for_network(networkindex);
 
-    addSelector_Head_reloadOnChange(F("networkDriver"), F("wide"), networkDriverSelectorDisabled);
-    addSelector_Item(F("- Standalone -"), 0, false, false, EMPTY_STRING);
+    const bool networkDriverSelectorDisabled = cur_driver.alwaysPresent && validNetworkIndex(cur_driver.fixedNetworkIndex) &&
+                                               networkindex == cur_driver.fixedNetworkIndex;
 
-    networkDriverIndex_t networkDriverIndex{};
+    if (networkDriverSelectorDisabled) {
+      addSelector_Head(F("networkDriver"));
 
-    while (validNetworkDriverIndex(networkDriverIndex))
-    {
-      const NetworkDriverStruct& driver = getNetworkDriverStruct(networkDriverIndex);
-      const nwpluginID_t number         = getNWPluginID_from_NetworkDriverIndex(networkDriverIndex);
-      const bool disabled               = driver.alwaysPresent &&
-                                          validNetworkIndex(driver.fixedNetworkIndex) &&
-                                          networkindex != driver.fixedNetworkIndex;
+      // Must add the fixed network driver label here.
+
       addSelector_Item(getNWPluginNameFromNetworkDriverIndex(networkDriverIndex),
-                       number.value,
-                       choice == number,
-                       disabled);
-      ++networkDriverIndex;
+                       choice.value,
+                       true);
+    } else {
+      addSelector_Head_reloadOnChange(F("networkDriver"));
+      addSelector_Item(F("- Standalone -"), 0, false, false, EMPTY_STRING);
+      networkDriverIndex_t tmpNetworkDriverIndex{};
+
+      while (validNetworkDriverIndex(tmpNetworkDriverIndex))
+      {
+        const NetworkDriverStruct& driver = getNetworkDriverStruct(tmpNetworkDriverIndex);
+        const nwpluginID_t number         = getNWPluginID_from_NetworkDriverIndex(tmpNetworkDriverIndex);
+        const bool disabled               = driver.alwaysPresent &&
+                                            validNetworkIndex(driver.fixedNetworkIndex) &&
+                                            networkindex != driver.fixedNetworkIndex;
+        addSelector_Item(getNWPluginNameFromNetworkDriverIndex(tmpNetworkDriverIndex),
+                         number.value,
+                         choice == number,
+                         disabled);
+        ++tmpNetworkDriverIndex;
+      }
     }
-    addSelector_Foot(!networkDriverSelectorDisabled);
+    addSelector_Foot();
+
   }
 
   # ifndef LIMIT_BUILD_SIZE
