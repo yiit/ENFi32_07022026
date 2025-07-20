@@ -16,8 +16,9 @@ struct NW005_modem_task_data {
   bool              initializing{};
   bool              modem_initialized{};
   String            logString;
-  TaskHandle_t      modem_taskHandle = nullptr;
 
+  // This is C-code, so not set to nullptr, but to NULL
+  TaskHandle_t      modem_taskHandle = NULL;
 };
 
 

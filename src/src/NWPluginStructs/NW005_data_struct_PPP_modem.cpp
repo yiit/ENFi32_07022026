@@ -2,6 +2,8 @@
 
 #ifdef USES_NW005
 
+# include "../Globals/Settings.h"
+
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/_Plugin_Helper_serial.h"
 
@@ -82,7 +84,7 @@ WebFormItemParams NW005_makeWebFormItemParams(uint32_t key) {
 NW005_data_struct_PPP_modem::~NW005_data_struct_PPP_modem() {
   if (_modem_task_data.modem_taskHandle) {
     vTaskDelete(_modem_task_data.modem_taskHandle);
-    _modem_task_data.modem_taskHandle = nullptr;
+    _modem_task_data.modem_taskHandle = NULL;
   }
   PPP.mode(ESP_MODEM_MODE_COMMAND);
   PPP.end();
@@ -439,6 +441,8 @@ void NW005_data_struct_PPP_modem::webform_load(struct EventStruct *event)
     addFormNote(F("Only numerical digits"));
   }
 
+  if (!Settings.getNetworkEnabled(event->NetworkIndex)) return;
+
   addFormSubHeader(F("Modem State"));
   addRowLabel(F("Modem Model"));
 
@@ -693,7 +697,7 @@ void NW005_begin_modem_task(void *parameter)
 
     // PPP.mode(ESP_MODEM_MODE_COMMAND);
   }
-  modem_task_data->modem_taskHandle = nullptr;
+  modem_task_data->modem_taskHandle = NULL;
   vTaskDelete(modem_task_data->modem_taskHandle);
 }
 
@@ -807,7 +811,7 @@ bool NW005_data_struct_PPP_modem::exit(struct EventStruct *event)
 {
   if (_modem_task_data.modem_taskHandle) {
     vTaskDelete(_modem_task_data.modem_taskHandle);
-    _modem_task_data.modem_taskHandle = nullptr;
+    _modem_task_data.modem_taskHandle = NULL;
   }
   PPP.mode(ESP_MODEM_MODE_COMMAND);
   PPP.end();
