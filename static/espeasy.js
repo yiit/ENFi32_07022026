@@ -283,8 +283,11 @@ function initalAutocorrection() {
 
 function formatLogic(text) {
   const INDENT = '  '; // 2 spaces
-  const lines = text.split('\n').map(line => line.trim()); // remove all existing indentation
-
+  const lines = text.split('\n').map(line => {
+    const trimmed = line.trimStart(); // remove leading spaces only
+    return trimmed.startsWith('//') ? line : trimmed;
+  });
+  
   let indentLevel = 0;
   const result = [];
   const stack = [];
@@ -383,8 +386,14 @@ function formatLogic(text) {
         continue;
       }
 
-      // any normal line inside On block
-      result.push(INDENT.repeat(indentLevel) + line);
+      if (line.trim().startsWith('//')) {
+        // no indentation for comments
+        result.push(line);
+      } else {
+        // any normal line inside On block
+        result.push(INDENT.repeat(indentLevel) + line);
+      }
+
       continue;
     }
 
