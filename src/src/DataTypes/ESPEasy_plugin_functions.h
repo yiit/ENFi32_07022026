@@ -154,10 +154,12 @@ public:
     NWPLUGIN_TEN_PER_SECOND,   // Called 10x per second (typical for checking new data instead of waiting)
     NWPLUGIN_FIFTY_PER_SECOND, // Called 50x per second (typical for checking new data instead of waiting)
     NWPLUGIN_INIT_ALL,
+    NWPLUGIN_EXIT_ALL,         // Exit all network interfaces
     NWPLUGIN_EXIT,
     NWPLUGIN_WRITE,            // Send commands to a network adapter.
     #ifdef ESP32
     NWPLUGIN_GET_INTERFACE,
+    NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO,
     #endif
     NWPLUGIN_WEBFORM_SHOW_CONNECTED, // Used for showing connected state/speed
     NWPLUGIN_WEBFORM_SHOW_HOSTNAME,  // Used for showing hostname

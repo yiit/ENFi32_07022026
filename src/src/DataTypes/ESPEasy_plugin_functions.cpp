@@ -9,6 +9,7 @@ bool NWPlugin::canQueryViaNetworkInterface(NWPlugin::Function function)
   switch (function)
   {
     // TD-er: Do not try to fetch hostname via base class. No idea why, but it doesn't work well
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:

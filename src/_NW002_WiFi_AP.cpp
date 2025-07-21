@@ -31,6 +31,10 @@
 # include "src/WebServer/HTML_Print.h"
 # include "src/WebServer/HTML_wrappers.h"
 
+
+// TODO TD-er: This code should be moved to this NW002 plugin
+#include "src/ESPEasyCore/ESPEasyWifi.h"
+
 bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String& string)
 {
   bool success = false;
@@ -156,11 +160,19 @@ bool NWPlugin_002(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
+      setAPinternal(true);
+//      WiFi.AP.begin();
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_EXIT:
     {
+#ifdef ESP32
+      WiFi.AP.end();
+#endif
+#ifdef ESP8266
+//WiFi.softAP
+#endif
       break;
     }
 

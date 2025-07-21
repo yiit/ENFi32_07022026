@@ -172,9 +172,11 @@ void handle_networks_ShowAllNetworksTable()
   html_table_class_multirow();
   html_TR();
   html_table_header(F(""),        70);
-  html_table_header(F("Order"),   50);
   html_table_header(F("Enabled"), 100);
   html_table_header(F("Network Adapter"));
+  #ifdef ESP32
+  html_table_header(F("Prio"),   50);
+  #endif
   html_table_header(F("Connected"));
   html_table_header(F("Hostname/SSID"));
   html_table_header(F("HW Address"));
@@ -208,8 +210,6 @@ void handle_networks_ShowAllNetworksTable()
 
     if (nwplugin_set)
     {
-      // order
-      html_TD();
       addEnabled(Settings.getNetworkEnabled(x));
       html_TD();
 
@@ -217,6 +217,9 @@ void handle_networks_ShowAllNetworksTable()
       addHtml(getNWPluginNameFromNWPluginID(Settings.getNWPluginID_for_network(x)));
 
       const NWPlugin::Function functions[] {
+#ifdef ESP32
+        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO,
+#endif
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS,
@@ -235,7 +238,16 @@ void handle_networks_ShowAllNetworksTable()
 
         // const bool res = do_NWPluginCall(NetworkDriverIndex, functions[i], &TempEvent, str);
         const bool res = NWPluginCall(functions[i], &TempEvent, str);
-
+#ifdef ESP32
+        if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO) {
+          if (TempEvent.Par1 > 0) {
+            addHtmlInt(TempEvent.Par1);
+            if (TempEvent.Par2) {
+              addHtml(F("(*)"));
+            }
+          }
+        } else 
+#endif
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED) {
           if (!res || str.isEmpty()) {
             addEnabled(res);

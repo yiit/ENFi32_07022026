@@ -65,6 +65,12 @@ void run50TimesPerSecond() {
     CPluginCall(CPlugin::Function::CPLUGIN_FIFTY_PER_SECOND, 0, dummy);
     STOP_TIMER(CPLUGIN_CALL_50PS);
   }
+  {
+    START_TIMER;
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND, 0, dummy);
+    STOP_TIMER(NWPLUGIN_CALL_50PS);
+  }
+
   processNextEvent();
 }
 
@@ -94,6 +100,11 @@ void run10TimesPerSecond() {
     START_TIMER;
     CPluginCall(CPlugin::Function::CPLUGIN_TEN_PER_SECOND, 0, dummy);
     STOP_TIMER(CPLUGIN_CALL_10PS);
+  }
+  {
+    START_TIMER;
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND, 0, dummy);
+    STOP_TIMER(NWPLUGIN_CALL_10PS);
   }
   
   #ifdef USES_C015
@@ -496,7 +507,8 @@ void prepareShutdown(IntendedRebootReason_e reason)
   process_serialWriteBuffer();
   flushAndDisconnectAllClients();
   saveUserVarToRTC();
-  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
+  NWPluginCall(NWPlugin::Function::NWPLUGIN_EXIT_ALL, 0);
+//  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   ESPEASY_FS.end();
   process_serialWriteBuffer();
   delay(100); // give the node time to flush all before reboot or sleep

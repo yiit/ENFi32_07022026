@@ -230,8 +230,8 @@ class SettingsStruct_tmpl
 #endif
 
 #ifdef ESP32
-  bool WiFi_AP_enable_NAPT() const { return VariousBits_2.WiFi_AP_enable_NAPT; }
-  void WiFi_AP_enable_NAPT(bool enable) { VariousBits_2.WiFi_AP_enable_NAPT = enable; }
+  bool WiFi_AP_enable_NAPT() const { return !VariousBits_2.WiFi_AP_enable_NAPT; }
+  void WiFi_AP_enable_NAPT(bool enable) { VariousBits_2.WiFi_AP_enable_NAPT = !enable; }
 #endif
 
 
@@ -627,7 +627,7 @@ public:
     uint32_t PassiveWiFiScan                  : 1; // Bit 06  // inverted
     uint32_t ShowUnitOfMeasureOnDevicesPage   : 1; // Bit 07  // inverted
     uint32_t WiFi_band_mode                   : 2; // Bit 08 & 09
-    uint32_t WiFi_AP_enable_NAPT              : 1; // Bit 10
+    uint32_t WiFi_AP_enable_NAPT              : 1; // Bit 10  // inverted
     uint32_t unused_11                        : 1; // Bit 11
     uint32_t unused_12                        : 1; // Bit 12
     uint32_t unused_13                        : 1; // Bit 13

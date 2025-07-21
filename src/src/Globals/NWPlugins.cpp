@@ -41,6 +41,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
 
     // calls to all active networks
     case NWPlugin::Function::NWPLUGIN_INIT_ALL:
+    case NWPlugin::Function::NWPLUGIN_EXIT_ALL:
     case NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND:
     case NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND:
     case NWPlugin::Function::NWPLUGIN_WRITE:
@@ -49,6 +50,9 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
 
       if (Function == NWPlugin::Function::NWPLUGIN_INIT_ALL) {
         Function = NWPlugin::Function::NWPLUGIN_INIT;
+      }
+      if (Function == NWPlugin::Function::NWPLUGIN_EXIT_ALL) {
+        Function = NWPlugin::Function::NWPLUGIN_EXIT;
       }
 
       for (networkIndex_t x = 0; x < NETWORK_MAX; x++) {
@@ -84,6 +88,7 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
 #ifdef ESP32
     case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
 #endif
     case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
     case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
@@ -122,6 +127,18 @@ bool NWPluginCall(NWPlugin::Function Function, struct EventStruct *event, String
               if (event->networkInterface != nullptr) {
                 switch (Function)
                 {
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+                  // TODO TD-er: Must also add option to set route prio
+                  // See: https://github.com/espressif/arduino-esp32/pull/11617
+                    event->Par1 = event->networkInterface->getRoutePrio();
+#else
+                    event->Par1 = event->networkInterface->route_prio();
+#endif
+                    event->Par2 = event->networkInterface->isDefault();
+                    success = true;
+                    break;
+
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
                     str     = event->networkInterface->getHostname();
                     success = true;

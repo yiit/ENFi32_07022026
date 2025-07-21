@@ -37,6 +37,15 @@
 #ifndef DEFAULT_AP_SUBNET
 #define DEFAULT_AP_SUBNET   255,255,255,0       // Enter IP address (comma separated) for AP (config) mode
 #endif
+#ifndef DEFAULT_AP_DNS
+#define DEFAULT_AP_DNS      1,1,1,1             // Cloudflare DNS: 1.1.1.1 and 1.0.0.1
+                                                // Alternatives
+                                                // Cleanbrowsing: 185.228.168.9 and 185.228.169.9
+                                                // Google Public DNS: 8.8.8.8 and 8.8.4.4
+                                                // Quad9:  9.9.9.9 and 149.112.112.112
+                                                // OpenDNS: 208.67.222.222 and 208.67.220.220
+                                                // Comodo Secure DNS: 8.26.56.26 and 8.20.247.20
+#endif
 #ifndef DEFAULT_AP_KEY
 #define DEFAULT_AP_KEY      "configesp"         // Enter network WPA key for AP (config) mode
 #endif

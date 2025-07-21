@@ -354,16 +354,30 @@ void setAPinternal(bool enable)
     String softAPSSID = NetworkCreateRFCCompliantHostname();
     String pwd        = SecuritySettings.WifiAPKey;
     IPAddress subnet(DEFAULT_AP_SUBNET);
+    #ifdef ESP32
+    IPAddress dhcp_lease_start = (uint32_t)0;
+    IPAddress dns(DEFAULT_AP_DNS);
 
+    if (!WiFi.softAPConfig(apIP, apIP, subnet, dhcp_lease_start, dns)) {
+      addLog(LOG_LEVEL_ERROR, strformat(
+               ("WIFI : [AP] softAPConfig failed! IP: %s, GW: %s, SN: %s, DNS: %s"),
+               apIP.toString().c_str(),
+               apIP.toString().c_str(),
+               subnet.toString().c_str(),
+               dns.toString().c_str())
+             );
+    }
+    #endif
+    #ifdef ESP8266
     if (!WiFi.softAPConfig(apIP, apIP, subnet)) {
       addLog(LOG_LEVEL_ERROR, strformat(
                ("WIFI : [AP] softAPConfig failed! IP: %s, GW: %s, SN: %s"),
                apIP.toString().c_str(),
                apIP.toString().c_str(),
-               subnet.toString().c_str()
-               )
+               subnet.toString().c_str())
              );
     }
+    #endif
 
     int channel = 1;
 

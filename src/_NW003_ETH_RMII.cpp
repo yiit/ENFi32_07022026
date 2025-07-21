@@ -292,6 +292,7 @@ bool NWPlugin_003(NWPlugin::Function function, struct EventStruct *event, String
 
     case NWPlugin::Function::NWPLUGIN_EXIT:
     {
+      ETH.end();
       break;
     }
 

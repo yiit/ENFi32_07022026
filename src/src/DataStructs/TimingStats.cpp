@@ -223,6 +223,8 @@ const __FlashStringHelper* getMiscStatsName_F(TimingStatsElements stat) {
     case TimingStatsElements::PLUGIN_CALL_1PS:            return F("Plugin call  1 p/s");
     case TimingStatsElements::CPLUGIN_CALL_50PS:          return F("CPlugin call 50 p/s");
     case TimingStatsElements::CPLUGIN_CALL_10PS:          return F("CPlugin call 10 p/s");
+    case TimingStatsElements::NWPLUGIN_CALL_50PS:         return F("NWPlugin call 50 p/s");
+    case TimingStatsElements::NWPLUGIN_CALL_10PS:         return F("NWPlugin call 10 p/s");
     case TimingStatsElements::SENSOR_SEND_TASK:           return F("SensorSendTask()");
     case TimingStatsElements::COMMAND_EXEC_INTERNAL:      return F("Exec Internal Command");
     case TimingStatsElements::COMMAND_DECODE_INTERNAL:    return F("Decode Internal Command");
