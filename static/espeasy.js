@@ -281,7 +281,7 @@ function initalAutocorrection() {
   textarea.value = text;
 }
 
-unction formatLogic(text) {
+function formatLogic(text) {
   const INDENT = '  '; // 2 spaces
   const lines = text.split('\n').map(line => line.trim()); // remove all existing indentation
 
