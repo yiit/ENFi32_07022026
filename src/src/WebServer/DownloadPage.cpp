@@ -30,7 +30,7 @@ void handle_full_backup_no_usr_pwd() {
 }
 
 void handle_config_download(bool fullBackup,
-                            bool noUsrPwd) {
+                            bool noCreds) {
 # endif // if FEATURE_TARSTREAM_SUPPORT
   # ifndef BUILD_NO_RAM_TRACKER
   checkRAM(F("handle_download"));
@@ -60,8 +60,8 @@ void handle_config_download(bool fullBackup,
     str += F("config_");
   }
 
-  if (noUsrPwd) {
-    str += F("no_usrpwd_");
+  if (noCreds) {
+    str += F("no_creds_");
   }
   str += strformat(F("%s_U%d_Build%s_"),
                    Settings.getName().c_str(),
@@ -90,7 +90,7 @@ void handle_config_download(bool fullBackup,
       fs::File f = dir.openFile("r");
 
       if (f) {
-        if (!noUsrPwd || (noUsrPwd && (0 != strncasecmp(file.name(), security_dat.c_str(), security_dat.length())))) {
+        if (!noCreds || (noCreds && (0 != strncasecmp(file.name(), security_dat.c_str(), security_dat.length())))) {
           tarStream->addFile(f.name(), f.size());
         }
         f.close();
@@ -103,7 +103,7 @@ void handle_config_download(bool fullBackup,
 
     while (file) {
       if (!file.isDirectory()) {
-        if (!noUsrPwd || (noUsrPwd && (0 != strncasecmp(file.name(), security_dat.c_str(), security_dat.length())))) {
+        if (!noCreds || (noCreds && (0 != strncasecmp(file.name(), security_dat.c_str(), security_dat.length())))) {
           tarStream->addFile(file.name(), file.size());
         }
       }
@@ -126,7 +126,7 @@ void handle_config_download(bool fullBackup,
       tarStream->addFileIfExists(getFileName(FileType::NOTIFICATION_DAT));
       tarStream->addFileIfExists(getFileName(FileType::PROVISIONING_DAT));
 
-      if (!noUsrPwd) {
+      if (!noCreds) {
         tarStream->addFileIfExists(getFileName(FileType::SECURITY_DAT));
       }
 
