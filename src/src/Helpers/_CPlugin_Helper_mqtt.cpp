@@ -61,12 +61,12 @@ bool MQTT_handle_topic_commands(struct EventStruct *event,
         const taskIndex_t   taskIndex     = findTaskIndexByName(taskName);
         const deviceIndex_t deviceIndex   = getDeviceIndex_from_TaskIndex(taskIndex);
         uint8_t valueNr                   = findDeviceValueIndexByName(valueName, taskIndex);
-        const taskVarIndex_t taskVarIndex = static_cast<taskVarIndex_t>(valueNr); // event->Par2 - 1;
+        const taskVarIndex_t taskVarIndex = static_cast<taskVarIndex_t>(valueNr);
 
-        if (validDeviceIndex(deviceIndex) && validTaskVarIndex(taskVarIndex)) {
-# if defined(USES_P001) || defined(USES_P033) || defined(USES_P086)
+        if (validDeviceIndex(deviceIndex) && validTaskVarIndex(taskVarIndex) && Settings.TaskDeviceEnabled[taskIndex]) {
+          # if defined(USES_P001) || defined(USES_P009) || defined(USES_P019) || defined(USES_P033) || defined(USES_P086)
           const int pluginID = Device[deviceIndex].Number;
-# endif // if defined(USES_P001) || defined(USES_P033) || defined(USES_P086)
+          # endif // if defined(USES_P001) || defined(USES_P009) || defined(USES_P010) || defined(USES_P033) || defined(USES_P086)
           # ifdef USES_P001
 
           if (!handled && (pluginID == 1) && validGpio(Settings.TaskDevicePin[0][taskIndex])) { // Plugin 1 Switch, uses 1st GPIO only
@@ -84,6 +84,22 @@ bool MQTT_handle_topic_commands(struct EventStruct *event,
             handled = true;
           }
           # endif // ifdef USES_P001
+          # if defined(USES_P009) || defined(USES_P019)
+
+          if (!handled && ((pluginID == 9) || (pluginID == 19))) { // Plugin 9 MCP23017, Plugin 19 PCF8574
+            EventStruct TempEvent(taskIndex);
+            const bool  inverted = Settings.TaskDevicePin1Inversed[taskIndex];
+            uint32_t    value{};
+            validUIntFromString(event->String2, value);
+
+            if (inverted) {
+              value = (0 == value) ? 1u : 0u;
+            }
+            cmd = strformat((pluginID == 9) ? F("mcpgpio,%d,%d") : F("pcfgpio,%d,%d"),
+                            Settings.TaskDevicePort[taskIndex], value);
+            handled = true;
+          }
+          # endif // if defined(USES_P009) || defined(USES_P019)
           # ifdef USES_P033
 
           if (!handled && ((pluginID == 33) || // Plugin 33 Dummy Device,
@@ -99,9 +115,6 @@ bool MQTT_handle_topic_commands(struct EventStruct *event,
             }
           }
           # endif // ifdef USES_P033
-          # if defined(USES_P033) && defined(USES_P086)
-          else
-          # endif // if defined(USES_P033) && defined(USES_P086)
           # ifdef USES_P086
 
           if (!handled && (pluginID == 86)) { // Plugin 86 Homie receiver. Schedules the event defined in the plugin.
@@ -142,7 +155,7 @@ bool MQTT_handle_topic_commands(struct EventStruct *event,
     }
   }
 
-  if (handled) {
+  if (handled && !cmd.isEmpty()) {
     MQTT_execute_command(cmd, tryRemoteConfig);
   }
   return handled;
@@ -357,11 +370,11 @@ bool getDiscoveryVType(struct EventStruct *event, QueryVType_ptr func_ptr, uint8
 
 // helper functions to supply a single value VType to be used by getDiscoveryVType
 int Plugin_QueryVType_BinarySensor(uint8_t value_nr) {
-  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH);
+  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH) & Sensor_VType_CAN_SET;
 }
 
 int Plugin_QueryVType_BinarySensorInv(uint8_t value_nr) {
-  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED);
+  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED) & Sensor_VType_CAN_SET;
 }
 
 int Plugin_QueryVType_Analog(uint8_t value_nr) {
@@ -501,6 +514,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
 
       // Device is enabled so send information
       if (validDeviceIndex(DeviceIndex) &&
+          Device[DeviceIndex].SendDataOption &&           // do (can) we send data?
           Settings.TaskDeviceEnabled[x] &&                // task enabled?
           Settings.TaskDeviceSendData[ControllerIndex][x] // selected for this controller?
           ) {
@@ -575,7 +589,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   if (!vname2.isEmpty()) {
                     valueName = vname2;
                   }
-                  discoveryItems.push_back(DiscoveryItem(vType, 1, varNr, valueName, uom));
+                  discoveryItems.push_back(DiscoveryItem(vType, 1, varNr, valueName, uom, false));
 
                   ++varNr;
                 }
@@ -612,17 +626,19 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                        valueDeviceClass.c_str(), !inversedState, inversedState);
                   const String uom = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s]);
 
-                  success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
-                                                                   ControllerIndex,
-                                                                   ControllerSettings,
-                                                                   F("device_automation"),
-                                                                   EMPTY_STRING, // unused
-                                                                   EMPTY_STRING, // No unit of measure used
-                                                                   &TempEvent,
-                                                                   deviceElement,
-                                                                   success,
-                                                                   true, false, elementIds,
-                                                                   true); // Send Trigger discovery
+                  if (discoveryItems[s].canSet) {
+                    success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
+                                                                     ControllerIndex,
+                                                                     ControllerSettings,
+                                                                     F("device_automation"),
+                                                                     EMPTY_STRING, // unused
+                                                                     EMPTY_STRING, // No unit of measure used
+                                                                     &TempEvent,
+                                                                     deviceElement,
+                                                                     success,
+                                                                     true, false, elementIds,
+                                                                     true); // Send Trigger discovery
+                  }
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -632,7 +648,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                    &TempEvent,
                                                                    deviceElement,
                                                                    success,
-                                                                   true, false, elementIds);
+                                                                   discoveryItems[s].canSet, false, elementIds);
                 }
                 break;
               }
@@ -669,7 +685,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                      &TempEvent,
                                                                      deviceElement,
                                                                      success,
-                                                                     false, false, elementIds);
+                                                                     discoveryItems[s].canSet, false, elementIds);
                   }
                 }
 
@@ -865,10 +881,11 @@ bool MQTT_DiscoveryGetDeviceVType(taskIndex_t                 TaskIndex,
     }
 
     for (uint8_t v = 0; v < maxVar; ++v) {
-      const Sensor_VType VType = static_cast<Sensor_VType>(TempEvent.ParN[v]);
+      const Sensor_VType VType = static_cast<Sensor_VType>(TempEvent.ParN[v] & 0xff);
+      const bool _canSet       = (TempEvent.ParN[v] & Sensor_VType_CAN_SET) == Sensor_VType_CAN_SET;
 
       if (Sensor_VType::SENSOR_TYPE_NONE != VType) {
-        discoveryItems.push_back(DiscoveryItem(VType, 1, v));
+        discoveryItems.push_back(DiscoveryItem(VType, 1, v, _canSet));
       }
     }
 

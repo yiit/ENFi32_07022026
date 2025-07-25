@@ -3,6 +3,8 @@
 
 #include "../../ESPEasy_common.h"
 
+# define Sensor_VType_CAN_SET 0x0100 // 8 bits of Sensor_VType and the 9th bit to enable /set
+
 enum class Sensor_VType : uint8_t {
   SENSOR_TYPE_NONE            =    0,
   SENSOR_TYPE_SINGLE          =    1,

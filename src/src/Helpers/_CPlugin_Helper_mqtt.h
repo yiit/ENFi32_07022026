@@ -41,12 +41,13 @@ bool   MQTT_binary_deviceClassTwoWay(int devClassIndex);
 int    MQTT_binary_deviceClassIndex(const String& deviceClassName);
 #  endif // if FEATURE_MQTT_DEVICECLASS
 struct DiscoveryItem {
-  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex)
-    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex) {}
+  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex, const bool _canSet = false)
+    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex), canSet(_canSet) {}
 
   #  if FEATURE_STRING_VARIABLES
-  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex, const String& _varName, const String& _uom)
-    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex), varName(_varName), uom(_uom) {}
+  DiscoveryItem(Sensor_VType _VType, int _valueCount, taskVarIndex_t _varIndex, const String& _varName, const String& _uom,
+                const bool _canSet)
+    : VType(_VType), valueCount(_valueCount), varIndex(_varIndex), varName(_varName), uom(_uom), canSet(_canSet) {}
 
   #  endif // if FEATURE_STRING_VARIABLES
 
@@ -57,6 +58,7 @@ struct DiscoveryItem {
   String varName;
   String uom;
   #  endif // if FEATURE_STRING_VARIABLES
+  bool canSet{};
 };
 
 bool MQTT_SendAutoDiscovery(controllerIndex_t ControllerIndex,

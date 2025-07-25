@@ -174,7 +174,7 @@ boolean Plugin_001(uint8_t function, struct EventStruct *event, String& string)
         constexpr uint8_t _par = NR_ELEMENTS(event->ParN) - 1;
 
         for (uint8_t i = 0; i < event->Par5 && i < _par; ++i) {
-          event->ParN[i] = static_cast<int>(Sensor_VType::SENSOR_TYPE_DIMMER);
+          event->ParN[i] = static_cast<int>(Sensor_VType::SENSOR_TYPE_DIMMER) & Sensor_VType_CAN_SET;
         }
         success = true;
       } else {
