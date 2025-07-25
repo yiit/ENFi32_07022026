@@ -370,11 +370,11 @@ bool getDiscoveryVType(struct EventStruct *event, QueryVType_ptr func_ptr, uint8
 
 // helper functions to supply a single value VType to be used by getDiscoveryVType
 int Plugin_QueryVType_BinarySensor(uint8_t value_nr) {
-  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH) & Sensor_VType_CAN_SET;
+  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH) | Sensor_VType_CAN_SET;
 }
 
 int Plugin_QueryVType_BinarySensorInv(uint8_t value_nr) {
-  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED) & Sensor_VType_CAN_SET;
+  return static_cast<int>(Sensor_VType::SENSOR_TYPE_SWITCH_INVERTED) | Sensor_VType_CAN_SET;
 }
 
 int Plugin_QueryVType_Analog(uint8_t value_nr) {
