@@ -37,9 +37,9 @@ var isSame;
         text = text.replace(/\/{2}.*/g, ''); //filter out comments CXD
         text = text.replace(/(=|-|\+|\*|<|>)\d+/g, ''); //filter out numbers CXD
         var replaceK = text.match(/\w+(?:,(\S+)){2}/);
-        if (replaceK) {text = text.replace(replaceK[1], ' ' + replaceK[1]);} //filter out everything after second comma
+        if (replaceK) { text = text.replace(replaceK[1], ' ' + replaceK[1]); } //filter out everything after second comma
         //and put a space between CXD
-        if (text.includes("#")){re = new RegExp(/[\w?#.,%]+/, "gi");} //regain old bahaviour of "word1#word2" suggestions
+        if (text.includes("#")) { re = new RegExp(/[\w?#.,%]+/, "gi"); } //regain old bahaviour of "word1#word2" suggestions
         while (m = re.exec(text)) {
           if (line == cur.line && m[0].toLowerCase() === curWord) continue;
           if ((!curWord || m[0].toLowerCase().lastIndexOf(curWord, 0) == 0) && !Object.prototype.hasOwnProperty.call(seen, m[0])) {
@@ -646,18 +646,18 @@ var isSame;
 // replace by making sure the match is no longer selected when hitting
 // Ctrl-G.
 
-(function(search) {
+(function (search) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
     search(require("../../lib/codemirror"), require("./searchcursor"), require("../dialog/dialog"));
   else if (typeof define == "function" && define.amd) // AMD
     define(["../../lib/codemirror", "./searchcursor", "../dialog/dialog"], search);
   else // Plain browser env
     search(CodeMirror);
-})(function(CodeMirror) {
+})(function (CodeMirror) {
   "use strict";
 
   // default search panel location
-  CodeMirror.defineOption("search", {bottom: false});
+  CodeMirror.defineOption("search", { bottom: false });
 
   function searchOverlay(query, caseInsensitive) {
     if (typeof query == "string")
@@ -665,18 +665,20 @@ var isSame;
     else if (!query.global)
       query = new RegExp(query.source, query.ignoreCase ? "gi" : "g");
 
-    return {token: function(stream) {
-      query.lastIndex = stream.pos;
-      var match = query.exec(stream.string);
-      if (match && match.index == stream.pos) {
-        stream.pos += match[0].length || 1;
-        return "searching";
-      } else if (match) {
-        stream.pos = match.index;
-      } else {
-        stream.skipToEnd();
+    return {
+      token: function (stream) {
+        query.lastIndex = stream.pos;
+        var match = query.exec(stream.string);
+        if (match && match.index == stream.pos) {
+          stream.pos += match[0].length || 1;
+          return "searching";
+        } else if (match) {
+          stream.pos = match.index;
+        } else {
+          stream.skipToEnd();
+        }
       }
-    }};
+    };
   }
 
   function SearchState() {
@@ -694,22 +696,23 @@ var isSame;
 
   function getSearchCursor(cm, query, pos) {
     // Heuristic: if the query string is all lowercase, do a case insensitive search.
-    return cm.getSearchCursor(query, pos, {caseFold: queryCaseInsensitive(query), multiline: true});
+    return cm.getSearchCursor(query, pos, { caseFold: queryCaseInsensitive(query), multiline: true });
   }
 
-  function persistentDialog(cm, text, deflt, onEnter, onKeyDown) {
+  //cXd:changed to live view (https://github.com/codemirror/codemirror5/issues/4496#issuecomment-332658411)
+  function persistentDialog(cm, text, deflt, onEnter, onKeyUp) {
     cm.openDialog(text, onEnter, {
       value: deflt,
       selectValueOnOpen: true,
       closeOnEnter: false,
-      onClose: function() { clearSearch(cm); },
-      onKeyDown: onKeyDown,
+      onClose: function () { clearSearch(cm); },
+      onKeyUp: onKeyUp,
       bottom: cm.options.search.bottom
     });
   }
 
   function dialog(cm, text, shortText, deflt, f) {
-    if (cm.openDialog) cm.openDialog(text, f, {value: deflt, selectValueOnOpen: true, bottom: cm.options.search.bottom});
+    if (cm.openDialog) cm.openDialog(text, f, { value: deflt, selectValueOnOpen: true, bottom: cm.options.search.bottom });
     else f(prompt(shortText, deflt));
   }
 
@@ -719,7 +722,7 @@ var isSame;
   }
 
   function parseString(string) {
-    return string.replace(/\\([nrt\\])/g, function(match, ch) {
+    return string.replace(/\\([nrt\\])/g, function (match, ch) {
       if (ch == "n") return "\n"
       if (ch == "r") return "\r"
       if (ch == "t") return "\t"
@@ -732,7 +735,7 @@ var isSame;
     var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
     if (isRE) {
       try { query = new RegExp(isRE[1], isRE[2].indexOf("i") == -1 ? "" : "i"); }
-      catch(e) {} // Not a regular expression after all, do a string search
+      catch (e) { } // Not a regular expression after all, do a string search
     } else {
       query = parseString(query)
     }
@@ -760,7 +763,7 @@ var isSame;
     if (q instanceof RegExp && q.source == "x^") q = null
     if (persistent && cm.openDialog) {
       var hiding = null
-      var searchNext = function(query, event) {
+      var searchNext = function (query, event) {
         CodeMirror.e_stop(event);
         if (!query) return;
         if (query != state.queryText) {
@@ -768,16 +771,23 @@ var isSame;
           state.posFrom = state.posTo = cm.getCursor();
         }
         if (hiding) hiding.style.opacity = 1
-        findNext(cm, event.shiftKey, function(_, to) {
+        findNext(cm, event.shiftKey, function (_, to) {
           var dialog
           if (to.line < 3 && document.querySelector &&
-              (dialog = cm.display.wrapper.querySelector(".CodeMirror-dialog")) &&
-              dialog.getBoundingClientRect().bottom - 4 > cm.cursorCoords(to, "window").top)
+            (dialog = cm.display.wrapper.querySelector(".CodeMirror-dialog")) &&
+            dialog.getBoundingClientRect().bottom - 4 > cm.cursorCoords(to, "window").top)
             (hiding = dialog).style.opacity = .4
         })
       };
-      persistentDialog(cm, getQueryDialog(cm), q, searchNext, function(event, query) {
+      //cXd:changed to live view (https://github.com/codemirror/codemirror5/issues/4496#issuecomment-332658411)
+      persistentDialog(cm, getQueryDialog(cm), q, searchNext, function (event, query) {
         var keyName = CodeMirror.keyName(event)
+        if (keyName != 'Enter' && query != state.queryText) {
+          startSearch(cm, state, query);
+          cm.execCommand('goLineUp');
+          state.posFrom = state.posTo = cm.getCursor();
+          findNext(cm, event.shiftKey);
+        }
         var extra = cm.getOption('extraKeys'), cmd = (extra && extra[keyName]) || CodeMirror.keyMap[cm.getOption("keyMap")][keyName]
         if (cmd == "findNext" || cmd == "findPrev" ||
           cmd == "findPersistentNext" || cmd == "findPersistentPrev") {
@@ -794,8 +804,8 @@ var isSame;
         findNext(cm, rev);
       }
     } else {
-      dialog(cm, getQueryDialog(cm), "Search for:", q, function(query) {
-        if (query && !state.query) cm.operation(function() {
+      dialog(cm, getQueryDialog(cm), "Search for:", q, function (query) {
+        if (query && !state.query) cm.operation(function () {
           startSearch(cm, state, query);
           state.posFrom = state.posTo = cm.getCursor();
           findNext(cm, rev);
@@ -803,45 +813,47 @@ var isSame;
       });
     }
   }
+  //cXd:changed for adding highlight to a match
+  function findNext(cm, rev, callback) {
+    cm.operation(function () {
+      const state = getSearchState(cm);
+      // store the markText reference on the editor instance
+      function highlightCurrentMatch(from, to) {
+        if (cm.__searchNextHighlight) {
+          cm.__searchNextHighlight.clear();
+        }
+        cm.__searchNextHighlight = cm.markText(from, to, {
+          className: 'search-next-highlight'
+        });
+      }
 
-function findNext(cm, rev, callback) {
-  cm.operation(function () {
-    const state = getSearchState(cm);
+      let cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+      if (!cursor.find(rev)) {
+        cursor = getSearchCursor(cm, state.query, rev ? CodeMirror.Pos(cm.lastLine()) : CodeMirror.Pos(cm.firstLine(), 0));
+        if (!cursor.find(rev)) return;
+      }
+      // Highlight current match
+      highlightCurrentMatch(cursor.from(), cursor.to());
 
-    // 🔸 Clear previous highlight
-    if (state.lastHighlight) {
-      state.lastHighlight.clear();
-      state.lastHighlight = null;
-    }
 
-    let cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
-    if (!cursor.find(rev)) {
-      cursor = getSearchCursor(cm, state.query, rev ? CodeMirror.Pos(cm.lastLine()) : CodeMirror.Pos(cm.firstLine(), 0));
-      if (!cursor.find(rev)) return;
-    }
-
-    // 🔸 Highlight current match
-    const mark = cm.markText(cursor.from(), cursor.to(), {
-      className: 'search-next-highlight'
+      cm.setSelection(cursor.from(), cursor.to());
+      cm.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 20);
+      state.posFrom = cursor.from();
+      state.posTo = cursor.to();
+      if (callback) callback(cursor.from(), cursor.to());
     });
-    state.lastHighlight = mark;
+  }
 
-    cm.setSelection(cursor.from(), cursor.to());
-    cm.scrollIntoView({ from: cursor.from(), to: cursor.to() }, 20);
-    state.posFrom = cursor.from();
-    state.posTo = cursor.to();
-    if (callback) callback(cursor.from(), cursor.to());
-  });
-}
-
-  function clearSearch(cm) {cm.operation(function() {
-    var state = getSearchState(cm);
-    state.lastQuery = state.query;
-    if (!state.query) return;
-    state.query = state.queryText = null;
-    cm.removeOverlay(state.overlay);
-    if (state.annotate) { state.annotate.clear(); state.annotate = null; }
-  });}
+  function clearSearch(cm) {
+    cm.operation(function () {
+      var state = getSearchState(cm);
+      state.lastQuery = state.query;
+      if (!state.query) return;
+      state.query = state.queryText = null;
+      cm.removeOverlay(state.overlay);
+      if (state.annotate) { state.annotate.clear(); state.annotate = null; }
+    });
+  }
 
   function el(tag, attrs) {
     var element = tag ? document.createElement(tag) : document.createDocumentFragment();
@@ -855,144 +867,127 @@ function findNext(cm, rev, callback) {
     return element;
   }
 
-  function getQueryDialog(cm)  {
-    var label = el("label", {className: "CodeMirror-search-label"},
-                   cm.phrase("Search:"),
-                   el("input", {type: "text", "style": "width: 10em", className: "CodeMirror-search-field",
-                                id: "CodeMirror-search-field"}));
-    label.setAttribute("for","CodeMirror-search-field");
+  function getQueryDialog(cm) {
+    var label = el("label", { className: "CodeMirror-search-label" },
+      cm.phrase("Search:"),
+      el("input", {
+        type: "text", "style": "width: 10em", className: "CodeMirror-search-field",
+        id: "CodeMirror-search-field"
+      }));
+    label.setAttribute("for", "CodeMirror-search-field");
     return el("", null, label, " ",
-              el("span", {style: "color: #666", className: "CodeMirror-search-hint"},
-                 cm.phrase("(Use /re/ syntax for regexp search)")));
+      el("span", { style: "color: #666", className: "CodeMirror-search-hint" },
+        cm.phrase("(Use /re/ syntax for regexp search)")));
   }
   function getReplaceQueryDialog(cm) {
     return el("", null, " ",
-              el("input", {type: "text", "style": "width: 10em", className: "CodeMirror-search-field"}), " ",
-              el("span", {style: "color: #666", className: "CodeMirror-search-hint"},
-                 cm.phrase("(Use /re/ syntax for regexp search)")));
+      el("input", { type: "text", "style": "width: 10em", className: "CodeMirror-search-field" }), " ",
+      el("span", { style: "color: #666", className: "CodeMirror-search-hint" },
+        cm.phrase("(Use /re/ syntax for regexp search)")));
   }
   function getReplacementQueryDialog(cm) {
     return el("", null,
-              el("span", {className: "CodeMirror-search-label"}, cm.phrase("With:")), " ",
-              el("input", {type: "text", "style": "width: 10em", className: "CodeMirror-search-field"}));
+      el("span", { className: "CodeMirror-search-label" }, cm.phrase("With:")), " ",
+      el("input", { type: "text", "style": "width: 10em", className: "CodeMirror-search-field" }));
   }
   function getDoReplaceConfirm(cm) {
     return el("", null,
-              el("span", {className: "CodeMirror-search-label"}, cm.phrase("Replace?")), " ",
-              el("button", {}, cm.phrase("Yes")), " ",
-              el("button", {}, cm.phrase("No")), " ",
-              el("button", {}, cm.phrase("All")), " ",
-              el("button", {}, cm.phrase("Stop")));
+      el("span", { className: "CodeMirror-search-label" }, cm.phrase("Replace?")), " ",
+      el("button", {}, cm.phrase("Yes")), " ",
+      el("button", {}, cm.phrase("No")), " ",
+      el("button", {}, cm.phrase("All")), " ",
+      el("button", {}, cm.phrase("Stop")));
   }
 
   function replaceAll(cm, query, text) {
-    cm.operation(function() {
+    cm.operation(function () {
       for (var cursor = getSearchCursor(cm, query); cursor.findNext();) {
         if (typeof query != "string") {
           var match = cm.getRange(cursor.from(), cursor.to()).match(query);
-          cursor.replace(text.replace(/\$(\d)/g, function(_, i) {return match[i];}));
+          cursor.replace(text.replace(/\$(\d)/g, function (_, i) { return match[i]; }));
         } else cursor.replace(text);
       }
     });
   }
 
+  //cXd:changed for adding highlight to a match
   function replace(cm, all) {
-  if (cm.getOption("readOnly")) return;
+    if (cm.getOption("readOnly")) return;
 
-  let activeHighlight = null; // Will store the current highlight
-
-  function highlightCurrentMatch(from, to) {
-    if (activeHighlight) {
-      activeHighlight.clear();
-    }
-    activeHighlight = cm.markText(from, to, {
-      className: 'search-next-highlight'
-    });
-  }
-
-  function clearHighlight() {
-    if (activeHighlight) {
-      activeHighlight.clear();
-      activeHighlight = null;
-    }
-  }
-
-  // Clear highlight when dialog is removed (e.g., user presses Esc or clicks ❌)
-  const observer = new MutationObserver(() => {
-    if (!document.querySelector('.CodeMirror-dialog')) {
-      clearHighlight();
-      observer.disconnect();
-    }
-  });
-  observer.observe(document.querySelector('.CodeMirror'), {
-    childList: true,
-    subtree: true
-  });
-
-  var query = cm.getSelection() || getSearchState(cm).lastQuery;
-  var dialogText = all ? cm.phrase("Replace all:") : cm.phrase("Replace:");
-  var fragment = el("", null,
-    el("span", { className: "CodeMirror-search-label" }, dialogText),
-    getReplaceQueryDialog(cm));
-
-  dialog(cm, fragment, dialogText, query, function (query) {
-    if (!query) return;
-    query = parseQuery(query);
-
-    dialog(cm, getReplacementQueryDialog(cm), cm.phrase("Replace with:"), "", function (text) {
-      text = parseString(text);
-
-      if (all) {
-        clearHighlight();
-        replaceAll(cm, query, text);
-      } else {
-        clearSearch(cm);
-        var cursor = getSearchCursor(cm, query, cm.getCursor("from"));
-
-        var advance = function () {
-          var start = cursor.from(), match;
-
-          if (!(match = cursor.findNext())) {
-            cursor = getSearchCursor(cm, query);
-            if (!(match = cursor.findNext()) ||
-              (start && cursor.from().line == start.line && cursor.from().ch == start.ch)) return;
-          }
-
-          cm.setSelection(cursor.from(), cursor.to());
-          cm.scrollIntoView({ from: cursor.from(), to: cursor.to() });
-          highlightCurrentMatch(cursor.from(), cursor.to());
-
-          confirmDialog(cm, getDoReplaceConfirm(cm), cm.phrase("Replace?"), [
-            function () { doReplace(match); },
-            advance,
-            function () {
-              clearHighlight();
-              replaceAll(cm, query, text);
-            }
-          ]);
-        };
-
-        var doReplace = function (match) {
-          cursor.replace(typeof query == "string" ? text :
-            text.replace(/\$(\d)/g, function (_, i) { return match[i]; }));
-          advance();
-        };
-
-        advance();
+    // store the markText reference on the editor instance
+    function highlightCurrentMatch(from, to) {
+      if (cm.__searchNextHighlight) {
+        cm.__searchNextHighlight.clear();
       }
-    });
-  });
-}
+      cm.__searchNextHighlight = cm.markText(from, to, {
+        className: 'search-next-highlight'
+      });
+    }
 
-  CodeMirror.commands.find = function(cm) {clearSearch(cm); doSearch(cm);};
-  CodeMirror.commands.findPersistent = function(cm) {clearSearch(cm); doSearch(cm, false, true);};
-  CodeMirror.commands.findPersistentNext = function(cm) {doSearch(cm, false, true, true);};
-  CodeMirror.commands.findPersistentPrev = function(cm) {doSearch(cm, true, true, true);};
+    var query = cm.getSelection() || getSearchState(cm).lastQuery;
+    var dialogText = all ? cm.phrase("Replace all:") : cm.phrase("Replace:");
+    var fragment = el("", null,
+      el("span", { className: "CodeMirror-search-label" }, dialogText),
+      getReplaceQueryDialog(cm));
+
+    dialog(cm, fragment, dialogText, query, function (query) {
+      if (!query) return;
+      query = parseQuery(query);
+
+      dialog(cm, getReplacementQueryDialog(cm), cm.phrase("Replace with:"), "", function (text) {
+        text = parseString(text);
+
+        if (all) {
+          clearHighlight();
+          replaceAll(cm, query, text);
+        } else {
+          clearSearch(cm);
+          var cursor = getSearchCursor(cm, query, cm.getCursor("from"));
+
+          var advance = function () {
+            var start = cursor.from(), match;
+
+            if (!(match = cursor.findNext())) {
+              cursor = getSearchCursor(cm, query);
+              if (!(match = cursor.findNext()) ||
+                (start && cursor.from().line == start.line && cursor.from().ch == start.ch)) return;
+            }
+
+            cm.setSelection(cursor.from(), cursor.to());
+            cm.scrollIntoView({ from: cursor.from(), to: cursor.to() });
+            highlightCurrentMatch(cursor.from(), cursor.to());
+
+            confirmDialog(cm, getDoReplaceConfirm(cm), cm.phrase("Replace?"), [
+              function () { doReplace(match); },
+              advance,
+              function () {
+                clearHighlight();
+                replaceAll(cm, query, text);
+              }
+            ]);
+          };
+
+          var doReplace = function (match) {
+            cursor.replace(typeof query == "string" ? text :
+              text.replace(/\$(\d)/g, function (_, i) { return match[i]; }));
+            advance();
+          };
+
+          advance();
+        }
+      });
+    });
+  }
+
+  CodeMirror.commands.find = function (cm) { doSearch; };
+  CodeMirror.commands.findPersistent = function (cm) { clearSearch(cm); doSearch(cm, false, true); };
+  CodeMirror.commands.findPersistentNext = function (cm) { doSearch(cm, false, true, true); };
+  CodeMirror.commands.findPersistentPrev = function (cm) { doSearch(cm, true, true, true); };
   CodeMirror.commands.findNext = doSearch;
-  CodeMirror.commands.findPrev = function(cm) {doSearch(cm, true);};
+  CodeMirror.commands.findPrev = function (cm) { doSearch(cm, true); };
   CodeMirror.commands.clearSearch = clearSearch;
   CodeMirror.commands.replace = replace;
-  CodeMirror.commands.replaceAll = function(cm) {replace(cm, true);};
+  CodeMirror.commands.replaceAll = function (cm) { replace(cm, true); };
 });
 
 
@@ -1000,14 +995,14 @@ function findNext(cm, rev, callback) {
 // This is from the file searchcursor.js-------------------------------------------------------------------------
 
 
-(function(searchcursor) {
+(function (searchcursor) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
     searchcursor(require("../../lib/codemirror"))
   else if (typeof define == "function" && define.amd) // AMD
     define(["../../lib/codemirror"], searchcursor)
   else // Plain browser env
     searchcursor(CodeMirror)
-})(function(CodeMirror) {
+})(function (CodeMirror) {
   "use strict"
   var Pos = CodeMirror.Pos
 
@@ -1035,9 +1030,11 @@ function findNext(cm, rev, callback) {
       regexp.lastIndex = ch
       var string = doc.getLine(line), match = regexp.exec(string)
       if (match)
-        return {from: Pos(line, match.index),
-                to: Pos(line, match.index + match[0].length),
-                match: match}
+        return {
+          from: Pos(line, match.index),
+          to: Pos(line, match.index + match[0].length),
+          match: match
+        }
     }
   }
 
@@ -1063,10 +1060,12 @@ function findNext(cm, rev, callback) {
       if (match) {
         var before = string.slice(0, match.index).split("\n"), inside = match[0].split("\n")
         var startLine = start.line + before.length - 1, startCh = before[before.length - 1].length
-        return {from: Pos(startLine, startCh),
-                to: Pos(startLine + inside.length - 1,
-                        inside.length == 1 ? startCh + inside[0].length : inside[inside.length - 1].length),
-                match: match}
+        return {
+          from: Pos(startLine, startCh),
+          to: Pos(startLine + inside.length - 1,
+            inside.length == 1 ? startCh + inside[0].length : inside[inside.length - 1].length),
+          match: match
+        }
       }
     }
   }
@@ -1092,9 +1091,11 @@ function findNext(cm, rev, callback) {
       var string = doc.getLine(line)
       var match = lastMatchIn(string, regexp, ch < 0 ? 0 : string.length - ch)
       if (match)
-        return {from: Pos(line, match.index),
-                to: Pos(line, match.index + match[0].length),
-                match: match}
+        return {
+          from: Pos(line, match.index),
+          to: Pos(line, match.index + match[0].length),
+          match: match
+        }
     }
   }
 
@@ -1113,28 +1114,30 @@ function findNext(cm, rev, callback) {
       if (match) {
         var before = string.slice(0, match.index).split("\n"), inside = match[0].split("\n")
         var startLine = line + before.length, startCh = before[before.length - 1].length
-        return {from: Pos(startLine, startCh),
-                to: Pos(startLine + inside.length - 1,
-                        inside.length == 1 ? startCh + inside[0].length : inside[inside.length - 1].length),
-                match: match}
+        return {
+          from: Pos(startLine, startCh),
+          to: Pos(startLine + inside.length - 1,
+            inside.length == 1 ? startCh + inside[0].length : inside[inside.length - 1].length),
+          match: match
+        }
       }
     }
   }
 
   var doFold, noFold
   if (String.prototype.normalize) {
-    doFold = function(str) { return str.normalize("NFD").toLowerCase() }
-    noFold = function(str) { return str.normalize("NFD") }
+    doFold = function (str) { return str.normalize("NFD").toLowerCase() }
+    noFold = function (str) { return str.normalize("NFD") }
   } else {
-    doFold = function(str) { return str.toLowerCase() }
-    noFold = function(str) { return str }
+    doFold = function (str) { return str.toLowerCase() }
+    noFold = function (str) { return str }
   }
 
   // Maps a position in a case-folded line back to a position in the original line
   // (compensating for codepoints increasing in number during folding)
   function adjustPos(orig, folded, pos, foldFunc) {
     if (orig.length == folded.length) return pos
-    for (var min = 0, max = pos + Math.max(0, orig.length - folded.length);;) {
+    for (var min = 0, max = pos + Math.max(0, orig.length - folded.length); ;) {
       if (min == max) return min
       var mid = (min + max) >> 1
       var len = foldFunc(orig.slice(0, mid)).length
@@ -1157,8 +1160,10 @@ function findNext(cm, rev, callback) {
         var found = string.indexOf(lines[0])
         if (found == -1) continue search
         var start = adjustPos(orig, string, found, fold) + ch
-        return {from: Pos(line, adjustPos(orig, string, found, fold) + ch),
-                to: Pos(line, adjustPos(orig, string, found + lines[0].length, fold) + ch)}
+        return {
+          from: Pos(line, adjustPos(orig, string, found, fold) + ch),
+          to: Pos(line, adjustPos(orig, string, found + lines[0].length, fold) + ch)
+        }
       } else {
         var cutFrom = string.length - lines[0].length
         if (string.slice(cutFrom) != lines[0]) continue search
@@ -1166,8 +1171,10 @@ function findNext(cm, rev, callback) {
           if (fold(doc.getLine(line + i)) != lines[i]) continue search
         var end = doc.getLine(line + lines.length - 1), endString = fold(end), lastLine = lines[lines.length - 1]
         if (endString.slice(0, lastLine.length) != lastLine) continue search
-        return {from: Pos(line, adjustPos(orig, string, cutFrom, fold) + ch),
-                to: Pos(line + lines.length - 1, adjustPos(end, endString, lastLine.length, fold))}
+        return {
+          from: Pos(line, adjustPos(orig, string, cutFrom, fold) + ch),
+          to: Pos(line + lines.length - 1, adjustPos(end, endString, lastLine.length, fold))
+        }
       }
     }
   }
@@ -1184,8 +1191,10 @@ function findNext(cm, rev, callback) {
       if (lines.length == 1) {
         var found = string.lastIndexOf(lines[0])
         if (found == -1) continue search
-        return {from: Pos(line, adjustPos(orig, string, found, fold)),
-                to: Pos(line, adjustPos(orig, string, found + lines[0].length, fold))}
+        return {
+          from: Pos(line, adjustPos(orig, string, found, fold)),
+          to: Pos(line, adjustPos(orig, string, found + lines[0].length, fold))
+        }
       } else {
         var lastLine = lines[lines.length - 1]
         if (string.slice(0, lastLine.length) != lastLine) continue search
@@ -1193,8 +1202,10 @@ function findNext(cm, rev, callback) {
           if (fold(doc.getLine(start + i)) != lines[i]) continue search
         var top = doc.getLine(line + 1 - lines.length), topString = fold(top)
         if (topString.slice(topString.length - lines[0].length) != lines[0]) continue search
-        return {from: Pos(line + 1 - lines.length, adjustPos(top, topString, top.length - lines[0].length, fold)),
-                to: Pos(line, adjustPos(orig, string, lastLine.length, fold))}
+        return {
+          from: Pos(line + 1 - lines.length, adjustPos(top, topString, top.length - lines[0].length, fold)),
+          to: Pos(line, adjustPos(orig, string, lastLine.length, fold))
+        }
       }
     }
   }
@@ -1204,7 +1215,7 @@ function findNext(cm, rev, callback) {
     this.afterEmptyMatch = false
     this.doc = doc
     pos = pos ? doc.clipPos(pos) : Pos(0, 0)
-    this.pos = {from: pos, to: pos}
+    this.pos = { from: pos, to: pos }
 
     var caseFold
     if (typeof options == "object") {
@@ -1216,27 +1227,27 @@ function findNext(cm, rev, callback) {
 
     if (typeof query == "string") {
       if (caseFold == null) caseFold = false
-      this.matches = function(reverse, pos) {
+      this.matches = function (reverse, pos) {
         return (reverse ? searchStringBackward : searchStringForward)(doc, query, pos, caseFold)
       }
     } else {
       query = ensureFlags(query, "gm")
       if (!options || options.multiline !== false)
-        this.matches = function(reverse, pos) {
+        this.matches = function (reverse, pos) {
           return (reverse ? searchRegexpBackwardMultiline : searchRegexpForwardMultiline)(doc, query, pos)
         }
       else
-        this.matches = function(reverse, pos) {
+        this.matches = function (reverse, pos) {
           return (reverse ? searchRegexpBackward : searchRegexpForward)(doc, query, pos)
         }
     }
   }
 
   SearchCursor.prototype = {
-    findNext: function() {return this.find(false)},
-    findPrevious: function() {return this.find(true)},
+    findNext: function () { return this.find(false) },
+    findPrevious: function () { return this.find(true) },
 
-    find: function(reverse) {
+    find: function (reverse) {
       var head = this.doc.clipPos(reverse ? this.pos.from : this.pos.to);
       if (this.afterEmptyMatch && this.atOccurrence) {
         // do not return the same 0 width match twice
@@ -1255,7 +1266,7 @@ function findNext(cm, rev, callback) {
           }
         }
         if (CodeMirror.cmpPos(head, this.doc.clipPos(head)) != 0) {
-           return this.atOccurrence = false
+          return this.atOccurrence = false
         }
       }
       var result = this.matches(reverse, head)
@@ -1267,36 +1278,36 @@ function findNext(cm, rev, callback) {
         return this.pos.match || true
       } else {
         var end = Pos(reverse ? this.doc.firstLine() : this.doc.lastLine() + 1, 0)
-        this.pos = {from: end, to: end}
+        this.pos = { from: end, to: end }
         return this.atOccurrence = false
       }
     },
 
-    from: function() {if (this.atOccurrence) return this.pos.from},
-    to: function() {if (this.atOccurrence) return this.pos.to},
+    from: function () { if (this.atOccurrence) return this.pos.from },
+    to: function () { if (this.atOccurrence) return this.pos.to },
 
-    replace: function(newText, origin) {
+    replace: function (newText, origin) {
       if (!this.atOccurrence) return
       var lines = CodeMirror.splitLines(newText)
       this.doc.replaceRange(lines, this.pos.from, this.pos.to, origin)
       this.pos.to = Pos(this.pos.from.line + lines.length - 1,
-                        lines[lines.length - 1].length + (lines.length == 1 ? this.pos.from.ch : 0))
+        lines[lines.length - 1].length + (lines.length == 1 ? this.pos.from.ch : 0))
     }
   }
 
-  CodeMirror.defineExtension("getSearchCursor", function(query, pos, caseFold) {
+  CodeMirror.defineExtension("getSearchCursor", function (query, pos, caseFold) {
     return new SearchCursor(this.doc, query, pos, caseFold)
   })
-  CodeMirror.defineDocExtension("getSearchCursor", function(query, pos, caseFold) {
+  CodeMirror.defineDocExtension("getSearchCursor", function (query, pos, caseFold) {
     return new SearchCursor(this, query, pos, caseFold)
   })
 
-  CodeMirror.defineExtension("selectMatches", function(query, caseFold) {
+  CodeMirror.defineExtension("selectMatches", function (query, caseFold) {
     var ranges = []
     var cur = this.getSearchCursor(query, this.getCursor("from"), caseFold)
     while (cur.findNext()) {
       if (CodeMirror.cmpPos(cur.to(), this.getCursor("to")) > 0) break
-      ranges.push({anchor: cur.from(), head: cur.to()})
+      ranges.push({ anchor: cur.from(), head: cur.to() })
     }
     if (ranges.length)
       this.setSelections(ranges, 0)
@@ -1309,15 +1320,15 @@ function findNext(cm, rev, callback) {
 
 // Open simple dialogs on top of an editor. Relies on dialog.css.
 
-(function(dialog) {
+(function (dialog) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
     dialog(require("../../lib/codemirror"));
   else if (typeof define == "function" && define.amd) // AMD
     define(["../../lib/codemirror"], dialog);
   else // Plain browser env
     dialog(CodeMirror);
-    
-})(function(CodeMirror) {
+
+})(function (CodeMirror) {
   function dialogDiv(cm, template, bottom) {
     //var wrap = cm.getWrapperElement();   changed by cxd to get searchfield out of div
     var wrap = document.body;
@@ -1335,7 +1346,7 @@ function findNext(cm, rev, callback) {
     }
     // Append the dialog to <body> instead of inside the clipped container
     CodeMirror.addClass(wrap, 'dialog-opened');
-    
+
     return dialog;
   }
 
@@ -1345,7 +1356,7 @@ function findNext(cm, rev, callback) {
     cm.state.currentNotificationClose = newVal;
   }
 
-  CodeMirror.defineExtension("openDialog", function(template, callback, options) {
+  CodeMirror.defineExtension("openDialog", function (template, callback, options) {
     if (!options) options = {};
 
     closeNotification(this, null);
@@ -1378,11 +1389,11 @@ function findNext(cm, rev, callback) {
       }
 
       if (options.onInput)
-        CodeMirror.on(inp, "input", function(e) { options.onInput(e, inp.value, close);});
+        CodeMirror.on(inp, "input", function (e) { options.onInput(e, inp.value, close); });
       if (options.onKeyUp)
-        CodeMirror.on(inp, "keyup", function(e) {options.onKeyUp(e, inp.value, close);});
+        CodeMirror.on(inp, "keyup", function (e) { options.onKeyUp(e, inp.value, close); });
 
-      CodeMirror.on(inp, "keydown", function(e) {
+      CodeMirror.on(inp, "keydown", function (e) {
         if (options && options.onKeyDown && options.onKeyDown(e, inp.value, close)) { return; }
         if (e.keyCode == 27 || (options.closeOnEnter !== false && e.keyCode == 13)) {
           inp.blur();
@@ -1396,7 +1407,7 @@ function findNext(cm, rev, callback) {
         if (evt.relatedTarget !== null) close();
       });
     } else if (button = dialog.getElementsByTagName("button")[0]) {
-      CodeMirror.on(button, "click", function() {
+      CodeMirror.on(button, "click", function () {
         close();
         me.focus();
       });
@@ -1408,7 +1419,7 @@ function findNext(cm, rev, callback) {
     return close;
   });
 
-  CodeMirror.defineExtension("openConfirm", function(template, callbacks, options) {
+  CodeMirror.defineExtension("openConfirm", function (template, callbacks, options) {
     closeNotification(this, null);
     var dialog = dialogDiv(this, template, options && options.bottom);
     var buttons = dialog.getElementsByTagName("button");
@@ -1423,18 +1434,18 @@ function findNext(cm, rev, callback) {
     buttons[0].focus();
     for (var i = 0; i < buttons.length; ++i) {
       var b = buttons[i];
-      (function(callback) {
-        CodeMirror.on(b, "click", function(e) {
+      (function (callback) {
+        CodeMirror.on(b, "click", function (e) {
           CodeMirror.e_preventDefault(e);
           close();
           if (callback) callback(me);
         });
       })(callbacks[i]);
-      CodeMirror.on(b, "blur", function() {
+      CodeMirror.on(b, "blur", function () {
         --blurring;
-        setTimeout(function() { if (blurring <= 0) close(); }, 200);
+        setTimeout(function () { if (blurring <= 0) close(); }, 200);
       });
-      CodeMirror.on(b, "focus", function() { ++blurring; });
+      CodeMirror.on(b, "focus", function () { ++blurring; });
     }
   });
 
@@ -1446,7 +1457,7 @@ function findNext(cm, rev, callback) {
    * If a notification is opened while another is opened, it will close the
    * currently opened one and open the new one immediately.
    */
-  CodeMirror.defineExtension("openNotification", function(template, options) {
+  CodeMirror.defineExtension("openNotification", function (template, options) {
     closeNotification(this, close);
     var dialog = dialogDiv(this, template, options && options.bottom);
     var closed = false, doneTimer;
@@ -1460,7 +1471,7 @@ function findNext(cm, rev, callback) {
       dialog.parentNode.removeChild(dialog);
     }
 
-    CodeMirror.on(dialog, 'click', function(e) {
+    CodeMirror.on(dialog, 'click', function (e) {
       CodeMirror.e_preventDefault(e);
       close();
     });

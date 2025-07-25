@@ -255,25 +255,59 @@ function initCM() {
 
 //----------------------------------------------------------------------- add search and formatting options
 
+
 function closeSearchDialog() {
   const dlg = document.querySelectorAll('.CodeMirror-dialog');
   if (dlg.length > 0) {
-    rEdit.execCommand('clearSearch');
-
-    // Remove the highlight classes from marked text spans
-    const highlighted = document.querySelectorAll('.CodeMirror .search-next-highlight');
-    highlighted.forEach(el => el.classList.remove('search-next-highlight'));
-
     dlg.forEach(d => d.remove());
-
     document.body.classList.remove('dialog-opened');
   }
+  rEdit.execCommand('clearSearch');
 }
 
+function removeHighlight() {
+  requestAnimationFrame(() => {
+    const highlights = document.querySelectorAll('.search-next-highlight');
+    highlights.forEach(el => el.classList.remove('search-next-highlight'));
+  });
+  console.log('Removing highlights');
+}
+
+let findDialogObserver = null; // Keep one observer
+
 function openFind() {
-  closeSearchDialog(); // Close any existing search dialog
-  rEdit.execCommand('findPersistent'); // Show search dialog
-  addFindButtons(); // Add custom buttons to the dialog
+  // Disconnect previous observer if it exists
+  if (findDialogObserver) {
+    findDialogObserver.disconnect();
+    findDialogObserver = null;
+  }
+
+  // Create a new observer
+  findDialogObserver = new MutationObserver(() => {
+    if (!document.querySelector('.CodeMirror-dialog')) {
+      removeHighlight();
+      findDialogObserver.disconnect();
+      findDialogObserver = null;
+    }
+  });
+
+  findDialogObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  clearSearchNextHighlight(rEdit);
+  rEdit.execCommand('findPersistent');
+  addFindButtons();
+}
+
+function clearSearchNextHighlight(cm) {
+  removeHighlight();
+  // Also clear any markText highlights if used
+  if (cm.__searchNextHighlight) {
+    cm.__searchNextHighlight.clear();
+    cm.__searchNextHighlight = null;
+  }
 }
 
 function addFindButtons() {
@@ -421,50 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nonCharKeys.includes(key) || key.length !== 1) {
       charBuffer = "";
     }
-
-    // Proactive find: when typing in the search field
-    const active = document.activeElement;
-    const isSearchField = active?.classList?.contains('CodeMirror-search-field');
-
-    if (isSearchField && key !== 'Enter') {
-      const label = document.querySelector('.CodeMirror-search-label');
-      const isReplaceLabel = label && /^(Replace|With):\s*$/i.test(label.textContent.trim());
-
-      if (!isReplaceLabel) {
-        // Reset any previous timer
-        if (findTimer) clearTimeout(findTimer);
-
-        // Set a new timer to trigger search
-        findTimer = setTimeout(() => {
-          triggerSearchEnter();
-          findTimer = null;
-        }, 100);
-      }
-    }
   });
 
-  function triggerSearchEnter() {
-    const input = getDeepActiveElement();
-    if (!input?.classList.contains('CodeMirror-search-field')) return;
-
-    // Reassign value to ensure any internal handlers pick it up
-    input.value = input.value;
-
-    input.dispatchEvent(new KeyboardEvent('keydown', {
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-      cancelable: true
-    }));
-  }
-
-  function getDeepActiveElement(doc = document) {
-    let el = doc.activeElement;
-    while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
-    return el;
-  }
 
   // Workaround of showing hints for Android devices
   if (android) {
