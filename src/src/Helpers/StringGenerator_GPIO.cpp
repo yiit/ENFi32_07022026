@@ -390,7 +390,7 @@ const __FlashStringHelper* getConflictingUse(int gpio, PinSelectPurpose purpose,
     #endif
 
     if (includeEthernet && Settings.isEthernetPinOptional(gpio)) {
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
       if (isGpioUsedInETHClockMode(Settings.ETH_Clock_Mode, gpio)) { return F("Eth Clock"); }
 
       if (Settings.ETH_Pin_mdc_cs == gpio) { return F("Eth MDC"); }

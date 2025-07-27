@@ -30,7 +30,7 @@
 #include "include/esp32x_fixes.h"
 #endif
 
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 #include <pins_arduino.h>
 #endif
 
@@ -1230,7 +1230,7 @@ bool SettingsStruct_tmpl<N_TASKS>::isEthernetPin(int8_t pin) const {
   if (pin < 0) return false;
   if (NetworkMedium == NetworkMedium_t::Ethernet &&
       !isSPI_EthernetType(ETH_Phy_Type)) {
-  #if CONFIG_ETH_USE_ESP32_EMAC
+  #if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
   #ifdef ESP32P4
   switch (pin) {
     // MDC/MDIO/Power can be configured by user
@@ -1267,7 +1267,7 @@ bool SettingsStruct_tmpl<N_TASKS>::isEthernetPinOptional(int8_t pin) const {
   if (pin < 0) return false;
   if (NetworkMedium == NetworkMedium_t::Ethernet) {
     if (!isSPI_EthernetType(ETH_Phy_Type) 
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     && isGpioUsedInETHClockMode(ETH_Clock_Mode, pin)
   #endif
   ) return true;

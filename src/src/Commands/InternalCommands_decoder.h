@@ -51,7 +51,7 @@ enum class ESPEasy_cmd_e : uint8_t {
   ethpinmdio,
   ethpinpower,
   ethphytype,
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
   ethclockmode,
 #endif
   ethip,

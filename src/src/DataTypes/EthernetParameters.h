@@ -37,7 +37,7 @@ enum class EthClockMode_t : uint8_t {
 
 # endif // if CONFIG_IDF_TARGET_ESP32
 
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
 bool                       isValid(EthClockMode_t clockMode);
 
@@ -49,7 +49,7 @@ bool                       isGpioUsedInETHClockMode(EthClockMode_t clockMode,
 
 // Is stored in settings
 enum class EthPhyType_t : uint8_t {
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
   LAN8720 = 0,
   TLK110  = 1,
   RTL8201 = 2,
@@ -59,7 +59,7 @@ enum class EthPhyType_t : uint8_t {
   DP83848 = 4,
   KSZ8041 = 5,
   KSZ8081 = 6,
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 # if ESP_IDF_VERSION_MAJOR >= 5
 #  if CONFIG_ETH_SPI_ETHERNET_DM9051
   DM9051 = 10,

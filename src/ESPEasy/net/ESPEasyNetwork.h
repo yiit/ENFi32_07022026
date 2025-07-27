@@ -59,5 +59,5 @@ uint8_t        EthLinkSpeed();
 #endif // if FEATURE_ETHERNET
 
 
-}
-}
+} // namespace net
+} // namespace ESPEasy

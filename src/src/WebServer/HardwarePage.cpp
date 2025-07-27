@@ -128,7 +128,7 @@ void handle_hardware() {
     Settings.ETH_Pin_mdio_irq             = getFormItemInt(F("ethmdio"));
     Settings.ETH_Pin_power_rst            = getFormItemInt(F("ethpower"));
     Settings.ETH_Phy_Type             = static_cast<EthPhyType_t>(getFormItemInt(F("ethtype")));
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     Settings.ETH_Clock_Mode           = static_cast<EthClockMode_t>(getFormItemInt(F("ethclock")));
 #endif
     Settings.NetworkMedium            = static_cast<NetworkMedium_t>(getFormItemInt(F("ethwifi")));
@@ -347,7 +347,7 @@ void handle_hardware() {
     const __FlashStringHelper * ethPhyTypes[] = { 
       toString(EthPhyType_t::notSet),			  
 
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
       toString(EthPhyType_t::LAN8720),			  
       toString(EthPhyType_t::TLK110),				  
       toString(EthPhyType_t::RTL8201),				
@@ -357,7 +357,7 @@ void handle_hardware() {
       toString(EthPhyType_t::DP83848),				
       toString(EthPhyType_t::KSZ8041),				
       toString(EthPhyType_t::KSZ8081),				
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
 #if ESP_IDF_VERSION_MAJOR >= 5
 # if CONFIG_ETH_SPI_ETHERNET_DM9051
@@ -374,7 +374,7 @@ void handle_hardware() {
     const int ethPhyTypes_index[] = {
       static_cast<int>(EthPhyType_t::notSet),			  
 
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
       static_cast<int>(EthPhyType_t::LAN8720),			  
       static_cast<int>(EthPhyType_t::TLK110),				  
       static_cast<int>(EthPhyType_t::RTL8201),			
@@ -384,7 +384,7 @@ void handle_hardware() {
       static_cast<int>(EthPhyType_t::DP83848),				
       static_cast<int>(EthPhyType_t::KSZ8041),				
       static_cast<int>(EthPhyType_t::KSZ8081),				
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
 #if ESP_IDF_VERSION_MAJOR >= 5
 # if CONFIG_ETH_SPI_ETHERNET_DM9051
@@ -424,7 +424,7 @@ void handle_hardware() {
 #define MDC_CS_PIN_DESCR  "Ethernet CS pin"
 #define MIO_IRQ_PIN_DESCR  "Ethernet IRQ pin"
 #define PWR_RST_PIN_DESCR  "Ethernet RST pin"
-#else // #elif CONFIG_ETH_USE_ESP32_EMAC
+#else // #elif CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 #define MDC_CS_PIN_DESCR  "Ethernet MDC pin"
 #define MIO_IRQ_PIN_DESCR  "Ethernet MIO pin"
 #define PWR_RST_PIN_DESCR  "Ethernet Power pin"
@@ -432,7 +432,7 @@ void handle_hardware() {
 
   addFormNumericBox(F("Ethernet PHY Address"), F("ethphy"), Settings.ETH_Phy_Addr, -1, 127);
   addFormNote(F("I&sup2;C-address of Ethernet PHY"
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
   " (0 or 1 for LAN8720, 31 for TLK110, -1 autodetect)"
 #endif
   ));
@@ -445,7 +445,7 @@ void handle_hardware() {
   addFormPinSelect(PinSelectPurpose::Ethernet, formatGpioName_output(
     F(PWR_RST_PIN_DESCR)), 
     F("ethpower"), Settings.ETH_Pin_power_rst);
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
   addRowLabel_tr_id(F("Ethernet Clock"), F("ethclock"));
   {
     const __FlashStringHelper * ethClockOptions[] = { 

@@ -63,7 +63,7 @@ void ethSetupStaticIPconfig() {
 
 bool ethCheckSettings() {
   return isValid(Settings.ETH_Phy_Type)
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
          && (isValid(Settings.ETH_Clock_Mode) /* || isSPI_EthernetType(Settings.ETH_Phy_Type)*/)
 # endif
          && isValid(Settings.NetworkMedium)
@@ -214,7 +214,7 @@ bool ETHConnectRelaxed() {
 #  endif // if ETH_SPI_SUPPORTS_CUSTOM
       }
     } else {
-#  if CONFIG_ETH_USE_ESP32_EMAC
+#  if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 #   ifndef ESP32P4
       ethResetGPIOpins();
 #   endif
@@ -225,7 +225,7 @@ bool ETHConnectRelaxed() {
         Settings.ETH_Pin_mdio_irq,
         Settings.ETH_Pin_power_rst,
         (eth_clock_mode_t)Settings.ETH_Clock_Mode);
-#  endif // if CONFIG_ETH_USE_ESP32_EMAC
+#  endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     }
 
 # endif // if ESP_IDF_VERSION_MAJOR < 5
@@ -304,7 +304,7 @@ void ethPower(bool enable) {
     GPIO_Write(PLUGIN_GPIO, Settings.ETH_Pin_power_rst, enable ? 1 : 0);
 
     if (!enable) {
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
       #  if CONFIG_IDF_TARGET_ESP32P4
       const bool isExternalCrystal = Settings.ETH_Clock_Mode == EthClockMode_t::Ext_crystal;
       #  else
@@ -315,7 +315,7 @@ void ethPower(bool enable) {
         delay(600); // Give some time to discharge any capacitors
         // Delay is needed to make sure no clock signal remains present which may cause the ESP to boot into flash mode.
       }
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     } else {
       delay(400); // LAN chip needs to initialize before calling Eth.begin()
     }
@@ -333,7 +333,7 @@ void ethResetGPIOpins() {
   addLog(LOG_LEVEL_INFO, F("ethResetGPIOpins()"));
   gpio_reset_pin((gpio_num_t)Settings.ETH_Pin_mdc_cs);
   gpio_reset_pin((gpio_num_t)Settings.ETH_Pin_mdio_irq);
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
   gpio_reset_pin(GPIO_NUM_19); // EMAC_TXD0 - hardcoded
   gpio_reset_pin(GPIO_NUM_21); // EMAC_TX_EN - hardcoded
@@ -341,7 +341,7 @@ void ethResetGPIOpins() {
   gpio_reset_pin(GPIO_NUM_25); // EMAC_RXD0 - hardcoded
   gpio_reset_pin(GPIO_NUM_26); // EMAC_RXD1 - hardcoded
   gpio_reset_pin(GPIO_NUM_27); // EMAC_RX_CRS_DV - hardcoded
-# endif // if CONFIG_ETH_USE_ESP32_EMAC
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
   /*
      switch (Settings.ETH_Clock_Mode) {

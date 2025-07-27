@@ -313,7 +313,7 @@
 #endif
 #endif
 #ifndef DEFAULT_ETH_CLOCK_MODE
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 #define DEFAULT_ETH_CLOCK_MODE           static_cast<EthClockMode_t>(0)
 #else
 #define DEFAULT_ETH_CLOCK_MODE           (0)

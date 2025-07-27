@@ -791,7 +791,7 @@ const __FlashStringHelper* getDeviceModelBrandString(DeviceModel model) {
     case DeviceModel::DeviceModel_Sonoff_POWr2:   return F("Sonoff");
     case DeviceModel::DeviceModel_Shelly1:
     case DeviceModel::DeviceModel_ShellyPLUG_S:   return F("Shelly");
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     case DeviceModel::DeviceModel_Olimex_ESP32_PoE:
     case DeviceModel::DeviceModel_Olimex_ESP32_EVB:
     case DeviceModel::DeviceModel_Olimex_ESP32_GATEWAY:
@@ -844,13 +844,13 @@ const __FlashStringHelper* getDeviceModelTypeString(DeviceModel model)
     case DeviceModel::DeviceModel_ShellyPLUG_S:
       return F("default");
 #endif // if defined(ESP8266) && !defined(LIMIT_BUILD_SIZE)
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     case DeviceModel::DeviceModel_Olimex_ESP32_PoE:      return F(" ESP32-PoE");
     case DeviceModel::DeviceModel_Olimex_ESP32_EVB:      return F(" ESP32-EVB");
     case DeviceModel::DeviceModel_Olimex_ESP32_GATEWAY:  return F(" ESP32-GATEWAY");
     case DeviceModel::DeviceModel_wESP32:                break;
     case DeviceModel::DeviceModel_WT32_ETH01:            return F(" add-on");
-#endif // if CONFIG_ETH_USE_ESP32_EMAC
+#endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
     case DeviceModel::DeviceModel_default:
     case DeviceModel::DeviceModel_MAX:             return F("default");
@@ -903,7 +903,7 @@ bool modelMatchingFlashSize(DeviceModel model) {
 #endif // ifdef ESP8266
 
       // These Olimex boards all have Ethernet
-#if CONFIG_ETH_USE_ESP32_EMAC
+#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     case DeviceModel::DeviceModel_Olimex_ESP32_PoE:
     case DeviceModel::DeviceModel_Olimex_ESP32_EVB:
     case DeviceModel::DeviceModel_Olimex_ESP32_GATEWAY:
@@ -914,7 +914,7 @@ bool modelMatchingFlashSize(DeviceModel model) {
 # else // if  defined(ESP32_CLASSIC) && FEATURE_ETHERNET
       return false;
 # endif // if  defined(ESP32_CLASSIC) && FEATURE_ETHERNET
-#endif // if CONFIG_ETH_USE_ESP32_EMAC
+#endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     case DeviceModel::DeviceModel_default:
     case DeviceModel::DeviceModel_MAX:
       return true;

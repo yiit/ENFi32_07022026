@@ -112,7 +112,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
 # endif // if defined(ESP8266)
 
 
-# if CONFIG_ETH_USE_ESP32_EMAC
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 #  if CONFIG_IDF_TARGET_ESP32
     case DeviceModel::DeviceModel_Olimex_ESP32_PoE:
       button[0]      = 34; // BUT1 Button
@@ -208,7 +208,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
 #  else // if CONFIG_IDF_TARGET_ESP32
     default: break;
 #  endif // if CONFIG_IDF_TARGET_ESP32
-  # endif // if CONFIG_ETH_USE_ESP32_EMAC
+  # endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
 
     case DeviceModel::DeviceModel_default:
     case DeviceModel::DeviceModel_MAX:
