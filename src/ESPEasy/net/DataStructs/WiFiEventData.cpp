@@ -6,7 +6,7 @@
 
 # include "../../../src/Globals/RTC.h"
 # include "../../../src/Globals/Settings.h"
-# include "../../../src/Globals/WiFi_AP_Candidates.h"
+# include "../Globals/WiFi_AP_Candidates.h"
 
 # include "../../../src/Helpers/ESPEasy_Storage.h"
 # include "../../../src/Helpers/Networking.h"
@@ -283,7 +283,7 @@ void WiFiEventData_t::markConnected(const String& ssid, const uint8_t bssid[6], 
   channel_changed  = RTC.lastWiFiChannel != channel;
   last_ssid        = ssid;
   bssid_changed    = false;
-  auth_mode        = WiFi_AP_Candidates.getCurrent().enc_type;
+  auth_mode        = ESPEasy::net::wifi::WiFi_AP_Candidates.getCurrent().enc_type;
 
   RTC.lastWiFiChannel = channel;
 

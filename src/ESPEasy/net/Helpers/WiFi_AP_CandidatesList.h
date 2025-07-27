@@ -1,13 +1,19 @@
-#ifndef HELPERS_WIFI_AP_CANDIDATESLIST_H
-#define HELPERS_WIFI_AP_CANDIDATESLIST_H
+#pragma once
 
-#include "../../ESPEasy_common.h"
+#include "../../../ESPEasy_common.h"
 
 #include "../DataStructs/WiFi_AP_Candidate.h"
 
 #include <list>
 
 #define WiFi_CONNECT_ATTEMPTS  1
+
+#if FEATURE_WIFI
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
 
 typedef std::list<WiFi_AP_Candidate>::const_iterator WiFi_AP_Candidate_const_iterator;
 
@@ -28,16 +34,17 @@ struct WiFi_AP_CandidatesList {
 
   void purge_expired();
 
-#if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
+
   // Add found WiFi access points to the list if they are possible candidates.
   void process_WiFiscan(uint8_t scancount);
-#endif
+# endif // if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
 
-#ifdef ESP8266
-#if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# ifdef ESP8266
+#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
   void process_WiFiscan(const bss_info& ap);
-#endif  
-#endif
+#  endif
+# endif // ifdef ESP8266
 
   void after_process_WiFiscan();
 
@@ -46,7 +53,7 @@ struct WiFi_AP_CandidatesList {
   bool                     getNext(bool scanAllowed);
 
   const WiFi_AP_Candidate& getCurrent() const;
-  
+
   // Decrease attemptsLeft
   void                     markAttempt();
 
@@ -58,11 +65,11 @@ struct WiFi_AP_CandidatesList {
 
   // Make sure the current connection (from RTC) is set as first next candidate.
   // This will force a reconnect to the current AP if connection is lost.
-  void markCurrentConnectionStable();
+  void                             markCurrentConnectionStable();
 
-  bool addedKnownCandidate() const { return _addedKnownCandidate; }
+  bool                             addedKnownCandidate() const { return _addedKnownCandidate; }
 
-  int8_t scanComplete() const;
+  int8_t                           scanComplete() const;
 
   WiFi_AP_Candidate_const_iterator scanned_begin() const {
     return scanned.begin();
@@ -78,32 +85,33 @@ struct WiFi_AP_CandidatesList {
 
 private:
 
-  // Pick the possible 
-  void loadCandidatesFromScanned();
+  // Pick the possible
+  void        loadCandidatesFromScanned();
 
-  void addFromRTC();
+  void        addFromRTC();
 
-  void purge_unusable();
+  void        purge_unusable();
 
   // Load SSID and pass/key from the settings.
-  static bool get_SSID_key(uint8_t    index,
-                    String& ssid,
-                    String& key);
+  static bool get_SSID_key(uint8_t index,
+                           String& ssid,
+                           String& key);
 
 public:
 
-  static bool get_SSID(uint8_t index, String& ssid);
+  static bool   get_SSID(uint8_t index,
+                         String& ssid);
 
   static String get_key(uint8_t index);
 
 private:
 
-  std::list<WiFi_AP_Candidate> candidates;
+  std::list<WiFi_AP_Candidate>candidates;
 
-  std::list<WiFi_AP_Candidate> known;
+  std::list<WiFi_AP_Candidate>known;
 
-  std::list<WiFi_AP_Candidate> scanned;
-  std::list<WiFi_AP_Candidate> scanned_new;
+  std::list<WiFi_AP_Candidate>scanned;
+  std::list<WiFi_AP_Candidate>scanned_new;
 
   WiFi_AP_Candidate_const_iterator known_it;
 
@@ -111,8 +119,15 @@ private:
 
   bool _mustLoadCredentials = true;
   bool _addedKnownCandidate = false;
+
 public:
-  int  attemptsLeft = WiFi_CONNECT_ATTEMPTS;
+
+  int attemptsLeft = WiFi_CONNECT_ATTEMPTS;
+
 };
 
-#endif // ifndef HELPERS_WIFI_AP_CANDIDATESLIST_H
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
+
+#endif // if FEATURE_WIFI

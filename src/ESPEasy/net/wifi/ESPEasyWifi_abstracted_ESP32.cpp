@@ -6,7 +6,7 @@
 #  include "../../../src/DataStructs/TimingStats.h"
 #  include "../../../src/Globals/EventQueue.h"
 #  include "../../../src/Globals/Settings.h"
-#  include "../../../src/Globals/WiFi_AP_Candidates.h"
+#  include "../Globals/WiFi_AP_Candidates.h"
 #  include "../../../src/Helpers/StringConverter.h"
 
 #  include "../../net/ESPEasyNetwork.h" // Needed for NetworkCreateRFCCompliantHostname, WiFi code should not include network code

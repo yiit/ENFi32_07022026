@@ -20,7 +20,7 @@
 # include "../Globals/RTC.h"
 # include "../Globals/Settings.h"
 # include "../Globals/SecuritySettings.h"
-# include "../Globals/WiFi_AP_Candidates.h"
+# include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 
 # include "../Helpers/Misc.h"
 # include "../Helpers/Networking.h"
@@ -121,7 +121,7 @@ void handle_setup() {
               addHtmlError(SaveSettings());
               WiFiEventData.wifiSetupConnect         = true;
               WiFiEventData.wifiConnectAttemptNeeded = true;
-              WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
+              ESPEasy::net::wifi::WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
 
               if (loglevelActiveFor(LOG_LEVEL_INFO)) {
                 String reconnectlog = F("WIFI : Credentials Changed, retry connection. SSID: ");
@@ -242,7 +242,7 @@ void handle_setup() {
 }
 
 void handle_setup_scan_and_show(const String& ssid, const String& other, const String& password) {
-  int8_t scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
+  int8_t scanCompleteStatus = ESPEasy::net::wifi::WiFi_AP_Candidates.scanComplete();
   const bool needsRescan = 
     (scanCompleteStatus == 0 || // No AP found
      scanCompleteStatus == -2)  // Scan not triggered
@@ -250,7 +250,7 @@ void handle_setup_scan_and_show(const String& ssid, const String& other, const S
   if (needsRescan) {
     WiFiMode_t cur_wifimode = WiFi.getMode();
     ESPEasy::net::wifi::WifiScan(false);
-    scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
+    scanCompleteStatus = ESPEasy::net::wifi::WiFi_AP_Candidates.scanComplete();
     ESPEasy::net::wifi::setWifiMode(cur_wifimode);
   }
 
@@ -266,7 +266,7 @@ void handle_setup_scan_and_show(const String& ssid, const String& other, const S
     html_table_header(F("Network info"));
     html_table_header(F("RSSI"), 50);
 
-    for (auto it = WiFi_AP_Candidates.scanned_begin(); it != WiFi_AP_Candidates.scanned_end(); ++it)
+    for (auto it = ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_begin(); it != ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_end(); ++it)
     {
       html_TR_TD();
       const String id = it->toString("");
@@ -289,7 +289,7 @@ void handle_setup_scan_and_show(const String& ssid, const String& other, const S
 
       {
         if (it->bssid_match(RTC.lastBSSID)) {
-          if (!WiFi_AP_Candidates.SettingsIndexMatchCustomCredentials(RTC.lastWiFiSettingsIndex)) {
+          if (!ESPEasy::net::wifi::WiFi_AP_Candidates.SettingsIndexMatchCustomCredentials(RTC.lastWiFiSettingsIndex)) {
             addHtml(F(" checked "));  
           }
         }

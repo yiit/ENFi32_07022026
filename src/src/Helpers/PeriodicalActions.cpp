@@ -22,7 +22,7 @@
 #include "../Globals/Services.h"
 #include "../Globals/Settings.h"
 #include "../Globals/Statistics.h"
-#include "../Globals/WiFi_AP_Candidates.h"
+#include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 #include "../Helpers/ESPEasyRTC.h"
 #include "../Helpers/FS_Helper.h"
 #include "../Helpers/Hardware_temperature_sensor.h"
@@ -248,7 +248,7 @@ void runEach30Seconds()
 //    addLogMove(LOG_LEVEL_INFO,  ESPEASY_SERIAL_CONSOLE_PORT.getLogString());
 #endif
   }
-  WiFi_AP_Candidates.purge_expired();
+  ESPEasy::net::wifi::WiFi_AP_Candidates.purge_expired();
   #if FEATURE_ESPEASY_P2P
   sendSysInfoUDP(1);
   refreshNodeList();

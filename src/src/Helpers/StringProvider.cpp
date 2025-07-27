@@ -28,7 +28,7 @@
 #include "../../ESPEasy/net/Globals/NetworkState.h"
 #include "../Globals/SecuritySettings.h"
 #include "../Globals/Settings.h"
-#include "../Globals/WiFi_AP_Candidates.h"
+#include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 
 #include "../Helpers/Convert.h"
 #include "../Helpers/ESPEasy_Storage.h"
@@ -509,7 +509,7 @@ String getValue(LabelType::Enum label) {
     case LabelType::SSID:                   return WiFi.SSID();
     case LabelType::BSSID:                  return WiFi.BSSIDstr();
     case LabelType::CHANNEL:                retval = WiFi.channel(); break;
-    case LabelType::ENCRYPTION_TYPE_STA:    return // WiFi_AP_Candidates.getCurrent().encryption_type();
+    case LabelType::ENCRYPTION_TYPE_STA:    return // ESPEasy::net::wifi::WiFi_AP_Candidates.getCurrent().encryption_type();
                                                    WiFi_encryptionType(WiFiEventData.auth_mode);
 #endif
     case LabelType::CONNECTED:

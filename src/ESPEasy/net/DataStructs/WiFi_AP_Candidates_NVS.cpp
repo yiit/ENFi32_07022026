@@ -1,9 +1,17 @@
 #include "../DataStructs/WiFi_AP_Candidates_NVS.h"
 
 #ifdef ESP32
-# include "../Helpers/ESPEasy_NVS_Helper.h"
+# include "../../../src/Helpers/ESPEasy_NVS_Helper.h"
 
-# define WIFI_AP_CANDIDATE_NVS_KEY "WIFICANDIDATE"
+
+# if FEATURE_WIFI
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
+
+#  define WIFI_AP_CANDIDATE_NVS_KEY "WIFICANDIDATE"
 
 struct WiFi_AP_Candidates_NVS_data_t {
   union {
@@ -11,10 +19,13 @@ struct WiFi_AP_Candidates_NVS_data_t {
       uint8_t BSSID[6];
       uint8_t lastWiFiChannel;
       uint8_t lastWiFiSettingsIndex;
+
     } APdata;
 
     uint64_t rawdata{};
+
   };
+
 };
 
 bool WiFi_AP_Candidates_NVS::loadCandidate_from_NVS(WiFi_AP_Candidate& candidate)
@@ -32,6 +43,7 @@ bool WiFi_AP_Candidates_NVS::loadCandidate_from_NVS(WiFi_AP_Candidate& candidate
       return false;
     }
   }
+
   candidate.bssid.set(fromNVS.APdata.BSSID);
   candidate.channel = fromNVS.APdata.lastWiFiChannel;
   candidate.index   = fromNVS.APdata.lastWiFiSettingsIndex;
@@ -60,5 +72,11 @@ void WiFi_AP_Candidates_NVS::clear_from_NVS()
     preferences.remove(F(WIFI_AP_CANDIDATE_NVS_KEY));
   }
 }
+
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
+
+# endif // if FEATURE_WIFI
 
 #endif // ifdef ESP32

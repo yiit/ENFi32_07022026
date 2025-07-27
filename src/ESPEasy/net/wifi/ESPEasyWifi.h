@@ -12,7 +12,7 @@
 # endif // if defined(ESP32)
 
 # include "../wifi/WiFiConnectionProtocol.h"
-# include "../../../src/DataStructs/WiFi_AP_Candidate.h"
+# include "../DataStructs/WiFi_AP_Candidate.h"
 
 # include "../../../src/Helpers/LongTermTimer.h"
 

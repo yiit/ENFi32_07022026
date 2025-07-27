@@ -1,9 +1,16 @@
-#ifndef DATASTRUCTS_WIFI_AP_CANDIDATES_H
-#define DATASTRUCTS_WIFI_AP_CANDIDATES_H
+#pragma once
 
-#include "../../ESPEasy_common.h"
+#include "../../../ESPEasy_common.h"
 
-#include "../../ESPEasy/net/DataStructs/MAC_address.h"
+#include "../DataStructs/MAC_address.h"
+
+#if FEATURE_WIFI
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
+
 struct WiFi_AP_Candidate {
   WiFi_AP_Candidate();
   WiFi_AP_Candidate(const WiFi_AP_Candidate& other);
@@ -19,11 +26,11 @@ struct WiFi_AP_Candidate {
 
   // Construct using index from WiFi scan result
   WiFi_AP_Candidate(uint8_t networkItem);
-  #ifdef ESP8266
-  # if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+  # ifdef ESP8266
+  #  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
   WiFi_AP_Candidate(const bss_info& ap);
-  # endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-  #endif // ifdef ESP8266
+  #  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+  # endif // ifdef ESP8266
 
 
   // Return true when this one is preferred over 'other'.
@@ -72,12 +79,12 @@ struct WiFi_AP_Candidate {
 
   //  String  key;
 
-  #ifdef ESP32
-  # if ESP_IDF_VERSION_MAJOR >= 5
-  wifi_country_t country;
-  wifi_bandwidth_t bandwidth{WIFI_BW_HT20};
-  # endif
-  #endif // ifdef ESP32
+  # ifdef ESP32
+  #  if ESP_IDF_VERSION_MAJOR >= 5
+  wifi_country_t   country;
+  wifi_bandwidth_t bandwidth{ WIFI_BW_HT20 };
+  #  endif // if ESP_IDF_VERSION_MAJOR >= 5
+  # endif // ifdef ESP32
 
   unsigned long last_seen = 0u;
   MAC_address   bssid;
@@ -110,4 +117,8 @@ struct WiFi_AP_Candidate {
 
 };
 
-#endif // ifndef DATASTRUCTS_WIFI_AP_CANDIDATES_H
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
+
+#endif // if FEATURE_WIFI

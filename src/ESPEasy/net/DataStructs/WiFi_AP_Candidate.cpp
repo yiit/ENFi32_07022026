@@ -1,13 +1,14 @@
 #include "../DataStructs/WiFi_AP_Candidate.h"
 
-#include "../../ESPEasy/net/Globals/ESPEasyWiFiEvent.h"
-#include "../Globals/SecuritySettings.h"
-#include "../Globals/Statistics.h"
-#include "../Helpers/ESPEasy_time_calc.h"
-#include "../Helpers/Misc.h"
-#include "../Helpers/StringConverter.h"
-#include "../Helpers/StringGenerator_WiFi.h"
-#include "../../ESPEasy_common.h"
+#include "../../../ESPEasy_common.h"
+
+#include "../Globals/ESPEasyWiFiEvent.h"
+#include "../../../src/Globals/SecuritySettings.h"
+#include "../../../src/Globals/Statistics.h"
+#include "../../../src/Helpers/ESPEasy_time_calc.h"
+#include "../../../src/Helpers/Misc.h"
+#include "../../../src/Helpers/StringConverter.h"
+#include "../../../src/Helpers/StringGenerator_WiFi.h"
 
 #if defined(ESP8266)
   # include <ESP8266WiFi.h>
@@ -16,20 +17,28 @@
   # include <WiFi.h>
 #endif // if defined(ESP32)
 
-#define WIFI_AP_CANDIDATE_MAX_AGE   300000 // 5 minutes in msec
+
+#if FEATURE_WIFI
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
+
+# define WIFI_AP_CANDIDATE_MAX_AGE   300000 // 5 minutes in msec
 
 
 WiFi_AP_Candidate::WiFi_AP_Candidate() :
-#ifdef ESP32
-# if ESP_IDF_VERSION_MAJOR >= 5
+# ifdef ESP32
+#  if ESP_IDF_VERSION_MAJOR >= 5
   country({
-  .cc     = "01",
-  .schan  = 1,
-  .nchan  = 14,
-  .policy = WIFI_COUNTRY_POLICY_AUTO,
-}),
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
-#endif // ifdef ESP32
+        .cc     = "01",
+        .schan  = 1,
+        .nchan  = 14,
+        .policy = WIFI_COUNTRY_POLICY_AUTO,
+      }),
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
+# endif // ifdef ESP32
   last_seen(0), rssi(0), channel(0), index(0), enc_type(0)
 {
   _allBits = 0u;
@@ -45,24 +54,24 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(const WiFi_AP_Candidate& other)
   enc_type(other.enc_type)
 {
   _allBits = other._allBits;
-  #ifdef ESP32
-  # if ESP_IDF_VERSION_MAJOR >= 5
+  # ifdef ESP32
+  #  if ESP_IDF_VERSION_MAJOR >= 5
   memcpy(&this->country, &other.country, sizeof(wifi_country_t));
-  # endif
-  #endif // ifdef ESP32
+  #  endif
+  # endif // ifdef ESP32
 }
 
 WiFi_AP_Candidate::WiFi_AP_Candidate(uint8_t index_c, const String& ssid_c) :
-#ifdef ESP32
-# if ESP_IDF_VERSION_MAJOR >= 5
+# ifdef ESP32
+#  if ESP_IDF_VERSION_MAJOR >= 5
   country({
-  .cc     = "01",
-  .schan  = 1,
-  .nchan  = 14,
-  .policy = WIFI_COUNTRY_POLICY_AUTO,
-}),
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
-#endif // ifdef ESP32
+        .cc     = "01",
+        .schan  = 1,
+        .nchan  = 14,
+        .policy = WIFI_COUNTRY_POLICY_AUTO,
+      }),
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
+# endif // ifdef ESP32
   last_seen(0), rssi(0), channel(0), index(index_c), enc_type(0)
 {
   _allBits = 0u;
@@ -89,9 +98,9 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(uint8_t networkItem) : index(0) {
   channel  = WiFi.channel(networkItem);
   bssid    = WiFi.BSSID(networkItem);
   enc_type = WiFi.encryptionType(networkItem);
-  #ifdef ESP8266
+  # ifdef ESP8266
   bits.isHidden = WiFi.isHidden(networkItem);
-  # ifdef CORE_POST_3_0_0
+  #  ifdef CORE_POST_3_0_0
   const bss_info *it = reinterpret_cast<const bss_info *>(WiFi.getScanInfoByIndex(networkItem));
 
   if (it) {
@@ -100,9 +109,9 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(uint8_t networkItem) : index(0) {
     bits.phy_11n = it->phy_11n;
     bits.wps     = it->wps;
   }
-  # endif // ifdef CORE_POST_3_0_0
-  #endif // ifdef ESP8266
-  #ifdef ESP32
+  #  endif // ifdef CORE_POST_3_0_0
+  # endif // ifdef ESP8266
+  # ifdef ESP32
   bits.isHidden = ssid.isEmpty();
   wifi_ap_record_t *it = reinterpret_cast<wifi_ap_record_t *>(WiFi.getScanInfoByIndex(networkItem));
 
@@ -111,29 +120,29 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(uint8_t networkItem) : index(0) {
     bits.phy_11g = it->phy_11g;
     bits.phy_11n = it->phy_11n;
     bits.phy_lr  = it->phy_lr;
-# if ESP_IDF_VERSION_MAJOR >= 5
+#  if ESP_IDF_VERSION_MAJOR >= 5
     bits.phy_11ax      = it->phy_11ax;
     bits.ftm_initiator = it->ftm_initiator;
     bits.ftm_responder = it->ftm_responder;
-#if CONFIG_SOC_WIFI_SUPPORT_5G
-    bits.phy_11a       = it->phy_11a;
-    bits.phy_11ac      = it->phy_11ac;
-#endif
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
+#   if CONFIG_SOC_WIFI_SUPPORT_5G
+    bits.phy_11a  = it->phy_11a;
+    bits.phy_11ac = it->phy_11ac;
+#   endif // if CONFIG_SOC_WIFI_SUPPORT_5G
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
     bits.wps = it->wps;
 
     // FIXME TD-er: Maybe also add other info like 2nd channel, ftm and phy_lr support?
-# if ESP_IDF_VERSION_MAJOR >= 5
+#  if ESP_IDF_VERSION_MAJOR >= 5
     memcpy(&country, &(it->country), sizeof(wifi_country_t));
     bandwidth = it->bandwidth;
-# endif
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
   }
-  #endif // ifdef ESP32
+  # endif // ifdef ESP32
   last_seen = millis();
 }
 
-#ifdef ESP8266
-# if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# ifdef ESP8266
+#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
 WiFi_AP_Candidate::WiFi_AP_Candidate(const bss_info& ap) :
   rssi(ap.rssi), channel(ap.channel), bssid(ap.bssid),
   index(0), enc_type(0), isHidden(ap.is_hidden),
@@ -167,8 +176,8 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(const bss_info& ap) :
   ssid = String(reinterpret_cast<const char *>(tmp));
 }
 
-# endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-#endif // ifdef ESP8266
+#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# endif // ifdef ESP8266
 
 
 bool WiFi_AP_Candidate::operator<(const WiFi_AP_Candidate& other) const {
@@ -204,12 +213,12 @@ WiFi_AP_Candidate& WiFi_AP_Candidate::operator=(const WiFi_AP_Candidate& other)
   index     = other.index;
   enc_type  = other.enc_type;
   _allBits  = other._allBits;
-  #ifdef ESP32
-  # if ESP_IDF_VERSION_MAJOR >= 5
+  # ifdef ESP32
+  #  if ESP_IDF_VERSION_MAJOR >= 5
   memcpy(&this->country, &other.country, sizeof(wifi_country_t));
   bandwidth = other.bandwidth;
-  # endif
-  #endif // ifdef ESP32
+  #  endif // if ESP_IDF_VERSION_MAJOR >= 5
+  # endif // ifdef ESP32
 
   return *this;
 }
@@ -219,9 +228,9 @@ bool WiFi_AP_Candidate::usable() const {
   // if (key.isEmpty()) return false;
   if (bits.isEmergencyFallback) {
     int allowedUptimeMinutes = 10;
-    #ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
+    # ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
     allowedUptimeMinutes = CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME;
-    #endif // ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
+    # endif // ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
 
     if ((getUptimeMinutes() > allowedUptimeMinutes) ||
         !SecuritySettings.hasWiFiCredentials() ||
@@ -258,13 +267,14 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
     separator.c_str(),
     channel);
 
-#if CONFIG_SOC_WIFI_SUPPORT_5G
+# if CONFIG_SOC_WIFI_SUPPORT_5G
+
   if (channel < 36) {
     result += F(" 2.4 GHz");
   } else {
     result += F(" 5 GHz");
   }
-#endif
+# endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 
   if (rssi == -1) {
     result += F(" (RTC) ");
@@ -274,8 +284,8 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
 
   result += encryption_type();
 
-#ifdef ESP32
-# if ESP_IDF_VERSION_MAJOR >= 5
+# ifdef ESP32
+#  if ESP_IDF_VERSION_MAJOR >= 5
 
   // Country code string
   if ((country.cc[0] != '\0') && (country.cc[1] != '\0')) {
@@ -294,11 +304,12 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
   if (country.nchan > 0) {
     result += strformat(F(" ch: %d..%d"), country.schan, country.schan + country.nchan - 1);
   }
-# endif // if ESP_IDF_VERSION_MAJOR >= 5
-#endif // ifdef ESP32
+#  endif // if ESP_IDF_VERSION_MAJOR >= 5
+# endif // ifdef ESP32
 
   if (phy_known()) {
     String phy_str;
+
     // Order of items is kinda in order of age, oldest first.
 
     // first 2.4 GHz version
@@ -313,7 +324,8 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
     // Also used for 5 GHz to make it even more confusing
     // To top the naming confusion even worse, this is later called "Wi-Fi 4"
     if (bits.phy_11n) { phy_str += 'n'; }
-#ifdef ESP32
+# ifdef ESP32
+
     // Add 5 GHz WiFi types, oldest first.
 
     // 802.11a was one of the first WiFi standards, using 5 GHz
@@ -323,7 +335,7 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
     // 802.11ac was the significantly faster version for 5 GHz WiFi.
     // Later called "Wi-Fi 5"
     if (bits.phy_11ac) { phy_str += F("/ac"); }
-    
+
     // AX is WiFi-6, on both frequencies
     if (bits.phy_11ax) { phy_str += F("/ax"); }
 
@@ -333,22 +345,27 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
 
     if (bits.ftm_responder) { phy_str += F("/FTM_r"); }
 
-#endif // ifdef ESP32
+# endif // ifdef ESP32
 
     if (phy_str.length()) {
-#ifdef ESP32
+# ifdef ESP32
+
       switch (bandwidth)
       {
         case WIFI_BW_HT20: break;
-        case WIFI_BW_HT40:   phy_str += F(" 40 MHz"); break;
-        case WIFI_BW80:      phy_str += F(" 80 MHz"); break;
-        case WIFI_BW160:     phy_str += F(" 160 MHz"); break;
-        case WIFI_BW80_BW80: phy_str += F(" 80+80 MHz"); break;
-        
+        case WIFI_BW_HT40:   phy_str += F(" 40 MHz");
+          break;
+        case WIFI_BW80:      phy_str += F(" 80 MHz");
+          break;
+        case WIFI_BW160:     phy_str += F(" 160 MHz");
+          break;
+        case WIFI_BW80_BW80: phy_str += F(" 80+80 MHz");
+          break;
+
         default:
           break;
       }
-#endif
+# endif // ifdef ESP32
       result += strformat(F(" (%s)"), phy_str.c_str());
     }
   }
@@ -358,3 +375,9 @@ String WiFi_AP_Candidate::toString(const String& separator) const {
 String WiFi_AP_Candidate::encryption_type() const {
   return WiFi_encryptionType(enc_type);
 }
+
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
+
+#endif // if FEATURE_WIFI

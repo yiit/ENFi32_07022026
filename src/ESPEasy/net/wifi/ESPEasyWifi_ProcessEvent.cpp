@@ -16,7 +16,7 @@
 # include "../../../src/Globals/SecuritySettings.h"
 # include "../../../src/Globals/Services.h"
 # include "../../../src/Globals/Settings.h"
-# include "../../../src/Globals/WiFi_AP_Candidates.h"
+# include "../Globals/WiFi_AP_Candidates.h"
 
 # include "../../../src/Helpers/Convert.h"
 # include "../../../src/Helpers/ESPEasyRTC.h"

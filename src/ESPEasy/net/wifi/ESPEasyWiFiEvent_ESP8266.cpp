@@ -7,7 +7,7 @@
 #  include "../../../src/DataTypes/ESPEasyTimeSource.h"
 #  include "../../../src/ESPEasyCore/ESPEasy_Log.h"
 #  include "../../../src/Globals/RTC.h"
-#  include "../../../src/Globals/WiFi_AP_Candidates.h"
+#  include "../Globals/WiFi_AP_Candidates.h"
 #  include "../../../src/Helpers/ESPEasy_time_calc.h"
 
 #  include "../ESPEasyNetwork.h"

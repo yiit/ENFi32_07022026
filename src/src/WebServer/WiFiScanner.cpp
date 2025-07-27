@@ -6,7 +6,7 @@
 
 #include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 
-#include "../Globals/WiFi_AP_Candidates.h"
+#include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 #include "../Helpers/StringGenerator_WiFi.h"
 
 #ifdef USES_ESPEASY_NOW
@@ -29,13 +29,13 @@ void handle_wifiscanner_json() {
   addHtml('[', '{');
   bool firstentry = true;
 
-  if (WiFi_AP_Candidates.scanComplete() <= 0) {
+  if (ESPEasy::net::wifi::WiFi_AP_Candidates.scanComplete() <= 0) {
     WiFiMode_t cur_wifimode = WiFi.getMode();
     ESPEasy::net::wifi::WifiScan(false);
     ESPEasy::net::wifi::setWifiMode(cur_wifimode);
   }
 
-  for (auto it = WiFi_AP_Candidates.scanned_begin(); it != WiFi_AP_Candidates.scanned_end(); ++it)
+  for (auto it = ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_begin(); it != ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_end(); ++it)
   {
     if (firstentry) { firstentry = false; }
     else { addHtml(',', '{'); }
@@ -68,7 +68,7 @@ void handle_wifiscanner() {
 
   WiFiMode_t cur_wifimode = WiFi.getMode();
   ESPEasy::net::wifi::WifiScan(false);
-  int8_t scanCompleteStatus = WiFi_AP_Candidates.scanComplete();
+  int8_t scanCompleteStatus = ESPEasy::net::wifi::WiFi_AP_Candidates.scanComplete();
   ESPEasy::net::wifi::setWifiMode(cur_wifimode);
 
   navMenuIndex = MENU_INDEX_TOOLS;
@@ -86,7 +86,7 @@ void handle_wifiscanner() {
   }
   else
   {
-    for (auto it = WiFi_AP_Candidates.scanned_begin(); it != WiFi_AP_Candidates.scanned_end(); ++it)
+    for (auto it = ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_begin(); it != ESPEasy::net::wifi::WiFi_AP_Candidates.scanned_end(); ++it)
     {
       html_TR_TD();
       addHtml(it->toString(F("<TD>")));

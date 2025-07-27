@@ -6,7 +6,7 @@
 #  include "../../../src/DataStructs/TimingStats.h"
 #  include "../../../src/Helpers/StringConverter.h"
 #  include "../../../src/Globals/Settings.h"
-#  include "../../../src/Globals/WiFi_AP_Candidates.h"
+#  include "../Globals/WiFi_AP_Candidates.h"
 
 #  include "../Globals/ESPEasyWiFiEvent.h"
 #  include "../wifi/ESPEasyWiFiEvent_ESP8266.h"

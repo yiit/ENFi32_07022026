@@ -4,7 +4,7 @@
 
 #if FEATURE_WIFI
 
-# include "../../../src/DataStructs/WiFi_AP_Candidate.h"
+# include "../DataStructs/WiFi_AP_Candidate.h"
 # include "../../../src/Helpers/LongTermTimer.h"
 
 # include "../wifi/WiFi_STA_connected_state.h"

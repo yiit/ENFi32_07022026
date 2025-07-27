@@ -20,7 +20,7 @@
 #include "../../ESPEasy/net/Globals/NetworkState.h"
 #include "../Globals/RTC.h"
 #include "../Globals/Statistics.h"
-#include "../Globals/WiFi_AP_Candidates.h"
+#include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 #include "../Helpers/_CPlugin_init.h"
 #include "../../ESPEasy/net/Helpers/_NWPlugin_init.h"
 #include "../Helpers/_NPlugin_init.h"
@@ -463,11 +463,11 @@ void ESPEasy_setup()
     //check_and_update_WiFi_Calibration();
 #endif
 
-    WiFi_AP_Candidates.clearCache();
-    WiFi_AP_Candidates.load_knownCredentials();
+    ESPEasy::net::wifi::WiFi_AP_Candidates.clearCache();
+    ESPEasy::net::wifi::WiFi_AP_Candidates.load_knownCredentials();
     ESPEasy::net::wifi::setSTA(true);
 
-    if (!WiFi_AP_Candidates.hasCandidateCredentials()) {
+    if (!ESPEasy::net::wifi::WiFi_AP_Candidates.hasCandidateCredentials()) {
       WiFiEventData.wifiSetup = true;
       RTC.clearLastWiFi(); // Must scan all channels
       // Wait until scan has finished to make sure as many as possible are found
@@ -479,14 +479,14 @@ void ESPEasy_setup()
     // Always perform WiFi scan
     // It appears reconnecting from RTC may take just as long to be able to send first packet as performing a scan first and then connect.
     // Perhaps the WiFi radio needs some time to stabilize first?
-    if (!WiFi_AP_Candidates.hasCandidates()) {
+    if (!ESPEasy::net::wifi::WiFi_AP_Candidates.hasCandidates()) {
       ESPEasy::net::wifi::WifiScan(false, RTC.lastWiFiChannel);
     }
-    WiFi_AP_Candidates.clearCache();
+    ESPEasy::net::wifi::WiFi_AP_Candidates.clearCache();
     ESPEasy::net::wifi::processScanDone();
-    WiFi_AP_Candidates.load_knownCredentials();
+    ESPEasy::net::wifi::WiFi_AP_Candidates.load_knownCredentials();
 
-    if (!WiFi_AP_Candidates.hasCandidates()) {
+    if (!ESPEasy::net::wifi::WiFi_AP_Candidates.hasCandidates()) {
       #ifndef BUILD_MINIMAL_OTA
       addLog(LOG_LEVEL_INFO, F("Setup: Scan all channels"));
       #endif

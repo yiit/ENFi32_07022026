@@ -35,7 +35,7 @@
 #include "../Globals/RuntimeData.h"
 #include "../Globals/SecuritySettings.h"
 #include "../Globals/Settings.h"
-#include "../Globals/WiFi_AP_Candidates.h"
+#include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
 
 #include "../Helpers/ESPEasyRTC.h"
 #include "../Helpers/ESPEasy_checks.h"
@@ -863,7 +863,7 @@ String SaveSecuritySettings(bool forFactoryReset) {
     // Security settings are saved, may be update of WiFi settings or hostname.
     if (!forFactoryReset) {
       if (SecuritySettings.hasWiFiCredentials() && (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)) {
-        WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
+        ESPEasy::net::wifi::WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
         if (!ESPEasy::net::NetworkConnected()) {
           WiFiEventData.wifiConnectAttemptNeeded = true;
           ESPEasy::net::wifi::resetWiFi();

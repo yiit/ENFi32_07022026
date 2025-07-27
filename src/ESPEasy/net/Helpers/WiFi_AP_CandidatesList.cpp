@@ -1,16 +1,17 @@
 #include "../Helpers/WiFi_AP_CandidatesList.h"
 
 #ifdef ESP32
-#include "../DataStructs/WiFi_AP_Candidates_NVS.h"
+# include "../DataStructs/WiFi_AP_Candidates_NVS.h"
 #endif
 
-#include "../ESPEasyCore/ESPEasy_Log.h"
-#include "../../ESPEasy/net/Globals/ESPEasyWiFiEvent.h"
-#include "../Globals/RTC.h"
-#include "../Globals/SecuritySettings.h"
-#include "../Globals/Settings.h"
-#include "../Helpers/Misc.h"
-#include "../Helpers/StringConverter.h"
+#include "../Globals/ESPEasyWiFiEvent.h"
+
+#include "../../../src/ESPEasyCore/ESPEasy_Log.h"
+#include "../../../src/Globals/RTC.h"
+#include "../../../src/Globals/SecuritySettings.h"
+#include "../../../src/Globals/Settings.h"
+#include "../../../src/Helpers/Misc.h"
+#include "../../../src/Helpers/StringConverter.h"
 
 #if defined(ESP8266)
   # include <ESP8266WiFi.h>
@@ -19,9 +20,17 @@
   # include <WiFi.h>
 #endif // if defined(ESP32)
 
-#define WIFI_CUSTOM_DEPLOYMENT_KEY_INDEX     3
-#define WIFI_CUSTOM_SUPPORT_KEY_INDEX        4
-#define WIFI_CREDENTIALS_FALLBACK_SSID_INDEX 5
+
+#if FEATURE_WIFI
+
+namespace ESPEasy {
+namespace net {
+namespace wifi {
+
+# define WIFI_CUSTOM_DEPLOYMENT_KEY_INDEX     3
+# define WIFI_CUSTOM_SUPPORT_KEY_INDEX        4
+# define WIFI_CREDENTIALS_FALLBACK_SSID_INDEX 5
+
 
 WiFi_AP_CandidatesList::WiFi_AP_CandidatesList() {
   known.clear();
@@ -41,14 +50,16 @@ void WiFi_AP_CandidatesList::load_knownCredentials() {
   _mustLoadCredentials = false;
   known.clear();
   candidates.clear();
-//  attemptsLeft = WiFi_CONNECT_ATTEMPTS;
+
+  //  attemptsLeft = WiFi_CONNECT_ATTEMPTS;
   _addedKnownCandidate = false;
-//  addFromRTC();
+
+  //  addFromRTC();
 
   {
     // Add the known SSIDs
-    String ssid;
-    uint8_t   index = 1; // Index 0 is the "unset" value
+    String  ssid;
+    uint8_t index = 1; // Index 0 is the "unset" value
 
     bool done = false;
 
@@ -60,6 +71,7 @@ void WiFi_AP_CandidatesList::load_knownCredentials() {
         # endif // ifdef USE_SECOND_HEAP
 
         known.emplace_back(index, ssid);
+
         if (SettingsIndexMatchCustomCredentials(index)) {
           if (SettingsIndexMatchEmergencyFallback(index)) {
             known.back().bits.isEmergencyFallback = true;
@@ -87,7 +99,6 @@ void WiFi_AP_CandidatesList::clearCache() {
   known_it = known.begin();
 }
 
-
 void WiFi_AP_CandidatesList::force_reload() {
   clearCache();
   RTC.clearLastWiFi(); // Invalidate the RTC WiFi data.
@@ -102,7 +113,7 @@ void WiFi_AP_CandidatesList::begin_sync_scan() {
 }
 
 void WiFi_AP_CandidatesList::purge_expired() {
-  for (auto it = scanned.begin(); it != scanned.end(); ) {
+  for (auto it = scanned.begin(); it != scanned.end();) {
     if (it->expired()) {
       it = scanned.erase(it);
     } else {
@@ -111,7 +122,8 @@ void WiFi_AP_CandidatesList::purge_expired() {
   }
 }
 
-#if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
+
 void WiFi_AP_CandidatesList::process_WiFiscan(uint8_t scancount) {
   // Append or update found APs from scan.
   for (uint8_t i = 0; i < scancount; ++i) {
@@ -122,16 +134,20 @@ void WiFi_AP_CandidatesList::process_WiFiscan(uint8_t scancount) {
 
   after_process_WiFiscan();
 }
-#endif
 
-#ifdef ESP8266
-#if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# endif // if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
+
+# ifdef ESP8266
+#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+
 void WiFi_AP_CandidatesList::process_WiFiscan(const bss_info& ap) {
   WiFi_AP_Candidate tmp(ap);
+
   scanned_new.push_back(tmp);
 }
-#endif
-#endif
+
+#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
+# endif // ifdef ESP8266
 
 void WiFi_AP_CandidatesList::after_process_WiFiscan() {
   scanned_new.sort();
@@ -145,16 +161,16 @@ void WiFi_AP_CandidatesList::after_process_WiFiscan() {
 bool WiFi_AP_CandidatesList::getNext(bool scanAllowed) {
   load_knownCredentials();
 
-  if (candidates.empty()) { 
+  if (candidates.empty()) {
     return false;
 
-/*     if (scanAllowed) {
-      return false;
-    }
-    loadCandidatesFromScanned();
-    attemptsLeft = WiFi_CONNECT_ATTEMPTS;
-    if (candidates.empty()) { return false; }
- */  
+    /*     if (scanAllowed) {
+          return false;
+        }
+        loadCandidatesFromScanned();
+        attemptsLeft = WiFi_CONNECT_ATTEMPTS;
+        if (candidates.empty()) { return false; }
+     */
   }
 
   currentCandidate = candidates.front();
@@ -178,7 +194,7 @@ bool WiFi_AP_CandidatesList::getNext(bool scanAllowed) {
     if (attemptsLeft == 0) {
       if (currentCandidate.bits.isHidden && !Settings.HiddenSSID_SlowConnectPerBSSID()) {
         // We tried to connect to hidden SSIDs in 1 run, so pop all hidden candidates.
-        for (auto cand_it = candidates.begin(); cand_it != candidates.end() && cand_it->bits.isHidden; ) {
+        for (auto cand_it = candidates.begin(); cand_it != candidates.end() && cand_it->bits.isHidden;) {
           cand_it = candidates.erase(cand_it);
         }
       } else {
@@ -187,7 +203,7 @@ bool WiFi_AP_CandidatesList::getNext(bool scanAllowed) {
         }
       }
 
-      known_it = known.begin();
+      known_it     = known.begin();
       attemptsLeft = WiFi_CONNECT_ATTEMPTS;
     } else {
       markAttempt();
@@ -200,8 +216,7 @@ const WiFi_AP_Candidate& WiFi_AP_CandidatesList::getCurrent() const {
   return currentCandidate;
 }
 
-void WiFi_AP_CandidatesList::markAttempt() {
-  if (attemptsLeft > 0) attemptsLeft--;
+void              WiFi_AP_CandidatesList::markAttempt() { if (attemptsLeft > 0) { attemptsLeft--; }
 }
 
 WiFi_AP_Candidate WiFi_AP_CandidatesList::getBestCandidate() const {
@@ -222,28 +237,34 @@ bool WiFi_AP_CandidatesList::hasCandidates() const {
 
 void WiFi_AP_CandidatesList::markCurrentConnectionStable() {
   clearCache();
+
   if (currentCandidate.enc_type == 0) {
     bool matchfound = false;
+
     for (auto it = candidates.begin(); !matchfound && it != candidates.end(); ++it) {
       if (currentCandidate == *it) {
         // We may have gotten the enc_type of the active used candidate
         // Make sure to store the enc type before clearing the candidates list
         currentCandidate.enc_type = it->enc_type;
-        matchfound = true;
+        matchfound                = true;
       }
     }
   }
+
   if (currentCandidate.usable()) {
     // Store in RTC
     RTC.lastWiFiChannel = currentCandidate.channel;
     currentCandidate.bssid.get(RTC.lastBSSID);
     RTC.lastWiFiSettingsIndex = currentCandidate.index;
-#ifdef ESP32
-    if (Settings.UseLastWiFiFromRTC())
+# ifdef ESP32
+
+    if (Settings.UseLastWiFiFromRTC()) {
       WiFi_AP_Candidates_NVS::currentConnection_to_NVS(currentCandidate);
-    else
+    }
+    else {
       WiFi_AP_Candidates_NVS::clear_from_NVS();
-#endif
+    }
+# endif // ifdef ESP32
   }
 
   candidates.clear();
@@ -253,22 +274,26 @@ void WiFi_AP_CandidatesList::markCurrentConnectionStable() {
 
 int8_t WiFi_AP_CandidatesList::scanComplete() const {
   const int8_t scanCompleteStatus = WiFi.scanComplete();
+
   if (scanCompleteStatus == -1) {
     // Still scanning
     return scanCompleteStatus;
   }
 
   size_t found = 0;
+
   for (auto scan = scanned.begin(); scan != scanned.end(); ++scan) {
     if (!scan->expired()) {
       ++found;
     }
   }
+
   for (auto scan = scanned_new.begin(); scan != scanned_new.end(); ++scan) {
     if (!scan->expired()) {
       ++found;
     }
   }
+
   if (found == 0) {
     if (scanCompleteStatus == -2) {
       // Not triggered
@@ -280,16 +305,12 @@ int8_t WiFi_AP_CandidatesList::scanComplete() const {
 
 bool WiFi_AP_CandidatesList::SettingsIndexMatchCustomCredentials(uint8_t index)
 {
-  return (WIFI_CUSTOM_DEPLOYMENT_KEY_INDEX     == index ||
-          WIFI_CUSTOM_SUPPORT_KEY_INDEX        == index ||
-          SettingsIndexMatchEmergencyFallback(index));
+  return WIFI_CUSTOM_DEPLOYMENT_KEY_INDEX     == index ||
+         WIFI_CUSTOM_SUPPORT_KEY_INDEX        == index ||
+         SettingsIndexMatchEmergencyFallback(index);
 }
 
-bool WiFi_AP_CandidatesList::SettingsIndexMatchEmergencyFallback(uint8_t index)
-{
-  return (WIFI_CREDENTIALS_FALLBACK_SSID_INDEX == index);
-}
-
+bool WiFi_AP_CandidatesList::SettingsIndexMatchEmergencyFallback(uint8_t index) { return WIFI_CREDENTIALS_FALLBACK_SSID_INDEX == index; }
 
 void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
   // Make sure list operations are not done on the 2nd heap
@@ -300,12 +321,14 @@ void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
   if (scanned_new.size() > 0) {
     // We have new scans to process.
     purge_expired();
+
     for (auto scan = scanned_new.begin(); scan != scanned_new.end();) {
-      #ifndef BUILD_NO_DEBUG
+      # ifndef BUILD_NO_DEBUG
+
       if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
         addLogMove(LOG_LEVEL_DEBUG, concat(F("WiFi : Scan result: "), scan->toString()));
       }
-      #endif // ifndef BUILD_NO_DEBUG
+      # endif // ifndef BUILD_NO_DEBUG
 
       // Check to see if it is already present, if so, remove existing one.
       for (auto tmp = scanned.begin(); tmp != scanned.end();) {
@@ -328,6 +351,7 @@ void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
     // Do not mess with the current candidates order if > 1 present
     return;
   }
+
   // Purge unusable from known list.
   for (auto it = known.begin(); it != known.end();) {
     if (it->usable()) {
@@ -354,8 +378,8 @@ void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
         for (auto kn_it = known.begin(); kn_it != known.end(); ++kn_it) {
           if (scan->ssid.equals(kn_it->ssid)) {
             WiFi_AP_Candidate tmp = *scan;
-            tmp.index = kn_it->index;
-            tmp.bits.lowPriority = kn_it->bits.lowPriority;
+            tmp.index                    = kn_it->index;
+            tmp.bits.lowPriority         = kn_it->bits.lowPriority;
             tmp.bits.isEmergencyFallback = kn_it->bits.isEmergencyFallback;
 
             if (tmp.usable()) {
@@ -371,13 +395,15 @@ void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
     }
   }
   # ifndef BUILD_NO_DEBUG
+
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     const WiFi_AP_Candidate bestCandidate = getBestCandidate();
+
     if (bestCandidate.usable()) {
       addLogMove(LOG_LEVEL_INFO, concat(F("WiFi : Best AP candidate: "), bestCandidate.toString()));
     }
   }
-  #endif
+  # endif // ifndef BUILD_NO_DEBUG
   candidates.sort();
   candidates.unique();
   addFromRTC();
@@ -385,11 +411,14 @@ void WiFi_AP_CandidatesList::loadCandidatesFromScanned() {
 }
 
 void WiFi_AP_CandidatesList::addFromRTC() {
-  if (!Settings.UseLastWiFiFromRTC()) return;
-  if (!RTC.lastWiFi_set()) { 
-    #ifdef ESP32
+  if (!Settings.UseLastWiFiFromRTC()) { return; }
+
+  if (!RTC.lastWiFi_set()) {
+    # ifdef ESP32
+
     // Try to load from NVS and store in RTC
     WiFi_AP_Candidate fromNVS;
+
     if (WiFi_AP_Candidates_NVS::loadCandidate_from_NVS(fromNVS)) {
       RTC.lastWiFiChannel = currentCandidate.channel;
       currentCandidate.bssid.get(RTC.lastBSSID);
@@ -397,13 +426,13 @@ void WiFi_AP_CandidatesList::addFromRTC() {
     } else {
       return;
     }
-    #else
+    # else // ifdef ESP32
     return;
-    #endif
+    # endif // ifdef ESP32
   }
 
-  if (SettingsIndexMatchCustomCredentials(RTC.lastWiFiSettingsIndex)) 
-  { 
+  if (SettingsIndexMatchCustomCredentials(RTC.lastWiFiSettingsIndex))
+  {
     return;
   }
 
@@ -421,7 +450,7 @@ void WiFi_AP_CandidatesList::addFromRTC() {
     return;
   }
 
-  if (candidates.size() > 0 && candidates.front().ssid.equals(fromRTC.ssid)) {
+  if ((candidates.size() > 0) && candidates.front().ssid.equals(fromRTC.ssid)) {
     // Front candidate was already from RTC.
     candidates.pop_front();
   }
@@ -429,9 +458,11 @@ void WiFi_AP_CandidatesList::addFromRTC() {
   // See if we may have a better candidate for the current network, with a significant better RSSI.
   auto bestMatch = candidates.end();
   auto lastUsed  = bestMatch;
+
   for (auto it = candidates.begin(); lastUsed == candidates.end() && it != candidates.end(); ++it) {
     if (it->usable() && it->ssid.equals(fromRTC.ssid)) {
       const bool foundLastUsed = fromRTC.bssid_match(it->bssid);
+
       if (foundLastUsed) {
         lastUsed = it;
       } else if (bestMatch == candidates.end()) {
@@ -440,9 +471,10 @@ void WiFi_AP_CandidatesList::addFromRTC() {
     }
   }
   bool matchAdded = false;
+
   if (bestMatch != candidates.end()) {
     // Found a best match, possibly better than the last used.
-    if (lastUsed == candidates.end() || (bestMatch->rssi > (lastUsed->rssi + 10))) {
+    if ((lastUsed == candidates.end()) || (bestMatch->rssi > (lastUsed->rssi + 10))) {
       // Last used was not found or
       // Other candidate has significant better RSSI
       matchAdded = true;
@@ -452,12 +484,14 @@ void WiFi_AP_CandidatesList::addFromRTC() {
     matchAdded = true;
     candidates.push_front(*lastUsed);
   }
+
   if (!matchAdded) {
     candidates.push_front(fromRTC);
+
     // This is not taken from a scan, so no idea of the used encryption.
     // Try to find a matching BSSID to get the encryption.
     for (auto it = candidates.begin(); it != candidates.end(); ++it) {
-      if ((it->rssi != -1) && candidates.front() == *it) {
+      if ((it->rssi != -1) && (candidates.front() == *it)) {
         candidates.front().enc_type = it->enc_type;
         return;
       }
@@ -484,6 +518,7 @@ void WiFi_AP_CandidatesList::purge_unusable() {
       it = candidates.erase(it);
     }
   }
+
   if (candidates.size() > 1) {
     candidates.sort();
     candidates.unique();
@@ -491,7 +526,8 @@ void WiFi_AP_CandidatesList::purge_unusable() {
 }
 
 bool WiFi_AP_CandidatesList::get_SSID_key(uint8_t index, String& ssid, String& key)  {
-  switch (index) {
+  switch (index)
+  {
     case 1:
       ssid = SecuritySettings.WifiSSID;
       key  = SecuritySettings.WifiKey;
@@ -501,37 +537,38 @@ bool WiFi_AP_CandidatesList::get_SSID_key(uint8_t index, String& ssid, String& k
       key  = SecuritySettings.WifiKey2;
       break;
     case WIFI_CUSTOM_DEPLOYMENT_KEY_INDEX:
-      #if !defined(CUSTOM_DEPLOYMENT_SSID) || !defined(CUSTOM_DEPLOYMENT_KEY)
+      # if !defined(CUSTOM_DEPLOYMENT_SSID) || !defined(CUSTOM_DEPLOYMENT_KEY)
       return false;
-      #else
+      # else
       ssid = F(CUSTOM_DEPLOYMENT_SSID);
       key  = F(CUSTOM_DEPLOYMENT_KEY);
-      #endif
+      # endif // if !defined(CUSTOM_DEPLOYMENT_SSID) || !defined(CUSTOM_DEPLOYMENT_KEY)
       break;
     case WIFI_CUSTOM_SUPPORT_KEY_INDEX:
-      #if !defined(CUSTOM_SUPPORT_SSID) || !defined(CUSTOM_SUPPORT_KEY)
+      # if !defined(CUSTOM_SUPPORT_SSID) || !defined(CUSTOM_SUPPORT_KEY)
       return false;
-      #else
+      # else
       ssid = F(CUSTOM_SUPPORT_SSID);
       key  = F(CUSTOM_SUPPORT_KEY);
-      #endif
+      # endif // if !defined(CUSTOM_SUPPORT_SSID) || !defined(CUSTOM_SUPPORT_KEY)
       break;
     case WIFI_CREDENTIALS_FALLBACK_SSID_INDEX:
     {
-      #if !defined(CUSTOM_EMERGENCY_FALLBACK_SSID) || !defined(CUSTOM_EMERGENCY_FALLBACK_KEY)
+      # if !defined(CUSTOM_EMERGENCY_FALLBACK_SSID) || !defined(CUSTOM_EMERGENCY_FALLBACK_KEY)
       return false;
-      #else
+      # else
       int allowedUptimeMinutes = 10;
-      #ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
+      #  ifdef CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME
       allowedUptimeMinutes = CUSTOM_EMERGENCY_FALLBACK_ALLOW_MINUTES_UPTIME;
-      #endif
-      if (getUptimeMinutes() < allowedUptimeMinutes && SecuritySettings.hasWiFiCredentials()) {
+      #  endif
+
+      if ((getUptimeMinutes() < allowedUptimeMinutes) && SecuritySettings.hasWiFiCredentials()) {
         ssid = F(CUSTOM_EMERGENCY_FALLBACK_SSID);
         key  = F(CUSTOM_EMERGENCY_FALLBACK_KEY);
       } else {
         return false;
       }
-      #endif
+      # endif // if !defined(CUSTOM_EMERGENCY_FALLBACK_SSID) || !defined(CUSTOM_EMERGENCY_FALLBACK_KEY)
       break;
     }
     default:
@@ -541,7 +578,6 @@ bool WiFi_AP_CandidatesList::get_SSID_key(uint8_t index, String& ssid, String& k
   // TODO TD-er: Read other credentials from extra file.
 
 
-
   // Spaces are allowed in both SSID and pass phrase, so make sure to not trim the ssid and key.
   return true;
 }
@@ -549,13 +585,22 @@ bool WiFi_AP_CandidatesList::get_SSID_key(uint8_t index, String& ssid, String& k
 bool WiFi_AP_CandidatesList::get_SSID(uint8_t index, String& ssid)
 {
   String key;
+
   return get_SSID_key(index, ssid, key);
 }
 
 String WiFi_AP_CandidatesList::get_key(uint8_t index)
 {
   String ssid, key;
-  if (get_SSID_key(index, ssid, key))
+
+  if (get_SSID_key(index, ssid, key)) {
     return key;
+  }
   return EMPTY_STRING;
 }
+
+} // namespace wifi
+} // namespace net
+} // namespace ESPEasy
+
+#endif // if FEATURE_WIFI
