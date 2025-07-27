@@ -190,7 +190,7 @@ class PubSubClient : public Print {
     uint16_t port{};
     Stream* stream{};
     int _state{MQTT_DISCONNECTED};
-    int _bufferWritePos = 0;
+    size_t _bufferWritePos{};
     uint8_t _qos{MQTT_QOS0};
 
     size_t readPacket(uint8_t* hdrLen);
