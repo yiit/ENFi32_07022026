@@ -514,7 +514,7 @@ String getValue(LabelType::Enum label) {
 #endif
     case LabelType::CONNECTED:
       #if FEATURE_ETHERNET
-      if(active_network_medium == NetworkMedium_t::Ethernet) {
+      if(active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
         return format_msec_duration(EthEventData.lastConnectMoment.millisPassedSince());
       }
       #endif // if FEATURE_ETHERNET
@@ -523,7 +523,7 @@ String getValue(LabelType::Enum label) {
     // Use only the nr of seconds to fit it in an int32, plus append '000' to have msec format again.
     case LabelType::CONNECTED_MSEC:         
       #if FEATURE_ETHERNET
-      if(active_network_medium == NetworkMedium_t::Ethernet) {
+      if(active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
         return String(static_cast<int32_t>(EthEventData.lastConnectMoment.millisPassedSince() / 1000ll)) + F("000"); 
       }
       #endif // if FEATURE_ETHERNET

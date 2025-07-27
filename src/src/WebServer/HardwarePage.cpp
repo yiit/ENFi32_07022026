@@ -131,7 +131,7 @@ void handle_hardware() {
 #if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     Settings.ETH_Clock_Mode           = static_cast<ESPEasy::net::EthClockMode_t>(getFormItemInt(F("ethclock")));
 #endif
-    Settings.NetworkMedium            = static_cast<NetworkMedium_t>(getFormItemInt(F("ethwifi")));
+    Settings.NetworkMedium            = static_cast<ESPEasy::net::NetworkMedium_t>(getFormItemInt(F("ethwifi")));
     #endif // if FEATURE_ETHERNET
 #endif
     int gpio = 0;
@@ -336,8 +336,8 @@ void handle_hardware() {
   addRowLabel_tr_id(F("Preferred network medium"), F("ethwifi"));
   {
     const __FlashStringHelper * ethWifiOptions[2] = {
-      toString(NetworkMedium_t::WIFI), 
-      toString(NetworkMedium_t::Ethernet) 
+      toString(ESPEasy::net::NetworkMedium_t::WIFI), 
+      toString(ESPEasy::net::NetworkMedium_t::Ethernet) 
       };
     const FormSelectorOptions selector(2, ethWifiOptions);
     selector.addSelector(F("ethwifi"), static_cast<int>(Settings.NetworkMedium));

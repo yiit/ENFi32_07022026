@@ -127,7 +127,7 @@ String Command_ETH_DNS (struct EventStruct *event, const char* Line)
 
 String Command_ETH_Wifi_Mode (struct EventStruct *event, const char* Line)
 {
-  const NetworkMedium_t orig_medium = Settings.NetworkMedium;
+  const ESPEasy::net::NetworkMedium_t orig_medium = Settings.NetworkMedium;
   const String result = Command_GetORSetETH(event, 
                              F("NetworkMedium:"), 
                              toString(active_network_medium),
@@ -151,7 +151,7 @@ String Command_ETH_Disconnect (struct EventStruct *event, const char* Line)
   ESPEasy::net::eth::ethPower(0);
   delay(400);
 //  ethPower(1);
-  ESPEasy::net::setNetworkMedium(NetworkMedium_t::Ethernet);
+  ESPEasy::net::setNetworkMedium(ESPEasy::net::NetworkMedium_t::Ethernet);
   ESPEasy::net::eth::ETHConnectRelaxed();
 
   return return_command_success();

@@ -862,7 +862,7 @@ String SaveSecuritySettings(bool forFactoryReset) {
 
     // Security settings are saved, may be update of WiFi settings or hostname.
     if (!forFactoryReset) {
-      if (SecuritySettings.hasWiFiCredentials() && (active_network_medium == NetworkMedium_t::WIFI)) {
+      if (SecuritySettings.hasWiFiCredentials() && (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)) {
         WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
         if (!ESPEasy::net::NetworkConnected()) {
           WiFiEventData.wifiConnectAttemptNeeded = true;

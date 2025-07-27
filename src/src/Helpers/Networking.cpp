@@ -1039,7 +1039,7 @@ bool hasIPaddr() {
 bool useStaticIP() {
   #if FEATURE_ETHERNET
 
-  if (active_network_medium == NetworkMedium_t::Ethernet) {
+  if (active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
     return ESPEasy::net::eth::ethUseStaticIP();
   }
   #endif // if FEATURE_ETHERNET
@@ -1179,7 +1179,7 @@ bool connectClient(WiFiClient& client, IPAddress ip, uint16_t port, uint32_t tim
 void scrubDNS() {
   #if FEATURE_ETHERNET
 
-  if (active_network_medium == NetworkMedium_t::Ethernet) {
+  if (active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
     if (EthEventData.EthServicesInitialized()) {
       setDNS(0, EthEventData.dns0_cache);
       setDNS(1, EthEventData.dns1_cache);

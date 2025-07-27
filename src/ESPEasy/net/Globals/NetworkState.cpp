@@ -4,7 +4,7 @@
 
 
 // Ethernet Connection status
-NetworkMedium_t active_network_medium = NetworkMedium_t::NotSet;
+ESPEasy::net::NetworkMedium_t active_network_medium = ESPEasy::net::NetworkMedium_t::NotSet;
 
 bool webserverRunning(false);
 bool webserver_init(false);

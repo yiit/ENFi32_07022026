@@ -227,7 +227,7 @@ void runEach30Seconds()
       FreeMem());
     bool logWiFiStatus = true;
     #if FEATURE_ETHERNET
-    if(active_network_medium == NetworkMedium_t::Ethernet) {
+    if(active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
       logWiFiStatus = false;
       log += F( " EthSpeedState ");
       log += getValue(LabelType::ETH_SPEED_STATE);

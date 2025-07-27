@@ -430,7 +430,7 @@ void handle_sysinfo_memory() {
 
 # if FEATURE_ETHERNET
 void handle_sysinfo_Ethernet() {
-  if (active_network_medium == NetworkMedium_t::Ethernet) {
+  if (active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
     addTableSeparator(F("Ethernet"), 2, 3);
 
     static const LabelType::Enum labels[] PROGMEM =
@@ -530,7 +530,7 @@ void handle_sysinfo_Network() {
     addHtml(getValue(LabelType::ENCRYPTION_TYPE_STA));
   } else addHtml('-');
 
-  if (active_network_medium == NetworkMedium_t::WIFI)
+  if (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)
   {
     addRowLabel(LabelType::LAST_DISCONNECT_REASON);
     addHtml(getValue(LabelType::LAST_DISC_REASON_STR));

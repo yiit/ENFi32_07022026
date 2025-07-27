@@ -78,7 +78,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
           }
         }
       }
-      break;
+      return success;
     }
 
     // calls to specific network

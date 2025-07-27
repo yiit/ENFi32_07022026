@@ -223,7 +223,7 @@ void handle_root() {
 
   # if FEATURE_ETHERNET
 
-    if (active_network_medium == NetworkMedium_t::Ethernet) {
+    if (active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
       addRowLabelValue(LabelType::ETH_SPEED_STATE);
       addRowLabelValue(LabelType::ETH_IP_ADDRESS);
 #if FEATURE_USE_IPV6

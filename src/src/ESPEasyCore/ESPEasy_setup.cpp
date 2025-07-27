@@ -444,14 +444,14 @@ void ESPEasy_setup()
   active_network_medium = Settings.NetworkMedium;
   #else // if FEATURE_ETHERNET
 
-  if (Settings.NetworkMedium == NetworkMedium_t::Ethernet) {
-    Settings.NetworkMedium = NetworkMedium_t::WIFI;
+  if (Settings.NetworkMedium == ESPEasy::net::NetworkMedium_t::Ethernet) {
+    Settings.NetworkMedium = ESPEasy::net::NetworkMedium_t::WIFI;
   }
   #endif // if FEATURE_ETHERNET
 
   ESPEasy::net::setNetworkMedium(Settings.NetworkMedium);
 
-  bool initWiFi = active_network_medium == NetworkMedium_t::WIFI;
+  bool initWiFi = active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI;
 
   // FIXME TD-er: Must add another check for 'delayed start WiFi' for poorly designed ESP8266 nodes.
 

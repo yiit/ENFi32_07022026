@@ -8,7 +8,6 @@
 #include "../DataStructs/ChecksumType.h"
 #include "../DataStructs/DeviceStruct.h"
 #include "../DataTypes/ControllerIndex.h"
-#include "../DataTypes/NetworkMedium.h"
 #include "../ESPEasy/net/DataTypes/NWPluginID.h"
 #include "../ESPEasy/net/DataTypes/NetworkIndex.h"
 #include "../DataTypes/NPluginID.h"
@@ -17,6 +16,8 @@
 #include "../DataTypes/TimeSource.h"
 #include "../Globals/Plugins.h"
 #include "../ESPEasy/net/Globals/NWPlugins.h"
+
+#include "../../ESPEasy/net/DataTypes/NetworkMedium.h"
 
 #if FEATURE_ETHERNET
 #include "../../ESPEasy/net/DataTypes/EthernetParameters.h"
@@ -596,7 +597,7 @@ public:
   uint8_t         ETH_Gateway[4] = {0};
   uint8_t         ETH_Subnet[4] = {0};
   uint8_t         ETH_DNS[4] = {0};
-  NetworkMedium_t NetworkMedium = NetworkMedium_t::WIFI;
+  ESPEasy::net::NetworkMedium_t NetworkMedium = ESPEasy::net::NetworkMedium_t::WIFI;
   int8_t          I2C_Multiplexer_Type = I2C_MULTIPLEXER_NONE;
   int8_t          I2C_Multiplexer_Addr = -1;
   int8_t          I2C_Multiplexer_Channel[N_TASKS]{};

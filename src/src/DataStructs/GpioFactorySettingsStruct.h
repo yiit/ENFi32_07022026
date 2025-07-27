@@ -2,7 +2,7 @@
 #define DATASTRUCTS_GPIOFACTORYSETTINGSSTRUCT_H
 
 #include "../DataTypes/DeviceModel.h"
-#include "../DataTypes/NetworkMedium.h"
+#include "../../ESPEasy/net/DataTypes/NetworkMedium.h"
 #if FEATURE_ETHERNET
 #include "../../ESPEasy/net/DataTypes/EthernetParameters.h"
 #endif
@@ -29,7 +29,7 @@ struct GpioFactorySettingsStruct {
 #else
   uint8_t  eth_clock_mode{};
 #endif
-  NetworkMedium_t network_medium;
+  ESPEasy::net::NetworkMedium_t network_medium;
 };
 
 

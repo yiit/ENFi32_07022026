@@ -126,7 +126,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
       eth_mdio       = 18;
       eth_power      = 12;
       eth_clock_mode = ESPEasy::net::EthClockMode_t::Int_50MHz_GPIO_17_inv;
-      network_medium = NetworkMedium_t::Ethernet;
+      network_medium = ESPEasy::net::NetworkMedium_t::Ethernet;
       break;
     case DeviceModel::DeviceModel_Olimex_ESP32_EVB:
       button[0] = 34; // BUT1 Button
@@ -142,7 +142,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
       eth_mdio       = 18;
       eth_power      = -1; // No Ethernet power pin
       eth_clock_mode = ESPEasy::net::EthClockMode_t::Ext_crystal_osc;
-      network_medium = NetworkMedium_t::Ethernet;
+      network_medium = ESPEasy::net::NetworkMedium_t::Ethernet;
       break;
 
     case DeviceModel::DeviceModel_Olimex_ESP32_GATEWAY:
@@ -157,7 +157,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
       eth_mdio       = 18;
       eth_power      = 5;
       eth_clock_mode = ESPEasy::net::EthClockMode_t::Int_50MHz_GPIO_17_inv;
-      network_medium = NetworkMedium_t::Ethernet;
+      network_medium = ESPEasy::net::NetworkMedium_t::Ethernet;
 
       // Rev A to E:
       // GPIO 5, 17 can be used only if Ethernet functionality is not used
@@ -190,7 +190,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
       eth_mdio       = 17;
       eth_power      = -1;
       eth_clock_mode = ESPEasy::net::EthClockMode_t::Ext_crystal_osc;
-      network_medium = NetworkMedium_t::Ethernet;
+      network_medium = ESPEasy::net::NetworkMedium_t::Ethernet;
       break;
 
     case DeviceModel::DeviceModel_WT32_ETH01:
@@ -203,7 +203,7 @@ GpioFactorySettingsStruct::GpioFactorySettingsStruct(DeviceModel model)
       eth_mdio       = 18;
       eth_power      = 12; // TODO TD-er: Better to use GPIO-16? as shown here: https://letscontrolit.com/forum/viewtopic.php?p=50133#p50133
       eth_clock_mode = ESPEasy::net::EthClockMode_t::Ext_crystal_osc;
-      network_medium = NetworkMedium_t::Ethernet;
+      network_medium = ESPEasy::net::NetworkMedium_t::Ethernet;
       break;
 #  else // if CONFIG_IDF_TARGET_ESP32
     default: break;

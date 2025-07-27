@@ -625,14 +625,14 @@ bool NodesHandler::isEndpoint() const
 #ifdef USES_ESPEASY_NOW
 uint8_t NodesHandler::getESPEasyNOW_channel() const
 {
-  if (active_network_medium == NetworkMedium_t::WIFI && ESPEasy::net::NetworkConnected()) {
+  if (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI && ESPEasy::net::NetworkConnected()) {
     return WiFi.channel();
   }
   if (Settings.ForceESPEasyNOWchannel > 0) {
     return Settings.ForceESPEasyNOWchannel;
   }
   if (isEndpoint()) {
-    if (active_network_medium == NetworkMedium_t::WIFI) {
+    if (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI) {
       return WiFi.channel();
     }
   }

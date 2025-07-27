@@ -356,9 +356,9 @@ bool ESPEasyWiFi_t::connectSTA()
     RTC.clearLastWiFi();
     RTC.lastWiFiSettingsIndex = candidate.index;
 
+# if FEATURE_SET_WIFI_TX_PWR
     float tx_pwr = 0; // Will be set higher based on RSSI when needed.
     // FIXME TD-er: Must check WiFiEventData.wifi_connect_attempt to increase TX power
-# if FEATURE_SET_WIFI_TX_PWR
 
     if (Settings.UseMaxTXpowerForSending()) {
       tx_pwr = Settings.getWiFi_TX_power();

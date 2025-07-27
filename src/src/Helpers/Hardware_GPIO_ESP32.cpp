@@ -48,7 +48,7 @@ bool getGpioInfo(int gpio, int& pinnr, bool& input, bool& output, bool& warning)
 # if FEATURE_ETHERNET
 
   // Check pins used for RMII Ethernet PHY
-  if (NetworkMedium_t::Ethernet == Settings.NetworkMedium) {
+  if (ESPEasy::net::NetworkMedium_t::Ethernet == Settings.NetworkMedium) {
     switch (gpio) {
       case 0:
       case 21:

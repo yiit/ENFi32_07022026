@@ -4,7 +4,8 @@
 // Needed to make sure Custom.h is used.
 #include "../../ESPEasy_common.h"
 
-#include "../DataTypes/NetworkMedium.h"
+#include "../../ESPEasy/net/DataTypes/NetworkMedium.h"
+
 
 #include "../Helpers/Hardware_defines.h"
 
@@ -321,9 +322,9 @@
 #endif
 #ifndef DEFAULT_NETWORK_MEDIUM
 #ifdef ESP32P4
-  #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::Ethernet
+  #define DEFAULT_NETWORK_MEDIUM       ESPEasy::net::NetworkMedium_t::Ethernet
 #else
-  #define DEFAULT_NETWORK_MEDIUM       NetworkMedium_t::WIFI
+  #define DEFAULT_NETWORK_MEDIUM       ESPEasy::net::NetworkMedium_t::WIFI
 #endif
 #endif
 #ifndef DEFAULT_JSON_BOOL_WITHOUT_QUOTES

@@ -46,7 +46,7 @@ bool FactoryDefault_Network_NVS::applyToSettings_from_NVS(ESPEasy_NVS_Helper& pr
 # if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     Settings.ETH_Clock_Mode = static_cast<ESPEasy::net::EthClockMode_t>(bits.ETH_Clock_Mode);
 #endif
-    Settings.NetworkMedium  = static_cast<NetworkMedium_t>(bits.NetworkMedium);
+    Settings.NetworkMedium  = static_cast<ESPEasy::net::NetworkMedium_t>(bits.NetworkMedium);
     res                     = true;
   }
 # endif // ifdef FEATURE_ETHERNET

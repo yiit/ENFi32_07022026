@@ -227,7 +227,7 @@ void handle_networks_ShowAllNetworksTable()
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
       };
 
-      const networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(x);
+//      const networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(x);
 
       for (uint8_t i = 0; i < NR_ELEMENTS(functions); ++i) {
         html_TD();

@@ -212,7 +212,7 @@ void hardwareInit()
 
   bool tryInitSPI = true;
 #if FEATURE_ETHERNET
-  if ((Settings.NetworkMedium == NetworkMedium_t::Ethernet) &&
+  if ((Settings.NetworkMedium == ESPEasy::net::NetworkMedium_t::Ethernet) &&
       isValid(Settings.ETH_Phy_Type) && 
       ESPEasy::net::isSPI_EthernetType(Settings.ETH_Phy_Type)) 
   {

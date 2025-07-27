@@ -76,7 +76,7 @@ void handle_setup() {
       addFormHeader(F("WiFi credentials cleared, reboot now"));
       html_end_table();
     } else {    
-  //    if (active_network_medium == NetworkMedium_t::WIFI)
+  //    if (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)
   //    {
         static uint8_t status       = HANDLE_SETUP_SCAN_STAGE;
         static uint8_t refreshCount = 0;
