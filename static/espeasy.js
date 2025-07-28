@@ -204,7 +204,7 @@ var android = /Android/.test(navigator.userAgent);
 
 function initCM() {
   if (android) {
-    if (confirm("Do you want to enable colored rules?\n(There are some issues with Android causing it to fail!)\nTestet with Chrome, Firefox and Vivaldi so far.\nPlease report any issues you may have with this feature.")) {
+    if (confirm("Do you want to enable colored rules on your Android device?\nThis feature hasn't been fully tested yet and may still have some issues.\nIt is currently expected to work with Chrome, Firefox, and Vivaldi.\nPlease report any problems you encounter.")) {
       confirmR = true
     } else {
       confirmR = false
