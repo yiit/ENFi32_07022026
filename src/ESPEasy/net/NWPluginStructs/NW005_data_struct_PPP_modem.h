@@ -3,6 +3,7 @@
 #include "../_NWPlugin_Helper.h"
 #ifdef USES_NW005
 
+# include "../../../src/Helpers/LongTermTimer.h"
 # include "../../../src/Helpers/StringGenerator_GPIO.h"
 
 # include <PPP.h>
@@ -19,6 +20,7 @@ struct NW005_modem_task_data {
   bool              initializing{};
   bool              modem_initialized{};
   String            logString;
+  String            AT_CPSI; // Result from "AT+CPSI?"
 
   // This is C-code, so not set to nullptr, but to NULL
   TaskHandle_t modem_taskHandle = NULL;
@@ -31,35 +33,40 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
   NW005_data_struct_PPP_modem(networkIndex_t networkIndex);
   ~NW005_data_struct_PPP_modem();
 
-  String getRSSI() const;
-  String getBER() const;
-  bool   attached() const;
-  String IMEI() const;
-  String operatorName() const;
+  String                  getRSSI() const;
+  String                  getBER() const;
+  bool                    attached() const;
+  String                  IMEI() const;
+  String                  operatorName() const;
 
-  void   webform_load_UE_system_information();
+  void                    webform_load_UE_system_information();
 
-  void   webform_load(EventStruct *event);
-  void   webform_save(EventStruct *event);
+  void                    webform_load(EventStruct *event);
+  void                    webform_save(EventStruct *event);
 
-  bool   webform_getPort(String& str);
+  bool                    webform_getPort(String& str);
 
-  bool   init(EventStruct *event);
+  bool                    init(EventStruct *event);
 
-  bool   exit(EventStruct *event);
+  bool                    exit(EventStruct *event);
 
+  String                  write_AT_cmd(const String& cmd,
+                                       int           timeout = 1000);
 
-  void   testWrite();
-
-  void   testRead();
+  LongTermTimer::Duration getConnectedDuration_ms() const;
 
 private:
 
-  String NW005_formatGpioLabel(uint32_t          key,
-                               PinSelectPurpose& purpose,
-                               bool              shortNotation = false) const;
+  static void onEvent(arduino_event_id_t   event,
+                      arduino_event_info_t info);
+
+  String      NW005_formatGpioLabel(uint32_t          key,
+                                    PinSelectPurpose& purpose,
+                                    bool              shortNotation = false) const;
 
   NW005_modem_task_data _modem_task_data;
+
+  network_event_handle_t nw_event_id = 0;
 
 
 };

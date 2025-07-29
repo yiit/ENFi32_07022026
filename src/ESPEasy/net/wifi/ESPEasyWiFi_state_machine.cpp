@@ -276,7 +276,7 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
     # ifdef ESP32
 
       // FIXME TD-er: Must move to ESP32-specific cpp file
-      WiFi.STA.setDefault();
+      //WiFi.STA.setDefault();
     # endif // ifdef ESP32
       _last_seen_connected.setNow();
       _state_timeout.clear();

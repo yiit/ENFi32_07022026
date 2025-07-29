@@ -179,27 +179,14 @@ void WiFiEvent(WiFiEvent_t event_id, arduino_event_info_t info) {
 #  endif // FEATURE_ETHERNET
 
 #  if FEATURE_PPP_MODEM
-    case ARDUINO_EVENT_PPP_START:     addLog(LOG_LEVEL_INFO, F("PPP Started"));
-      break;
-    case ARDUINO_EVENT_PPP_CONNECTED: addLog(LOG_LEVEL_INFO, F("PPP Connected"));
-      break;
+    
+    case ARDUINO_EVENT_PPP_START:
+    case ARDUINO_EVENT_PPP_CONNECTED:
     case ARDUINO_EVENT_PPP_GOT_IP:
-      addLog(LOG_LEVEL_INFO, F("PPP Got IP"));
-      PPP.setDefault();
-
-      if (WiFi.AP.enableNAPT(true)) {
-        addLog(LOG_LEVEL_INFO, F("WiFi.AP.enableNAPT"));
-      }
-      break;
     case ARDUINO_EVENT_PPP_LOST_IP:
-      addLog(LOG_LEVEL_INFO, F("PPP Lost IP"));
-      WiFi.AP.enableNAPT(false);
-      break;
     case ARDUINO_EVENT_PPP_DISCONNECTED:
-      addLog(LOG_LEVEL_INFO, F("PPP Disconnected"));
-      WiFi.AP.enableNAPT(false);
-      break;
-    case ARDUINO_EVENT_PPP_STOP: addLog(LOG_LEVEL_INFO, F("PPP Stopped"));
+    case ARDUINO_EVENT_PPP_STOP:
+      // Handled in NW005_data_struct_PPP_modem
       break;
 
 #  endif // if FEATURE_PPP_MODEM

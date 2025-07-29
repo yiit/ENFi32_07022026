@@ -4,6 +4,8 @@
 
 # include "../../../src/Globals/Settings.h"
 
+# include "../../../src/Helpers/ESPEasy_time_calc.h"
+# include "../../../src/Helpers/LongTermOnOffTimer.h"
 # include "../../../src/Helpers/StringConverter.h"
 # include "../../../src/Helpers/_Plugin_Helper_serial.h"
 
@@ -21,6 +23,13 @@
 namespace ESPEasy {
 namespace net {
 namespace ppp {
+
+
+static LongTermOnOffTimer _startStopStats;
+static LongTermOnOffTimer _connectedStats;
+static LongTermOnOffTimer _gotIPStats;
+static LongTermOnOffTimer _gotIP6Stats;
+
 
 // Keys as used in the Key-value-store
 # define NW005_KEY_SERIAL_PORT          1
@@ -80,7 +89,12 @@ const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString
 
 NW005_data_struct_PPP_modem::NW005_data_struct_PPP_modem(networkIndex_t networkIndex)
   : NWPluginData_base(nwpluginID_t(5), networkIndex)
-{}
+{
+  _connectedStats.clear();
+  _gotIPStats.clear();
+  _gotIP6Stats.clear();
+  nw_event_id = Network.onEvent(NW005_data_struct_PPP_modem::onEvent);
+}
 
 WebFormItemParams NW005_makeWebFormItemParams(uint32_t key) {
   ESPEasy_key_value_store::StorageType storageType;
@@ -98,6 +112,11 @@ NW005_data_struct_PPP_modem::~NW005_data_struct_PPP_modem() {
   PPP.mode(ESP_MODEM_MODE_COMMAND);
   PPP.end();
   _modem_task_data.modem_initialized = false;
+
+  if (nw_event_id != 0) {
+    Network.removeEvent(nw_event_id);
+  }
+  nw_event_id = 0;
 }
 
 enum class NW005_modem_model {
@@ -271,7 +290,15 @@ const __FlashStringHelper* NW005_decode_label(int sysmode_index, uint8_t i, Stri
 
 void NW005_data_struct_PPP_modem::webform_load_UE_system_information()
 {
-  String res = PPP.cmd("AT+CPSI?", 1000);
+  if (!PPP.attached()) {
+    // clear cached string
+    _modem_task_data.AT_CPSI.clear();
+    return;
+  }
+
+  String res = write_AT_cmd(F("AT+CPSI?"), 1000);
+
+  if (res.isEmpty()) { res = _modem_task_data.AT_CPSI; }
 
   if (!res.isEmpty() /* && res.startsWith(F("+CPSI"))*/) {
     int start_index         = 0;
@@ -290,6 +317,9 @@ void NW005_data_struct_PPP_modem::webform_load_UE_system_information()
     }
 
     if (sysmode_index == -1) { return; }
+
+    // Update cached string
+    _modem_task_data.AT_CPSI = res;
 
     addFormSubHeader(F("UE System Information"));
 
@@ -628,6 +658,10 @@ void NW005_data_struct_PPP_modem::webform_load(EventStruct *event)
    */
 
   webform_load_UE_system_information();
+
+  if (PPP.attached()) {
+    PPP.mode(ESP_MODEM_MODE_DATA);
+  }
 }
 
 void NW005_data_struct_PPP_modem::webform_save(EventStruct *event)
@@ -698,8 +732,8 @@ void NW005_begin_modem_task(void *parameter)
   NW005_modem_task_data*modem_task_data = static_cast<NW005_modem_task_data *>(parameter);
 
   if (!modem_task_data->modem_initialized) {
-    modem_task_data->initializing      = true;
-    modem_task_data->modem_initialized =
+    modem_task_data->initializing = true;
+    const bool res =
       PPP.begin(
         modem_task_data->model,
         modem_task_data->uart_num,
@@ -710,7 +744,20 @@ void NW005_begin_modem_task(void *parameter)
       PPP.moduleName().c_str(),
       PPP.IMEI().c_str());
 
-    // PPP.mode(ESP_MODEM_MODE_COMMAND);
+    if (res) {
+
+      uint32_t start = millis();
+
+      do
+      {
+        delay(100);
+      }
+      while (timePassedSince(start) < 5000 && !PPP.attached());
+
+      PPP.mode(ESP_MODEM_MODE_CMUX);
+      modem_task_data->AT_CPSI = PPP.cmd(F("AT+CPSI?"), 3000);
+    }
+    modem_task_data->modem_initialized = res;
   }
   modem_task_data->modem_taskHandle = NULL;
   vTaskDelete(modem_task_data->modem_taskHandle);
@@ -834,13 +881,69 @@ bool NW005_data_struct_PPP_modem::exit(EventStruct *event)
   return true;
 }
 
-struct testStruct {
-  String   foo1 = F("test123");
-  int64_t  foo2 = -123;
-  uint32_t foo3 = 123;
+String NW005_data_struct_PPP_modem::write_AT_cmd(const String& cmd, int timeout)
+{
+  String res;
+  auto   cur_mode = PPP.mode();
 
+  if (PPP.mode() != ESP_MODEM_MODE_CMUX) {
+    PPP.mode(ESP_MODEM_MODE_CMUX);
+    res = PPP.cmd(cmd.c_str(), timeout);
+  }
+  PPP.mode(cur_mode);
+  return res;
+}
 
-};
+LongTermTimer::Duration NW005_data_struct_PPP_modem::getConnectedDuration_ms() const
+{
+  return _connectedStats.getLastOnDuration_ms();
+}
+
+void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_event_info_t info) {
+  // TODO TD-er: Must store flags from events in static (or global) object to act on it later.
+  switch (event)
+  {
+    case ARDUINO_EVENT_PPP_START:     addLog(LOG_LEVEL_INFO, F("PPP Started"));
+      _startStopStats.setOn();
+      PPP.setRoutePrio(200);
+      break;
+    case ARDUINO_EVENT_PPP_STOP:      addLog(LOG_LEVEL_INFO, F("PPP Stopped"));
+      _startStopStats.setOff();
+      break;
+    case ARDUINO_EVENT_PPP_CONNECTED:
+      _connectedStats.setOn();
+      addLog(LOG_LEVEL_INFO, F("PPP Connected"));
+
+      break;
+    case ARDUINO_EVENT_PPP_DISCONNECTED:
+      _connectedStats.setOff();
+      addLog(LOG_LEVEL_INFO, concat(F("PPP Disconnected. Connected for: "), format_msec_duration(_connectedStats.getLastOnDuration_ms())));
+      WiFi.AP.enableNAPT(false);
+      break;
+    case ARDUINO_EVENT_PPP_GOT_IP:
+      _gotIPStats.setOn();
+      addLog(LOG_LEVEL_INFO, F("PPP Got IP"));
+
+      //      PPP.setDefault();
+
+      if (WiFi.AP.enableNAPT(true)) {
+        addLog(LOG_LEVEL_INFO, F("WiFi.AP.enableNAPT"));
+      }
+      break;
+    case ARDUINO_EVENT_PPP_GOT_IP6:
+      _gotIP6Stats.setOn();
+      addLog(LOG_LEVEL_INFO, F("PPP Got IPv6"));
+      break;
+    case ARDUINO_EVENT_PPP_LOST_IP:
+      _gotIPStats.setOff();
+      _gotIP6Stats.setOff();
+      addLog(LOG_LEVEL_INFO, F("PPP Lost IP"));
+      WiFi.AP.enableNAPT(false);
+      break;
+
+    default: break;
+  }
+}
 
 String NW005_data_struct_PPP_modem::NW005_formatGpioLabel(uint32_t key, PinSelectPurpose& purpose, bool shortNotation) const
 {
@@ -887,42 +990,6 @@ String NW005_data_struct_PPP_modem::NW005_formatGpioLabel(uint32_t key, PinSelec
 
   }
   return label;
-}
-
-void NW005_data_struct_PPP_modem::testWrite()
-{
-  if (!_KVS_initialized()) { return; }
-
-  for (int i = 0; i < 30; ++i) {
-    testStruct _test{ .foo1 = concat(F("str_"), (3 * (i) + 1)), .foo2 = -1l * (3 * (i) + 2), .foo3 = 3 * (i) + 3 };
-    _kvs->setValue(3 * (i) + 1, _test.foo1);
-    _kvs->setValue(3 * (i) + 2, _test.foo2);
-    _kvs->setValue(3 * (i) + 3, _test.foo3);
-  }
-
-  _kvs->dump();
-
-
-  //  _kvs->clear();
-  _store();
-
-  _load();
-
-  _kvs->dump();
-
-}
-
-void NW005_data_struct_PPP_modem::testRead()
-{
-  if (!_KVS_initialized()) { return; }
-  _load();
-
-  for (uint32_t i = 1; i <= 30; ++i) {
-    String val;
-    _kvs->getValue(i, val);
-    addLog(LOG_LEVEL_INFO, strformat(F("KVS, foo%d: %s"), i, val.c_str()));
-  }
-
 }
 
 } // namespace ppp

@@ -69,11 +69,11 @@ void setNetworkMedium(NetworkMedium_t new_medium) {
   switch (new_medium)
   {
     case NetworkMedium_t::WIFI:
-      WiFi.STA.setDefault();
+      //WiFi.STA.setDefault();
       break;
     case NetworkMedium_t::Ethernet:
 #if FEATURE_ETHERNET
-      ETH.setDefault();
+      //ETH.setDefault();
 #endif // if FEATURE_ETHERNET
       break;
     case NetworkMedium_t::NotSet:

@@ -178,7 +178,7 @@ void EthernetEventData_t::markDisconnect() {
   lastConnectMoment.clear();
   processedDisconnect  = false;
 #if ESP_IDF_VERSION_MAJOR >= 5
-  WiFi.STA.setDefault();
+//  WiFi.STA.setDefault();
 #endif
 }
 
@@ -186,7 +186,7 @@ void EthernetEventData_t::markConnected() {
   lastConnectMoment.setNow();
   processedConnect    = false;
 #if ESP_IDF_VERSION_MAJOR >= 5
-  ETH.setDefault();
+//  ETH.setDefault();
 #endif
 
 #if FEATURE_USE_IPV6
