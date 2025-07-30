@@ -157,7 +157,7 @@
 #define DEFAULT_CONTROLLER_PASS    ""                                       // Default controller Password
 #endif
 #ifndef DEFAULT_CONTROLLER_TIMEOUT
-#define DEFAULT_CONTROLLER_TIMEOUT 100
+#define DEFAULT_CONTROLLER_TIMEOUT 500
 #endif
 
 // using a default template, you also need to set a DEFAULT PROTOCOL to a suitable MQTT protocol !

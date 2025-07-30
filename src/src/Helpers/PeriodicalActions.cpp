@@ -364,15 +364,18 @@ void processMQTTdelayQueue() {
 void updateMQTTclient_connected() {
   if (MQTTclient_connected != MQTTclient.connected()) {
     MQTTclient_connected = !MQTTclient_connected;
+    MQTTclient_connected_stats.set(MQTTclient_connected);
     if (!MQTTclient_connected) {
       if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
         String connectionError = F("MQTT : Connection lost, state: ");
         connectionError += getMQTT_state();
+#ifndef BUILD_NO_DEBUG
         auto duration_ms = MQTTclient_connected_stats.getLastOnDuration_ms();
         if (duration_ms > 0) {
-          connectionError += concat(F(" Connected duration: "), format_msec_duration(duration_ms));
-          connectionError += concat(F(" Reconnect Count: "), MQTTclient_connected_stats.getCycleCount());
+          connectionError += concat(F(" Connected duration: "), format_msec_duration_HMS(duration_ms));
+          connectionError += concat(F(" (successful) Reconnect Count: "), MQTTclient_connected_stats.getCycleCount());
         }
+#endif
         addLogMove(LOG_LEVEL_ERROR, connectionError);
       }
       MQTTclient_must_send_LWT_connected = false;
@@ -396,7 +399,6 @@ void updateMQTTclient_connected() {
   } else {
     timermqtt_interval = 100;
   }
-  MQTTclient_connected_stats.set(MQTTclient_connected);
   Scheduler.setIntervalTimer(SchedulerIntervalTimer_e::TIMER_MQTT);
   scheduleNextMQTTdelayQueue();
 }

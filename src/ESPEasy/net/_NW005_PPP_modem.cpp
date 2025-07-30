@@ -88,7 +88,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
           auto connectionDuration_ms = NW_data->getConnectedDuration_ms();
           if (connectionDuration_ms > 0) {
-            string += concat(F("<br>"), format_msec_duration(connectionDuration_ms));
+            string += concat(
+              F("<br>"), 
+              format_msec_duration_HMS(connectionDuration_ms));
           }
         }
       }
@@ -132,7 +134,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
         NW_data->init_KVS();
+#endif
       }
 
       if (NW_data) {
@@ -153,7 +157,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
         NW_data->init_KVS();
+#endif
       }
 
       if (NW_data) {

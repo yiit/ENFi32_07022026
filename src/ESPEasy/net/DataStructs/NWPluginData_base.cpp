@@ -1,37 +1,44 @@
 #include "../DataStructs/NWPluginData_base.h"
 
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-
 
 # include "../../../src/Globals/RuntimeData.h"
 # include "../../../src/Globals/Settings.h"
 # include "../../../src/Helpers/StringConverter.h"
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 # include "../../../src/Helpers/_ESPEasy_key_value_store.h"
+#endif
 
 namespace ESPEasy {
 namespace net {
 
 
 NWPluginData_base::NWPluginData_base(nwpluginID_t nwpluginID, networkIndex_t networkIndex) :
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   _kvs(nullptr),
+#endif
   _nw_data_pluginID(nwpluginID),
   _networkIndex(networkIndex),
   _baseClassOnly(false)
 {
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   if (_kvs == nullptr) {
     _kvs = new (std::nothrow) ESPEasy_key_value_store;
   }
+#endif
 }
 
 NWPluginData_base::~NWPluginData_base()
 {
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   if (_kvs) { delete _kvs; }
   _kvs = nullptr;
+#endif
 }
 
 bool NWPluginData_base::plugin_write_base(EventStruct  *event,
                                           const String& string) { return false; }
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 bool NWPluginData_base::init_KVS()
 {
   if (!_KVS_initialized()) { return false; }
@@ -61,8 +68,8 @@ bool NWPluginData_base::_store()
     0,
     _nw_data_pluginID.value);
 }
+#endif
 
 } // namespace net
 } // namespace ESPEasy
 
-#endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS

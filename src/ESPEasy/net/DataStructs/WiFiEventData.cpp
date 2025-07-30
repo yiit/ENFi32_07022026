@@ -16,7 +16,7 @@
 
 # define WIFI_RECONNECT_WAIT                  30000 // in milliSeconds
 
-# define CONNECT_TIMEOUT_MAX                  4000  // in milliSeconds
+# define CONNECT_TIMEOUT_MAX                  10000  // in milliSeconds
 
 
 # if FEATURE_USE_IPV6

@@ -2,12 +2,14 @@
 
 #include "../../../ESPEasy_common.h"
 
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
-# include "../../../src/DataStructs/ESPEasy_EventStruct.h"
-# include "../../../src/Helpers/_ESPEasy_key_value_store.h"
 # include "../DataTypes/NWPluginID.h"
 # include "../DataTypes/NetworkIndex.h"
+# include "../../../src/DataStructs/ESPEasy_EventStruct.h"
+
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+# include "../../../src/Helpers/_ESPEasy_key_value_store.h"
+#endif
 
 namespace ESPEasy {
 namespace net {
@@ -35,12 +37,15 @@ struct NWPluginData_base {
 
 
   // Should only be called from initNWPluginData
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   bool         init_KVS();
+#endif
 
   nwpluginID_t getNWPluginID() const { return _nw_data_pluginID; }
 
 protected:
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   bool _KVS_initialized() const { return _kvs != nullptr; }
 
   // Load settings in the _kvs
@@ -50,6 +55,7 @@ protected:
   bool _store();
 
   ESPEasy_key_value_store *_kvs = nullptr;
+#endif
 
   // We cannot use dynamic_cast, so we must keep track of the plugin ID to
   // perform checks on the casting.
@@ -65,4 +71,3 @@ protected:
 } // namespace net
 } // namespace ESPEasy
 
-#endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS

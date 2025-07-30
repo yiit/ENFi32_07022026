@@ -48,10 +48,10 @@
 
 // Timeout of the client in msec.
 #ifndef CONTROLLER_CLIENTTIMEOUT_MAX
-# define CONTROLLER_CLIENTTIMEOUT_MAX     4000 // Not sure if this may trigger SW watchdog.
+# define CONTROLLER_CLIENTTIMEOUT_MAX     10000 // Not sure if this may trigger SW watchdog.
 #endif // ifndef CONTROLLER_CLIENTTIMEOUT_MAX
 #ifndef CONTROLLER_CLIENTTIMEOUT_DFLT
-# define CONTROLLER_CLIENTTIMEOUT_DFLT     100
+# define CONTROLLER_CLIENTTIMEOUT_DFLT     DEFAULT_CONTROLLER_TIMEOUT
 #endif // ifndef CONTROLLER_CLIENTTIMEOUT_DFLT
 
 // MQTT Keep Alive Timeout

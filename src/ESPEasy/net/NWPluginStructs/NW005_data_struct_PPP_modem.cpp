@@ -917,7 +917,9 @@ void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_even
       break;
     case ARDUINO_EVENT_PPP_DISCONNECTED:
       _connectedStats.setOff();
-      addLog(LOG_LEVEL_INFO, concat(F("PPP Disconnected. Connected for: "), format_msec_duration(_connectedStats.getLastOnDuration_ms())));
+      addLog(LOG_LEVEL_INFO, concat(
+        F("PPP Disconnected. Connected for: "), 
+        format_msec_duration_HMS(_connectedStats.getLastOnDuration_ms())));
       WiFi.AP.enableNAPT(false);
       break;
     case ARDUINO_EVENT_PPP_GOT_IP:

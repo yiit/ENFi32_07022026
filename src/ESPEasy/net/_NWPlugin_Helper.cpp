@@ -47,12 +47,16 @@ bool initNWPluginData(ESPEasy::net::networkIndex_t networkIndex, NWPluginData_ba
 
   if (data != nullptr) {
     if (Settings.getNetworkEnabled(networkIndex)) {
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
       if (!data->init_KVS()) {
         delete data;
         data = nullptr;
       } else {
         NWPlugin_task_data[networkIndex] = data;
       }
+#else
+      NWPlugin_task_data[networkIndex] = data;
+#endif
     } else {
       delete data;
       data = nullptr;
