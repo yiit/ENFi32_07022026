@@ -3244,7 +3244,11 @@ To create/register a plugin, you have to :
 // For now we need to keep build size in mind
 #define FEATURE_PPP_MODEM                     0
 #else
+#if CONFIG_LWIP_PPP_SUPPORT && ARDUINO_HAS_ESP_MODEM
 #define FEATURE_PPP_MODEM                     1
+#else
+#define FEATURE_PPP_MODEM                     0
+#endif
 #endif
 #else
 #define FEATURE_PPP_MODEM                     0
