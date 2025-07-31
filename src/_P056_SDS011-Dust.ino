@@ -124,10 +124,11 @@ boolean Plugin_056(uint8_t function, struct EventStruct *event, String& string)
 
       const ESPEasySerialPort port = static_cast<ESPEasySerialPort>(CONFIG_PORT);
       Plugin_056_SDS = new (std::nothrow) CjkSDS011(port, CONFIG_PIN1, CONFIG_PIN2);
-
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         addLog(LOG_LEVEL_INFO, strformat(F("SDS  : Init OK  ESP GPIO-pin RX:%d TX:%d"), CONFIG_PIN1, CONFIG_PIN2));
       }
+#endif
 
       success = true;
       break;
@@ -225,10 +226,11 @@ void Plugin_056_setWorkingPeriod(int minutes) {
     return;
   }
   Plugin_056_SDS->SetWorkingPeriod(minutes);
-
+#ifndef BUILD_NO_DEBUG
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, concat(F("SDS  : Working Period set to: "), Plugin_056_WorkingPeriodToString(minutes)));
   }
+#endif
 }
 
 // #endif

@@ -685,7 +685,7 @@ bool CPlugin_014(CPlugin::Function function, struct EventStruct *event, String& 
         CPlugin_014_sendMQTTdevice(pubname, event->TaskIndex, F("$state"), F("ready"), errorCounter);
         success = true;
       }
-
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         addLog(LOG_LEVEL_INFO,
                strformat(F("C014 : autodiscover information of %d Devices and %d Nodes sent with %s errors! (%d messages)"),
@@ -695,6 +695,7 @@ bool CPlugin_014(CPlugin::Function function, struct EventStruct *event, String& 
                          msgCounter)
                );
       }
+#endif
       msgCounter   = 0;
       errorCounter = 0;
       break;

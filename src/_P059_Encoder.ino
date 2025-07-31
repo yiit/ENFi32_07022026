@@ -180,11 +180,11 @@ boolean Plugin_059(uint8_t function, struct EventStruct *event, String& string)
         {
           const long c = P_059_sensordefs[event->TaskIndex]->read();
           UserVar.setFloat(event->TaskIndex, 0, c);
-
+#ifndef BUILD_NO_DEBUG
           if (loglevelActiveFor(LOG_LEVEL_INFO)) {
             addLog(LOG_LEVEL_INFO, concat(F("QEI  : "), c));
           }
-
+#endif
           sendData(event);
         }
       }
@@ -212,9 +212,11 @@ boolean Plugin_059(uint8_t function, struct EventStruct *event, String& string)
         {
           if (event->Par1 >= 0)
           {
+#ifndef BUILD_NO_DEBUG
             if (loglevelActiveFor(LOG_LEVEL_INFO)) {
               addLog(LOG_LEVEL_INFO, concat(F("QEI  : "), string));
             }
+#endif
             P_059_sensordefs[event->TaskIndex]->write(event->Par1);
             Scheduler.schedule_task_device_timer(event->TaskIndex, millis());
           }

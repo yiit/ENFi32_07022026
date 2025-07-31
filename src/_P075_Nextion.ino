@@ -296,7 +296,7 @@ boolean Plugin_075(uint8_t function, struct EventStruct *event, String& string)
       }
 
       if (!validGpio(P075_data->rxPin)) {
-        addLog(LOG_LEVEL_INFO, F("NEXTION075 : Missing RxD Pin, aborted serial receive"));
+//        addLog(LOG_LEVEL_INFO, F("NEXTION075 : Missing RxD Pin, aborted serial receive"));
         break;
       }
 
@@ -469,9 +469,11 @@ void P075_sendCommand(taskIndex_t taskIndex, const char *cmd)
       P075_data->easySerial->write(0xff);
       P075_data->easySerial->write(0xff);
     }
+#ifndef BUILD_NO_DEBUG
     else {
       addLog(LOG_LEVEL_INFO, F("NEXTION075 : P075_data->easySerial error, aborted sendCommand"));
     }
+#endif    
   }
 }
 
