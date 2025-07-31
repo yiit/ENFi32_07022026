@@ -2188,7 +2188,7 @@ void CPluginInit()
   CPluginCall(CPlugin::Function::CPLUGIN_INIT_ALL, 0);
 }
 
-void CPlugin_Init_Exit(controllerIndex_t controllerIndex)
+void CPlugin_Exit_Init(controllerIndex_t controllerIndex)
 {
   protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(controllerIndex);
 
@@ -2196,8 +2196,13 @@ void CPlugin_Init_Exit(controllerIndex_t controllerIndex)
     struct EventStruct TempEvent;
     TempEvent.ControllerIndex = controllerIndex;
     String dummy;
-    CPlugin::Function cfunction =
-      Settings.ControllerEnabled[controllerIndex] ? CPlugin::Function::CPLUGIN_INIT : CPlugin::Function::CPLUGIN_EXIT;
-    do_CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy);
+
+
+    // May need to call init later, so make sure exit is called first
+    CPluginCall(CPlugin::Function::CPLUGIN_EXIT, &TempEvent, dummy);
+
+    if (Settings.ControllerEnabled[controllerIndex]) {
+      CPluginCall(CPlugin::Function::CPLUGIN_INIT, &TempEvent, dummy);
+    }
   }
 }

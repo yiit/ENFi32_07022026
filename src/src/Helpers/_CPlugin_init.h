@@ -28,7 +28,7 @@ void CPluginSetup();
 void CPluginInit();
 
 // Start or stop controller as how it is set in the Settings
-void CPlugin_Init_Exit(controllerIndex_t controllerIndex);
+void CPlugin_Exit_Init(controllerIndex_t controllerIndex);
 
 
 // Macro to forward declare the CPlugin_NNN functions.

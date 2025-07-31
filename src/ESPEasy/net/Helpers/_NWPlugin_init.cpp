@@ -2121,6 +2121,7 @@ nwpluginID_t getHighestIncludedNWPluginID() { return nwpluginID_t::toPluginID(Hi
 bool         do_NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, EventStruct *event, String& string)
 {
   static uint32_t networkIndex_initialized{};
+
   if (networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size)
   {
     if (Function == NWPlugin::Function::NWPLUGIN_INIT) {
@@ -2188,21 +2189,24 @@ void NWPluginInit()
   NWPluginCall(NWPlugin::Function::NWPLUGIN_INIT_ALL, 0);
 }
 
-void NWPlugin_Init_Exit(networkIndex_t networkIndex)
+void NWPlugin_Exit_Init(networkIndex_t networkIndex)
 {
-  const networkDriverIndex_t NetworkDriverIndex = 
-  getNetworkDriverIndex_from_NetworkIndex(networkIndex);
+  const networkDriverIndex_t NetworkDriverIndex =
+    getNetworkDriverIndex_from_NetworkIndex(networkIndex);
 
   if (validNetworkDriverIndex(NetworkDriverIndex)) {
     struct EventStruct TempEvent;
     TempEvent.NetworkIndex = networkIndex;
     String dummy;
-    NWPlugin::Function nfunction =
-      Settings.getNetworkEnabled(networkIndex) ? NWPlugin::Function::NWPLUGIN_INIT : NWPlugin::Function::NWPLUGIN_EXIT;
-    do_NWPluginCall(NetworkDriverIndex, nfunction, &TempEvent, dummy);
+
+    // May need to call init later, so make sure exit is called first
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_EXIT, &TempEvent, dummy);
+
+    if (Settings.getNetworkEnabled(networkIndex)) {
+      NWPluginCall(NWPlugin::Function::NWPLUGIN_INIT, &TempEvent, dummy);
+    }
   }
 }
-
 
 } // namespace net
 } // namespace ESPEasy

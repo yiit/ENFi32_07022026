@@ -92,7 +92,7 @@ String getControllerParameterName(protocolIndex_t                   ProtocolInde
     EventStruct tmpEvent;
     tmpEvent.idx = parameterIdx;
 
-    // Need to call the do_CPluginCall function here as this may be called when the controller is not (yet) enabled
+    // Only Controller Plugin specific call, so may call do_CPluginCall directly 
     if (do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME, &tmpEvent, name)) {
       // Found an alternative name for it.
       isAlternative = true;

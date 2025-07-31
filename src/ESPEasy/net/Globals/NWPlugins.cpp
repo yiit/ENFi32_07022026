@@ -40,6 +40,10 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
       // only called from NWPluginSetup() directly using networkDriverIndex
       break;
 
+    case NWPlugin::Function::NWPLUGIN_GET_PARAMETER_DISPLAY_NAME:
+      // Only called from _NWPlugin_Helper_webform  getNetworkParameterName
+      break;
+
     // calls to all active networks
     case NWPlugin::Function::NWPLUGIN_INIT_ALL:
     case NWPlugin::Function::NWPLUGIN_EXIT_ALL:
@@ -58,7 +62,10 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
       }
 
       for (networkIndex_t x = 0; x < NETWORK_MAX; x++) {
-        if (Settings.getNWPluginID_for_network(x) && Settings.getNetworkEnabled(x)) {
+        const bool checkedEnabled = 
+          Settings.getNetworkEnabled(x) || 
+          Function == NWPlugin::Function::NWPLUGIN_EXIT;
+        if (Settings.getNWPluginID_for_network(x) && checkedEnabled) {
           event->NetworkIndex = x;
           String command;
 
@@ -81,32 +88,38 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
       return success;
     }
 
-    // calls to specific network
-    case NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS:
+    // calls to specific network which need to be enabled before calling
     case NWPlugin::Function::NWPLUGIN_INIT:
-    case NWPlugin::Function::NWPLUGIN_EXIT:
-    case NWPlugin::Function::NWPLUGIN_GET_DEVICENAME:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
+    case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
+    case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
 #ifdef ESP32
     case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
 #endif // ifdef ESP32
-    case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
-    case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
+
+      if (!validNetworkIndex(event->NetworkIndex) ||
+          !Settings.getNetworkEnabled(event->NetworkIndex)) { return false; }
+
+    // fall through
+
+    // calls to specific network
+    case NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS:
+    case NWPlugin::Function::NWPLUGIN_EXIT:
+    case NWPlugin::Function::NWPLUGIN_GET_DEVICENAME:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     case NWPlugin::Function::NWPLUGIN_DRIVER_TEMPLATE:
-    case NWPlugin::Function::NWPLUGIN_GET_PARAMETER_DISPLAY_NAME:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       const networkIndex_t networkIndex = event->NetworkIndex;
       bool success                      = false;
 
       if (validNetworkIndex(networkIndex)) {
-        if (Settings.getNetworkEnabled(networkIndex) && supportedNWPluginID(Settings.getNWPluginID_for_network(networkIndex)))
+        if (supportedNWPluginID(Settings.getNWPluginID_for_network(networkIndex)))
         {
           const networkDriverIndex_t networkDriverIndex =
             getNetworkDriverIndex_from_NetworkIndex(networkIndex);
@@ -172,7 +185,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
         }
 #ifdef ESP32
 
-        if (success && Function == NWPlugin::Function::NWPLUGIN_EXIT) {
+        if (success && (Function == NWPlugin::Function::NWPLUGIN_EXIT)) {
           //          Cache.clearNetworkSettings(networkIndex);
         }
 #endif // ifdef ESP32

@@ -97,7 +97,7 @@ void handle_networks()
 
     if (mustInit) {
       // Init network plugin using the new settings.
-      NWPlugin_Init_Exit(networkindex);
+      NWPlugin_Exit_Init(networkindex);
     }
 
   }
@@ -125,9 +125,7 @@ void handle_networks_clearLoadDefaults(ESPEasy::net::networkIndex_t networkindex
     TempEvent.NetworkIndex = networkindex;
 
     String dummy;
-    do_NWPluginCall(
-      NetworkDriverIndex,
-      NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS, &TempEvent, dummy);
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_LOAD_DEFAULTS, &TempEvent, dummy);
   }
 
   // TODO TD-er: Must also check NetworkDriverStruct to see if something else must be done
@@ -153,7 +151,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(ESPEasy::net::networkInd
     // Call network plugin to save CustomNetworkSettings
     addLog(LOG_LEVEL_INFO, F("Call network plugin to save CustomNetworkSettings"));
     String dummy;
-    do_NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 
 }
@@ -227,7 +225,6 @@ void handle_networks_ShowAllNetworksTable()
 
         String str;
 
-        // const bool res = do_NWPluginCall(NetworkDriverIndex, functions[i], &TempEvent, str);
         const bool res = NWPluginCall(functions[i], &TempEvent, str);
 #ifdef ESP32
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO) {
@@ -336,10 +333,10 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     TempEvent.NetworkIndex = networkindex;
 
     String str;
-    do_NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 # ifdef ESP32
 
-    if (do_NWPluginCall(networkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
+    if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
       {
         addFormSubHeader(F("Network Interface"));

@@ -155,7 +155,6 @@ const __FlashStringHelper* getCPluginCFunctionName(CPlugin::Function function) {
     case CPlugin::Function::CPLUGIN_FLUSH:                     return F("CPLUGIN_FLUSH");
     case CPlugin::Function::CPLUGIN_TEN_PER_SECOND:            return F("CPLUGIN_TEN_PER_SECOND");
     case CPlugin::Function::CPLUGIN_FIFTY_PER_SECOND:          return F("CPLUGIN_FIFTY_PER_SECOND");
-    case CPlugin::Function::CPLUGIN_INIT_ALL:                  return F("CPLUGIN_INIT_ALL");
     case CPlugin::Function::CPLUGIN_EXIT:                      return F("CPLUGIN_EXIT");
     case CPlugin::Function::CPLUGIN_WRITE:                     return F("CPLUGIN_WRITE");
 
@@ -164,6 +163,9 @@ const __FlashStringHelper* getCPluginCFunctionName(CPlugin::Function function) {
     case CPlugin::Function::CPLUGIN_INTERVAL:
     case CPlugin::Function::CPLUGIN_ACKNOWLEDGE:
     case CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG:
+    case CPlugin::Function::CPLUGIN_INIT_ALL:
+    case CPlugin::Function::CPLUGIN_EXIT_ALL:
+
       break;
   }
   return F("Unknown");
@@ -182,14 +184,12 @@ bool mustLogCFunction(CPlugin::Function function) {
     case CPlugin::Function::CPLUGIN_GET_DEVICENAME:            return false;
     case CPlugin::Function::CPLUGIN_WEBFORM_SAVE:              return false;
     case CPlugin::Function::CPLUGIN_WEBFORM_LOAD:              return false;
-    case CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME: return false;
     case CPlugin::Function::CPLUGIN_TASK_CHANGE_NOTIFICATION:  return false;
     case CPlugin::Function::CPLUGIN_INIT:                      return false;
     case CPlugin::Function::CPLUGIN_UDP_IN:                    return true;
     case CPlugin::Function::CPLUGIN_FLUSH:                     return false;
     case CPlugin::Function::CPLUGIN_TEN_PER_SECOND:            return true;
     case CPlugin::Function::CPLUGIN_FIFTY_PER_SECOND:          return true;
-    case CPlugin::Function::CPLUGIN_INIT_ALL:                  return false;
     case CPlugin::Function::CPLUGIN_EXIT:                      return false;
     case CPlugin::Function::CPLUGIN_WRITE:                     return true;
 
@@ -198,6 +198,9 @@ bool mustLogCFunction(CPlugin::Function function) {
     case CPlugin::Function::CPLUGIN_INTERVAL:
     case CPlugin::Function::CPLUGIN_ACKNOWLEDGE:
     case CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG:
+    case CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME:
+    case CPlugin::Function::CPLUGIN_INIT_ALL:
+    case CPlugin::Function::CPLUGIN_EXIT_ALL:
       break;
   }
   return false;

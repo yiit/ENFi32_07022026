@@ -123,7 +123,7 @@ void handle_controllers() {
 
     if (mustInit) {
       // Init controller plugin using the new settings.
-      CPlugin_Init_Exit(controllerindex);
+      CPlugin_Exit_Init(controllerindex);
     }
   }
 

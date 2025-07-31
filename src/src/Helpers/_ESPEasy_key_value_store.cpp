@@ -48,6 +48,8 @@ size_t getStorageSizePerType(ESPEasy_key_value_store::StorageType storageType)
     case ESPEasy_key_value_store::StorageType::MAX_Type:     break;
     case ESPEasy_key_value_store::StorageType::bool_true:
     case ESPEasy_key_value_store::StorageType::bool_false:   return 4 + 0;
+
+    case ESPEasy_key_value_store::StorageType::binary: break;
   }
   return 0;
 }
@@ -863,6 +865,7 @@ bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, u
     case ESPEasy_key_value_store::StorageType::not_set:
     case ESPEasy_key_value_store::StorageType::bool_true:
     case ESPEasy_key_value_store::StorageType::bool_false:
+    case ESPEasy_key_value_store::StorageType::binary:
     case ESPEasy_key_value_store::StorageType::MAX_Type:
       break;
   }

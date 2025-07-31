@@ -103,6 +103,7 @@ public:
     CPLUGIN_TEN_PER_SECOND,   // Called 10x per second (typical for checking new data instead of waiting)
     CPLUGIN_FIFTY_PER_SECOND, // Called 50x per second (typical for checking new data instead of waiting)
     CPLUGIN_INIT_ALL,
+    CPLUGIN_EXIT_ALL,
     CPLUGIN_EXIT,
     CPLUGIN_WRITE,            // Send commands to a controller.
 

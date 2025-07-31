@@ -48,6 +48,7 @@ String getNetworkParameterName(networkDriverIndex_t           NetworkDriverIndex
     EventStruct tmpEvent;
     tmpEvent.idx = parameterIdx;
 
+    // Only Network Driver specific call, so may call do_NWPluginCall directly 
     if (do_NWPluginCall(NetworkDriverIndex, NWPlugin::Function::NWPLUGIN_GET_PARAMETER_DISPLAY_NAME, &tmpEvent, name)) {
       // Found an alternative name for it.
       isAlternative = true;

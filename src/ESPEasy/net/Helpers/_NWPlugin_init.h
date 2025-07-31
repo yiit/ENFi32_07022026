@@ -28,7 +28,7 @@ void NWPluginSetup();
 void NWPluginInit();
 
 // Start or stop network as how it is set in the Settings
-void NWPlugin_Init_Exit(networkIndex_t networkIndex);
+void NWPlugin_Exit_Init(networkIndex_t networkIndex);
 
 
 // Macro to forward declare the NWPlugin_NNN functions.

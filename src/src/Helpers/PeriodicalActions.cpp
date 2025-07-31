@@ -517,6 +517,7 @@ void prepareShutdown(IntendedRebootReason_e reason)
   process_serialWriteBuffer();
   flushAndDisconnectAllClients();
   saveUserVarToRTC();
+  CPluginCall(CPlugin::Function::CPLUGIN_EXIT_ALL, 0);
   ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_EXIT_ALL, 0);
 //  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
   ESPEASY_FS.end();

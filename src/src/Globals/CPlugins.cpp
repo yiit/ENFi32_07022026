@@ -43,8 +43,13 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
       // only called from CPluginSetup() directly using protocolIndex
       break;
 
+    case CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME:
+      // Only called from _CPlugin_Helper_webform  getControllerParameterName
+      break;
+
     // calls to all active controllers
     case CPlugin::Function::CPLUGIN_INIT_ALL:
+    case CPlugin::Function::CPLUGIN_EXIT_ALL:
     case CPlugin::Function::CPLUGIN_UDP_IN:
     case CPlugin::Function::CPLUGIN_INTERVAL:      // calls to send stats information
     case CPlugin::Function::CPLUGIN_GOT_CONNECTED: // calls to send autodetect information
@@ -59,9 +64,16 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
       if (Function == CPlugin::Function::CPLUGIN_INIT_ALL) {
         Function = CPlugin::Function::CPLUGIN_INIT;
       }
+      if (Function == CPlugin::Function::CPLUGIN_EXIT_ALL) {
+        Function = CPlugin::Function::CPLUGIN_EXIT;
+      }
 
       for (controllerIndex_t x = 0; x < CONTROLLER_MAX; x++) {
-        if ((Settings.Protocol[x] != 0) && Settings.ControllerEnabled[x]) {
+        const bool checkedEnabled = 
+          Settings.ControllerEnabled[x] || 
+          Function == CPlugin::Function::CPLUGIN_EXIT;
+
+        if ((Settings.Protocol[x] != 0) && checkedEnabled) {
           event->ControllerIndex = x;
           String command;
 
@@ -84,7 +96,7 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
       return success;
     }
 
-        // calls to specific controller which need to be enabled before calling
+    // calls to specific controller which need to be enabled before calling
     case CPlugin::Function::CPLUGIN_INIT:
     case CPlugin::Function::CPLUGIN_PROTOCOL_SEND:
     case CPlugin::Function::CPLUGIN_PROTOCOL_RECV:
@@ -103,7 +115,6 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
     case CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE:
     case CPlugin::Function::CPLUGIN_WEBFORM_LOAD:
     case CPlugin::Function::CPLUGIN_WEBFORM_SAVE:
-    case CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME:
     case CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG:
     {
       const controllerIndex_t controllerindex = event->ControllerIndex;
