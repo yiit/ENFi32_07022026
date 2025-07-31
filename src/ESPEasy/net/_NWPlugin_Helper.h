@@ -2,8 +2,6 @@
 
 #include "../../ESPEasy_common.h"
 
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-
 # include "../../src/CustomBuild/ESPEasyLimits.h"
 # include "../../src/DataStructs/ESPEasy_EventStruct.h"
 # include "../net/DataStructs/NWPluginData_base.h"
@@ -38,5 +36,3 @@ bool nwpluginTaskData_initialized(ESPEasy::net::networkIndex_t networkIndex);
 } // namespace net
 } // namespace ESPEasy
 
-
-#endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS

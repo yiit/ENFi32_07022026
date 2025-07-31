@@ -27,15 +27,19 @@ NW001_data_struct_WiFi_STA::NW001_data_struct_WiFi_STA(networkIndex_t networkInd
   _connectedStats.clear();
   _gotIPStats.clear();
   _gotIP6Stats.clear();
+#ifdef ESP32
   nw_event_id = Network.onEvent(NW001_data_struct_WiFi_STA::onEvent);
+#endif
 }
 
 NW001_data_struct_WiFi_STA::~NW001_data_struct_WiFi_STA()
 {
+#ifdef ESP32
   if (nw_event_id != 0) {
     Network.removeEvent(nw_event_id);
   }
   nw_event_id = 0;
+#endif
 }
 
 void NW001_data_struct_WiFi_STA::webform_load(EventStruct *event) {}
@@ -99,6 +103,7 @@ bool NW001_data_struct_WiFi_STA::init(EventStruct *event)
 
 bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) { return true; }
 
+#ifdef ESP32
 void NW001_data_struct_WiFi_STA::onEvent(arduino_event_id_t   event,
                                          arduino_event_info_t info)
 {
@@ -150,6 +155,7 @@ void NW001_data_struct_WiFi_STA::onEvent(arduino_event_id_t   event,
     default: break;
   }
 }
+#endif
 
 } // namespace wifi
 } // namespace net

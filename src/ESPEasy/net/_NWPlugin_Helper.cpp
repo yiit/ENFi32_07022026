@@ -1,7 +1,5 @@
 #include "../net/_NWPlugin_Helper.h"
 
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-
 # include "../../src/CustomBuild/ESPEasyLimits.h"
 
 # include "../net/Globals/NWPlugins.h"
@@ -92,5 +90,3 @@ bool nwpluginTaskData_initialized(ESPEasy::net::networkIndex_t networkIndex) {
 
 } // namespace net
 } // namespace ESPEasy
-
-#endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
