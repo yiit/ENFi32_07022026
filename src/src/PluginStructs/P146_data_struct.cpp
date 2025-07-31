@@ -385,6 +385,8 @@ bool P146_data_struct::sendViaOriginalTask(
           String dummy;
 
           // FIXME TD-er: Must think about how to include the timestamp
+          // FIXME TD-er: Must this one call CPluginCall instead of do_CPluginCall ????
+          // Device VType might not be correct when calling do_CPluginCall
           if (do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, &tmpEvent, dummy)) {
             // FIXME TD-er: What to do when multiple controllers are selected and one fails?
             // Also, what if we only sent 1 value instead of all?

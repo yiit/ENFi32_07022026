@@ -5,6 +5,7 @@
 #include "../../../src/DataTypes/ESPEasy_plugin_functions.h"
 #include "../../../src/Globals/Settings.h"
 #include "../../../src/Helpers/Misc.h"
+#include "../../../src/Helpers/StringConverter.h"
 #include "../Globals/NWPlugins.h"
 
 namespace ESPEasy {
@@ -2119,8 +2120,26 @@ nwpluginID_t getHighestIncludedNWPluginID() { return nwpluginID_t::toPluginID(Hi
 
 bool         do_NWPluginCall(networkDriverIndex_t networkDriverIndex, NWPlugin::Function Function, EventStruct *event, String& string)
 {
+  static uint32_t networkIndex_initialized{};
   if (networkDriverIndex.value < NetworkDriverIndex_to_NWPlugin_id_size)
   {
+    if (Function == NWPlugin::Function::NWPLUGIN_INIT) {
+      if (bitRead(networkIndex_initialized, event->NetworkIndex)) {
+        // FIXME TD-er: What to do here? Was already initialized
+        addLog(LOG_LEVEL_ERROR, strformat(F("Network %d was already initialized"), event->NetworkIndex + 1));
+        return false;
+      }
+      bitSet(networkIndex_initialized, event->NetworkIndex);
+    } else if (Function == NWPlugin::Function::NWPLUGIN_EXIT) {
+      if (!bitRead(networkIndex_initialized, event->NetworkIndex)) {
+        // FIXME TD-er: What to do here? Was not (yet) initialized
+        addLog(LOG_LEVEL_ERROR, strformat(F("Network %d was not (yet) initialized"), event->NetworkIndex + 1));
+        return false;
+      }
+      bitClear(networkIndex_initialized, event->NetworkIndex);
+    }
+
+
     START_TIMER;
     NWPlugin_ptr_t nwplugin_call = (NWPlugin_ptr_t)pgm_read_ptr(NWPlugin_ptr + networkDriverIndex.value);
     const bool     res           = nwplugin_call(Function, event, string);

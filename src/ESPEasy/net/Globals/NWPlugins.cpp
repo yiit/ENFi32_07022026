@@ -172,7 +172,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
         }
 #ifdef ESP32
 
-        if (Function == NWPlugin::Function::NWPLUGIN_EXIT) {
+        if (success && Function == NWPlugin::Function::NWPLUGIN_EXIT) {
           //          Cache.clearNetworkSettings(networkIndex);
         }
 #endif // ifdef ESP32

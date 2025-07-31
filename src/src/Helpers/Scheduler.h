@@ -253,12 +253,12 @@ void                 setPluginTaskTimer(unsigned long msecFromNow,
 
 
   // Note: the event will be moved
-  void schedule_controller_event_timer(protocolIndex_t      ProtocolIndex,
+  void schedule_controller_event_timer(controllerIndex_t    ControllerIndex,
                                        uint8_t              Function,
                                        struct EventStruct&& event);
 
 #if FEATURE_MQTT
-  void schedule_mqtt_controller_event_timer(protocolIndex_t   ProtocolIndex,
+  void schedule_mqtt_controller_event_timer(controllerIndex_t ControllerIndex,
                                             CPlugin::Function Function,
                                             const char       *c_topic,
                                             const uint8_t    *b_payload,

@@ -9,6 +9,7 @@
 #include "../Globals/Settings.h"
 
 #include "../Helpers/Misc.h"
+#include "../Helpers/StringConverter.h"
 
 // ********************************************************************************
 // Initialize all Controller CPlugins that where defined earlier
@@ -2122,8 +2123,25 @@ cpluginID_t getHighestIncludedCPluginID()
 
 bool do_CPluginCall(protocolIndex_t protocolIndex, CPlugin::Function Function, struct EventStruct *event, String& string)
 {
+  static uint32_t controllerIndex_initialized{};
   if (protocolIndex < ProtocolIndex_to_CPlugin_id_size)
   {
+    if (Function == CPlugin::Function::CPLUGIN_INIT) {
+      if (bitRead(controllerIndex_initialized, event->ControllerIndex)) {
+        // FIXME TD-er: What to do here? Was already initialized
+        addLog(LOG_LEVEL_ERROR, strformat(F("Controller %d was already initialized"), event->ControllerIndex + 1));
+        return false;
+      }
+      bitSet(controllerIndex_initialized, event->ControllerIndex);
+    } else if (Function == CPlugin::Function::CPLUGIN_EXIT) {
+      if (!bitRead(controllerIndex_initialized, event->ControllerIndex)) {
+        // FIXME TD-er: What to do here? Was not (yet) initialized
+        addLog(LOG_LEVEL_ERROR, strformat(F("Controller %d was not (yet) initialized"), event->ControllerIndex + 1));
+        return false;
+      }
+      bitClear(controllerIndex_initialized, event->ControllerIndex);
+    }
+
     START_TIMER;
     CPlugin_ptr_t cplugin_call = (CPlugin_ptr_t)pgm_read_ptr(CPlugin_ptr + protocolIndex);
     const bool res = cplugin_call(Function, event, string);

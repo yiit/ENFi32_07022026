@@ -164,13 +164,14 @@ void handle_controllers_clearLoadDefaults(uint8_t controllerindex, ControllerSet
 
   // Load some templates from the controller.
   struct EventStruct TempEvent;
+  TempEvent.ControllerIndex = controllerindex;
 
   // Hand over the controller settings in the Data pointer, so the controller can set some defaults.
   TempEvent.Data = (uint8_t *)(&ControllerSettings);
 
   if (proto.usesTemplate) {
     String dummy;
-    do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE, &TempEvent, dummy);
+    CPluginCall(CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE, &TempEvent, dummy);
   }
   safe_strncpy(ControllerSettings.Subscribe,            TempEvent.String1.c_str(), sizeof(ControllerSettings.Subscribe));
   safe_strncpy(ControllerSettings.Publish,              TempEvent.String2.c_str(), sizeof(ControllerSettings.Publish));
@@ -209,7 +210,7 @@ void handle_controllers_CopySubmittedSettings_CPluginCall(uint8_t controllerinde
 
     // Call controller plugin to save CustomControllerSettings
     String dummy;
-    do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    CPluginCall(CPlugin::Function::CPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 }
 
@@ -265,10 +266,11 @@ void handle_controllers_ShowAllControllersTable()
         html_TD();
         addHtml(getCPluginNameFromCPluginID(Settings.Protocol[x]));
         html_TD();
-        const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(x);
         {
           String hostDescription;
-          do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG, 0, hostDescription);
+          EventStruct TempEvent;
+          TempEvent.ControllerIndex = x;
+          CPluginCall(CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG, &TempEvent, hostDescription);
 
           if (!hostDescription.isEmpty()) {
             addHtml(hostDescription);
@@ -278,6 +280,7 @@ void handle_controllers_ShowAllControllersTable()
         }
 
         html_TD();
+        const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(x);
         const ProtocolStruct& proto = getProtocolStruct(ProtocolIndex);
 
         if ((INVALID_PROTOCOL_INDEX == ProtocolIndex) || proto.usesPort) {
@@ -489,7 +492,7 @@ void handle_controllers_ControllerSettingsPage(controllerIndex_t controllerindex
       TempEvent.ControllerIndex = controllerindex;
 
       String webformLoadString;
-      do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_WEBFORM_LOAD, &TempEvent, webformLoadString);
+      CPluginCall(CPlugin::Function::CPLUGIN_WEBFORM_LOAD, &TempEvent, webformLoadString);
 
       if (webformLoadString.length() > 0) {
         addHtmlError(F("Bug in CPlugin::Function::CPLUGIN_WEBFORM_LOAD, should not append to string, use addHtml() instead"));

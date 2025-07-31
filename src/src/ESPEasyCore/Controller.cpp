@@ -65,16 +65,17 @@ void sendData(struct EventStruct *event, bool sendEvents)
         Settings.Protocol[x])
     {
       event->ControllerIndex = x;
-      const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(event->ControllerIndex);
       event->idx = Settings.TaskDeviceID[x][event->TaskIndex];
 
       if (validUserVar(event)) {
         String dummy;
-        do_CPluginCall(ProtocolIndex, CPlugin::Function::CPLUGIN_PROTOCOL_SEND, event, dummy);
+        CPluginCall(CPlugin::Function::CPLUGIN_PROTOCOL_SEND, event, dummy);
       }
 #ifndef BUILD_NO_DEBUG
       else {
         if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
+          const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(event->ControllerIndex);
+
           String log = F("Invalid value detected for controller ");
           log += getCPluginNameFromProtocolIndex(ProtocolIndex);
           addLogMove(LOG_LEVEL_DEBUG, log);
@@ -130,10 +131,8 @@ void incoming_mqtt_callback(char *c_topic, uint8_t *b_payload, unsigned int leng
   }
 
   // TD-er: This one cannot set the TaskIndex, but that may seem to work out.... hopefully.
-  protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(enabledMqttController);
-
   Scheduler.schedule_mqtt_controller_event_timer(
-    ProtocolIndex,
+    enabledMqttController,
     CPlugin::Function::CPLUGIN_PROTOCOL_RECV,
     c_topic, b_payload, length);
 
@@ -461,6 +460,11 @@ bool MQTTConnect(controllerIndex_t controller_idx)
     mqtt_tls->clearLastError();
     #  endif // ifdef ESP32
     // mqtt_tls_last_errorstr = buf;
+    if (mqtt_tls_last_error == ERR_OOM) mqtt_tls_last_errorstr = F("OutOfMemory");
+    if (mqtt_tls_last_error == ERR_CANT_RESOLVE_IP) mqtt_tls_last_errorstr = F("Can't resolve IP");
+    if (mqtt_tls_last_error == ERR_TCP_CONNECT) mqtt_tls_last_errorstr = F("TCP Connect error");
+    if (mqtt_tls_last_error == ERR_MISSING_CA) mqtt_tls_last_errorstr = F("Missing CA");
+
   }
   #  ifdef ESP32
 

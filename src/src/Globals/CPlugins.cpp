@@ -84,24 +84,33 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
       return success;
     }
 
-    // calls to specific controller
+        // calls to specific controller which need to be enabled before calling
     case CPlugin::Function::CPLUGIN_INIT:
-    case CPlugin::Function::CPLUGIN_EXIT:
-    case CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE:
     case CPlugin::Function::CPLUGIN_PROTOCOL_SEND:
     case CPlugin::Function::CPLUGIN_PROTOCOL_RECV:
+    case CPlugin::Function::CPLUGIN_TASK_CHANGE_NOTIFICATION:
+      if (!validControllerIndex(event->ControllerIndex) 
+       || !Settings.ControllerEnabled[event->ControllerIndex]) 
+       {
+        return false;
+       }
+       // fall through
+
+
+    // calls to specific controller which might not be enabled when calling this function
+    case CPlugin::Function::CPLUGIN_EXIT:
     case CPlugin::Function::CPLUGIN_GET_DEVICENAME:
+    case CPlugin::Function::CPLUGIN_PROTOCOL_TEMPLATE:
     case CPlugin::Function::CPLUGIN_WEBFORM_LOAD:
     case CPlugin::Function::CPLUGIN_WEBFORM_SAVE:
     case CPlugin::Function::CPLUGIN_GET_PROTOCOL_DISPLAY_NAME:
-    case CPlugin::Function::CPLUGIN_TASK_CHANGE_NOTIFICATION:
     case CPlugin::Function::CPLUGIN_WEBFORM_SHOW_HOST_CONFIG:
     {
       const controllerIndex_t controllerindex = event->ControllerIndex;
       bool success                            = false;
 
       if (validControllerIndex(controllerindex)) {
-        if (Settings.ControllerEnabled[controllerindex] && supportedCPluginID(Settings.Protocol[controllerindex]))
+        if (supportedCPluginID(Settings.Protocol[controllerindex]))
         {
           if (Function == CPlugin::Function::CPLUGIN_PROTOCOL_SEND) {
             checkDeviceVTypeForTask(event);
@@ -114,13 +123,13 @@ bool CPluginCall(CPlugin::Function Function, struct EventStruct *event, String& 
         }
         #ifdef ESP32
 
-        if (Function == CPlugin::Function::CPLUGIN_EXIT) {
+        if (success && Function == CPlugin::Function::CPLUGIN_EXIT) {
           Cache.clearControllerSettings(controllerindex);
         }
         #endif // ifdef ESP32
         #if FEATURE_MQTT_DISCOVER
 
-        if (Function == CPlugin::Function::CPLUGIN_EXIT) {
+        if (success && Function == CPlugin::Function::CPLUGIN_EXIT) {
           if (mqttDiscoveryController == controllerindex) {
             mqttDiscoveryController = INVALID_CONTROLLER_INDEX; // Reset
             mqttDiscoverOnlyTask    = INVALID_TASK_INDEX;
