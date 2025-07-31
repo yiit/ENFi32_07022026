@@ -143,7 +143,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                 switch (Function)
                 {
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
-# if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+# if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 2)
 
                     // TODO TD-er: Must also add option to set route prio
                     // See: https://github.com/espressif/arduino-esp32/pull/11617

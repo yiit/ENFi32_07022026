@@ -905,7 +905,9 @@ void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_even
   {
     case ARDUINO_EVENT_PPP_START:     addLog(LOG_LEVEL_INFO, F("PPP Started"));
       _startStopStats.setOn();
+# if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
       PPP.setRoutePrio(200);
+#endif
       break;
     case ARDUINO_EVENT_PPP_STOP:      addLog(LOG_LEVEL_INFO, F("PPP Stopped"));
       _startStopStats.setOff();
