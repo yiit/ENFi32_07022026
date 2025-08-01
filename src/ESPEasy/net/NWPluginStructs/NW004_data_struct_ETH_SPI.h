@@ -1,17 +1,17 @@
 #pragma once
 
 #include "../_NWPlugin_Helper.h"
-#ifdef USES_NW001
+#ifdef USES_NW004
 
 
 namespace ESPEasy {
 namespace net {
-namespace wifi {
+namespace eth {
 
-struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
+struct NW004_data_struct_ETH_SPI : public NWPluginData_base {
 
-  NW001_data_struct_WiFi_STA(networkIndex_t networkIndex);
-  ~NW001_data_struct_WiFi_STA();
+  NW004_data_struct_ETH_SPI(networkIndex_t networkIndex);
+  ~NW004_data_struct_ETH_SPI();
 
 
   void webform_load(EventStruct *event);
@@ -23,23 +23,21 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
 
   bool exit(EventStruct *event);
 
-#ifdef ESP32
   bool handle_priority_route_changed();
-#endif
 
 private:
-#ifdef ESP32
+
   static void onEvent(arduino_event_id_t   event,
                       arduino_event_info_t info);
 
   network_event_handle_t nw_event_id = 0;
-#endif
+
 };
 
 
-} // namespace wifi
+} // namespace eth
 } // namespace net
 } // namespace ESPEasy
 
 
-#endif // ifdef USES_NW001
+#endif // ifdef USES_NW004

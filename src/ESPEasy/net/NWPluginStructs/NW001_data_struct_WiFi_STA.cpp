@@ -18,8 +18,10 @@ namespace wifi {
 static LongTermOnOffTimer _startStopStats;
 static LongTermOnOffTimer _connectedStats;
 static LongTermOnOffTimer _gotIPStats;
+# ifdef ESP32
 static LongTermOnOffTimer _gotIP6Stats;
-
+static IPAddress _dns_cache[2]{};
+# endif // ifdef ESP32
 
 NW001_data_struct_WiFi_STA::NW001_data_struct_WiFi_STA(networkIndex_t networkIndex)
   : NWPluginData_base(nwpluginID_t(1), networkIndex)
@@ -27,19 +29,20 @@ NW001_data_struct_WiFi_STA::NW001_data_struct_WiFi_STA(networkIndex_t networkInd
   _connectedStats.clear();
   _gotIPStats.clear();
   _gotIP6Stats.clear();
-#ifdef ESP32
+# ifdef ESP32
   nw_event_id = Network.onEvent(NW001_data_struct_WiFi_STA::onEvent);
-#endif
+# endif
 }
 
 NW001_data_struct_WiFi_STA::~NW001_data_struct_WiFi_STA()
 {
-#ifdef ESP32
+# ifdef ESP32
+
   if (nw_event_id != 0) {
     Network.removeEvent(nw_event_id);
   }
   nw_event_id = 0;
-#endif
+# endif // ifdef ESP32
 }
 
 void NW001_data_struct_WiFi_STA::webform_load(EventStruct *event) {}
@@ -101,9 +104,36 @@ bool NW001_data_struct_WiFi_STA::init(EventStruct *event)
   return true;
 }
 
-bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) { return true; }
+bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) {
+  ESPEasy::net::wifi::exitWiFi();
+  return true;
+}
 
-#ifdef ESP32
+# ifdef ESP32
+
+bool NW001_data_struct_WiFi_STA::handle_priority_route_changed()
+{
+  bool res{};
+
+  if (WiFi.STA.isDefault()) {
+    // Check to see if we may need to restore any cached DNS server
+    for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
+      auto tmp = WiFi.STA.dnsIP(i);
+
+      if ((_dns_cache[i] != INADDR_NONE) && (_dns_cache[i] != tmp)) {
+        WiFi.STA.dnsIP(i, _dns_cache[i]);
+        res = true;
+      }
+    }
+  }
+  return res;
+}
+
+# endif // ifdef ESP32
+
+
+# ifdef ESP32
+
 void NW001_data_struct_WiFi_STA::onEvent(arduino_event_id_t   event,
                                          arduino_event_info_t info)
 {
@@ -138,6 +168,16 @@ void NW001_data_struct_WiFi_STA::onEvent(arduino_event_id_t   event,
       addLog(LOG_LEVEL_INFO, F("STA_AUTHMODE_CHANGE"));
       break;
     case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+
+      for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
+        auto tmp = WiFi.STA.dnsIP(i);
+
+        if (tmp != INADDR_NONE) {
+          _dns_cache[i] = tmp;
+          addLog(LOG_LEVEL_INFO, strformat(F("DNS Cache %d set to %s"), i, tmp.toString(true).c_str()));
+        }
+
+      }
       _gotIPStats.setOn();
       addLog(LOG_LEVEL_INFO, F("STA_GOT_IP"));
       break;
@@ -155,7 +195,8 @@ void NW001_data_struct_WiFi_STA::onEvent(arduino_event_id_t   event,
     default: break;
   }
 }
-#endif
+
+# endif // ifdef ESP32
 
 } // namespace wifi
 } // namespace net

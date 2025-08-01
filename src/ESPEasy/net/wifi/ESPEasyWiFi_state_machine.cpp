@@ -42,7 +42,7 @@ void ESPEasyWiFi_t::setup() {
 
 void ESPEasyWiFi_t::enable()  {}
 
-void ESPEasyWiFi_t::disable() {}
+void ESPEasyWiFi_t::disable() { setState(WiFiState_e::Disabled, 100); }
 
 void ESPEasyWiFi_t::begin()   { setState(WiFiState_e::IdleWaiting, 100); }
 

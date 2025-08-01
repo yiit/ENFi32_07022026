@@ -28,7 +28,12 @@ namespace ppp {
 static LongTermOnOffTimer _startStopStats;
 static LongTermOnOffTimer _connectedStats;
 static LongTermOnOffTimer _gotIPStats;
+#if FEATURE_USE_IPV6
 static LongTermOnOffTimer _gotIP6Stats;
+#endif
+static IPAddress _dns_cache[2]{};
+
+
 
 
 // Keys as used in the Key-value-store
@@ -881,6 +886,25 @@ bool NW005_data_struct_PPP_modem::exit(EventStruct *event)
   return true;
 }
 
+bool NW005_data_struct_PPP_modem::handle_priority_route_changed()
+{
+  bool res{};
+
+  if (PPP.isDefault()) {
+    // Check to see if we may need to restore any cached DNS server
+    for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
+      auto tmp = PPP.dnsIP(i);
+
+      if ((_dns_cache[i] != INADDR_NONE) && (_dns_cache[i] != tmp)) {
+        PPP.dnsIP(i, _dns_cache[i]);
+        res = true;
+      }
+    }
+  }
+  return res;
+}
+
+
 String NW005_data_struct_PPP_modem::write_AT_cmd(const String& cmd, int timeout)
 {
   String res;
@@ -925,6 +949,16 @@ void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_even
       WiFi.AP.enableNAPT(false);
       break;
     case ARDUINO_EVENT_PPP_GOT_IP:
+      for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
+        auto tmp = WiFi.STA.dnsIP(i);
+
+        if (tmp != INADDR_NONE) {
+          _dns_cache[i] = tmp;
+          addLog(LOG_LEVEL_INFO, strformat(F("DNS Cache %d set to %s"), i, tmp.toString(true).c_str()));
+        }
+
+      }
+
       _gotIPStats.setOn();
       addLog(LOG_LEVEL_INFO, F("PPP Got IP"));
 

@@ -39,6 +39,7 @@ bool  prepareWiFi();
 bool  checkAndResetWiFi();
 void  resetWiFi();
 void  initWiFi();
+void  exitWiFi();
 void  loopWiFi();
 
 # if FEATURE_SET_WIFI_TX_PWR

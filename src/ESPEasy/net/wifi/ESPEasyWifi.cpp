@@ -166,6 +166,8 @@ void resetWiFi() {
 
 void initWiFi() { ESPEasyWiFi.setup(); }
 
+void exitWiFi() { ESPEasyWiFi.disable(); }
+
 void loopWiFi() { ESPEasyWiFi.loop(); }
 
 // ********************************************************************************

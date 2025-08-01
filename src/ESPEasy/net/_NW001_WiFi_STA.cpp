@@ -307,7 +307,18 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       ESPEasy::net::wifi::loopWiFi();
       break;
     }
+# ifdef ESP32
+    case NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED:
+    {
+      ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *NW_data =
+        static_cast<ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *>(getNWPluginData(event->NetworkIndex));
 
+      if (NW_data) {
+        success = NW_data->handle_priority_route_changed();
+      }
+      break;
+    }
+# endif // ifdef ESP32
 
     default:
       break;

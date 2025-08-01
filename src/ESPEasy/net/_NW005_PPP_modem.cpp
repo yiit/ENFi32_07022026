@@ -87,9 +87,10 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
             NW_data->getRSSI().c_str());
 
           auto connectionDuration_ms = NW_data->getConnectedDuration_ms();
+
           if (connectionDuration_ms > 0) {
             string += concat(
-              F("<br>"), 
+              F("<br>"),
               format_msec_duration_HMS(connectionDuration_ms));
           }
         }
@@ -134,9 +135,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+# if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
         NW_data->init_KVS();
-#endif
+# endif
       }
 
       if (NW_data) {
@@ -157,9 +158,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+# if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
         NW_data->init_KVS();
-#endif
+# endif
       }
 
       if (NW_data) {
@@ -195,6 +196,27 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
+
+
+    case NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND:
+    {
+      break;
+    }
+
+    case NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND:
+    // FIXME TD-er: Must make this act on DNS updates from other interfaces
+    // Fall through
+    case NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED:
+    {
+      ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
+        static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
+
+      if (NW_data) {
+        success = NW_data->handle_priority_route_changed();
+      }
+      break;
+    }
+
 
     default:
       break;

@@ -27,6 +27,8 @@
 # include "../net/Helpers/_NWPlugin_Helper_webform.h"
 # include "../net/Helpers/_NWPlugin_init.h"
 
+# include "../net/NWPluginStructs/NW003_data_struct_ETH_RMII.h"
+
 # include <pins_arduino.h>
 
 namespace ESPEasy {
@@ -295,6 +297,19 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
+    case NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND:
+    // FIXME TD-er: Must make this act on DNS updates from other interfaces
+    // Fall through
+    case NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED:
+    {
+      ESPEasy::net::eth::NW003_data_struct_ETH_RMII *NW_data =
+        static_cast<ESPEasy::net::eth::NW003_data_struct_ETH_RMII *>(getNWPluginData(event->NetworkIndex));
+
+      if (NW_data) {
+        success = NW_data->handle_priority_route_changed();
+      }
+      break;
+    }
 
     default:
       break;

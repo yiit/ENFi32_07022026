@@ -50,6 +50,8 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 
   bool                    exit(EventStruct *event);
 
+  bool handle_priority_route_changed();
+
   String                  write_AT_cmd(const String& cmd,
                                        int           timeout = 1000);
 

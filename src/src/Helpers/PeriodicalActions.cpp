@@ -57,6 +57,22 @@
 void run50TimesPerSecond() {
   String dummy;
   {
+    // Do network calls first, so any needed checks or updates are done 
+    // before any controller may need to use the network
+#ifdef ESP32
+    static const NetworkInterface *lastDefaultInterface = nullptr;
+    NetworkInterface * currentDefaultInterface = Network.getDefaultInterface();
+    if (lastDefaultInterface != currentDefaultInterface) {
+      ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED, 0, dummy);
+      lastDefaultInterface = currentDefaultInterface;
+    }
+#endif
+
+    START_TIMER;
+    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND, 0, dummy);
+    STOP_TIMER(NWPLUGIN_CALL_50PS);
+  }
+  {
     START_TIMER;
     PluginCall(PLUGIN_FIFTY_PER_SECOND, 0, dummy);
     STOP_TIMER(PLUGIN_CALL_50PS);
@@ -65,11 +81,6 @@ void run50TimesPerSecond() {
     START_TIMER;
     CPluginCall(CPlugin::Function::CPLUGIN_FIFTY_PER_SECOND, 0, dummy);
     STOP_TIMER(CPLUGIN_CALL_50PS);
-  }
-  {
-    START_TIMER;
-    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND, 0, dummy);
-    STOP_TIMER(NWPLUGIN_CALL_50PS);
   }
 
   processNextEvent();
@@ -88,6 +99,11 @@ void run10TimesPerSecond() {
   }
   {
     START_TIMER;
+    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND, 0, dummy);
+    STOP_TIMER(NWPLUGIN_CALL_10PS);
+  }
+  {
+    START_TIMER;
     PluginCall(PLUGIN_TEN_PER_SECOND, 0, dummy);
     STOP_TIMER(PLUGIN_CALL_10PS);
   }
@@ -101,11 +117,6 @@ void run10TimesPerSecond() {
     START_TIMER;
     CPluginCall(CPlugin::Function::CPLUGIN_TEN_PER_SECOND, 0, dummy);
     STOP_TIMER(CPLUGIN_CALL_10PS);
-  }
-  {
-    START_TIMER;
-    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND, 0, dummy);
-    STOP_TIMER(NWPLUGIN_CALL_10PS);
   }
   
   #ifdef USES_C015
