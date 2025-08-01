@@ -40,13 +40,13 @@ ESPEasyWiFi_STA_EventHandler::ESPEasyWiFi_STA_EventHandler()
   // WiFi event handlers
 
   if (!_ESPEasyWiFi_STA_EventHandler_initialized) {
-    stationConnectedHandler          = WiFi.onStationModeConnected(onConnected);
-    stationDisconnectedHandler       = WiFi.onStationModeDisconnected(onDisconnect);
-    stationGotIpHandler              = WiFi.onStationModeGotIP(onGotIP);
-    stationModeDHCPTimeoutHandler    = WiFi.onStationModeDHCPTimeout(onDHCPTimeout);
-    stationModeAuthModeChangeHandler = WiFi.onStationModeAuthModeChanged(onStationModeAuthModeChanged);
-    APModeStationConnectedHandler    = WiFi.onSoftAPModeStationConnected(onConnectedAPmode);
-    APModeStationDisconnectedHandler = WiFi.onSoftAPModeStationDisconnected(onDisconnectedAPmode);
+    stationConnectedHandler                   = WiFi.onStationModeConnected(onConnected);
+    stationDisconnectedHandler                = WiFi.onStationModeDisconnected(onDisconnect);
+    stationGotIpHandler                       = WiFi.onStationModeGotIP(onGotIP);
+    stationModeDHCPTimeoutHandler             = WiFi.onStationModeDHCPTimeout(onDHCPTimeout);
+    stationModeAuthModeChangeHandler          = WiFi.onStationModeAuthModeChanged(onStationModeAuthModeChanged);
+    APModeStationConnectedHandler             = WiFi.onSoftAPModeStationConnected(onConnectedAPmode);
+    APModeStationDisconnectedHandler          = WiFi.onSoftAPModeStationDisconnected(onDisconnectedAPmode);
     _ESPEasyWiFi_STA_EventHandler_initialized = true;
   }
 }
@@ -54,7 +54,7 @@ ESPEasyWiFi_STA_EventHandler::ESPEasyWiFi_STA_EventHandler()
 ESPEasyWiFi_STA_EventHandler::~ESPEasyWiFi_STA_EventHandler()
 {}
 
-bool ESPEasyWiFi_STA_EventHandler::initialized() { return _ESPEasyWiFi_STA_EventHandler_initialized; }
+bool                 ESPEasyWiFi_STA_EventHandler::initialized()                   { return _ESPEasyWiFi_STA_EventHandler_initialized; }
 
 LongTermOnOffTimer   ESPEasyWiFi_STA_EventHandler::getEnabled_OnOffTimer() const   { return _startStopStats; }
 
@@ -64,8 +64,7 @@ LongTermOnOffTimer   ESPEasyWiFi_STA_EventHandler::getGotIp_OnOffTimer() const  
 
 WiFiDisconnectReason ESPEasyWiFi_STA_EventHandler::getLastDisconnectReason() const { return _wifi_disconnect_reason; }
 
-uint8_t ESPEasyWiFi_STA_EventHandler::getAuthMode() const { return _authmode; }
-
+uint8_t              ESPEasyWiFi_STA_EventHandler::getAuthMode() const             { return _authmode; }
 
 // ********************************************************************************
 // Functions called on events.
@@ -73,13 +72,15 @@ uint8_t ESPEasyWiFi_STA_EventHandler::getAuthMode() const { return _authmode; }
 // ********************************************************************************
 void ESPEasyWiFi_STA_EventHandler::onConnected(const WiFiEventStationModeConnected& event) {
   _connectedStats.setOn();
-//  WiFiEventData.markConnected(event.ssid, event.bssid, event.channel);
+
+  //  WiFiEventData.markConnected(event.ssid, event.bssid, event.channel);
 }
 
 void ESPEasyWiFi_STA_EventHandler::onDisconnect(const WiFiEventStationModeDisconnected& event) {
   _connectedStats.setOff();
   _gotIPStats.setOff();
-//  WiFiEventData.markDisconnect(event.reason);
+
+  //  WiFiEventData.markDisconnect(event.reason);
 
   if (WiFi.status() == WL_CONNECTED) {
     // See https://github.com/esp8266/Arduino/issues/5912
@@ -95,24 +96,25 @@ void ESPEasyWiFi_STA_EventHandler::onGotIP(const WiFiEventStationModeGotIP& even
   _gotIPStats.setOff();
   _gotIPStats.setOn();
 
-  //WiFiEventData.markGotIP(event.ip, event.mask, event.gw);
+  // WiFiEventData.markGotIP(event.ip, event.mask, event.gw);
 }
 
 void ESPEasyWiFi_STA_EventHandler::onDHCPTimeout()                                                                {
-//  WiFiEventData.processedDHCPTimeout = false;
+  //  WiFiEventData.processedDHCPTimeout = false;
 }
 
 void ESPEasyWiFi_STA_EventHandler::onConnectedAPmode(const WiFiEventSoftAPModeStationConnected& event)            {
-//  WiFiEventData.markConnectedAPmode(event.mac);
+  //  WiFiEventData.markConnectedAPmode(event.mac);
 }
 
 void ESPEasyWiFi_STA_EventHandler::onDisconnectedAPmode(const WiFiEventSoftAPModeStationDisconnected& event)      {
-//  WiFiEventData.markDisconnectedAPmode(event.mac);
+  //  WiFiEventData.markDisconnectedAPmode(event.mac);
 }
 
 void ESPEasyWiFi_STA_EventHandler::onStationModeAuthModeChanged(const WiFiEventStationModeAuthModeChanged& event) {
   _authmode = event.newMode;
-//  WiFiEventData.setAuthMode(event.newMode);
+
+  //  WiFiEventData.setAuthMode(event.newMode);
 }
 
 #  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
@@ -148,7 +150,7 @@ void ESPEasyWiFi_STA_EventHandler::onWiFiScanDone(void ESPEasyWiFi_STA_EventHand
         // addLog(LOG_LEVEL_INFO, F("WiFi : Added known candidate, try to connect"));
       }
       #   endif // ifndef BUILD_NO_DEBUG
-//      NetworkConnectRelaxed();
+      //      NetworkConnectRelaxed();
     }
 
   }

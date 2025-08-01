@@ -14,6 +14,8 @@
 # include "../../../src/WebServer/Markup_Forms.h"
 # include "../../../src/WebServer/ESPEasy_key_value_store_webform.h"
 
+#include "../Globals/NetworkState.h"
+
 # include <ESPEasySerialPort.h>
 # include <PPP.h>
 
@@ -959,6 +961,10 @@ void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_even
       WiFi.AP.enableNAPT(false);
       break;
     case ARDUINO_EVENT_PPP_GOT_IP:
+
+      if (!NW_PLUGIN_INTERFACE.isDefault()) {
+        nonDefaultNetworkInterface_gotIP = true;
+      }
 
       for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
         auto tmp = NW_PLUGIN_INTERFACE.dnsIP(i);

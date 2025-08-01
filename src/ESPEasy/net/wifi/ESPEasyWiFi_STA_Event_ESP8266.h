@@ -32,13 +32,13 @@ public:
   ESPEasyWiFi_STA_EventHandler();
   ~ESPEasyWiFi_STA_EventHandler();
 
-  static bool initialized();
-  
-  LongTermOnOffTimer  getEnabled_OnOffTimer() const;
-  LongTermOnOffTimer  getConnected_OnOffTimer() const;
-  LongTermOnOffTimer  getGotIp_OnOffTimer() const;
+  static bool          initialized();
+
+  LongTermOnOffTimer   getEnabled_OnOffTimer() const;
+  LongTermOnOffTimer   getConnected_OnOffTimer() const;
+  LongTermOnOffTimer   getGotIp_OnOffTimer() const;
   WiFiDisconnectReason getLastDisconnectReason() const;
-  uint8_t getAuthMode() const;
+  uint8_t              getAuthMode() const;
 
 
   // ********************************************************************************

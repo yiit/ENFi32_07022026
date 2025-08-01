@@ -167,7 +167,10 @@ void ESPEasyWiFi_STA_EventHandler::WiFiEvent(WiFiEvent_t event_id, arduino_event
         if (tmp != INADDR_NONE) {
           addLog(LOG_LEVEL_INFO, strformat(F("DNS Cache %d set to %s"), i, tmp.toString(true).c_str()));
         }
+      }
 
+      if (!WiFi.STA.isDefault()) {
+        nonDefaultNetworkInterface_gotIP = true;
       }
 
       // Set OnOffTimer to off so we can also count how often we het new IP
@@ -177,6 +180,11 @@ void ESPEasyWiFi_STA_EventHandler::WiFiEvent(WiFiEvent_t event_id, arduino_event
       break;
 #  if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
+
+      if (!WiFi.STA.isDefault()) {
+        nonDefaultNetworkInterface_gotIP = true;
+      }
+
       _gotIP6Stats.setOn();
 
       addLog(LOG_LEVEL_INFO, F("STA_GOT_IP6"));

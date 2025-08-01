@@ -28,3 +28,6 @@ extern IPAddress     apIP;
 
 // udp protocol stuff (syslog, global sync, node info list, ntp time)
 extern WiFiUDP portUDP;
+#ifdef ESP32
+extern bool nonDefaultNetworkInterface_gotIP;
+#endif

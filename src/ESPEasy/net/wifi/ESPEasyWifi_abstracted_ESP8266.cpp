@@ -19,7 +19,7 @@ namespace net {
 namespace wifi {
 
 bool WiFi_pre_setup() {
-  if (!ESPEasyWiFi_STA_EventHandler::initialized()) return false;
+  if (!ESPEasyWiFi_STA_EventHandler::initialized()) { return false; }
 
   doSetSTA_AP(false, false);
   delay(100);
@@ -209,7 +209,6 @@ void doWifiScan(bool async, uint8_t channel) {
 
 }
 
-
 float doGetRSSIthreshold(float& maxTXpwr) {
   maxTXpwr = Settings.getWiFi_TX_power();
 
@@ -323,7 +322,6 @@ void doSetWiFiCountryPolicyManual() {
   // Not yet implemented/required for ESP8266
 }
 
-
 class WiFi_Access_Static_IP : public ESP8266WiFiSTAClass
 {
 public:
@@ -335,6 +333,7 @@ void WiFi_Access_Static_IP::set_use_static_ip(bool enabled) { _useStaticIp = ena
 
 void doSetUseStaticIP(bool enabled) {
   WiFi_Access_Static_IP tmp;
+
   tmp.set_use_static_ip(enabled);
 }
 

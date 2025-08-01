@@ -27,9 +27,9 @@ namespace net {
 namespace wifi {
 
 bool WiFi_pre_setup() {
-  if (!ESPEasyWiFi_STA_EventHandler::initialized()) return false;
+  if (!ESPEasyWiFi_STA_EventHandler::initialized()) { return false; }
 
-//  registerWiFiEventHandler();
+  //  registerWiFiEventHandler();
   WiFi.persistent(false);
 
   return doSetSTA_AP(false, false);
@@ -69,7 +69,7 @@ bool doSetWifiMode(WiFiMode_t new_mode)
 
   if (cur_mode == new_mode) {
     if (cur_mode != WIFI_OFF) {
-//      registerWiFiEventHandler();
+      //      registerWiFiEventHandler();
     }
     return true;
   }
@@ -289,7 +289,6 @@ void doWifiScan(bool async, uint8_t channel) {
   WiFi.setBandMode(current_wifi_band_mode);
 #  endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 }
-
 
 float doGetRSSIthreshold(float& maxTXpwr) {
   maxTXpwr = Settings.getWiFi_TX_power();
@@ -578,16 +577,14 @@ void doSetWiFiCountryPolicyManual()
 }
 
 /*
-class WiFi_Access_Static_IP : public WiFiSTAClass
-{
-public:
+   class WiFi_Access_Static_IP : public WiFiSTAClass
+   {
+   public:
 
-  void set_use_static_ip(bool enabled);
-};
-*/
-
-void doSetUseStaticIP(bool enabled)
-{}
+   void set_use_static_ip(bool enabled);
+   };
+ */
+void doSetUseStaticIP(bool enabled) {}
 
 } // namespace wifi
 } // namespace net

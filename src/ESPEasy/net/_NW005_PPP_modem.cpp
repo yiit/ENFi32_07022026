@@ -203,9 +203,6 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
-    case NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND:
-    // FIXME TD-er: Must make this act on DNS updates from other interfaces
-    // Fall through
     case NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED:
     {
       ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =

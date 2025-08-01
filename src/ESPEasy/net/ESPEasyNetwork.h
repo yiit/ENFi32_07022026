@@ -19,7 +19,7 @@ namespace net {
 
 void           setNetworkMedium(NetworkMedium_t medium);
 
-//void           NetworkConnectRelaxed();
+// void           NetworkConnectRelaxed();
 bool           NetworkConnected();
 IPAddress      NetworkLocalIP();
 IPAddress      NetworkSubnetMask();
@@ -45,18 +45,21 @@ MAC_address    NetworkMacAddress();
 String         NetworkGetHostNameFromSettings(bool force_add_unitnr = false);
 String         NetworkGetHostname();
 String         NetworkCreateRFCCompliantHostname(bool force_add_unitnr = false);
-String         makeRFCCompliantName(const String& name, const char replaceChar = '-', const char allowedChar = '-', const size_t maxlength = 24);
+String         makeRFCCompliantName(const String& name,
+                                    const char    replaceChar = '-',
+                                    const char    allowedChar = '-',
+                                    const size_t  maxlength   = 24);
 #if FEATURE_WIFI
-MAC_address    WifiSoftAPmacAddress();
-MAC_address    WifiSTAmacAddress();
+MAC_address WifiSoftAPmacAddress();
+MAC_address WifiSTAmacAddress();
 #endif // if FEATURE_WIFI
 
-void           CheckRunningServices();
+void        CheckRunningServices();
 
 #if FEATURE_ETHERNET
-bool           EthFullDuplex();
-bool           EthLinkUp();
-uint8_t        EthLinkSpeed();
+bool        EthFullDuplex();
+bool        EthLinkUp();
+uint8_t     EthLinkSpeed();
 #endif // if FEATURE_ETHERNET
 
 

@@ -35,10 +35,8 @@
 NetworkInterface* getNetifByID(Network_Interface_ID id);
 
 
-
 namespace ESPEasy {
 namespace net {
-
 
 void setNetworkMedium(NetworkMedium_t new_medium) {
 #if !(FEATURE_ETHERNET)
@@ -69,11 +67,12 @@ void setNetworkMedium(NetworkMedium_t new_medium) {
   switch (new_medium)
   {
     case NetworkMedium_t::WIFI:
-      //WiFi.STA.setDefault();
+      // WiFi.STA.setDefault();
       break;
     case NetworkMedium_t::Ethernet:
 #if FEATURE_ETHERNET
-      //ETH.setDefault();
+
+      // ETH.setDefault();
 #endif // if FEATURE_ETHERNET
       break;
     case NetworkMedium_t::NotSet:
@@ -87,12 +86,13 @@ void setNetworkMedium(NetworkMedium_t new_medium) {
 /*********************************************************************************************\
    Ethernet or Wifi Support for ESP32 Build flag FEATURE_ETHERNET
 \*********************************************************************************************/
-/*
-void NetworkConnectRelaxed() {
-  if (ESPEasy::net::NetworkConnected()) { return; }
-#if FEATURE_ETHERNET
 
-  if (active_network_medium == NetworkMedium_t::Ethernet) {
+/*
+   void NetworkConnectRelaxed() {
+   if (ESPEasy::net::NetworkConnected()) { return; }
+ #if FEATURE_ETHERNET
+
+   if (active_network_medium == NetworkMedium_t::Ethernet) {
     if (ESPEasy::net::eth::ETHConnectRelaxed()) {
       return;
     }
@@ -100,15 +100,14 @@ void NetworkConnectRelaxed() {
     // Failed to start the Ethernet network, probably not present of wrong parameters.
     // So set the runtime active medium to WiFi to try connecting to WiFi or at least start the AP.
     setNetworkMedium(NetworkMedium_t::WIFI);
-  }
-#endif // if FEATURE_ETHERNET
+   }
+ #endif // if FEATURE_ETHERNET
 
-  // Failed to start the Ethernet network, probably not present of wrong parameters.
-  // So set the runtime active medium to WiFi to try connecting to WiFi or at least start the AP.
-//  ESPEasy::net::wifi::WiFiConnectRelaxed();
-}
-*/
-
+   // Failed to start the Ethernet network, probably not present of wrong parameters.
+   // So set the runtime active medium to WiFi to try connecting to WiFi or at least start the AP.
+   //  ESPEasy::net::wifi::WiFiConnectRelaxed();
+   }
+ */
 NetworkInterface* getDefaultNonAP_interface()
 {
   auto network_if = Network.getDefaultInterface();
@@ -331,7 +330,7 @@ uint8_t EthLinkSpeed()
 
 #endif // if FEATURE_ETHERNET
 
-}
-}
+} // namespace net
+} // namespace ESPEasy
 
 #endif // ifdef ESP32

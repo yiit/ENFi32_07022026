@@ -8,6 +8,8 @@
 # include "../../../src/Helpers/LongTermOnOffTimer.h"
 # include "../../../src/Helpers/StringConverter.h"
 
+#include "../Globals/NetworkState.h"
+
 # define NW_PLUGIN_ID  4
 # define NW_PLUGIN_INTERFACE   ETH
 
@@ -107,6 +109,10 @@ void NW004_data_struct_ETH_SPI::onEvent(arduino_event_id_t   event,
       addLog(LOG_LEVEL_INFO, F("ETH_DISCONNECTED"));
       break;
     case ARDUINO_EVENT_ETH_GOT_IP:
+
+      if (!NW_PLUGIN_INTERFACE.isDefault()) {
+        nonDefaultNetworkInterface_gotIP = true;
+      }
 
       for (size_t i = 0; i < NR_ELEMENTS(_dns_cache); ++i) {
         auto tmp = NW_PLUGIN_INTERFACE.dnsIP(i);

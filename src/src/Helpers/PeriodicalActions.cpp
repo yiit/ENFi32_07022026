@@ -62,7 +62,8 @@ void run50TimesPerSecond() {
 #ifdef ESP32
     static const NetworkInterface *lastDefaultInterface = nullptr;
     NetworkInterface * currentDefaultInterface = Network.getDefaultInterface();
-    if (lastDefaultInterface != currentDefaultInterface) {
+    if (nonDefaultNetworkInterface_gotIP || lastDefaultInterface != currentDefaultInterface) {
+      nonDefaultNetworkInterface_gotIP = false;
       ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED, 0, dummy);
       lastDefaultInterface = currentDefaultInterface;
     }

@@ -19,7 +19,7 @@
 #  include <WiFi.h>
 #  include <WiFiType.h>
 
-# include "../wifi/WiFiDisconnectReason.h"
+#  include "../wifi/WiFiDisconnectReason.h"
 
 
 namespace ESPEasy {
@@ -34,7 +34,7 @@ public:
   ESPEasyWiFi_STA_EventHandler();
   ~ESPEasyWiFi_STA_EventHandler();
 
-  static bool initialized();
+  static bool          initialized();
 
   LongTermOnOffTimer   getEnabled_OnOffTimer() const;
   LongTermOnOffTimer   getConnected_OnOffTimer() const;
@@ -45,7 +45,7 @@ public:
 
   WiFiDisconnectReason getLastDisconnectReason() const;
 
-  uint8_t getAuthMode() const;
+  uint8_t              getAuthMode() const;
 
   bool                 restore_dns_from_cache() const;
 

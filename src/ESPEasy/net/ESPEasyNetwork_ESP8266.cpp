@@ -48,10 +48,11 @@ void setNetworkMedium(NetworkMedium_t new_medium) {
 /*********************************************************************************************\
    Ethernet or Wifi Support for ESP32 Build flag FEATURE_ETHERNET
 \*********************************************************************************************/
-//void NetworkConnectRelaxed() {
-//  if (!ESPEasy::net::NetworkConnected()) 
+
+// void NetworkConnectRelaxed() {
+//  if (!ESPEasy::net::NetworkConnected())
 //  ESPEasy::net::wifi::WiFiConnectRelaxed();
-//}
+// }
 
 bool        NetworkConnected()           { return ESPEasy::net::wifi::WiFiConnected(); }
 
@@ -90,7 +91,7 @@ MAC_address WifiSTAmacAddress() {
 
 #endif // if FEATURE_WIFI
 
-}
-}
+} // namespace net
+} // namespace ESPEasy
 
 #endif // ifdef ESP8266

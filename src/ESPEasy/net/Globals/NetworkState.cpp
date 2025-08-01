@@ -25,3 +25,6 @@ IPAddress     apIP(DEFAULT_AP_IP);
 
 // udp protocol stuff (syslog, global sync, node info list, ntp time)
 WiFiUDP portUDP;
+#ifdef ESP32
+bool nonDefaultNetworkInterface_gotIP{};
+#endif
