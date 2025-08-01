@@ -70,10 +70,27 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
     {
 # ifdef ESP32
       const uint8_t num = WiFi.AP.stationCount();
+      /*
+      auto netif = WiFi.AP.netif();
+      for (size_t i = 0; i < num; ++i) {
+        esp_netif_pair_mac_ip_t mac_ip_pair{};
+        if (esp_netif_dhcps_get_clients_by_mac(netif, i, &mac_ip_pair) == 0) {
+          if (string.length() > 0) {
+            string += '\n';
+          }
+          const MAC_address mac(mac_ip_pair.mac);
+          const IPAddress ip(mac_ip_pair.ip.addr);
+          string += strformat(
+            F("%s IP: %s"),
+            mac.toString().c_str(),
+            ip.toString().c_str()
+          );
+        }
+      }
+      */
 # else
       const uint8_t num = WiFi.softAPgetStationNum();
 # endif // ifdef ESP32
-
       if (num > 0) {
         success = true;
         string  = num;
@@ -81,6 +98,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
 
         if (num > 1) { string += 's'; }
       }
+      success = string.length() > 0;
       break;
     }
 

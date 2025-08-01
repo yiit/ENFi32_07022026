@@ -4,6 +4,7 @@
 
 # include "../../src/CustomBuild/ESPEasyLimits.h"
 # include "../../src/DataStructs/ESPEasy_EventStruct.h"
+# include "../../src/Helpers/LongTermTimer.h"
 # include "../net/DataStructs/NWPluginData_base.h"
 
 namespace ESPEasy {

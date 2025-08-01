@@ -34,6 +34,8 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
   bool handle_priority_route_changed();
 # endif
 
+  LongTermTimer::Duration getConnectedDuration_ms() const;
+
 private:
 
 ESPEasyWiFi_STA_EventHandler _WiFiEventHandler{};

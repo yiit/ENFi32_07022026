@@ -102,6 +102,10 @@ bool NW001_data_struct_WiFi_STA::handle_priority_route_changed()
 
 # endif // ifdef ESP32
 
+LongTermTimer::Duration NW001_data_struct_WiFi_STA::getConnectedDuration_ms() const
+{
+  return _WiFiEventHandler.getConnected_OnOffTimer().getLastOnDuration_ms();
+}
 
 } // namespace wifi
 } // namespace net

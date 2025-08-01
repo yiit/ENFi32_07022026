@@ -3,7 +3,6 @@
 #include "../_NWPlugin_Helper.h"
 #ifdef USES_NW005
 
-# include "../../../src/Helpers/LongTermTimer.h"
 # include "../../../src/Helpers/StringGenerator_GPIO.h"
 
 # include <PPP.h>

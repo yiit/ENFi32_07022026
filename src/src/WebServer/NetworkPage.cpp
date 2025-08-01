@@ -343,6 +343,17 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
 
         {
           String str;
+          const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED, &TempEvent, str);
+
+          if (res && !str.isEmpty()) {
+            addRowLabel(F("Connected"));
+            str.replace(F("\n"), F("<br>"));
+            addHtml_pre(str);
+          }
+        }
+
+        {
+          String str;
           const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS, &TempEvent, str);
 
           if (res && !TempEvent.String1.isEmpty()) {

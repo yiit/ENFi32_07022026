@@ -26,6 +26,8 @@ struct NW003_data_struct_ETH_RMII : public NWPluginData_base {
 
   bool handle_priority_route_changed();
 
+  LongTermTimer::Duration getConnectedDuration_ms() const;
+
 private:
 
   static void onEvent(arduino_event_id_t   event,

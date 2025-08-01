@@ -90,7 +90,7 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
           if (connectionDuration_ms > 0) {
             string += concat(
-              F("<br>"),
+              '\n',
               format_msec_duration_HMS(connectionDuration_ms));
           }
         }

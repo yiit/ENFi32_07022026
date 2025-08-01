@@ -87,6 +87,11 @@ bool NW004_data_struct_ETH_SPI::handle_priority_route_changed()
   return res;
 }
 
+LongTermTimer::Duration NW004_data_struct_ETH_SPI::getConnectedDuration_ms() const
+{
+  return _connectedStats.getLastOnDuration_ms();
+}
+
 void NW004_data_struct_ETH_SPI::onEvent(arduino_event_id_t   event,
                                         arduino_event_info_t info)
 {

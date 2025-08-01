@@ -84,6 +84,11 @@ bool NW003_data_struct_ETH_RMII::handle_priority_route_changed()
   return res;
 }
 
+LongTermTimer::Duration NW003_data_struct_ETH_RMII::getConnectedDuration_ms() const
+{
+  return _connectedStats.getLastOnDuration_ms();
+}
+
 void NW003_data_struct_ETH_RMII::onEvent(arduino_event_id_t   event,
                                          arduino_event_info_t info)
 {
