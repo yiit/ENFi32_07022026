@@ -262,14 +262,11 @@
 #define TAC2100_MAXIMUM_PHASE_1_CURRENT_DEMAND            0x00A8                    //  A           |    1    |
 #define TAC2100_TOTAL_ACTIVE_ENERGY                       0x0504                    //  kWh         |    1    |
 #define TAC2100_TOTAL_REACTIVE_ENERGY                     0x050C                    //  kVArh       |    1    |
-//-------------------------------------------------------------------------------------------------------------
-//      FURTHER REGISTERS NOT IMPLEMENTED YET                                                                 |
-//-------------------------------------------------------------------------------------------------------------
-//#define TAC2100_REACTIVE_POWER_DEMAND                   0x008E                    //  VAr         |    1    |
-//#define TAC2100_APPARENT_POWER_DEMAND                   0x0090                    //  VA          |    1    |
-//#define TAC2100_MAX_REACTIVE_POWER_DEMAND               0x00A4                    //  VAr         |    1    |
-//#define TAC2100_MAX_APPARENT_POWER_DEMAND               0x00A6                    //  VA          |    1    |
-//#define TAC2100_NATURE_OF_LOAD                          0x004E                    //              |    1    |
+#define TAC2100_REACTIVE_POWER_DEMAND                     0x008E                    //  VAr         |    1    |
+#define TAC2100_APPARENT_POWER_DEMAND                     0x0090                    //  VA          |    1    |
+#define TAC2100_MAX_REACTIVE_POWER_DEMAND                 0x00A4                    //  VAr         |    1    |
+#define TAC2100_MAX_APPARENT_POWER_DEMAND                 0x00A6                    //  VA          |    1    |
+#define TAC2100_NATURE_OF_LOAD                            0x004E                    //              |    1    |
 //TAC2100_NATURE_OF_LOAD: (Resistive=1, inductive=2, capacitive=3, Non Load=4)                                |
 //-------------------------------------------------------------------------------------------------------------
 

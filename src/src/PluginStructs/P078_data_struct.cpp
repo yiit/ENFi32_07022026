@@ -126,7 +126,13 @@ constexpr p078_register_description register_description_list[] = {
 { DDM_PHASE_1_POWER_FACTOR                      /* 0x002A */              ,  SDM_UOM::cos_phi     ,   1   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    1    ,    0    },
 { DDM_FREQUENCY                                 /* 0x0036 */              ,  SDM_UOM::Hz          ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    1    ,    0    },
 { DDM_IMPORT_ACTIVE_ENERGY                      /* 0x0100 */              ,  SDM_UOM::kWh         ,   0   ,  1  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    1    ,    0    },
-{ DDM_IMPORT_REACTIVE_ENERGY                    /* 0x0400 */              ,  SDM_UOM::kVArh       ,   0   ,  1  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    1    ,    0    }
+{ DDM_IMPORT_REACTIVE_ENERGY                    /* 0x0400 */              ,  SDM_UOM::kVArh       ,   0   ,  1  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    1    ,    0    },
+
+{ TAC2100_REACTIVE_POWER_DEMAND                 /* 0x0000 */              ,  SDM_UOM::VAr         ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    0    ,    1    },
+{ TAC2100_APPARENT_POWER_DEMAND                 /* 0x0000 */              ,  SDM_UOM::VA          ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    0    ,    1    },
+{ TAC2100_MAX_REACTIVE_POWER_DEMAND             /* 0x0000 */              ,  SDM_UOM::VAr         ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    0    ,    1    },
+{ TAC2100_MAX_APPARENT_POWER_DEMAND             /* 0x0000 */              ,  SDM_UOM::VA          ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    0    ,    1    },
+{ TAC2100_NATURE_OF_LOAD                        /* 0x0000 */              ,  SDM_UOM::            ,   0   ,  0  ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0    ,    0     ,    0    ,    1    }
 };
 // *INDENT-ON*
 

@@ -28,7 +28,7 @@
 # define P078_NR_OUTPUT_OPTIONS_SDM630                    86
 # define P078_NR_OUTPUT_OPTIONS_SDM72D                    9
 # define P078_NR_OUTPUT_OPTIONS_DDM18SD                   7
-# define P078_NR_OUTPUT_OPTIONS_TAC2100                   22
+# define P078_NR_OUTPUT_OPTIONS_TAC2100                   27
 
 
 # include "src/PluginStructs/P078_data_struct.h"
