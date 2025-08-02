@@ -3,13 +3,13 @@
 #ifdef USES_P078
 
 // #######################################################################################################
-// ############## Plugin 078: SDM120/SDM120CT/220/230/630/72D/DDM18SD Eastron Energy Meter ###############
+// ############## Plugin 078: SDM120/SDM120CT/220/230/630/72D/DDM18SD/TAC2100 Eastron Energy Meter ###############
 // #######################################################################################################
 
 /*
    Plugin written by: Sergio Faustino sjfaustino__AT__gmail.com
 
-   This plugin reads available values of an Eastron SDM120C SDM120/SDM120CT/220/230/630/72D & also DDM18SD.
+   This plugin reads available values of an Eastron SDM120C SDM120/SDM120CT/220/230/630/72D & also DDM18SD and TAC2100.
  */
 
 /** Changelog:
@@ -27,6 +27,7 @@
 # define P078_NR_OUTPUT_OPTIONS_SDM630                    86
 # define P078_NR_OUTPUT_OPTIONS_SDM72D                    9
 # define P078_NR_OUTPUT_OPTIONS_DDM18SD                   7
+# define P078_NR_OUTPUT_OPTIONS_TAC2100                   22
 
 
 # include "src/PluginStructs/P078_data_struct.h"
@@ -191,7 +192,8 @@ boolean Plugin_078(uint8_t function, struct EventStruct *event, String& string)
           F("DDM18SD"),
           F("SDM630"),
           F("SDM72_V2"),
-          F("SDM320C")
+          F("SDM320C"),
+          F("TAC2100")
         };
         constexpr size_t nrOptions = NR_ELEMENTS(options_model);
         const FormSelectorOptions selector(nrOptions, options_model);
