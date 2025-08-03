@@ -9,6 +9,9 @@
 #endif
 #ifdef ESP32
 # include "../Globals/NetworkState.h"
+
+# include <esp_netif.h>
+# include <esp_netif_types.h>
 #endif
 
 namespace ESPEasy {
@@ -77,6 +80,7 @@ NWPluginData_base::NWPluginData_base(
     esp_event_handler_register(IP_EVENT, IP_EVENT_TX_RX, &tx_rx_event_handler, NULL);
     registered_IP_EVENT_TX_RX = true;
   }
+  esp_netif_tx_rx_event_enable(_netif->netif());
 
   #endif // ifdef ESP32
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
