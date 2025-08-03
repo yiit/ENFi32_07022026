@@ -279,7 +279,7 @@ Available options, grouped per category:
 
 **Dust/Gases**: ``Dust PM2.5¹, Dust PM1.0¹, Dust PM10¹, (e)CO2¹, TVOC¹, AQI¹, NOx¹``
 
-**Energy**: ``Voltage¹, Current¹, Power Usage¹, Power Factor¹, Apparent Power Usage¹, Reactive Power¹``
+**Energy**: ``Voltage¹, Current¹, Power Usage¹, Power Factor¹, Apparent Power Usage¹,`` ``Reactive Power¹, Reactive Energy¹, Energy¹, Energy storage¹``
 
 **Time**: ``Duration¹, Date¹, Timestamp¹``
 
@@ -287,7 +287,7 @@ Available options, grouped per category:
 
 **Light**: ``Lux¹, UV¹, UV Index¹, IR¹, Red¹, Green¹, Blue¹, Color temperature¹``
 
-**Other**: ``Switch¹, Switch (inv.)¹, Dimmer, String, UInt32 (1x), Int32 (1x), UInt64 (1x), Int64 (1x), Double (1x)``
+**Other**: ``Switch¹, Switch (inv.)¹, Dimmer, String, UInt32 (1x), Int32 (1x), UInt64 (1x), Int64 (1x), Double (1x), Frequency¹``
 
 Value Types marked with ``¹`` are supported for use in MQTT AutoDiscovery.
 
@@ -298,6 +298,16 @@ NB: ``Date`` and ``Timestamp`` Value Types can only be sent using Derived Values
 Here's a partial preview (the 'None' value is selected):
 
 .. image:: Task_config_page_ValueType_selector_part.png
+
+MQTT State Class
+^^^^^^^^^^^^^^^^
+
+For some Value Types a State Class can be provided in the MQTT Discovery configuration. By default this setting is empty, but for (mostly Energy related) this can be configured for:
+
+* *Measurement*
+* *Measurement-angle*
+* *Total*
+* *Total-increasing*
 
 |
 
