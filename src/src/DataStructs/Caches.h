@@ -57,6 +57,9 @@ struct ExtraTaskSettings_cache_t {
   #if FEATURE_CUSTOM_TASKVAR_VTYPE
   uint8_t customVType[VARS_PER_TASK] = { 0 }; // single-value VType per taskValue
   #endif // if FEATURE_CUSTOM_TASKVAR_VTYPE
+  #if FEATURE_MQTT_STATE_CLASS
+  uint8_t mqttStateClass[VARS_PER_TASK] = { 0 }; // state_class = None, Measurement, Total, TotalIncreasing
+  #endif // if FEATURE_MQTT_STATE_CLASS
 };
 
 typedef std::map<String, taskIndex_t>                    TaskIndexNameMap;
@@ -123,6 +126,11 @@ struct Caches {
   uint8_t getTaskVarCustomVType(taskIndex_t    taskIndex,
                                 taskVarIndex_t taskVarIndex);
   #endif // if FEATURE_CUSTOM_TASKVAR_VTYPE
+
+  #if FEATURE_MQTT_STATE_CLASS
+  uint8_t getTaskVarStateClass(taskIndex_t    taskIndex,
+                                taskVarIndex_t taskVarIndex);
+  #endif // if FEATURE_MQTT_STATE_CLASS
   
   // Update all cached values, except the checksum.
   void updateExtraTaskSettingsCache();

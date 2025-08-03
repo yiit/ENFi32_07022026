@@ -448,6 +448,21 @@ bool MQTT_binary_deviceClassTwoWay(int devClassIndex) {
 
 #  endif // if FEATURE_MQTT_DEVICECLASS
 
+#  if FEATURE_MQTT_STATE_CLASS
+const __FlashStringHelper* MQTT_sensor_StateClass(uint8_t index,
+                                                  bool    display) {
+  switch (index) {
+    case 0: return F("");
+    case 1: return display ? F("Measurement") : F("measurement");
+    case 2: return display ? F("Total") : F("total");
+    case 3: return display ? F("Total-increasing") : F("total_increasing");
+    case 4: return display ? F("Measurement-angle") : F("measurement_angle");
+  }
+  return F("");
+}
+
+#  endif // if FEATURE_MQTT_STATE_CLASS
+
 bool MQTT_SendAutoDiscovery(controllerIndex_t ControllerIndex, cpluginID_t CPluginID) {
   bool success = true;
 
@@ -521,7 +536,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
 
         if (loglevelActiveFor(LOG_LEVEL_INFO)) {
           addLog(LOG_LEVEL_INFO, strformat(F("MQTT : Start AutoDiscovery for task %d, %s max. %d value%c"),
-                                           x + 1, taskName.c_str(), valueCount, 1 == valueCount ? 's' : ' '));
+                                           x + 1, taskName.c_str(), valueCount, 1 != valueCount ? 's' : ' '));
         }
 
         String pluginDeviceClass;
@@ -616,7 +631,8 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                   String valueDeviceClass = parseStringKeepCase(pluginDeviceClass, v + 1); // Device classes per value
 
                   if (valueDeviceClass.isEmpty()) { valueDeviceClass = F("power"); } // default
-                  const bool twoWay = MQTT_binary_deviceClassTwoWay(MQTT_binary_deviceClassIndex(valueDeviceClass));
+                  const String stateClass = MQTT_sensor_StateClass(Cache.getTaskVarStateClass(x, v), false);
+                  const bool   twoWay     = MQTT_binary_deviceClassTwoWay(MQTT_binary_deviceClassIndex(valueDeviceClass));
 
                   // Discover 2-way as Light
                   const __FlashStringHelper*componentClass = twoWay && discoveryItems[s].canSet ? F("light") : F("binary_sensor");
@@ -633,6 +649,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                      EMPTY_STRING, // No unit of measure used
                                                                      &TempEvent,
                                                                      deviceElement,
+                                                                     EMPTY_STRING,
                                                                      success,
                                                                      true, false,
                                                                      useGroupId ? elementName : EMPTY_STRING, elementIds,
@@ -646,6 +663,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                    uom,
                                                                    &TempEvent,
                                                                    deviceElement,
+                                                                   stateClass,
                                                                    success,
                                                                    discoveryItems[s].canSet, false,
                                                                    useGroupId ? elementName : EMPTY_STRING, elementIds);
@@ -676,6 +694,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                     const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
                     const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s],
                                                                              getValueType2DefaultHAUoM(Sensor_VType::SENSOR_TYPE_TEMP_ONLY));
+                    const String stateClass = MQTT_sensor_StateClass(Cache.getTaskVarStateClass(x, v), false);
                     success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
                                                                      ControllerIndex,
                                                                      ControllerSettings,
@@ -684,6 +703,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                      uom,
                                                                      &TempEvent,
                                                                      deviceElement,
+                                                                     stateClass,
                                                                      success,
                                                                      discoveryItems[s].canSet, false,
                                                                      useGroupId ? elementName : EMPTY_STRING, elementIds);
@@ -705,6 +725,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                     const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
                     const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s],
                                                                              getValueType2DefaultHAUoM(Sensor_VType::SENSOR_TYPE_HUM_ONLY));
+                    const String stateClass = MQTT_sensor_StateClass(Cache.getTaskVarStateClass(x, v), false);
                     success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
                                                                      ControllerIndex,
                                                                      ControllerSettings,
@@ -713,6 +734,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                      uom,
                                                                      &TempEvent,
                                                                      deviceElement,
+                                                                     stateClass,
                                                                      success,
                                                                      discoveryItems[s].canSet, false,
                                                                      useGroupId ? elementName : EMPTY_STRING, elementIds);
@@ -738,6 +760,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                     const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
                     const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s],
                                                                              getValueType2DefaultHAUoM(Sensor_VType::SENSOR_TYPE_BARO_ONLY));
+                    const String stateClass = MQTT_sensor_StateClass(Cache.getTaskVarStateClass(x, v), false);
                     success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
                                                                      ControllerIndex,
                                                                      ControllerSettings,
@@ -746,6 +769,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                      uom,
                                                                      &TempEvent,
                                                                      deviceElement,
+                                                                     stateClass,
                                                                      success,
                                                                      discoveryItems[s].canSet, false,
                                                                      useGroupId ? elementName : EMPTY_STRING, elementIds);
@@ -788,13 +812,18 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_DATA_SIZE:
               case Sensor_VType::SENSOR_TYPE_SOUND_PRESSURE:
               case Sensor_VType::SENSOR_TYPE_SIGNAL_STRENGTH:
+              case Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY:
+              case Sensor_VType::SENSOR_TYPE_FREQUENCY:
+              case Sensor_VType::SENSOR_TYPE_ENERGY:
+              case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:
               {
                 const String dev    = getValueType2HADeviceClass(discoveryItems[s].VType);
                 const String uomDef = getValueType2DefaultHAUoM(discoveryItems[s].VType);
 
                 for (uint8_t v = discoveryItems[s].varIndex; v < varCount; ++v) {
-                  const String valuename = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
-                  const String uom       = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s], uomDef);
+                  const String valuename  = MQTT_DiscoveryHelperGetValueName(x, v, discoveryItems[s]);
+                  const String uom        = MQTT_DiscoveryHelperGetValueUoM(x, v, discoveryItems[s], uomDef);
+                  const String stateClass = MQTT_sensor_StateClass(Cache.getTaskVarStateClass(x, v), false);
                   success &= MQTT_DiscoveryPublishWithStatusAndSet(x, v, valuename,
                                                                    ControllerIndex,
                                                                    ControllerSettings,
@@ -803,6 +832,7 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
                                                                    uom,
                                                                    &TempEvent,
                                                                    deviceElement,
+                                                                   stateClass,
                                                                    success,
                                                                    discoveryItems[s].canSet, false,
                                                                    useGroupId ? elementName : EMPTY_STRING, elementIds);
@@ -1005,6 +1035,7 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                            String                    unitOfMeasure,
                                            struct EventStruct       *event,
                                            const String              deviceElement,
+                                           const String              stateClass,
                                            bool                      success,
                                            bool                      hasSet,
                                            bool                      hasIcon,
@@ -1018,6 +1049,8 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
     const String withUoM   = !unitOfMeasure.isEmpty() ?
                              strformat(F(",\"unit_of_meas\":\"%s\""), unitOfMeasure.c_str()) :
                              EMPTY_STRING;
+    const String stateJson = stateClass.isEmpty() ? EMPTY_STRING :
+                             strformat(F(",\"stat_cla\":\"%s\""),     stateClass.c_str());
     const String taskName  = makeHomeAssistantCompliantName(getTaskDeviceName(taskIndex));
     const String valName   = makeHomeAssistantCompliantName(valueName);
     const bool   retainDsc = ControllerSettings.mqtt_retainDiscovery();
@@ -1042,10 +1075,10 @@ bool MQTT_DiscoveryPublishWithStatusAndSet(taskIndex_t               taskIndex,
                                                               elementId,
                                                               valName);
     const String discoveryMessage = strformat(F("{\"~\":\"%s\",\"name\":\"%s %s\",\"uniq_id\":\"%s\",%s"
-                                                "\"%s\":\"%s\"%s%s,\"stat_t\":\"~\""
+                                                "\"%s\":\"%s\"%s%s%s,\"stat_t\":\"~\""
                                                 "%s}"), // deviceElement last
                                               publish.c_str(), taskName.c_str(), valName.c_str(), uniqueId.c_str(), schema.c_str(),
-                                              devOrIcon.c_str(), deviceClass.c_str(), withUoM.c_str(), withSet.c_str(),
+                                              devOrIcon.c_str(), deviceClass.c_str(), withUoM.c_str(), stateJson.c_str(), withSet.c_str(),
                                               deviceElement.c_str());
     const String triggerMessage = strformat(F("{\"atype\":\"trigger\",\"t\":\"%s\","
                                               "\"p\":\"device_automation\","

@@ -97,6 +97,10 @@ uint8_t getValueCountFromSensorType(Sensor_VType sensorType, bool log)
     case Sensor_VType::SENSOR_TYPE_DATA_SIZE:
     case Sensor_VType::SENSOR_TYPE_SOUND_PRESSURE:
     case Sensor_VType::SENSOR_TYPE_SIGNAL_STRENGTH:
+    case Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_FREQUENCY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:
       return 1;
   }
   #ifndef BUILD_NO_DEBUG
@@ -183,6 +187,10 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_DATA_SIZE:        return F("Data size");
     case Sensor_VType::SENSOR_TYPE_SOUND_PRESSURE:   return F("Sound pressure");
     case Sensor_VType::SENSOR_TYPE_SIGNAL_STRENGTH:  return F("Signal strength");
+    case Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY:  return F("Reactive Energy");
+    case Sensor_VType::SENSOR_TYPE_FREQUENCY:        return F("Frequency");
+    case Sensor_VType::SENSOR_TYPE_ENERGY:           return F("Energy");
+    case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:   return F("Energy storage");
     #else // if FEATURE_MQTT_DISCOVER || FEATURE_CUSTOM_TASKVAR_VTYPE
     case Sensor_VType::SENSOR_TYPE_ANALOG_ONLY:
     case Sensor_VType::SENSOR_TYPE_TEMP_ONLY:
@@ -223,6 +231,10 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_DATA_SIZE:
     case Sensor_VType::SENSOR_TYPE_SOUND_PRESSURE:
     case Sensor_VType::SENSOR_TYPE_SIGNAL_STRENGTH:
+    case Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_FREQUENCY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:
       break;
     #endif // if FEATURE_MQTT_DISCOVER || FEATURE_CUSTOM_TASKVAR_VTYPE
   }
@@ -312,6 +324,10 @@ bool isMQTTDiscoverySensorType(Sensor_VType sensorType)
     case Sensor_VType::SENSOR_TYPE_DATA_SIZE:
     case Sensor_VType::SENSOR_TYPE_SOUND_PRESSURE:
     case Sensor_VType::SENSOR_TYPE_SIGNAL_STRENGTH:
+    case Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_FREQUENCY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY:
+    case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:
       return true;
   }
   return false;
@@ -410,9 +426,10 @@ const char mqtt_valueType_ha_deviceclass_names[] PROGMEM = // !! Offset, startin
   "irradiance|irradiance|irradiance|mdi:scale|" // UV_ONLY .. WEIGHT_ONLY
   "voltage|current|power|power_factor|power|" // VOLTAGE_ONLY .. APPRNT_POWER_USG_ONLY
   "volatile_organic_compounds|pressure|mdi:palette|mdi:palette|mdi:palette|" // TVOC_ONLY .. COLOR_BLUE_ONLY
-  "mdi:temperature-kelvin|power|aqi|nitrogen_dioxide|" // COLOR_TEMP_ONLY .. NOX_ONLY
+  "mdi:temperature-kelvin|reactive_power|aqi|nitrogen_dioxide|" // COLOR_TEMP_ONLY .. NOX_ONLY
   "|wind_speed|duration|date|" // SWITCH_INVERTED .. DATE
-  "timestamp|data_rate|data_size|sound_pressure|signal_strength|datetime|" // TIMESTAMP .. DATETIME
+  "timestamp|data_rate|data_size|sound_pressure|signal_strength|reactive_energy|" // TIMESTAMP .. REACTIVE_ENERGY
+  "frequency|energy|energy_storage|" // FREQUENCY .. ENERGY_STORAGE
   ;
 
 /**
@@ -446,7 +463,8 @@ const char mqtt_valueType_default_ha_uom_names[] PROGMEM = // !! Offset, startin
   "ppd|hPa|lx|lx|lx|" // TVOC_ONLY .. COLOR_BLUE_ONLY
   "K|var||µg/m³|" // COLOR_TEMP_ONLY .. NOX_ONLY
   "|m/s|min||" // SWITCH_INVERTED .. DATE
-  "|bit/s|B|dB|dBm||" // TIMESTAMP .. DATETIME
+  "|bit/s|B|dB|dBm|kvar|" // TIMESTAMP .. REACTIVE_ENERGY
+  "Hz|kWh|kWh|" // FREQUENCY .. ENERGY_STORAGE
   ;
 
 /**
