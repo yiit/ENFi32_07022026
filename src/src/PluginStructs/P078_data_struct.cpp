@@ -218,15 +218,15 @@ Sensor_VType Plugin_078_QueryVType(SDM_MODEL model, int choice) {
       Sensor_VType::SENSOR_TYPE_VOLTAGE_ONLY,
       Sensor_VType::SENSOR_TYPE_CURRENT_ONLY,
       Sensor_VType::SENSOR_TYPE_POWER_USG_ONLY,
-      Sensor_VType::SENSOR_TYPE_NONE, // FIXME Active energy
+      Sensor_VType::SENSOR_TYPE_ENERGY, // Active energy
       Sensor_VType::SENSOR_TYPE_NONE, // FIXME Ah
-      Sensor_VType::SENSOR_TYPE_NONE, // FIXME Frequency
+      Sensor_VType::SENSOR_TYPE_FREQUENCY, // Frequency
       Sensor_VType::SENSOR_TYPE_NONE, // FIXME Phase angle
       Sensor_VType::SENSOR_TYPE_POWER_FACT_ONLY,
       Sensor_VType::SENSOR_TYPE_APPRNT_POWER_USG_ONLY,
       Sensor_VType::SENSOR_TYPE_REACTIVE_POWER_ONLY,
       Sensor_VType::SENSOR_TYPE_NONE, // FIXME Apparent energy
-      Sensor_VType::SENSOR_TYPE_NONE, // FIXME Reactive energy
+      Sensor_VType::SENSOR_TYPE_REACTIVE_ENERGY, // Reactive energy
     };
     constexpr uint8_t  valueCount = NR_ELEMENTS(vtypes);
 
