@@ -8,6 +8,8 @@
 #  include "../../../src/ESPEasyCore/ESPEasy_Log.h"
 #  include "../../../src/Globals/RTC.h"
 #  include "../../../src/Helpers/ESPEasy_time_calc.h"
+#  include "../../../src/Helpers/StringGenerator_WiFi.h"
+
 
 #  include "../ESPEasyNetwork.h"
 #  include "../wifi/ESPEasyWifi.h"
@@ -22,7 +24,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
-static NWPluginData_static_runtime stats_and_cache{};
+static NWPluginData_static_runtime stats_and_cache(true);
 static WiFiDisconnectReason _wifi_disconnect_reason = WiFiDisconnectReason::WIFI_DISCONNECT_REASON_UNSPECIFIED;
 
 static uint8_t _authmode{};
@@ -48,7 +50,9 @@ ESPEasyWiFi_STA_EventHandler::ESPEasyWiFi_STA_EventHandler()
 }
 
 ESPEasyWiFi_STA_EventHandler::~ESPEasyWiFi_STA_EventHandler()
-{}
+{
+  stats_and_cache.clear();
+}
 
 bool                         ESPEasyWiFi_STA_EventHandler::initialized()                    { return _ESPEasyWiFi_STA_EventHandler_initialized; }
 
@@ -90,7 +94,7 @@ void ESPEasyWiFi_STA_EventHandler::onDisconnect(const WiFiEventStationModeDiscon
 
 void ESPEasyWiFi_STA_EventHandler::onGotIP(const WiFiEventStationModeGotIP& event)
 {
-  // Set OnOffTimer to off so we can also count how often we het new IP
+  // Set OnOffTimer to off so we can also count how often we get new IP
   stats_and_cache._gotIPStats.setOff();
   stats_and_cache._gotIPStats.setOn();
 

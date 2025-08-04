@@ -22,7 +22,7 @@ namespace wifi {
 # ifdef ESP32
 static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE);
 # else
-static NWPluginData_static_runtime stats_and_cache{};
+static NWPluginData_static_runtime stats_and_cache(false);
 # endif // ifdef ESP32
 
 

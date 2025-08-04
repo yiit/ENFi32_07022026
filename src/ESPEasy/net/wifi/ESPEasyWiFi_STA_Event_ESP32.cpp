@@ -34,11 +34,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
-#  ifdef ESP32
 static NWPluginData_static_runtime stats_and_cache(&WiFi.STA);
-#  else
-static NWPluginData_static_runtime stats_and_cache{};
-#  endif // ifdef ESP32
 
 static wifi_event_sta_connected_t _wifi_event_sta_connected;
 static WiFiDisconnectReason _wifi_disconnect_reason = WiFiDisconnectReason::WIFI_DISCONNECT_REASON_UNSPECIFIED;
@@ -55,6 +51,7 @@ ESPEasyWiFi_STA_EventHandler::ESPEasyWiFi_STA_EventHandler()
 
 ESPEasyWiFi_STA_EventHandler::~ESPEasyWiFi_STA_EventHandler()
 {
+  stats_and_cache.clear();
   if (nw_event_id != 0) {
     Network.removeEvent(nw_event_id);
   }

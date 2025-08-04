@@ -316,5 +316,12 @@ String getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID) {
   return getNWPluginNameFromNetworkDriverIndex(networkDriverIndex);
 }
 
+const NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index)
+{
+  auto NW_data = getNWPluginData(index);
+  if (!NW_data) return nullptr;
+  return &NW_data->getNWPluginData_static_runtime();
+}
+
 } // namespace net
 } // namespace ESPEasy

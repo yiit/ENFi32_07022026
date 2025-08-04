@@ -14,11 +14,15 @@ struct NWPluginData_static_runtime {
   NWPluginData_static_runtime(NetworkInterface *netif) : _netif(netif) {}
 
 #else // ifdef ESP32
-  NWPluginData_static_runtime()  {}
+  NWPluginData_static_runtime(bool isSTA) : _isSTA(isSTA) {}
 
 #endif // ifdef ESP32
 
   void clear();
+
+  bool connected() const;
+
+  bool isDefaultRoute() const;
 
 
   LongTermOnOffTimer _startStopStats{};
@@ -32,6 +36,9 @@ struct NWPluginData_static_runtime {
   int               _route_prio = -1;
   NetworkInterface *_netif{};
 #endif // ifdef ESP32
+#ifdef ESP8266
+  const bool _isSTA;
+#endif
 
 };
 

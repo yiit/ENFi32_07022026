@@ -8,6 +8,7 @@
 #include "../DataTypes/NWPluginID.h"
 #include "../DataTypes/NetworkIndex.h"
 #include "../DataTypes/NetworkDriverIndex.h"
+#include "../DataStructs/NWPluginData_static_runtime.h"
 
 namespace ESPEasy {
 namespace net {
@@ -41,6 +42,8 @@ nwpluginID_t         getNWPluginID_from_NetworkIndex(networkIndex_t index);
 
 String               getNWPluginNameFromNetworkDriverIndex(networkDriverIndex_t NetworkDriverIndex);
 String               getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID);
+
+const NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index);
 
 } // namespace net
 } // namespace ESPEasy

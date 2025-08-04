@@ -16,7 +16,7 @@ namespace ESPEasy {
 namespace net {
 
 
-// ==============================================
+// =============================================
 // Data used by instances of NW-plugins.
 // =============================================
 
@@ -34,10 +34,9 @@ struct NWPluginData_base {
 
   virtual ~NWPluginData_base();
 
-virtual    bool                         init(EventStruct *event) = 0;
+  virtual bool init(EventStruct *event) = 0;
 
-virtual   bool                         exit(EventStruct *event) = 0;
-
+  virtual bool exit(EventStruct *event) = 0;
 
   bool baseClassOnly() const {
     return _baseClassOnly;
@@ -66,11 +65,11 @@ virtual   bool                         exit(EventStruct *event) = 0;
 
 protected:
 
-  static  void _mark_got_IP(NWPluginData_static_runtime& cache);
-  static void  _mark_disconnected(const NWPluginData_static_runtime& cache);
+  static void _mark_got_IP(NWPluginData_static_runtime& cache);
+  static void _mark_disconnected(const NWPluginData_static_runtime& cache);
 
 #ifdef ESP32
-  bool         _restore_DNS_cache();
+  bool        _restore_DNS_cache();
 #endif
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
