@@ -11,12 +11,23 @@
 const __FlashStringHelper * WiFi_encryptionType(uint8_t encryptionType) {
 switch (encryptionType) {
   #ifdef ESP32
-    case WIFI_AUTH_OPEN:             return F("open"); 
-    case WIFI_AUTH_WEP:              return F("WEP"); 
-    case WIFI_AUTH_WPA_PSK:          return F("WPA/PSK"); 
-    case WIFI_AUTH_WPA2_PSK:         return F("WPA2/PSK"); 
-    case WIFI_AUTH_WPA_WPA2_PSK:     return F("WPA/WPA2/PSK"); 
-    case WIFI_AUTH_WPA2_ENTERPRISE:  return F("WPA2 Enterprise"); 
+    case WIFI_AUTH_OPEN:                 return F("open");
+    case WIFI_AUTH_WEP:                  return F("WEP");
+    case WIFI_AUTH_WPA_PSK:              return F("WPA PSK");
+    case WIFI_AUTH_WPA2_PSK:             return F("WPA2 PSK");
+    case WIFI_AUTH_WPA_WPA2_PSK:         return F("WPA/WPA2 PSK");
+    case WIFI_AUTH_WPA2_ENTERPRISE:      return F("WPA2-Enterprise");
+    case WIFI_AUTH_WPA3_EXT_PSK:            // This authentication mode will yield same result as WIFI_AUTH_WPA3_PSK and not recommended to be used. It will be deprecated in future: please use WIFI_AUTH_WPA3_PSK instead.
+    case WIFI_AUTH_WPA3_EXT_PSK_MIXED_MODE: // This authentication mode will yield same result as WIFI_AUTH_WPA3_PSK and not recommended to be used. It will be deprecated in future: please use WIFI_AUTH_WPA3_PSK instead.
+    case WIFI_AUTH_WPA3_PSK:             return F("WPA3 PSK");
+    case WIFI_AUTH_WPA2_WPA3_PSK:        return F("WPA2/WPA3 PSK");
+    case WIFI_AUTH_WAPI_PSK:             return F("WAPI PSK");
+    case WIFI_AUTH_OWE:                  return F("OWE");
+    case WIFI_AUTH_WPA3_ENT_192:         return F("WPA3 ENT SUITE B 192 BIT");
+    case WIFI_AUTH_DPP:                  return F("DPP");
+    case WIFI_AUTH_WPA3_ENTERPRISE:      return F("WPA3-Enterprise Only Mode");
+    case WIFI_AUTH_WPA2_WPA3_ENTERPRISE: return F("WPA3-Enterprise Transition Mode");
+    case WIFI_AUTH_WPA_ENTERPRISE:       return F("WPA-Enterprise");
   #else // ifdef ESP32
     case ENC_TYPE_WEP:   return F("WEP"); 
     case ENC_TYPE_TKIP:  return F("WPA/PSK"); 

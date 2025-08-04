@@ -16,6 +16,7 @@
 #  include "../../../src/Globals/RTC.h"
 #  include "../../../src/Helpers/ESPEasy_time_calc.h"
 #  include "../../../src/Helpers/StringConverter.h"
+#  include "../../../src/Helpers/StringGenerator_WiFi.h"
 #  include "../../net/ESPEasyNetwork.h"
 #  include "../DataStructs/NWPluginData_static_runtime.h"
 #  include "../Globals/ESPEasyWiFiEvent.h"
@@ -91,6 +92,11 @@ bool                         ESPEasyWiFi_STA_EventHandler::restore_dns_from_cach
     }
   }
   return res;
+}
+
+const __FlashStringHelper *  ESPEasyWiFi_STA_EventHandler::getWiFi_encryptionType() const
+{
+  return WiFi_encryptionType(_wifi_event_sta_connected.authmode);
 }
 
 // ********************************************************************************

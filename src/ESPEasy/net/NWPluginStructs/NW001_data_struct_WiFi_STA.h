@@ -35,6 +35,7 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
 # endif
 
   NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  const __FlashStringHelper *  getWiFi_encryptionType() const;
 
 private:
 

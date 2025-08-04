@@ -39,6 +39,8 @@ public:
   WiFiDisconnectReason         getLastDisconnectReason() const;
   uint8_t                      getAuthMode() const;
 
+  const __FlashStringHelper *  getWiFi_encryptionType() const;
+
 
   // ********************************************************************************
   // Functions called on events.

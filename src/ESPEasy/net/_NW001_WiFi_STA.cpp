@@ -92,6 +92,16 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
 # endif // ifdef ESP32
 
+      if (success) {
+        ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *NW_data =
+          static_cast<ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *>(getNWPluginData(event->NetworkIndex));
+
+        if (NW_data) {
+          string += '\n';
+          string += NW_data->getWiFi_encryptionType();
+        }
+      }
+
       break;
     }
 

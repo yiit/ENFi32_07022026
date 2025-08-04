@@ -58,6 +58,12 @@ WiFiDisconnectReason         ESPEasyWiFi_STA_EventHandler::getLastDisconnectReas
 
 uint8_t                      ESPEasyWiFi_STA_EventHandler::getAuthMode() const              { return _authmode; }
 
+const __FlashStringHelper *  ESPEasyWiFi_STA_EventHandler::getWiFi_encryptionType() const
+{
+  return WiFi_encryptionType(_authmode);
+}
+
+
 // ********************************************************************************
 // Functions called on events.
 // Make sure not to call anything in these functions that result in delay() or yield()

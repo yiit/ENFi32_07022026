@@ -46,6 +46,8 @@ public:
 
   bool                         restore_dns_from_cache() const;
 
+  const __FlashStringHelper *  getWiFi_encryptionType() const;
+
 private:
 
   // ********************************************************************************

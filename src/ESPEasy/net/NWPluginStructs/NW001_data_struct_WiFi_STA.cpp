@@ -101,6 +101,11 @@ NWPluginData_static_runtime& NW001_data_struct_WiFi_STA::getNWPluginData_static_
   return _WiFiEventHandler.getNWPluginData_static_runtime();
 }
 
+const __FlashStringHelper *  NW001_data_struct_WiFi_STA::getWiFi_encryptionType() const
+{
+  return _WiFiEventHandler.getWiFi_encryptionType();
+}
+
 
 # ifdef ESP32
 
