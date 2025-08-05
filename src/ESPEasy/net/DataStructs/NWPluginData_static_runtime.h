@@ -57,6 +57,8 @@ struct NWPluginData_static_runtime {
 
   void mark_lost_IP();
 
+  void mark_begin_establish_connection();
+
   void mark_connected();
 
   void mark_disconnected();
@@ -74,8 +76,15 @@ struct NWPluginData_static_runtime {
   uint32_t getSuggestedTimeout(int      index,
                                uint32_t minimum_timeout) const;
 
-  void     setConnectionDuration(int      index,
+  void     markConnectionSuccess(int      index,
                                  uint32_t duration_ms) const;
+
+  void     markPublishSuccess() const;
+
+  void     markConnectionFailed(int index) const;
+
+  uint32_t getConnectionFailures() const { return _connectionFailures; }
+
 
   // =============================================
   // OnOffTimers for keeping track of:
@@ -86,6 +95,7 @@ struct NWPluginData_static_runtime {
   // =============================================
 
   LongTermOnOffTimer _startStopStats{};
+  LongTermOnOffTimer _establishConnectStats{};
   LongTermOnOffTimer _connectedStats{};
   LongTermOnOffTimer _gotIPStats{};
 #if FEATURE_USE_IPV6
@@ -116,6 +126,8 @@ private:
   // Duration is negative when it was suggested but not actually set.
   // Duration is positive when actually being set
   mutable std::map<int, int32_t>_connectDurations;
+
+  mutable uint32_t _connectionFailures{};
 
 };
 

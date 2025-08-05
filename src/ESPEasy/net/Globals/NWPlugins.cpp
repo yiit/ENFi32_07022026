@@ -13,6 +13,8 @@
 namespace ESPEasy {
 namespace net {
 
+# define NETWORK_INDEX_WIFI_STA  0  // Always the first network index
+
 bool NWPluginCall(NWPlugin::Function Function, EventStruct *event) {
   #ifdef USE_SECOND_HEAP
   HeapSelectDram ephemeral;
@@ -316,7 +318,14 @@ String getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID) {
   return getNWPluginNameFromNetworkDriverIndex(networkDriverIndex);
 }
 
-const NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index)
+NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime()
+{
+  auto NW_data = getNWPluginData(NETWORK_INDEX_WIFI_STA);
+  if (!NW_data) return nullptr;
+  return &NW_data->getNWPluginData_static_runtime();
+}
+
+NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index)
 {
   auto NW_data = getNWPluginData(index);
   if (!NW_data) return nullptr;

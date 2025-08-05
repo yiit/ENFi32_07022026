@@ -74,9 +74,7 @@ void NWPluginData_static_runtime::mark_stop()
 void NWPluginData_static_runtime::mark_got_IP()
 {
   // Set OnOffTimer to off so we can also count how often we het new IP
-  _gotIPStats.setOff();
-
-  _gotIPStats.setOn();
+  _gotIPStats.forceSet(true);
 
   if (!_netif) { return; }
 
@@ -144,15 +142,33 @@ void NWPluginData_static_runtime::mark_lost_IP()
   }
 }
 
+void NWPluginData_static_runtime::mark_begin_establish_connection()
+{
+  _establishConnectStats.forceSet(true);
+  
+}
+
+
 void NWPluginData_static_runtime::mark_connected()
 {
+  const bool logDuration = _establishConnectStats.isOn();
+
+  _establishConnectStats.setOff();
   _connectedStats.setOn();
 
-  if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
+  if (logDuration) {
+    addLog(LOG_LEVEL_INFO, strformat(
+             F("%s: Connected, took: %s in %d attempts"),
+             esp_netif_get_desc(_netif->netif()),
+             format_msec_duration_HMS(
+               _establishConnectStats.getLastOnDuration_ms()).c_str(),
+               _establishConnectStats.getCycleCount()));
+  } else {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Connected"),
              esp_netif_get_desc(_netif->netif())));
   }
+  _establishConnectStats.resetCount();
 }
 
 void NWPluginData_static_runtime::mark_disconnected()
@@ -163,10 +179,10 @@ void NWPluginData_static_runtime::mark_disconnected()
 
   if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
-             F("%s: Disconnected. Connected for: "),
+             F("%s: Disconnected. Connected for: %s"),
              esp_netif_get_desc(_netif->netif()),
              format_msec_duration_HMS(
-               _connectedStats.getLastOnDuration_ms())));
+               _connectedStats.getLastOnDuration_ms()).c_str()));
   }
 }
 

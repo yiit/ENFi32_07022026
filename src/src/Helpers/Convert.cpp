@@ -146,7 +146,7 @@ String format_msec_duration(int64_t duration, bool useHMS) {
 
   if (duration_s < 60) {
     return strformat(
-      useHMS ? F("%02ds.%03d") : F("%02d.%03d"),
+      useHMS ? F("%02d.%03d sec") : F("%02d.%03d"),
       duration_s,
       duration_ms);
   }

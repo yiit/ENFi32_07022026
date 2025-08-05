@@ -18,6 +18,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
+
 bool WiFi_pre_setup() {
   if (!ESPEasyWiFi_STA_EventHandler::initialized()) { return false; }
 

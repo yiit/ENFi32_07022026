@@ -16,6 +16,8 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
 #endif
   _networkIndex = networkIndex;
 
+  _connectionFailures = 0;
+
   // FIXME TD-er: Should also clear dns cache?
 }
 
@@ -71,7 +73,7 @@ uint32_t NWPluginData_static_runtime::getSuggestedTimeout(
   return returnvalue;
 }
 
-void NWPluginData_static_runtime::setConnectionDuration(
+void NWPluginData_static_runtime::markConnectionSuccess(
   int      index,
   uint32_t duration_ms) const
 {
@@ -82,6 +84,22 @@ void NWPluginData_static_runtime::setConnectionDuration(
   // Apply some slight filtering so we won't get into trouble when a connection suddenly was faster.
   _connectDurations[index] += 2 * duration_ms;
   _connectDurations[index] /= 3;
+
+  if (_connectionFailures > 0) {
+    --_connectionFailures;
+  }
+}
+
+void NWPluginData_static_runtime::markPublishSuccess() const
+{
+  if (_connectionFailures > 0) {
+    --_connectionFailures;
+  }
+}
+
+void NWPluginData_static_runtime::markConnectionFailed(int index) const
+{
+  ++_connectionFailures;
 }
 
 } // namespace net

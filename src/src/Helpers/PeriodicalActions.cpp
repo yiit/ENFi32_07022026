@@ -151,10 +151,11 @@ void runOncePerSecond()
     #endif
   }
 
-  if (Settings.ConnectionFailuresThreshold)
-    if (WiFiEventData.connectionFailures > Settings.ConnectionFailuresThreshold)
+  if (Settings.ConnectionFailuresThreshold) {
+    auto data = ESPEasy::net::getDefaultRoute_NWPluginData_static_runtime();
+    if (data && data->getConnectionFailures() > Settings.ConnectionFailuresThreshold)
       delayedReboot(60, IntendedRebootReason_e::DelayedReboot);
-
+  }
   if (cmd_within_mainloop != 0)
   {
     switch (cmd_within_mainloop)
@@ -231,34 +232,42 @@ void runEach30Seconds()
   checkRAMtoLog();
   #endif
   wdcounter++;
-  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    String log = strformat(
-      F("WD   : Uptime %d  ConnectFailures %u FreeMem %u"),
-      getUptimeMinutes(),
-      WiFiEventData.connectionFailures,
-      FreeMem());
-    bool logWiFiStatus = true;
-    #if FEATURE_ETHERNET
-    if(active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
-      logWiFiStatus = false;
-      log += F( " EthSpeedState ");
-      log += getValue(LabelType::ETH_SPEED_STATE);
-      log += F(" ETH status: ");
-      log += EthEventData.ESPEasyEthStatusToString();
-    }
-    #endif // if FEATURE_ETHERNET
-    if (logWiFiStatus) {
-      log += strformat(
-        F(" WiFiStatus: %s ESPeasy internal wifi status: %s"),
-        ArduinoWifiStatusToString(WiFi.status()).c_str(),
-        WiFiEventData.ESPeasyWifiStatusToString().c_str());
-    }
-//    log += F(" ListenInterval ");
-//    log += WiFi.getListenInterval();
-    addLogMove(LOG_LEVEL_INFO, log);
+  if (loglevelActiveFor(LOG_LEVEL_INFO)) {  
+    auto data = ESPEasy::net::getDefaultRoute_NWPluginData_static_runtime();
+    if (!data) {
+      addLogMove(LOG_LEVEL_INFO, strformat(
+        F("WD   : Uptime %d  FreeMem %u"),
+        getUptimeMinutes(),
+        FreeMem()));
+    } else {
+      String log = strformat(
+        F("WD   : Uptime %d  ConnectFailures %u FreeMem %u"),
+        getUptimeMinutes(),
+        data->getConnectionFailures(),
+        FreeMem());
+      bool logWiFiStatus = true;
+      #if FEATURE_ETHERNET
+      if(active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
+        logWiFiStatus = false;
+        log += F( " EthSpeedState ");
+        log += getValue(LabelType::ETH_SPEED_STATE);
+        log += F(" ETH status: ");
+        log += EthEventData.ESPEasyEthStatusToString();
+      }
+      #endif // if FEATURE_ETHERNET
+      if (logWiFiStatus) {
+        log += strformat(
+          F(" WiFiStatus: %s ESPeasy internal wifi status: %s"),
+          ArduinoWifiStatusToString(WiFi.status()).c_str(),
+          WiFiEventData.ESPeasyWifiStatusToString().c_str());
+      }
+  //    log += F(" ListenInterval ");
+  //    log += WiFi.getListenInterval();
+      addLogMove(LOG_LEVEL_INFO, log);
 #if FEATURE_DEFINE_SERIAL_CONSOLE_PORT
-//    addLogMove(LOG_LEVEL_INFO,  ESPEASY_SERIAL_CONSOLE_PORT.getLogString());
+  //    addLogMove(LOG_LEVEL_INFO,  ESPEASY_SERIAL_CONSOLE_PORT.getLogString());
 #endif
+    }
   }
   ESPEasy::net::wifi::WiFi_AP_Candidates.purge_expired();
   #if FEATURE_ESPEASY_P2P
@@ -354,8 +363,9 @@ void processMQTTdelayQueue() {
   } else
   if (!handled) {
     if (MQTTclient.publish(element->_topic.c_str(), element->_payload.c_str(), element->_retained)) {
-      if (WiFiEventData.connectionFailures > 0) {
-        --WiFiEventData.connectionFailures;
+      auto data = ESPEasy::net::getDefaultRoute_NWPluginData_static_runtime();
+      if (data) {
+        data->markPublishSuccess();
       }
       MQTTDelayHandler->markProcessed(true);
     } else {

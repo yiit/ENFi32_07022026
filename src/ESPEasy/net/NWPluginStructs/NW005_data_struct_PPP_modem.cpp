@@ -856,6 +856,8 @@ bool NW005_data_struct_PPP_modem::init(EventStruct *event)
   _modem_task_data.modem_initialized = false;
   _modem_task_data.initializing      = false;
 
+  stats_and_cache.mark_begin_establish_connection();
+
   xTaskCreatePinnedToCore(
     NW005_begin_modem_task,             // Function that should be called
     "PPP.begin()",                      // Name of the task (for debugging)

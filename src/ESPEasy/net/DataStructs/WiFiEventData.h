@@ -144,7 +144,6 @@ struct WiFiEventData_t {
 
   bool performedClearWiFiCredentials = false;
 
-  unsigned long connectionFailures = 0;
 
 
 # ifdef ESP32

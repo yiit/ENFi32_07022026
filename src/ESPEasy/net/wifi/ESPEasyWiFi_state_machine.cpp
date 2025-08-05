@@ -48,6 +48,8 @@ void ESPEasyWiFi_t::begin()   { setState(WiFiState_e::IdleWaiting, 100); }
 void ESPEasyWiFi_t::loop()
 {
   // TODO TD-er: Must inspect WiFiEventData to see if we need to update some state here.
+    auto wifi_STA_data = getWiFi_STA_NWPluginData_static_runtime();
+    if (!wifi_STA_data) return;
 
 
   if (_state != WiFiState_e::IdleWaiting) {
@@ -113,8 +115,7 @@ void ESPEasyWiFi_t::loop()
             WiFiEventData.warnedNoValidWiFiSettings = true;
           }
 
-          WiFiEventData.last_wifi_connect_attempt_moment.clear();
-          WiFiEventData.wifi_connect_attempt     = 1;
+          wifi_STA_data->_establishConnectStats.clear();
           WiFiEventData.wifiConnectAttemptNeeded = false;
           setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
         }
@@ -295,6 +296,12 @@ void ESPEasyWiFi_t::startScanning()
 
 bool ESPEasyWiFi_t::connectSTA()
 {
+  auto wifi_STA_data = getWiFi_STA_NWPluginData_static_runtime();
+  if (!wifi_STA_data) return false;
+
+  // Make sure the timer is set to off.
+  // TODO TD-er: Should we check to see if it is still on and then do what????
+  wifi_STA_data->_establishConnectStats.setOff();
   if (!WiFi_AP_Candidates.hasCandidateCredentials())
   {
     if (!WiFiEventData.warnedNoValidWiFiSettings)
@@ -302,8 +309,9 @@ bool ESPEasyWiFi_t::connectSTA()
       addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
       WiFiEventData.warnedNoValidWiFiSettings = true;
     }
-    WiFiEventData.last_wifi_connect_attempt_moment.clear();
-    WiFiEventData.wifi_connect_attempt     = 1;
+    wifi_STA_data->_establishConnectStats.clear();
+//    WiFiEventData.last_wifi_connect_attempt_moment.clear();
+//    _connect_attempt     = 1;
     WiFiEventData.wifiConnectAttemptNeeded = false;
 
     // No need to wait longer to start AP mode.
@@ -346,9 +354,9 @@ bool ESPEasyWiFi_t::connectSTA()
     addLogMove(LOG_LEVEL_INFO, strformat(
                  F("WIFI : Connecting %s attempt #%u"),
                  candidate.toString().c_str(),
-                 WiFiEventData.wifi_connect_attempt));
+                 wifi_STA_data->_establishConnectStats.getCycleCount() + 1));
   }
-  WiFiEventData.markWiFiBegin();
+  //WiFiEventData.markWiFiBegin();
 
   if (prepareWiFi()) {
     setNetworkMedium(NetworkMedium_t::WIFI);
@@ -357,7 +365,7 @@ bool ESPEasyWiFi_t::connectSTA()
 
 # if FEATURE_SET_WIFI_TX_PWR
     float tx_pwr = 0; // Will be set higher based on RSSI when needed.
-    // FIXME TD-er: Must check WiFiEventData.wifi_connect_attempt to increase TX power
+    // FIXME TD-er: Must check wifi_STA_data->_establishConnectStats.getCycleCount() to increase TX power
 
     if (Settings.UseMaxTXpowerForSending()) {
       tx_pwr = Settings.getWiFi_TX_power();
@@ -367,7 +375,7 @@ bool ESPEasyWiFi_t::connectSTA()
 
     // Start connect attempt now, so no longer needed to attempt new connection.
     WiFiEventData.wifiConnectAttemptNeeded = false;
-    WiFiEventData.wifiConnectInProgress    = true;
+//    WiFiEventData.wifiConnectInProgress    = true;
     const String key = WiFi_AP_CandidatesList::get_key(candidate.index);
 
 # if FEATURE_USE_IPV6
@@ -383,7 +391,7 @@ bool ESPEasyWiFi_t::connectSTA()
       doSetWiFiCountryPolicyManual();
     }
 # endif // ifdef ESP32
-
+    wifi_STA_data->mark_begin_establish_connection();
     if (candidate.bits.isHidden /*&& Settings.HiddenSSID_SlowConnectPerBSSID()*/) {
       //      WiFi.disconnect(false, true);
 # ifdef ESP32

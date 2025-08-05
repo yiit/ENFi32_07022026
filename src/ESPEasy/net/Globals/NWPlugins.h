@@ -13,6 +13,7 @@
 namespace ESPEasy {
 namespace net {
 
+
 bool NWPluginCall(NWPlugin::Function Function,
                   EventStruct       *event);
 bool NWPluginCall(NWPlugin::Function Function,
@@ -43,7 +44,8 @@ nwpluginID_t         getNWPluginID_from_NetworkIndex(networkIndex_t index);
 String               getNWPluginNameFromNetworkDriverIndex(networkDriverIndex_t NetworkDriverIndex);
 String               getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID);
 
-const NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index);
+NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime();
+NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index);
 const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime();
 
 } // namespace net

@@ -18,6 +18,9 @@ public:
 
   bool                    set(bool onState);
 
+  // Set to specific on/off state + reset last change timer to now
+  bool                    forceSet(bool onState);
+
   // Return true if either 'on' or 'off' was set at least once (since 'clear()' or construction)
   bool                    isSet() const;
 

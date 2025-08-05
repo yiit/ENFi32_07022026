@@ -85,7 +85,6 @@ struct EthernetEventData_t {
 
 
   bool ethInitSuccess            = false;
-  unsigned long connectionFailures = 0;
 
 #ifdef ESP32
   WiFiEventId_t wm_event_id = 0;

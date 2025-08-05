@@ -290,6 +290,10 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
+      auto data = getNWPluginData_static_runtime(event->NetworkIndex);
+
+      if (data) { data->mark_begin_establish_connection(); }
+
       ESPEasy::net::eth::ETHConnectRelaxed();
       break;
     }

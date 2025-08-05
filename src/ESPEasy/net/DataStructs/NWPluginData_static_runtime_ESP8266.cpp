@@ -39,9 +39,7 @@ void NWPluginData_static_runtime::mark_stop()
 void NWPluginData_static_runtime::mark_got_IP()
 {
   // Set OnOffTimer to off so we can also count how often we het new IP
-  _gotIPStats.setOff();
-
-  _gotIPStats.setOn();
+  _gotIPStats.forceSet(true);
 
   addLog(LOG_LEVEL_INFO, _isSTA ? F("STA: Got IP") : F("AP: Got IP"));
 }
@@ -52,10 +50,26 @@ void NWPluginData_static_runtime::mark_lost_IP()
   addLog(LOG_LEVEL_INFO, _isSTA ? F("STA: Lost IP") : F("AP: Lost IP"));
 }
 
+void NWPluginData_static_runtime::mark_begin_establish_connection()
+{
+  _establishConnectStats.forceSet(true);
+
+}
+
 void NWPluginData_static_runtime::mark_connected()
 {
+  const bool logDuration = _establishConnectStats.isOn();
+  _establishConnectStats.setOff();
   _connectedStats.setOn();
-  addLog(LOG_LEVEL_INFO, F("STA: Connected"));
+
+  if (logDuration) {
+    addLog(LOG_LEVEL_INFO, concat(
+             F("STA: Connected, took: "),             
+             format_msec_duration_HMS(
+               _establishConnectStats.getLastOnDuration_ms())));
+  } else {
+    addLog(LOG_LEVEL_INFO, F("STA: Connected"));
+  }
 }
 
 void NWPluginData_static_runtime::mark_disconnected()

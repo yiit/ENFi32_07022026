@@ -38,6 +38,12 @@ bool LongTermOnOffTimer::set(bool onState)
   return setOff();
 }
 
+bool LongTermOnOffTimer::forceSet(bool onState)
+{
+  set(!onState);
+  return set(onState);
+}
+
 bool LongTermOnOffTimer::isSet() const
 {
   return _onTimer.isSet() || _offTimer.isSet();

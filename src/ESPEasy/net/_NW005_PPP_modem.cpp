@@ -128,8 +128,11 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
 # if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-        NW_data->init_KVS();
-# endif
+
+        if (NW_data) {
+          NW_data->init_KVS();
+        }
+# endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
       }
 
       if (NW_data) {
@@ -151,8 +154,11 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       if (mustCleanup) {
         NW_data = new (std::nothrow) ESPEasy::net::ppp::NW005_data_struct_PPP_modem(event->NetworkIndex);
 # if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-        NW_data->init_KVS();
-# endif
+
+        if (NW_data) {
+          NW_data->init_KVS();
+        }
+# endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
       }
 
       if (NW_data) {

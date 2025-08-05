@@ -26,6 +26,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
+
 bool WiFi_pre_setup() {
   if (!ESPEasyWiFi_STA_EventHandler::initialized()) { return false; }
 
@@ -84,7 +85,7 @@ bool doSetWifiMode(WiFiMode_t new_mode)
   if (cur_mode == WIFI_OFF) {
     // Needs to be set while WiFi is off
     WiFi.hostname(NetworkCreateRFCCompliantHostname());
-    WiFiEventData.markWiFiTurnOn();
+//    WiFiEventData.markWiFiTurnOn();
   }
 
   if (new_mode != WIFI_OFF) {
@@ -99,7 +100,7 @@ bool doSetWifiMode(WiFiMode_t new_mode)
 
     //    delay(100);
     processDisconnect();
-    WiFiEventData.clear_processed_flags();
+//    WiFiEventData.clear_processed_flags();
   }
 
   addLog(LOG_LEVEL_INFO, concat(F("WIFI : Set WiFi to "), doGetWifiModeString(new_mode)));
@@ -129,7 +130,7 @@ bool doSetWifiMode(WiFiMode_t new_mode)
   if (new_mode == WIFI_OFF) {
 
     // FIXME TD-er: Is this correct to mark Turn ON ????
-    WiFiEventData.markWiFiTurnOn();
+//    WiFiEventData.markWiFiTurnOn();
 
     // Needs to be set while WiFi is off
     WiFi.hostname(NetworkCreateRFCCompliantHostname());
@@ -446,7 +447,7 @@ void doSetConnectionSpeed(bool ForceWiFi_bg_mode)
   if (ForceWiFi_bg_mode) {
     protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G; // Default to BG
   }
-
+/*
   if (WiFiEventData.connectionFailures > 10) {
     // Set to allow all protocols
     protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
@@ -454,7 +455,7 @@ void doSetConnectionSpeed(bool ForceWiFi_bg_mode)
     protocol |= WIFI_PROTOCOL_11AX;
 #   endif
   }
-
+*/
   const WiFi_AP_Candidate candidate = WiFi_AP_Candidates.getCurrent();
 
   if (candidate.phy_known()) {

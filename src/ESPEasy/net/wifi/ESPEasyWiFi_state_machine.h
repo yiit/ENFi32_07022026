@@ -6,6 +6,7 @@
 
 # include "../DataStructs/WiFi_AP_Candidate.h"
 # include "../../../src/Helpers/LongTermTimer.h"
+# include "../../../src/Helpers/LongTermOnOffTimer.h"
 
 # include "../wifi/WiFi_STA_connected_state.h"
 # include "../wifi/WiFi_State.h"
@@ -86,7 +87,7 @@ private:
 
   //  LongTermTimer _AP_start_timestamp;
 
-  //  uint32_t _connect_attempt = 0;
+  //uint32_t _connect_attempt = 0;
 
 
   //  uint32_t _nrReconnects = 0;
