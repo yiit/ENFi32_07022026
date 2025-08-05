@@ -262,6 +262,9 @@ function initCM() {
     CodeMirror.keyMap.default["Ctrl-Shift-R"] = disableShortcut;
     CodeMirror.keyMap.default["Cmd-Shift-R"] = disableShortcut;
   }
+  function disableShortcut(cm) {
+    // do nothing to disable
+  }
 }
 
 //----------------------------------------------------------------------- add search and formatting options
