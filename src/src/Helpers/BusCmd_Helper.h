@@ -31,6 +31,9 @@ enum class BusCmd_Command_e : uint8_t {
   ResetGPIO,       // 'z'
   If,              // 'i'
   Let,             // 'l'
+  #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+  LetStr,          // 'm'
+  #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
 };
 
 enum class BusCmd_DataFormat_e : uint8_t {

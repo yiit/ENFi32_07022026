@@ -5,9 +5,17 @@
 
 // These commands (not case-sensitive) must have the same order as the BusCmd_Commands_e enum class
 const char BusCmd_commands[] PROGMEM =
-  "n|g|p|r|w|s|t|e|c|v|d|a|z|i|l|";
+  "n|g|p|r|w|s|t|e|c|v|d|a|z|i|l|"
+  #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+  "m|"
+  #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+;
 const char BusCmd_commandsLong[] PROGMEM =
-  "nop|get|put|read|write|read16|write16|eval|calc|value|delay|enable|reset|if|let|";
+  "nop|get|put|read|write|read16|write16|eval|calc|value|delay|enable|reset|if|let|"
+  #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+  "letstr|"
+  #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+;
 
 // Supported data formats, _ == undefined, not processed
 const char BusCmd_dataFormats[] PROGMEM =
@@ -378,7 +386,10 @@ std::vector<BusCmd_Command_struct>BusCmd_Helper_struct::parseBusCmdCommands(cons
                 calculation = args[arg - 1];
                 stripEscapeCharacters(calculation);
                 break;
-              case BusCmd_Command_e::Let: // let - l.<variable>.<calculation>
+              case BusCmd_Command_e::Let:    // let - l.<variable>.<calculation>
+              #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+              case BusCmd_Command_e::LetStr: // letstr - m.<variable>.<calculation>
+              #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
                 fmt         = BusCmd_DataFormat_e::undefined;
                 val         = 0;
                 variable    = args[arg - 1];
@@ -892,6 +903,9 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
       case BusCmd_Command_e::Calculate:
       case BusCmd_Command_e::If:
       case BusCmd_Command_e::Let:
+      #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
+      case BusCmd_Command_e::LetStr:
+      #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
 
         result = true;
 
@@ -902,13 +916,18 @@ bool BusCmd_Helper_struct::executeBusCmdCommands() {
 
           #if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
 
-          if ((BusCmd_Command_e::Let == _it->command) && _evalIsSet && (BusCmd_DataFormat_e::string == _evalCommand->format)) {
-            setCustomStringVar(_it->variable, newCalc); // Assign string value to a string variable
+          if ((BusCmd_Command_e::LetStr == _it->command)) {
+            String toVar(replacePluginValues(_it->variable));
+            const String newVar = parseTemplate(toVar); // Process like rules
 
-            if (loglevelActiveFor(LOG_LEVEL_INFO) && _showLog && ((BusCmd_CommandSource_e::PluginRead == _commandSource) ||
-                                                                  (BusCmd_CommandSource_e::PluginGetConfigVar == _commandSource))) {
-              addLog(LOG_LEVEL_INFO, strformat(F("BUSCMD: Calculation: %s -> LetStr,%s,%s"),
-                                               toCalc.c_str(), _it->variable.c_str(), newCalc.c_str()));
+            if (!newVar.isEmpty()) {
+              setCustomStringVar(newVar, newCalc);      // Assign string value to a string variable
+
+              if (loglevelActiveFor(LOG_LEVEL_INFO) && _showLog && ((BusCmd_CommandSource_e::PluginRead == _commandSource) ||
+                                                                    (BusCmd_CommandSource_e::PluginGetConfigVar == _commandSource))) {
+                addLog(LOG_LEVEL_INFO, strformat(F("BUSCMD: Calculation: %s -> LetStr,%s,%s"),
+                                                 toCalc.c_str(), newVar.c_str(), newCalc.c_str()));
+              }
             }
           } else
           #endif // if FEATURE_BUSCMD_STRING && FEATURE_STRING_VARIABLES
