@@ -278,12 +278,14 @@ void doSetConnectionSpeed(bool ForceWiFi_bg_mode) {
         phyMode = WIFI_PHY_MODE_11G;
         addLog(LOG_LEVEL_INFO, F("WIFI : AP is set to 802.11g only"));
       }
+/*
     } else {
       bool useAlternate = WiFiEventData.connectionFailures > 10;
 
       if (useAlternate) {
         phyMode = (WIFI_PHY_MODE_11G == phyMode) ? WIFI_PHY_MODE_11N : WIFI_PHY_MODE_11G;
       }
+*/
     }
   } else {
     // No need to perform a next attempt.

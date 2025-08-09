@@ -126,7 +126,14 @@ void run10TimesPerSecond() {
     Blynk_Run_c015();
   }
   #endif
-  if (!UseRTOSMultitasking && (ESPEasy::net::NetworkConnected() || WiFi.AP.stationCount())) {
+  if (!UseRTOSMultitasking && 
+    (ESPEasy::net::NetworkConnected() || 
+    #ifdef ESP32
+    WiFi.AP.stationCount()
+    #else
+    WiFi.softAPgetStationNum()
+    #endif
+  )) {
     // FIXME TD-er: What about client connected via AP?
     START_TIMER
     web_server.handleClient();
