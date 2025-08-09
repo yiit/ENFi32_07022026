@@ -836,6 +836,22 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_FREQUENCY:
               case Sensor_VType::SENSOR_TYPE_ENERGY:
               case Sensor_VType::SENSOR_TYPE_ENERGY_STORAGE:
+              case Sensor_VType::SENSOR_TYPE_ABS_HUMIDITY:
+              case Sensor_VType::SENSOR_TYPE_ATMOS_PRESSURE:
+              case Sensor_VType::SENSOR_TYPE_BLOOD_GLUCOSE_C:
+              case Sensor_VType::SENSOR_TYPE_CO_ONLY:
+              case Sensor_VType::SENSOR_TYPE_ENERGY_DISTANCE:
+              case Sensor_VType::SENSOR_TYPE_GAS_ONLY:
+              case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:
+              case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:
+              case Sensor_VType::SENSOR_TYPE_PRICIPITATION:
+              case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN:
+              case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:
+              case Sensor_VType::SENSOR_TYPE_VOC_PARTS:
+              case Sensor_VType::SENSOR_TYPE_VOLUME:
+              case Sensor_VType::SENSOR_TYPE_VOLUME_FLOW_RATE:
+              case Sensor_VType::SENSOR_TYPE_VOLUME_STORAGE:
+              case Sensor_VType::SENSOR_TYPE_WATER:
               {
                 const String dev    = getValueType2HADeviceClass(discoveryItems[s].VType);
                 const String uomDef = getValueType2DefaultHAUoM(discoveryItems[s].VType);
