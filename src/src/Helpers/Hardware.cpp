@@ -108,6 +108,8 @@
 
 #include <SPI.h>
 
+#include "../Globals/SPI1.h"
+
 
 # define GPIO_PLUGIN_ID  1
 
@@ -226,7 +228,7 @@ void hardwareInit()
 
 
   // SPI Init
-  bool SPI_initialized = false;
+  uint8_t SPI_initialized = 0;
   if (tryInitSPI && Settings.isSPI_valid())
   {
     SPI.setHwCs(false);
@@ -237,14 +239,22 @@ void hardwareInit()
     const SPI_Options_e SPI_selection = static_cast<SPI_Options_e>(Settings.InitSPI);
     int8_t spi_gpios[3]               = {};
 
-    if (Settings.getSPI_pins(spi_gpios)) {
+    if (Settings.getSPI_pins(spi_gpios, 0u)) {
       if (SPI_selection == SPI_Options_e::Vspi_Fspi) {
         SPI.begin(); // Default SPI bus
       } else {
         SPI.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
       }
-      SPI_initialized = true;
+      SPI_initialized |= 1;
     }
+    // Init second SPI interface (SPI1)
+    const SPI_Options_e SPI1_selection = static_cast<SPI_Options_e>(Settings.InitSPI1);
+    if (Settings.getSPI_pins(spi_gpios, 1u)) {
+      SPI1.setHwCs(false);
+      SPI1.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
+      SPI_initialized |= 2;
+    }
+
     #else // ifdef ESP32
     SPI.begin();
     SPI_initialized = true;
@@ -253,14 +263,34 @@ void hardwareInit()
 
   if (SPI_initialized)
   {
+    #ifdef ESP32
+    for (uint8_t i = 1; i < 3; ++i) {
+      if (SPI_initialized & i) {
+        addLog(LOG_LEVEL_INFO, strformat(F("INIT : SPI Bus %d Init (without CS)"), i - 1));
+      }
+    }
+    #endif // ifdef ESP32
+    #ifdef ESP8266
     addLog(LOG_LEVEL_INFO, F("INIT : SPI Init (without CS)"));
+    #endif // ifdef ESP8266
     #if FEATURE_SD
 
     if (Settings.Pin_sd_cs >= 0)
     {
+      #ifdef ESP32
+      const uint8_t sdspi = Settings.getSPIBusForSDCard();
+      if (SD.begin(Settings.Pin_sd_cs, 0 == sdspi ? SPI : SPI1))
+      #endif // ifdef ESP32
+      #ifdef ESP8266
       if (SD.begin(Settings.Pin_sd_cs))
+      #endif // ifdef ESP8266
       {
+        #ifdef ESP32
+        addLog(LOG_LEVEL_INFO, strformat(F("SD   : Init on SPI Bus %d OK"), sdspi));
+        #endif // ifdef ESP32
+        #ifdef ESP8266
         addLog(LOG_LEVEL_INFO, F("SD   : Init OK"));
+        #endif // ifdef ESP8266
       }
       else
       {

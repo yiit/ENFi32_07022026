@@ -17,6 +17,7 @@
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/Hardware_GPIO.h"
 #include "../Helpers/Hardware_I2C.h"
+#include "../Helpers/SPI_Helper.h"
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringGenerator_GPIO.h"
 
@@ -108,21 +109,34 @@ void handle_hardware() {
     set3BitToUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP, getFormItemInt(F("pi2cbuspcf")));
     #endif // if FEATURE_I2C_MULTIPLE
     #ifdef ESP32
-      Settings.InitSPI                = getFormItemInt(F("initspi"), static_cast<int>(SPI_Options_e::None));
-      if (Settings.InitSPI == static_cast<int>(SPI_Options_e::UserDefined)) { // User-define SPI GPIO pins
-        Settings.SPI_SCLK_pin         = getFormItemInt(F("spipinsclk"), -1);
-        Settings.SPI_MISO_pin         = getFormItemInt(F("spipinmiso"), -1);
-        Settings.SPI_MOSI_pin         = getFormItemInt(F("spipinmosi"), -1);
-        if (!Settings.isSPI_valid()) { // Checks
-          error += F("User-defined SPI pins not configured correctly!\n");
+      Settings.InitSPI         = getFormItemInt(F("initspi0"), static_cast<int>(SPI_Options_e::None));
+      if (Settings.InitSPI == static_cast<uint8_t>(SPI_Options_e::UserDefined)) { // User-defined SPI bus 0 GPIO pins
+        Settings.SPI_SCLK_pin  = getFormItemInt(F("spipinsclk0"), -1);
+        Settings.SPI_MISO_pin  = getFormItemInt(F("spipinmiso0"), -1);
+        Settings.SPI_MOSI_pin  = getFormItemInt(F("spipinmosi0"), -1);
+        if (!Settings.isSPI_valid(0u)) { // Checks
+          error += F("User-defined SPI bus 0 pins not configured correctly!\n");
+        }
+      }
+      Settings.InitSPI1        = getFormItemInt(F("initspi1"), static_cast<int>(SPI_Options_e::None));
+      if (Settings.InitSPI1 == static_cast<uint8_t>(SPI_Options_e::UserDefined)) { // User-defined SPI bus 1 GPIO pins
+        Settings.SPI1_SCLK_pin = getFormItemInt(F("spipinsclk1"), -1);
+        Settings.SPI1_MISO_pin = getFormItemInt(F("spipinmiso1"), -1);
+        Settings.SPI1_MOSI_pin = getFormItemInt(F("spipinmosi1"), -1);
+        if (!Settings.isSPI_valid(1u)) { // Checks
+          error += F("User-defined SPI bus 1 pins not configured correctly!\n");
         }
       }
     #else //for ESP8266 we keep the old UI
       Settings.InitSPI                = isFormItemChecked(F("initspi")); // SPI Init
     #endif
+    #ifdef ESP32
+    Settings.setSPIBusForSDCard(getFormItemInt(F("sdspibus"), 0));
+    #endif // ifdef ESP32
     Settings.Pin_sd_cs                = getFormItemInt(F("sd"));
     #if FEATURE_ETHERNET
     Settings.ETH_Phy_Addr             = getFormItemInt(F("ethphy"));
+    Settings.setSPIBusForEth(getFormItemInt(F("ethspibus"), 0));
     Settings.ETH_Pin_mdc_cs              = getFormItemInt(F("ethmdc"));
     Settings.ETH_Pin_mdio_irq             = getFormItemInt(F("ethmdio"));
     Settings.ETH_Pin_power_rst            = getFormItemInt(F("ethpower"));
@@ -280,52 +294,67 @@ void handle_hardware() {
   }
   #endif // if FEATURE_I2C_MULTIPLE
 
-  // SPI Init
-  addFormSubHeader(F("SPI Interface"));
   #ifdef ESP32
-  {
-    // Script to show GPIO pins for User-defined SPI GPIOs
-    // html_add_script(F("function spiOptionChanged(elem) {var spipinstyle = elem.value == 9 ? '' : 'none';document.getElementById('tr_spipinsclk').style.display = spipinstyle;document.getElementById('tr_spipinmiso').style.display = spipinstyle;document.getElementById('tr_spipinmosi').style.display = spipinstyle;}"),
-    // Minified:
-    html_add_script(F("function spiOptionChanged(e){var i=9==e.value?'':'none';"
-                      "document.getElementById('tr_spipinsclk').style.display=i,"
-                      "document.getElementById('tr_spipinmiso').style.display=i,"
-                      "document.getElementById('tr_spipinmosi').style.display=i}"),
-                    false);
-    const __FlashStringHelper * spi_options[] = {
-      getSPI_optionToString(SPI_Options_e::None), 
-      getSPI_optionToString(SPI_Options_e::Vspi_Fspi), 
-      #ifdef ESP32_CLASSIC
-      getSPI_optionToString(SPI_Options_e::Hspi), 
-      #endif
-      getSPI_optionToString(SPI_Options_e::UserDefined)};
-    const int spi_index[] = {
-      static_cast<int>(SPI_Options_e::None),
-      static_cast<int>(SPI_Options_e::Vspi_Fspi),
-      #ifdef ESP32_CLASSIC
-      static_cast<int>(SPI_Options_e::Hspi),
-      #endif
-      static_cast<int>(SPI_Options_e::UserDefined)
-    };
-    constexpr size_t nrOptions = NR_ELEMENTS(spi_index);
-    FormSelectorOptions selector(nrOptions, spi_options, spi_index);
-    selector.onChangeCall = F("spiOptionChanged(this)");
-    selector.addFormSelector(F("Init SPI"), F("initspi"), Settings.InitSPI);
-    // User-defined pins
-    addFormPinSelect(PinSelectPurpose::SPI, formatGpioName_output(F("CLK")),  F("spipinsclk"), Settings.SPI_SCLK_pin);
-    addFormPinSelect(PinSelectPurpose::SPI_MISO, formatGpioName_input(F("MISO")),  F("spipinmiso"), Settings.SPI_MISO_pin);
-    addFormPinSelect(PinSelectPurpose::SPI, formatGpioName_output(F("MOSI")), F("spipinmosi"), Settings.SPI_MOSI_pin);
-    html_add_script(F("document.getElementById('initspi').onchange();"), false); // Initial trigger onchange script
-    addFormNote(F("Changing SPI settings requires to press the hardware-reset button or power off-on!"));
+  for (uint8_t spi_bus = 0; spi_bus < getSPIBusCount(); ++spi_bus) {
+    // SPI Init
+    addFormSubHeader(concat(F("SPI Bus "), spi_bus));
+    {
+      // Script to show GPIO pins for User-defined SPI GPIOs
+      // html_add_script(F("function spiOptionChanged(elem) {var spipinstyle = elem.value == 9 ? '' : 'none';document.getElementById('tr_spipinsclk').style.display = spipinstyle;document.getElementById('tr_spipinmiso').style.display = spipinstyle;document.getElementById('tr_spipinmosi').style.display = spipinstyle;}"),
+      // Minified:
+      html_add_script(strformat(F("function spi%uOptionChanged(e){var i=9==e.value?'':'none';"
+                        "document.getElementById('tr_spipinsclk%u').style.display=i,"
+                        "document.getElementById('tr_spipinmiso%u').style.display=i,"
+                        "document.getElementById('tr_spipinmosi%u').style.display=i"
+                        "}"), spi_bus, spi_bus, spi_bus, spi_bus, spi_bus),
+                      false);
+      const __FlashStringHelper * spi_options[] = {
+        getSPI_optionToString(SPI_Options_e::None), 
+        getSPI_optionToString(SPI_Options_e::Vspi_Fspi), 
+        #ifdef ESP32_CLASSIC
+        getSPI_optionToString(SPI_Options_e::Hspi), 
+        #endif
+        getSPI_optionToString(SPI_Options_e::UserDefined)};
+      const int spi_index[] = {
+        static_cast<int>(SPI_Options_e::None),
+        static_cast<int>(SPI_Options_e::Vspi_Fspi),
+        #ifdef ESP32_CLASSIC
+        static_cast<int>(SPI_Options_e::Hspi),
+        #endif
+        static_cast<int>(SPI_Options_e::UserDefined)
+      };
+      constexpr size_t nrOptions = NR_ELEMENTS(spi_index);
+      FormSelectorOptions selector(nrOptions, spi_options, spi_index);
+      selector.onChangeCall = strformat(F("spi%uOptionChanged(this)"), spi_bus);
+      selector.addFormSelector(concat(F("Init SPI Bus "), spi_bus), concat(F("initspi"), spi_bus), 0 == spi_bus ? Settings.InitSPI : Settings.InitSPI1);
+      int8_t spi_gpio[3];
+      Settings.getSPI_pins(spi_gpio, spi_bus, true); // Load GPIO pins even if wrongly configured
+      // User-defined pins
+      addFormPinSelect(PinSelectPurpose::SPI,      formatGpioName_output(F("CLK")),  concat(F("spipinsclk"), spi_bus), spi_gpio[0]);
+      addFormPinSelect(PinSelectPurpose::SPI_MISO, formatGpioName_input(F("MISO")),  concat(F("spipinmiso"), spi_bus), spi_gpio[1]);
+      addFormPinSelect(PinSelectPurpose::SPI,      formatGpioName_output(F("MOSI")), concat(F("spipinmosi"), spi_bus), spi_gpio[2]);
+      html_add_script(strformat(F("document.getElementById('initspi%u').onchange();"), spi_bus), false); // Initial trigger onchange script
+      addFormNote(F("Changing SPI settings requires to press the hardware-reset button or power off-on!"));
+      addFormNote(F("Chip Select (CS) config must be done in the plugin"));
+    }
   }
   #else //for ESP8266 we keep the existing UI
+  addFormSubHeader(F("SPI Bus 0"));
   addFormCheckBox(F("Init SPI"), F("initspi"), Settings.InitSPI > static_cast<int>(SPI_Options_e::None));
   addFormNote(F("CLK=GPIO-14 (D5), MISO=GPIO-12 (D6), MOSI=GPIO-13 (D7)"));
-  #endif
   addFormNote(F("Chip Select (CS) config must be done in the plugin"));
+  #endif // ifdef ESP32
   
 #if FEATURE_SD
   addFormSubHeader(F("SD Card"));
+  #ifdef ESP32
+  if (getSPIBusCount() > 1 && (Settings.isSPI_valid(0u) || Settings.isSPI_valid(1u))) {
+    uint8_t spiBus = Settings.getSPIBusForSDCard();
+    SPIInterfaceSelector(F("SPI Bus"),
+                        F("sdspibus"),
+                        spiBus);
+  }
+  #endif // ifdef ESP32
   addFormPinSelect(PinSelectPurpose::SD_Card, formatGpioName_output(F("SD Card CS")), F("sd"), Settings.Pin_sd_cs);
 #endif // if FEATURE_SD
   
@@ -438,6 +467,14 @@ void handle_hardware() {
   " (0 or 1 for LAN8720, 31 for TLK110, -1 autodetect)"
 #endif
   ));
+
+  if (getSPIBusCount() > 1 && (Settings.isSPI_valid(0u) || Settings.isSPI_valid(1u))) {
+    uint8_t spiBus = Settings.getSPIBusForEth();
+    SPIInterfaceSelector(F("SPI Bus"),
+                        F("ethspibus"),
+                        spiBus, true); // FIXME: Remove Disabled flag once Ethernet SPI selection is available
+  }
+
   addFormPinSelect(PinSelectPurpose::Ethernet, formatGpioName_output(
     F(MDC_CS_PIN_DESCR)), 
     F("ethmdc"), Settings.ETH_Pin_mdc_cs);

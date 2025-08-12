@@ -31,6 +31,7 @@
 # include "../Helpers/_Plugin_Helper_serial.h"
 # include "../Helpers/ESPEasy_Storage.h"
 # include "../Helpers/I2C_Plugin_Helper.h"
+# include "../Helpers/SPI_Helper.h"
 # include "../Helpers/StringConverter.h"
 # include "../Helpers/StringGenerator_GPIO.h"
 
@@ -276,6 +277,12 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
   unsigned long taskdevicetimer = getFormItemInt(F("TDT"), 0);
 
   Settings.TaskDeviceNumber[taskIndex] = taskdevicenumber.value;
+
+  #ifdef ESP32
+  if (device.isSPI()) {
+    Settings.setSPIBusForTask(taskIndex, getFormItemInt(F("pspibus"), 0));
+  }
+  #endif // ifdef ESP32
 
   if (device.Type == DEVICE_TYPE_I2C) {
     uint8_t flags = 0;
@@ -628,7 +635,7 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
             if (device.Type == DEVICE_TYPE_I2C) {
               format_I2C_port_description(x);
             } else if (device.isSPI()) {
-              format_SPI_port_description(spi_gpios);
+              format_SPI_port_description(spi_gpios, Settings.getSPIBusForTask(x));
             } else if (device.isSerial()) {
                 # ifdef PLUGIN_USES_SERIAL
               addHtml(serialHelper_getSerialTypeLabel(&TempEvent));
@@ -978,14 +985,14 @@ void format_I2C_port_description(taskIndex_t x)
   # endif // if FEATURE_I2CMULTIPLEXER
 }
 
-void format_SPI_port_description(int8_t spi_gpios[3])
+void format_SPI_port_description(int8_t spi_gpios[3], uint8_t spi_bus)
 {
-  if (!Settings.getSPI_pins(spi_gpios)) {
+  if (!Settings.getSPI_pins(spi_gpios, spi_bus)) {
     addHtml(F("SPI (Not enabled)"));
     return;
   }
   # ifdef ESP32
-  addHtml(getSPI_optionToShortString(static_cast<SPI_Options_e>(Settings.InitSPI)));
+  addHtml(getSPI_optionToShortString(static_cast<SPI_Options_e>(0 == spi_bus ? Settings.InitSPI : Settings.InitSPI1), spi_bus));
   # endif // ifdef ESP32
   # ifdef ESP8266
   addHtml(F("SPI"));
@@ -1008,7 +1015,8 @@ void format_I2C_pin_description(taskIndex_t x)
 
 void format_SPI_pin_description(int8_t spi_gpios[3], taskIndex_t x, bool showCSpin)
 {
-  if (Settings.InitSPI > static_cast<int>(SPI_Options_e::None)) {
+  const uint8_t spi_bus = Settings.getSPIBusForTask(x);
+  if ((0 == spi_bus ? Settings.InitSPI : Settings.InitSPI1) > static_cast<int>(SPI_Options_e::None)) {
     const __FlashStringHelper*labels[] = { F("CLK"), F("MISO"), F("MOSI") };
 
     for (int i = 0; i < 3; ++i) {
@@ -1277,9 +1285,8 @@ void devicePage_show_pin_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
     addFormNote(F("Will go into effect on next input change."));
   }
 
-  if (device.isSPI()
-      && (Settings.InitSPI == static_cast<int>(SPI_Options_e::None))) {
-    addFormNote(F("SPI Interface is not configured yet (Hardware page)."));
+  if (device.isSPI()) {
+    devicePage_show_SPI_config(taskIndex, DeviceIndex);
   }
 
   if (device.connectedToGPIOpins()) {
@@ -1353,6 +1360,22 @@ void devicePage_show_serial_config(taskIndex_t taskIndex)
 }
 
 # endif // ifdef PLUGIN_USES_SERIAL
+
+void devicePage_show_SPI_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex)
+{
+  if (Device[DeviceIndex].isSPI()
+      && !(Settings.isSPI_valid(0u) || (getSPIBusCount() > 1 && Settings.isSPI_valid(1u)))) {
+    addFormNote(F("SPI Bus not configured yet (Hardware page)."));
+  }
+  #ifdef ESP32
+  if (Device[DeviceIndex].SpiBusSelect && getSPIBusCount() > 1 && (Settings.isSPI_valid(0u) || Settings.isSPI_valid(1u))) {
+    uint8_t spiBus = Settings.getSPIBusForTask(taskIndex);
+    SPIInterfaceSelector(F("SPI Bus"),
+                        F("pspibus"),
+                        spiBus);
+  }
+  #endif // ifdef ESP32
+}
 
 void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex)
 {
