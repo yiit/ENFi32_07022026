@@ -15,6 +15,7 @@
 
 /**
  * Changelog:
+ * 2025-08-12 tonhuisman: Enable use of secondary SPI bus
  * 2024-07-07 tonhuisman: Remove explicit support for ILI9486 as all ILI9486 displays tested so far work with the ILI9488 driver,
  *                        sometimes with Invert display setting enabled (or they are actually ILI9488 displays...)
  * 2024-06-23 tonhuisman: Add support for ILI9488 displays by implementing an adapted library (jaretburkett/ILI9488)
@@ -153,6 +154,7 @@ boolean Plugin_095(uint8_t function, struct EventStruct *event, String& string)
       dev.ValueCount    = 2;
       dev.TimerOption   = true;
       dev.TimerOptional = true;
+      dev.SpiBusSelect  = true;
       break;
     }
 
@@ -451,6 +453,8 @@ boolean Plugin_095(uint8_t function, struct EventStruct *event, String& string)
 
     case PLUGIN_INIT:
     {
+      const uint8_t spi_bus = Settings.getSPIBusForTask(event->TaskIndex);
+
       if (Settings.InitSPI != 0) {
         # if P095_ENABLE_ILI948X
 
@@ -470,7 +474,8 @@ boolean Plugin_095(uint8_t function, struct EventStruct *event, String& string)
                                                                                               P095_CONFIG_FLAG_GET_CMD_TRIGGER)),
                                                                P095_CONFIG_GET_COLOR_FOREGROUND,
                                                                P095_CONFIG_GET_COLOR_BACKGROUND,
-                                                               bitRead(P095_CONFIG_FLAGS, P095_CONFIG_FLAG_BACK_FILL) == 0
+                                                               bitRead(P095_CONFIG_FLAGS, P095_CONFIG_FLAG_BACK_FILL) == 0,
+                                                               spi_bus
                                                                # if ADAGFX_FONTS_INCLUDED
                                                                ,
                                                                P095_CONFIG_DEFAULT_FONT
