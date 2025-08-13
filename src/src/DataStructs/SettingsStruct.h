@@ -327,7 +327,7 @@ public:
                  uint8_t spi_bus = 0xFF) const;
 
   // Return true when SPI enabled and opt. user defined pins valid.
-  bool isSPI_valid(uint8_t spi_bus = 0) const;
+  bool isSPI_valid(uint8_t spi_bus) const;
 
   // Return true when pin is one of the configured I2C pins.
   bool isI2C_pin(int8_t pin) const;

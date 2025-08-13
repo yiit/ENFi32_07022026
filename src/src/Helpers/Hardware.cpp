@@ -229,22 +229,20 @@ void hardwareInit()
 
   // SPI Init
   uint8_t SPI_initialized = 0;
-  if (tryInitSPI && Settings.isSPI_valid())
+  if (tryInitSPI && (Settings.isSPI_valid(0u)
+                    #ifdef ESP32
+                    || Settings.isSPI_valid(1u)
+                    #endif // ifdef ESP32
+                    ))
   {
-    SPI.setHwCs(false);
-
-    // MFD: for ESP32 enable the SPI on HSPI as the default is VSPI
     #ifdef ESP32
 
     const SPI_Options_e SPI_selection = static_cast<SPI_Options_e>(Settings.InitSPI);
     int8_t spi_gpios[3]               = {};
 
     if (Settings.getSPI_pins(spi_gpios, 0u)) {
-      if (SPI_selection == SPI_Options_e::Vspi_Fspi) {
-        SPI.begin(); // Default SPI bus
-      } else {
-        SPI.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
-      }
+      SPI.setHwCs(false);
+      SPI.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]); // Use explicit GPIO configuration
       SPI_initialized |= 1;
     }
     // Init second SPI interface (SPI1)
@@ -256,8 +254,9 @@ void hardwareInit()
     }
 
     #else // ifdef ESP32
-    SPI.begin();
-    SPI_initialized = true;
+    SPI.setHwCs(false);
+    SPI.begin(); // Use default GPIO configuration
+    SPI_initialized = 1;
     #endif // ifdef ESP32
   }
 
