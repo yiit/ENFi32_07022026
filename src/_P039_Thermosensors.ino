@@ -19,6 +19,7 @@
 // Have fun ... Dominik
 
 /** Changelog:
+ * 2025-08-13 tonhuisman: Enable use of secondary SPI bus
  * 2025-08-13 tonhuisman: Move most code to P039_PluginStruct
  * 2025-01-12 tonhuisman: Add support for MQTT AutoDiscovery
  * 2025-01-03 tonhuisman: Small code size reductions, cleanup of DEBUG level logging
@@ -101,6 +102,7 @@ boolean Plugin_039(uint8_t function, struct EventStruct *event, String& string)
       dev.SendDataOption = true;
       dev.TimerOption    = true;
       dev.PluginStats    = true;
+      dev.SpiBusSelect   = true;
       break;
     }
 

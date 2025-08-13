@@ -2,7 +2,12 @@
 
 #ifdef USES_P039
 
-P039_data_struct::P039_data_struct(struct EventStruct*event) {}
+P039_data_struct::P039_data_struct(struct EventStruct*event) {
+  # ifdef ESP32
+  const uint8_t spi_bus = Settings.getSPIBusForTask(event->TaskIndex);
+  _spi = 0 == spi_bus ? SPI : SPI1;
+  # endif // ifdef ESP32
+}
 
 bool P039_data_struct::begin(struct EventStruct*event) {
   bool   success   = false;
@@ -11,23 +16,10 @@ bool P039_data_struct::begin(struct EventStruct*event) {
   // set the slaveSelectPin as an output:
   init_SPI_CS_Pin(CS_pin_no);
 
-  // initialize SPI:
-  // SPI.setHwCs(false); // Already done
-  // SPI.begin();
-
   // ensure MODE3 access to SPI device
-  SPI.setDataMode(SPI_MODE3);
+  _spi.setDataMode(SPI_MODE3);
 
-  /*
-        if (P039_MAX_TYPE == P039_MAX6675) {
-
-          // SPI.setBitOrder(MSBFIRST);
-        }
-   */
   if (P039_MAX_TYPE == P039_MAX31855) {
-    // SPI.setBitOrder(MSBFIRST);
-
-    // FIXED: c.k.i. : moved static fault flag to instance data structure
     sensorFault = false;
   }
 
@@ -1148,32 +1140,6 @@ uint16_t P039_data_struct::readLM7xRegisters(int8_t l_CS_pin_no, uint8_t l_LM7xs
 
     // read Manufatures/Device ID (16 Bit)
     *(l_device_id) = ((messageBuffer[8] << 8) | messageBuffer[9]);
-
-    // // wakeup device and start conversion
-    // // initial read of conversion result is obsolete
-    // SPI.transfer16(0xFFFF);
-
-    // // (wakeup device with "all zero2 message in the last 8 bits
-    // SPI.transfer16(0xFF00);
-
-    // //wait specific ms for conversion to be ready (TI datasheet per devices)
-    // delay(l_mswaitTime);
-
-    // //read temperature value (16 Bit)
-    // l_returnValue = SPI.transfer16(0x0000);
-    // // l_returnValue <<= 8;
-    // // l_returnValue = SPI.transfer(0x00);
-
-    // // set device to shutdown with "all one" message in the last 8 bits
-    // SPI.transfer16(0xFFFF);
-
-    // // read Manufatures/Device ID (16 Bit)
-    // *(l_device_id) = SPI.transfer16(0x0000);
-    // // *(l_device_id) <<= 8;
-    // // *(l_device_id) = SPI.transfer(0x00);
-
-    // // set device to shutdown with "all one" message in the last 8 bits ( maybe redundant, check with test)
-    // SPI.transfer16(0xFFFF);
   }
   else
   {
@@ -1187,28 +1153,7 @@ uint16_t P039_data_struct::readLM7xRegisters(int8_t l_CS_pin_no, uint8_t l_LM7xs
 
     // read Manufatures/Device ID (16 Bit)
     *(l_device_id) = ((messageBuffer[4] << 8) | messageBuffer[5]);
-
-
-    // l_returnValue = SPI.transfer16(0x0000); //read temperature value (16 Bit)
-    // // l_returnValue <<= 8;
-    // // l_returnValue = SPI.transfer(0x00);
-
-    // // set device to shutdown
-    // SPI.transfer16(0xFFFF);
-
-    // // read Manufatures/Device ID (16 Bit)
-    // *(l_device_id) = SPI.transfer16(0x0000);
-    // // *(l_device_id) <<= 8;
-    // // *(l_device_id) = SPI.transfer(0x00);
-
-    // // start conversion until next read  (8 Bit sufficient)
-    // // 0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F allowed - else device goes to test mode (not desirable here)
-    // SPI.transfer(0x00);
-    // // SPI.transfer16(0x0000);
   }
-
-  // // stop communication -> CS high
-  // handle_SPI_CS_Pin(l_CS_pin_no, HIGH);
 
   # ifndef BUILD_NO_DEBUG
 
@@ -1443,7 +1388,7 @@ void P039_data_struct::transfer_n_ByteSPI(int8_t l_CS_pin_no, uint8_t l_noBytesT
 
   for (size_t i = 0u; i < l_noBytesToSend; i++)
   {
-    l_inoutMessageBuffer[i] = SPI.transfer(l_inoutMessageBuffer[i]);
+    l_inoutMessageBuffer[i] = _spi.transfer(l_inoutMessageBuffer[i]);
   }
 
   // stop communication -> CS high

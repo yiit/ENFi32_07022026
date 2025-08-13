@@ -7,6 +7,8 @@
 
 # include <SPI.h>
 
+# include "../Globals/SPI1.h"
+
 # define MAX31865_RD_ADDRESS(n) (MAX31865_READ_ADDR_BASE + (n))
 # define MAX31865_WR_ADDRESS(n) (MAX31865_WRITE_ADDR_BASE + (n))
 
@@ -246,6 +248,8 @@ private:
   unsigned long timer            = 0;
   bool          sensorFault      = false;
   bool          convReady        = false;
+
+  SPIClass& _spi = SPI;
 };
 
 
