@@ -1041,7 +1041,7 @@ bool SettingsStruct_tmpl<N_TASKS>::isSPI_valid(uint8_t spi_bus) const {
     #ifdef ESP32
     if (result && (getSPIBusCount() > 1)) { // Cross-check pins with other bus
       int8_t spi1_pins[3];
-      getSPI_pins(spi1_pins, 1u);
+      getSPI_pins(spi1_pins, 1u, true);
 
       for (uint8_t i = 0; (i < 3) && result; ++i) {
         for (uint8_t j = 0; (j < 3) && result; ++j) {

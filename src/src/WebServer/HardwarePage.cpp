@@ -109,26 +109,24 @@ void handle_hardware() {
     set3BitToUL(Settings.I2C_peripheral_bus, I2C_PERIPHERAL_BUS_PCFMCP, getFormItemInt(F("pi2cbuspcf")));
     #endif // if FEATURE_I2C_MULTIPLE
     #ifdef ESP32
-      Settings.InitSPI         = getFormItemInt(F("initspi0"), static_cast<int>(SPI_Options_e::None));
-      if (Settings.InitSPI == static_cast<uint8_t>(SPI_Options_e::UserDefined)) { // User-defined SPI bus 0 GPIO pins
-        Settings.SPI_SCLK_pin  = getFormItemInt(F("spipinsclk0"), -1);
-        Settings.SPI_MISO_pin  = getFormItemInt(F("spipinmiso0"), -1);
-        Settings.SPI_MOSI_pin  = getFormItemInt(F("spipinmosi0"), -1);
-        if (!Settings.isSPI_valid(0u)) { // Checks
-          error += F("User-defined SPI bus 0 pins not configured correctly!\n");
-        }
+    Settings.InitSPI       = getFormItemInt(F("initspi0"), static_cast<int>(SPI_Options_e::None));
+    // User-defined SPI bus 0 GPIO pins
+    Settings.SPI_SCLK_pin  = getFormItemInt(F("spipinsclk0"), -1);
+    Settings.SPI_MISO_pin  = getFormItemInt(F("spipinmiso0"), -1);
+    Settings.SPI_MOSI_pin  = getFormItemInt(F("spipinmosi0"), -1);
+
+    Settings.InitSPI1      = getFormItemInt(F("initspi1"), static_cast<int>(SPI_Options_e::None));
+    // User-defined SPI bus 1 GPIO pins
+    Settings.SPI1_SCLK_pin = getFormItemInt(F("spipinsclk1"), -1);
+    Settings.SPI1_MISO_pin = getFormItemInt(F("spipinmiso1"), -1);
+    Settings.SPI1_MOSI_pin = getFormItemInt(F("spipinmosi1"), -1);
+    for (uint8_t spi_bus = 0; spi_bus < getSPIBusCount(); ++spi_bus) {
+      if (!Settings.isSPI_valid(spi_bus)) { // Checks
+        error += strformat(F("SPI bus %u pins not configured correctly!<BR>"), spi_bus);
       }
-      Settings.InitSPI1        = getFormItemInt(F("initspi1"), static_cast<int>(SPI_Options_e::None));
-      if (Settings.InitSPI1 == static_cast<uint8_t>(SPI_Options_e::UserDefined)) { // User-defined SPI bus 1 GPIO pins
-        Settings.SPI1_SCLK_pin = getFormItemInt(F("spipinsclk1"), -1);
-        Settings.SPI1_MISO_pin = getFormItemInt(F("spipinmiso1"), -1);
-        Settings.SPI1_MOSI_pin = getFormItemInt(F("spipinmosi1"), -1);
-        if (!Settings.isSPI_valid(1u)) { // Checks
-          error += F("User-defined SPI bus 1 pins not configured correctly!\n");
-        }
-      }
+    }
     #else //for ESP8266 we keep the old UI
-      Settings.InitSPI                = isFormItemChecked(F("initspi")); // SPI Init
+    Settings.InitSPI = isFormItemChecked(F("initspi")); // SPI Init
     #endif
     #ifdef ESP32
     Settings.setSPIBusForSDCard(getFormItemInt(F("sdspibus"), 0));
