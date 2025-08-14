@@ -924,6 +924,7 @@ bool NW005_data_struct_PPP_modem::initPluginStats()
 
   ++networkStatsVarIndex;
   displayConfig.setAxisIndex(networkStatsVarIndex);
+  displayConfig.setHidden(true);
   NWPluginData_base::initPluginStats(
     networkStatsVarIndex,
     F("Bit Error Rate (BER)"),

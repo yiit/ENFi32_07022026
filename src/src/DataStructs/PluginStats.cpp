@@ -141,6 +141,23 @@ size_t PluginStats::getNrSamples() const {
   return _samples->size();
 }
 
+size_t PluginStats::getNrUsableSamples() const
+{
+  const size_t nrSamples                   = getNrSamples();
+  PluginStatsBuffer_t::index_t samplesUsed = 0;
+
+  PluginStatsBuffer_t::index_t i = 0;
+
+  for (; i < nrSamples; ++i) {
+    const float sample((*_samples)[i]);
+
+    if (usableValue(sample)) {
+      ++samplesUsed;
+    }
+  }
+  return samplesUsed;
+}
+
 float PluginStats::getSampleAvg() const {
   return getSampleAvg(getNrSamples());
 }
@@ -441,6 +458,9 @@ bool PluginStats::plugin_get_config_value_base(struct EventStruct *event, String
 
 bool PluginStats::webformLoad_show_stats(struct EventStruct *event) const
 {
+  if (getNrUsableSamples() == 0) {
+    return false;
+  }
   bool somethingAdded = false;
 
   if (webformLoad_show_avg(event)) { somethingAdded = true; }
@@ -566,6 +586,7 @@ void PluginStats::webformLoad_show_val(
 }
 
 # if FEATURE_CHART_JS
+
 void PluginStats::plot_ChartJS_dataset() const
 {
   add_ChartJS_dataset_header(_ChartJS_dataset_config);

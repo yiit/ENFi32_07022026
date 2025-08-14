@@ -134,6 +134,16 @@ void doSetAPinternal(bool enable)
       }
     }
     # ifdef ESP32
+    #  if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 2)
+
+    if (WiFi.AP.enableDhcpCaptivePortal()) {
+      addLog(LOG_LEVEL_INFO, F("WIFI : AP Captive Portal enabled"));
+    }
+    else {
+      addLog(LOG_LEVEL_ERROR, F("WIFI : Failed to enable AP Captive Portal"));
+    }
+    #  endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 2)
+
 
     # else // ifdef ESP32
 

@@ -10,6 +10,11 @@
 
 # include "../wifi/ESPEasyWifi.h"
 
+# ifdef ESP32
+#  include <esp_wifi.h>
+#  include <esp_wifi_ap_get_sta_list.h>
+# endif
+
 # define NW_PLUGIN_ID  2
 # ifdef ESP32
 #  define NW_PLUGIN_INTERFACE   WiFi.AP
@@ -124,6 +129,7 @@ bool NW002_data_struct_WiFi_AP::initPluginStats()
   displayConfig.setEnabled(true);
 
   displayConfig.setAxisIndex(networkStatsVarIndex);
+  displayConfig.setHidden(true);
   NWPluginData_base::initPluginStats(
     networkStatsVarIndex,
     F("Station Count"),
@@ -131,6 +137,17 @@ bool NW002_data_struct_WiFi_AP::initPluginStats()
     NAN,
     displayConfig);
 #  ifdef ESP32
+  ++networkStatsVarIndex;
+  displayConfig.setHidden(false);
+  displayConfig.setAxisIndex(networkStatsVarIndex);
+  NWPluginData_base::initPluginStats(
+    networkStatsVarIndex,
+    F("RSSI"),
+    1,
+    NAN,
+    displayConfig);
+
+
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
 #  endif // ifdef ESP32
@@ -148,6 +165,21 @@ bool NW002_data_struct_WiFi_AP::record_stats()
     #  else
       WiFi.softAPgetStationNum();
     #  endif // ifdef ESP32
+
+#  ifdef ESP32
+    {
+      wifi_sta_list_t wifi_sta_list = { 0 };
+      esp_wifi_ap_get_sta_list(&wifi_sta_list);
+
+      if (wifi_sta_list.num == 0) {
+        tmpEvent.ParfN[valueCount++] = NAN;
+      } else {
+        // FIXME TD-er: Should we list the 1st one, average or best/worst value?
+        // For now, just use the first one, which is likely the only user scenario actually being used
+        tmpEvent.ParfN[valueCount++] = wifi_sta_list.sta[0].rssi;
+      }
+    }
+#  endif // ifdef ESP32
 
     bool trackPeaks                  = true;
     bool onlyUpdateTimestampWhenSame = true;
@@ -180,10 +212,15 @@ void NW002_data_struct_WiFi_AP::onEvent(arduino_event_id_t   event,
       stats_and_cache.mark_stop();
       break;
     case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+      stats_and_cache.mark_connected();
       NW002_update_NAPT();
       addLog(LOG_LEVEL_INFO, F("AP_STACONNECTED"));
       break;
     case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+
+      if (WiFi.AP.stationCount() == 0) {
+        stats_and_cache.mark_disconnected();
+      }
       NW002_update_NAPT();
       addLog(LOG_LEVEL_INFO, F("AP_STADISCONNECTED"));
       break;

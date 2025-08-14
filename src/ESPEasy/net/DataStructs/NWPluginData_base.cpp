@@ -255,6 +255,11 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
       event->ParfN[valueCount++] = _prevRX == 0 ? 0 : rx - _prevRX;
       _prevRX                    = rx;
       _prevTX                    = tx;
+    } else {
+      event->ParfN[valueCount++] = NAN;
+      event->ParfN[valueCount++] = NAN;
+      _prevTX = 0;
+      _prevRX = 0;
     }
 # endif // ifdef ESP32
 

@@ -148,6 +148,7 @@ bool NW001_data_struct_WiFi_STA::initPluginStats()
 #  if FEATURE_SET_WIFI_TX_PWR
   ++networkStatsVarIndex;
   displayConfig.setAxisIndex(networkStatsVarIndex);
+  displayConfig.setHidden(true);
   NWPluginData_base::initPluginStats(
     networkStatsVarIndex,
     F("TX Power"),

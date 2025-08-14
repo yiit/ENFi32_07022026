@@ -74,6 +74,8 @@ public:
 
   size_t getNrSamples() const;
 
+  size_t getNrUsableSamples() const;
+
   // Compute average over all stored values
   float  getSampleAvg() const;
 
