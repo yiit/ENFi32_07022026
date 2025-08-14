@@ -1353,6 +1353,22 @@ void SettingsStruct_tmpl<N_TASKS>::setRoutePrio_for_network(ESPEasy::net::networ
 }
 #endif
 
+template<unsigned int N_TASKS>
+uint32_t SettingsStruct_tmpl<N_TASKS>::getNetworkInterfaceStartupDelayAtBoot(ESPEasy::net::networkIndex_t index) const
+{
+  if (validNetworkIndex(index)) {
+    return static_cast<uint32_t>(NetworkInterfaceStartupDelayAtBoot[index]) * 10ul;
+  }
+  return 0;
+}
+
+template<unsigned int N_TASKS>
+void SettingsStruct_tmpl<N_TASKS>::setNetworkInterfaceStartupDelayAtBoot(ESPEasy::net::networkIndex_t index, uint32_t delay_ms)
+{
+  if (validNetworkIndex(index)) {
+    NetworkInterfaceStartupDelayAtBoot[index] = delay_ms/10ul;
+  }
+}
 
 
 #endif // ifndef DATASTRUCTS_SETTINGSSTRUCT_CPP

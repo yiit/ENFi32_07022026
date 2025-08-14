@@ -66,6 +66,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       Settings.setRoutePrio_for_network(event->NetworkIndex, 100);
 # endif // ifdef ESP32
       Settings.setNetworkInterfaceSubnetBlockClientIP(event->NetworkIndex, false);
+      Settings.setNetworkInterfaceStartupDelayAtBoot(event->NetworkIndex, 1000);
       break;
     }
 

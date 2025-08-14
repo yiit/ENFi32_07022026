@@ -106,7 +106,7 @@ bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) {
   return true;
 }
 
-NWPluginData_static_runtime& NW001_data_struct_WiFi_STA::getNWPluginData_static_runtime() {
+NWPluginData_static_runtime* NW001_data_struct_WiFi_STA::getNWPluginData_static_runtime() {
   return _WiFiEventHandler.getNWPluginData_static_runtime();
 }
 

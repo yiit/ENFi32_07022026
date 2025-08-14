@@ -9,7 +9,7 @@ namespace ESPEasy {
 namespace net {
 
 
-NWPluginData_base *NWPlugin_task_data[NETWORK_MAX];
+NWPluginData_base *NWPlugin_task_data[NETWORK_MAX]{0};
 
 void resetNWPluginData() {
   for (ESPEasy::net::networkIndex_t i = 0; i < NR_ELEMENTS(NWPlugin_task_data); ++i) {

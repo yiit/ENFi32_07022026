@@ -2,13 +2,14 @@
 
 
 #include "../../ESPEasy-Globals.h"
-#include "../Commands/ExecuteCommand.h"
-#include "../DataStructs/TimingStats.h"
 #include "../../ESPEasy/net/ESPEasyNetwork.h"
 #include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 #include "../../ESPEasy/net/wifi/ESPEasyWifi_ProcessEvent.h"
-#include "../ESPEasyCore/ESPEasy_backgroundtasks.h"
+#include "../Commands/ExecuteCommand.h"
+#include "../Commands/InternalCommands_decoder.h"
+#include "../DataStructs/TimingStats.h"
 #include "../ESPEasyCore/ESPEasy_Log.h"
+#include "../ESPEasyCore/ESPEasy_backgroundtasks.h"
 #include "../Globals/ESPEasy_Scheduler.h"
 #include "../Globals/EventQueue.h"
 #include "../Globals/RTC.h"
@@ -22,9 +23,7 @@
 #include "../Helpers/Networking.h"
 #include "../Helpers/PeriodicalActions.h"
 #include "../Helpers/StringConverter.h"
-
-
-#include "../Commands/InternalCommands_decoder.h"
+#include "../WebServer/ESPEasy_WebServer.h"
 
 void updateLoopStats() {
   ++loopCounter;
@@ -93,6 +92,7 @@ void ESPEasy_loop()
       event += Settings.deepSleep_wakeTime;
       eventQueue.addMove(std::move(event));
     }
+    setWebserverRunning(true);
 
 #ifndef BUILD_NO_DEBUG
     checkAll_internalCommands();

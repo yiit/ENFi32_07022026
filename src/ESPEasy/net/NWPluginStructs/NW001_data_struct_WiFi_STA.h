@@ -40,7 +40,7 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
   bool                         webformLoad_show_stats(struct EventStruct *event) const override;
 # endif // if FEATURE_PLUGIN_STATS
 
-  NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  NWPluginData_static_runtime* getNWPluginData_static_runtime();
   const __FlashStringHelper*   getWiFi_encryptionType() const;
 
 private:

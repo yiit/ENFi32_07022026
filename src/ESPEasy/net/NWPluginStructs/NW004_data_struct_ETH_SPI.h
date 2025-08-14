@@ -23,7 +23,7 @@ struct NW004_data_struct_ETH_SPI : public NWPluginData_base {
 
   bool                         exit(EventStruct *event);
 
-  NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  NWPluginData_static_runtime* getNWPluginData_static_runtime();
 
 private:
 

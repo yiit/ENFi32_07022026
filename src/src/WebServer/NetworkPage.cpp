@@ -169,6 +169,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(ESPEasy::net::networkInd
     Settings.setRoutePrio_for_network(networkindex, getFormItemInt(F("routeprio"), 0));
     Settings.setNetworkInterfaceSubnetBlockClientIP(networkindex, isFormItemChecked(F("block_web_access")));
 # endif
+    Settings.setNetworkInterfaceStartupDelayAtBoot(networkindex, getFormItemInt(F("delay_start")));
     String dummy;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
@@ -343,6 +344,11 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
   # endif // ifndef LIMIT_BUILD_SIZE
 
   if (Settings.getNWPluginID_for_network(networkindex)) {
+    // Separate enabled checkbox as it doesn't need to use the NetworkSettings.
+    // So NetworkSettings object can be destructed before network specific settings are loaded.
+    addNetworkEnabledForm(networkindex);
+    addFormSeparator(2);
+
     // TODO TD-er: Add driver specifics from NetworkDriverStruct
 
     // Load network specific settings
@@ -359,11 +365,14 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
 # endif // ifdef ESP32
     addFormCheckBox(F("Block Web Access"), F("block_web_access"), Settings.getNetworkInterfaceSubnetBlockClientIP(networkindex));
     addFormNote(F("When checked, any host from a subnet on this network interface will be blocked"));
+    addFormNumericBox(F("Delay Startup At Boot"), F("delay_start"), Settings.getNetworkInterfaceStartupDelayAtBoot(networkindex), 0, 60000);
+    addUnit(F("ms"));
 
     String str;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 
 # if FEATURE_PLUGIN_STATS
+    if (Settings.getNetworkEnabled(TempEvent.NetworkIndex))
     {
       // Task statistics and historic data in a chart
       auto *NW_data = ESPEasy::net::getNWPluginData(TempEvent.NetworkIndex);
@@ -512,11 +521,6 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     }
 # endif // ifdef ESP32
 
-    addFormSeparator(2);
-
-    // Separate enabled checkbox as it doesn't need to use the NetworkSettings.
-    // So NetworkSettings object can be destructed before network specific settings are loaded.
-    addNetworkEnabledForm(networkindex);
   }
 
   addFormSeparator(2);

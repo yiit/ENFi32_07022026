@@ -59,7 +59,7 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 # endif // if FEATURE_PLUGIN_STATS
 
 
-  NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  NWPluginData_static_runtime* getNWPluginData_static_runtime();
 
 private:
 

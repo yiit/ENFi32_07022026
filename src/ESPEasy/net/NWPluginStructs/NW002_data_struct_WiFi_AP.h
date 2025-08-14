@@ -33,7 +33,7 @@ struct NW002_data_struct_WiFi_AP : public NWPluginData_base {
   bool                         webformLoad_show_stats(struct EventStruct *event) const override;
 # endif // if FEATURE_PLUGIN_STATS
 
-  NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  NWPluginData_static_runtime* getNWPluginData_static_runtime();
 
 private:
 

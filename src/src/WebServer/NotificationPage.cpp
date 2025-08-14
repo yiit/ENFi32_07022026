@@ -221,6 +221,10 @@ void handle_notifications() {
 
     if (Settings.Notification[notificationindex] != INVALID_N_PLUGIN_ID.value)
     {
+      addRowLabel(F("Enabled"));
+      addCheckBox(F("notificationenabled"), Settings.NotificationEnabled[notificationindex]);
+      addFormSeparator(2);
+
       MakeNotificationSettings(NotificationSettings);
 
       if (!AllocatedNotificationSettings()) {
@@ -298,9 +302,6 @@ void handle_notifications() {
             addRowLabel(F("1st GPIO"));
             addPinSelect(PinSelectPurpose::Generic, F("pin1"), NotificationSettings->Pin1);
           }
-
-          addRowLabel(F("Enabled"));
-          addCheckBox(F("notificationenabled"), Settings.NotificationEnabled[notificationindex]);
 
           TempEvent.NotificationIndex = notificationindex;
           String webformLoadString;

@@ -953,7 +953,7 @@ bool NW005_data_struct_PPP_modem::record_stats()
 
 # endif // if FEATURE_PLUGIN_STATS
 
-NWPluginData_static_runtime& NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return stats_and_cache; }
+NWPluginData_static_runtime* NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
 void                         NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_event_info_t info) {
   // TODO TD-er: Must store flags from events in static (or global) object to act on it later.

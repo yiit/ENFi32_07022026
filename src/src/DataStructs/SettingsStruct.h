@@ -410,6 +410,7 @@ public:
   }
 
   bool getNetworkEnabled(ESPEasy::net::networkIndex_t index) const {
+    //if (index == 1) return true;
     if (validNetworkIndex(index)) return bitRead(NetworkEnabled_bits, index);
     return false;
   }
@@ -440,6 +441,10 @@ public:
 
   void setRoutePrio_for_network(ESPEasy::net::networkIndex_t index, uint8_t prio);
 #endif
+
+  uint32_t getNetworkInterfaceStartupDelayAtBoot(ESPEasy::net::networkIndex_t index) const;
+
+  void setNetworkInterfaceStartupDelayAtBoot(ESPEasy::net::networkIndex_t index, uint32_t delay_ms);
 
   unsigned long PID = 0;
   int           Version = 0;
@@ -690,6 +695,8 @@ public:
 #ifdef ESP32
   uint8_t       NetworkRoutePrio[NETWORK_MAX] = {0};
 #endif
+  // TODO TD-er: For ESP8266 we may likely ever use upto 2 or 3 network interfaces, so maybe re-use the rest later?
+  uint16_t  NetworkInterfaceStartupDelayAtBoot[NETWORK_MAX]{};
 
 
   // Try to extend settings to make the checksum 4-uint8_t aligned.

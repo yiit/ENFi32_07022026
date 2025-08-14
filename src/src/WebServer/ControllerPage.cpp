@@ -321,6 +321,10 @@ void handle_controllers_ControllerSettingsPage(controllerIndex_t controllerindex
 
   if (Settings.Protocol[controllerindex])
   {
+    // Separate enabled checkbox as it doesn't need to use the ControllerSettings.
+    // So ControllerSettings object can be destructed before controller specific settings are loaded.
+    addControllerEnabledForm(controllerindex);
+    addFormSeparator(2);
     {
       MakeControllerSettings(ControllerSettings); // -V522
 
@@ -615,10 +619,6 @@ void handle_controllers_ControllerSettingsPage(controllerIndex_t controllerindex
       }
 # endif // if FEATURE_MQTT
     }
-
-    // Separate enabled checkbox as it doesn't need to use the ControllerSettings.
-    // So ControllerSettings object can be destructed before controller specific settings are loaded.
-    addControllerEnabledForm(controllerindex);
   }
 
   addFormSeparator(2);

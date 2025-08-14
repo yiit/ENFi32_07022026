@@ -105,7 +105,7 @@ struct NWPluginData_base {
                                                   uint64_t& rx) const;
 #endif // ifdef ESP32
 
-  virtual NWPluginData_static_runtime& getNWPluginData_static_runtime() = 0;
+  virtual NWPluginData_static_runtime* getNWPluginData_static_runtime() = 0;
 
 
 #if FEATURE_PLUGIN_STATS

@@ -31,16 +31,18 @@ static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE);
 # else
 static NWPluginData_static_runtime stats_and_cache(false);
 # endif // ifdef ESP32
-
+static bool nw002_initialized{};
 # ifdef ESP32
 static bool nw002_enable_NAPT{};
 
 static bool NW002_update_NAPT() {
-  NW_PLUGIN_INTERFACE.enableNAPT(false);
+  if (nw002_initialized) {
+    NW_PLUGIN_INTERFACE.enableNAPT(false);
 
-  if (nw002_enable_NAPT && NW_PLUGIN_INTERFACE.stationCount()) {
-    NW_PLUGIN_INTERFACE.enableNAPT(true);
-    return true;
+    if (nw002_enable_NAPT && NW_PLUGIN_INTERFACE.stationCount()) {
+      NW_PLUGIN_INTERFACE.enableNAPT(true);
+      return true;
+    }
   }
 
   return false;
@@ -62,10 +64,12 @@ NW002_data_struct_WiFi_AP::NW002_data_struct_WiFi_AP(networkIndex_t networkIndex
   nw002_enable_NAPT = Settings.WiFi_AP_enable_NAPT();
   nw_event_id       = Network.onEvent(NW002_data_struct_WiFi_AP::onEvent);
 # endif // ifdef ESP32
+  nw002_initialized = true;
 }
 
 NW002_data_struct_WiFi_AP::~NW002_data_struct_WiFi_AP()
 {
+  nw002_initialized = false;
 # ifdef ESP32
   nw002_enable_NAPT = false;
 
@@ -108,7 +112,12 @@ bool NW002_data_struct_WiFi_AP::exit(EventStruct *event)
   return true;
 }
 
-NWPluginData_static_runtime& NW002_data_struct_WiFi_AP::getNWPluginData_static_runtime() { return stats_and_cache; }
+NWPluginData_static_runtime* NW002_data_struct_WiFi_AP::getNWPluginData_static_runtime() 
+{ 
+  if (nw002_initialized)
+    return &stats_and_cache; 
+  return nullptr;
+}
 
 
 # ifdef ESP32

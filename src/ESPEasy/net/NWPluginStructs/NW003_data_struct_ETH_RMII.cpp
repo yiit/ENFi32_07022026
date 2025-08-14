@@ -49,7 +49,7 @@ bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
   return true;
 }
 
-NWPluginData_static_runtime& NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return stats_and_cache; }
+NWPluginData_static_runtime* NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
 void                         NW003_data_struct_ETH_RMII::onEvent(arduino_event_id_t   event,
                                                                  arduino_event_info_t info)

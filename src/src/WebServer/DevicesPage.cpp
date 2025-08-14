@@ -1080,6 +1080,7 @@ void handle_devices_TaskSettingsPage(taskIndex_t taskIndex, uint8_t page)
 
                     //    Settings.TaskDeviceEnabled[taskIndex].enabled,
                     Settings.isTaskEnableReadonly(taskIndex)); // ="taskdeviceenabled"
+    addFormSeparator(2);
 
     # if FEATURE_PLUGIN_PRIORITY
 

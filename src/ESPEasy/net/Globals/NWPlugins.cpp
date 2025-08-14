@@ -154,14 +154,17 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 
           case NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION:
           {
-            NWPluginData_static_runtime& runtime_data = NW_data->getNWPluginData_static_runtime();
-            auto duration                             = runtime_data._connectedStats.getLastOnDuration_ms();
+            auto runtime_data = NW_data->getNWPluginData_static_runtime();
 
-            if (duration > 0) {
-              str            = format_msec_duration_HMS(duration);
-              event->Par64_1 = duration;
-              event->Par64_2 = runtime_data._connectedStats.getCycleCount();
-              success        = true;
+            if (runtime_data) {
+              auto duration = runtime_data->_connectedStats.getLastOnDuration_ms();
+
+              if (duration > 0) {
+                str            = format_msec_duration_HMS(duration);
+                event->Par64_1 = duration;
+                event->Par64_2 = runtime_data->_connectedStats.getCycleCount();
+                success        = true;
+              }
             }
             break;
           }
@@ -369,7 +372,7 @@ NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime()
   auto NW_data = getNWPluginData(NETWORK_INDEX_WIFI_STA);
 
   if (!NW_data) { return nullptr; }
-  return &NW_data->getNWPluginData_static_runtime();
+  return NW_data->getNWPluginData_static_runtime();
 }
 
 NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index)
@@ -377,7 +380,7 @@ NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index
   auto NW_data = getNWPluginData(index);
 
   if (!NW_data) { return nullptr; }
-  return &NW_data->getNWPluginData_static_runtime();
+  return NW_data->getNWPluginData_static_runtime();
 }
 
 const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()

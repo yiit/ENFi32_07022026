@@ -37,7 +37,7 @@ public:
 
   static bool                  initialized();
 
-  NWPluginData_static_runtime& getNWPluginData_static_runtime();
+  NWPluginData_static_runtime* getNWPluginData_static_runtime();
 
 
   WiFiDisconnectReason         getLastDisconnectReason() const;

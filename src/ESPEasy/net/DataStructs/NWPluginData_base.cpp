@@ -34,6 +34,7 @@ static InterfaceTrafficCount_t interfaceTrafficCount;
 static void tx_rx_event_handler(void *arg, esp_event_base_t event_base,
                                 int32_t event_id, void *event_data)
 {
+  if (event_data == nullptr) { return; }
   ip_event_tx_rx_t *event = (ip_event_tx_rx_t *)event_data;
   const int key           = esp_netif_get_netif_impl_index(event->esp_netif);
 
@@ -75,22 +76,24 @@ NWPluginData_base::NWPluginData_base(
 #endif
 {
   #ifdef ESP32
-  const int key = _netif->impl_index();
-  interfaceTrafficCount[key].clear();
 
-  if (_netif->netif()) {
-    static bool registered_IP_EVENT_TX_RX = false;
-    esp_netif_tx_rx_event_enable(_netif->netif());
+  if (_netif) {
+    const int key = _netif->impl_index();
+    interfaceTrafficCount[key].clear();
 
-    if (!registered_IP_EVENT_TX_RX) {
-      esp_event_handler_register(IP_EVENT, IP_EVENT_TX_RX, &tx_rx_event_handler, NULL);
-      registered_IP_EVENT_TX_RX = true;
+    if (_netif->netif()) {
+      static bool registered_IP_EVENT_TX_RX = false;
+      esp_netif_tx_rx_event_enable(_netif->netif());
+
+      if (!registered_IP_EVENT_TX_RX) {
+        esp_event_handler_register(IP_EVENT, IP_EVENT_TX_RX, &tx_rx_event_handler, NULL);
+        registered_IP_EVENT_TX_RX = true;
+      }
+      esp_netif_tx_rx_event_enable(_netif->netif());
     }
-    esp_netif_tx_rx_event_enable(_netif->netif());
+
+    //  _netif->netif()->tx_rx_events_enabled = true;
   }
-
-  //  _netif->netif()->tx_rx_events_enabled = true;
-
   #endif // ifdef ESP32
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
@@ -109,13 +112,15 @@ NWPluginData_base::~NWPluginData_base()
 
 #ifdef ESP32
 
-  if (_netif->netif()) {
-    esp_netif_tx_rx_event_disable(_netif->netif());
-  }
-  const int key = _netif->impl_index();
-  auto it       = interfaceTrafficCount.find(key);
+  if (_netif) {
+    if (_netif->netif()) {
+      esp_netif_tx_rx_event_disable(_netif->netif());
+    }
+    const int key = _netif->impl_index();
+    auto it       = interfaceTrafficCount.find(key);
 
-  if (it != interfaceTrafficCount.end()) { interfaceTrafficCount.erase(it); }
+    if (it != interfaceTrafficCount.end()) { interfaceTrafficCount.erase(it); }
+  }
 #endif // ifdef ESP32
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
@@ -258,8 +263,8 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
     } else {
       event->ParfN[valueCount++] = NAN;
       event->ParfN[valueCount++] = NAN;
-      _prevTX = 0;
-      _prevRX = 0;
+      _prevTX                    = 0;
+      _prevRX                    = 0;
     }
 # endif // ifdef ESP32
 
@@ -365,7 +370,12 @@ bool NWPluginData_base::init_KVS()
 #endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
 LongTermTimer::Duration NWPluginData_base::getConnectedDuration_ms() {
-  return getNWPluginData_static_runtime()._connectedStats.getLastOnDuration_ms();
+  auto data = getNWPluginData_static_runtime();
+
+  if (data) {
+    return data->_connectedStats.getLastOnDuration_ms();
+  }
+  return 0;
 }
 
 #ifdef ESP32
@@ -377,22 +387,24 @@ bool NWPluginData_base::handle_priority_route_changed()
   if ((_netif != nullptr) && _netif->isDefault()) {
     if (NWPlugin::forceDHCP_request(_netif)) { return true; }
 
-    NWPluginData_static_runtime& cache = getNWPluginData_static_runtime();
+    auto cache = getNWPluginData_static_runtime();
+
+    if (!cache) { res; }
 
     // Check to see if we may need to restore any cached DNS server
-    for (size_t i = 0; i < NR_ELEMENTS(cache._dns_cache); ++i) {
+    for (size_t i = 0; i < NR_ELEMENTS(cache->_dns_cache); ++i) {
       auto tmp = _netif->dnsIP(i);
 
-      if ((cache._dns_cache[i] != INADDR_NONE) && (cache._dns_cache[i] != tmp)) {
+      if ((cache->_dns_cache[i] != INADDR_NONE) && (cache->_dns_cache[i] != tmp)) {
         addLog(LOG_LEVEL_INFO, strformat(
                  F("%s: Restore cached DNS server %d from %s to %s"),
                  _netif->desc(),
                  i,
                  tmp.toString().c_str(),
-                 cache._dns_cache[i].toString().c_str()
+                 cache->_dns_cache[i].toString().c_str()
                  ));
 
-        _netif->dnsIP(i, cache._dns_cache[i]);
+        _netif->dnsIP(i, cache->_dns_cache[i]);
         res = true;
       }
     }
@@ -402,6 +414,7 @@ bool NWPluginData_base::handle_priority_route_changed()
 
 bool NWPluginData_base::getTrafficCount(uint64_t& tx, uint64_t& rx) const
 {
+  if (!_netif) { return false; }
   const int key = _netif->impl_index();
   auto it       = interfaceTrafficCount.find(key);
 
@@ -442,22 +455,24 @@ bool NWPluginData_base::_restore_DNS_cache()
   if ((_netif != nullptr) && _netif->isDefault()) {
     if (NWPlugin::forceDHCP_request(_netif)) { return true; }
 
-    NWPluginData_static_runtime& cache = getNWPluginData_static_runtime();
+    auto cache = getNWPluginData_static_runtime();
+
+    if (!cache) { return res; }
 
     // Check to see if we may need to restore any cached DNS server
-    for (size_t i = 0; i < NR_ELEMENTS(cache._dns_cache); ++i) {
+    for (size_t i = 0; i < NR_ELEMENTS(cache->_dns_cache); ++i) {
       auto tmp = _netif->dnsIP(i);
 
-      if ((cache._dns_cache[i] != INADDR_NONE) && (cache._dns_cache[i] != tmp)) {
+      if ((cache->_dns_cache[i] != INADDR_NONE) && (cache->_dns_cache[i] != tmp)) {
         addLog(LOG_LEVEL_INFO, strformat(
                  F("NW%03%d: Restore cached DNS server %d from %s to %s"),
                  _nw_data_pluginID,
                  i,
                  tmp.toString().c_str(),
-                 cache._dns_cache[i].toString().c_str()
+                 cache->_dns_cache[i].toString().c_str()
                  ));
 
-        _netif->dnsIP(i, cache._dns_cache[i]);
+        _netif->dnsIP(i, cache->_dns_cache[i]);
         res = true;
       }
     }

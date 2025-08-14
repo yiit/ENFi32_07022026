@@ -58,7 +58,7 @@ bool ESPEasyWiFi_STA_EventHandler::initialized()                                
   return _ESPEasyWiFi_STA_EventHandler_initialized;
 }
 
-NWPluginData_static_runtime& ESPEasyWiFi_STA_EventHandler::getNWPluginData_static_runtime() { return stats_and_cache; }
+NWPluginData_static_runtime* ESPEasyWiFi_STA_EventHandler::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
 WiFiDisconnectReason         ESPEasyWiFi_STA_EventHandler::getLastDisconnectReason() const  { return _wifi_disconnect_reason; }
 

@@ -61,6 +61,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       Settings.setRoutePrio_for_network(event->NetworkIndex, 10);
 # endif
       Settings.setNetworkInterfaceSubnetBlockClientIP(event->NetworkIndex, false);
+      Settings.setNetworkInterfaceStartupDelayAtBoot(event->NetworkIndex, 10000);
       break;
     }
 
