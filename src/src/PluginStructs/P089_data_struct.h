@@ -25,7 +25,6 @@ enum class P089_status : uint8_t {
 };
 
 struct P089_ping_task_data {
-  bool        initialized{};
   P089_status status = P089_status::Initial;
   IPAddress   pingIp;
   String      hostname;

@@ -9,8 +9,7 @@
 
 # ifdef ESP32
 P089_data_struct::P089_data_struct() {
-  espPing                     = new (std::nothrow) PingClass();
-  _ping_task_data.initialized = isInitialized();
+  espPing = new (std::nothrow) PingClass();
 }
 
 P089_data_struct::~P089_data_struct() {
@@ -41,11 +40,6 @@ bool P089_data_struct::send_ping(struct EventStruct *event) {
   /* This ping lost for sure */
   if (!isInitialized() || !NetworkConnected()) {
     return true;
-  }
-
-  if (!_ping_task_data.initialized) {
-    // addLog(LOG_LEVEL_ERROR, F("PING : Not initialized."));
-    return true; // Not (yet?) initialized
   }
 
   if (_ping_task_data.status == P089_status::Working) {
