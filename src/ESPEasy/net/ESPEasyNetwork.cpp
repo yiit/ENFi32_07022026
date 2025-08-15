@@ -1,13 +1,12 @@
 #include "../net/ESPEasyNetwork.h"
 
-#include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
-
-
-#include "../../ESPEasy/net/Globals/NetworkState.h"
-#include "../../src/Globals/Settings.h"
+#include "../net/wifi/ESPEasyWifi.h"
+#include "../net/Globals/NetworkState.h"
 
 #include "../../src/Globals/ESPEasy_time.h"
+#include "../../src/Globals/Settings.h"
 
+#include "../../src/Helpers/Networking.h"
 #include "../../src/Helpers/StringConverter.h"
 #include "../../src/Helpers/MDNS_Helper.h"
 
@@ -86,6 +85,10 @@ void CheckRunningServices() {
     node_time.lastNTPSyncTime_ms = 0;
     node_time.initTime();
   }
+#if FEATURE_ESPEASY_P2P
+    updateUDPport(true);
+#endif
+
 #if FEATURE_WIFI
 # if FEATURE_SET_WIFI_TX_PWR
 

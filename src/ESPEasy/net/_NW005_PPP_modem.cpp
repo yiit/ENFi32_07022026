@@ -77,6 +77,13 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
+    case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
+    {
+      // Webserver should not be accessed from PPP modem
+      success = false;
+      break;
+    }
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
       ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =

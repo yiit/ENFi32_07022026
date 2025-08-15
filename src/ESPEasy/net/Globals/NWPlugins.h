@@ -15,7 +15,7 @@ namespace net {
 
 
 bool NWPluginCall(NWPlugin::Function Function,
-                  EventStruct       *event);
+                  EventStruct       *event = nullptr);
 bool NWPluginCall(NWPlugin::Function Function,
                   EventStruct       *event,
                   String           & str);

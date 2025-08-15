@@ -86,6 +86,11 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
     }
 # endif // ifdef ESP32
 
+    case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
+    {
+      success = ETH.connected();
+      break;
+    }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {

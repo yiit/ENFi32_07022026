@@ -389,7 +389,7 @@ bool NWPluginData_base::handle_priority_route_changed()
 
     auto cache = getNWPluginData_static_runtime();
 
-    if (!cache) { res; }
+    if (!cache) { return res; }
 
     // Check to see if we may need to restore any cached DNS server
     for (size_t i = 0; i < NR_ELEMENTS(cache->_dns_cache); ++i) {

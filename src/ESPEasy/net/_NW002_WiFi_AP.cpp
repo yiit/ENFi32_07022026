@@ -80,6 +80,16 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
     }
 # endif // ifdef ESP32
 
+    case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
+    {
+# ifdef ESP32
+      success = WiFi.AP.stationCount() > 0;
+# else
+      success = WiFi.softAPgetStationNum() > 0;
+# endif // ifdef ESP32
+
+      break;
+    }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {

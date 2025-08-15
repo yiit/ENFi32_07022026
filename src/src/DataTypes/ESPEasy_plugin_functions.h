@@ -180,6 +180,7 @@ public:
     #endif // ifdef ESP32
     NWPLUGIN_GET_CONNECTED_DURATION,
     NWPLUGIN_PROCESS_EVENT,          // Process received event arduino_event_id_t
+    NWPLUGIN_WEBSERVER_SHOULD_RUN,   // Check whether the addressed interface is active and needs the webserver to be active
 #if FEATURE_PLUGIN_STATS
     NWPLUGIN_RECORD_STATS,
     NWPLUGIN_WEBFORM_LOAD_SHOW_STATS,

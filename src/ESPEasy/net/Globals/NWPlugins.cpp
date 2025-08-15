@@ -55,6 +55,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     case NWPlugin::Function::NWPLUGIN_TEN_PER_SECOND:
     case NWPlugin::Function::NWPLUGIN_FIFTY_PER_SECOND:
     case NWPlugin::Function::NWPLUGIN_WRITE:
+    case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
 #ifdef ESP32
     case NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED:
 #endif
@@ -64,7 +65,8 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 #ifdef ESP32
         Function != NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED &&
 #endif
-        Function != NWPlugin::Function::NWPLUGIN_WRITE;
+        Function != NWPlugin::Function::NWPLUGIN_WRITE &&
+        Function != NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN;
 
       if (Function == NWPlugin::Function::NWPLUGIN_INIT_ALL) {
         Function = NWPlugin::Function::NWPLUGIN_INIT;
@@ -92,7 +94,8 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                 Function,
                 event,
                 command)) {
-            if (Function == NWPlugin::Function::NWPLUGIN_WRITE) {
+            if (Function == NWPlugin::Function::NWPLUGIN_WRITE || 
+                Function == NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN) {
               // Need to stop when call was handled
               return true;
             }

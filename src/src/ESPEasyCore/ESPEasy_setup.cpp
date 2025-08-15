@@ -604,12 +604,6 @@ void ESPEasy_setup()
   logMemUsageAfter(F("NetworkConnectRelaxed()"));
   #endif // ifndef BUILD_NO_RAM_TRACKER
 
-//  setWebserverRunning(true);
-  #ifndef BUILD_NO_RAM_TRACKER
-  logMemUsageAfter(F("setWebserverRunning()"));
-  #endif // ifndef BUILD_NO_RAM_TRACKER
-
-
   #if FEATURE_REPORTING
   ReportStatus();
   #endif // if FEATURE_REPORTING

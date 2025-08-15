@@ -3,6 +3,7 @@
 
 #include "../../ESPEasy-Globals.h"
 #include "../../ESPEasy/net/ESPEasyNetwork.h"
+#include "../../ESPEasy/net/Globals/NWPlugins.h"
 #include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 #include "../../ESPEasy/net/wifi/ESPEasyWifi_ProcessEvent.h"
 #include "../Commands/ExecuteCommand.h"
@@ -92,7 +93,6 @@ void ESPEasy_loop()
       event += Settings.deepSleep_wakeTime;
       eventQueue.addMove(std::move(event));
     }
-    setWebserverRunning(true);
 
 #ifndef BUILD_NO_DEBUG
     checkAll_internalCommands();
@@ -105,6 +105,10 @@ void ESPEasy_loop()
     sendSysInfoUDP(1);
     #endif
   }
+
+  setWebserverRunning(ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN));
+
+
 #if FEATURE_CLEAR_I2C_STUCK
   if (Settings.EnableClearHangingI2Cbus())
   {

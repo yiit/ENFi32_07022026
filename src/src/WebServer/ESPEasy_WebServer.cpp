@@ -399,6 +399,7 @@ void setWebserverRunning(bool state) {
   } else {
     web_server.client().stop();
     web_server.stop();
+
     #ifndef LIMIT_BUILD_SIZE
     addLog(LOG_LEVEL_INFO, F("Webserver: stop"));
     #endif

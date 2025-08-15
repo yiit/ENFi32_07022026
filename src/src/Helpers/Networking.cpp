@@ -228,13 +228,20 @@ void updateUDPport(bool force)
     return;
   }
 
-  if (lastUsedUDPPort != 0) {
-    portUDP.stop();
-    lastUsedUDPPort = 0;
-  }
-
-  if (!ESPEasy::net::NetworkConnected()) {
-    return;
+  // FIXME TD-er: For now, all interfaces that can handle UDP are the same as those that need the webserver to run
+  // May need a separate NWPlugin function for check if default interface can handle UDP p2p packets
+  // Or we may need to look into AsyncUDP as that allows to send to specific interfaces.
+  const bool connected = ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN);
+  //const bool connected = ESPEasy::net::NetworkConnected();
+  if (!connected || lastUsedUDPPort != 0) {
+    if (lastUsedUDPPort != 0) {
+      portUDP.stop();
+      lastUsedUDPPort = 0;
+      addLogMove(LOG_LEVEL_INFO, concat(F("UDP : Stop listening on port "), Settings.UDPPort));
+    }
+    if (!connected) {
+      return;
+    }
   }
 
   if (Settings.UDPPort != 0) {

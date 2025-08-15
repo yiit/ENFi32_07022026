@@ -84,6 +84,16 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
     }
 # endif // ifdef ESP32
 
+    case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
+    {
+# ifdef ESP32
+      success = WiFi.STA.connected();
+# else // ifdef ESP32
+      success = WiFi.isConnected();
+# endif // ifdef ESP32
+      break;
+    }
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
 # ifdef ESP32
