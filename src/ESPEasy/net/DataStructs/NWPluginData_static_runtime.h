@@ -52,7 +52,7 @@ struct NWPluginData_static_runtime {
 
   void mark_got_IP();
 #if FEATURE_USE_IPV6
-  void mark_got_IPv6();
+  void mark_got_IPv6(ip_event_got_ip6_t *event);
 #endif
 
   void mark_lost_IP();

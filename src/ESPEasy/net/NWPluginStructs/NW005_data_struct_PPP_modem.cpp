@@ -953,9 +953,9 @@ bool NW005_data_struct_PPP_modem::record_stats()
 
 # endif // if FEATURE_PLUGIN_STATS
 
-NWPluginData_static_runtime* NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return &stats_and_cache; }
+NWPluginData_static_runtime * NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
-void                         NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_event_info_t info) {
+void                          NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_event_info_t info) {
   // TODO TD-er: Must store flags from events in static (or global) object to act on it later.
   switch (event)
   {
@@ -983,7 +983,7 @@ void                         NW005_data_struct_PPP_modem::onEvent(arduino_event_
       break;
 # if FEATURE_USE_IPV6
     case ARDUINO_EVENT_PPP_GOT_IP6:
-      stats_and_cache.mark_got_IPv6();
+      stats_and_cache.mark_got_IPv6(&info.got_ip6);
       break;
 # endif // if FEATURE_USE_IPV6
     case ARDUINO_EVENT_PPP_LOST_IP:

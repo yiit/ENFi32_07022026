@@ -59,15 +59,17 @@ ESPEasyWiFi_STA_EventHandler::~ESPEasyWiFi_STA_EventHandler()
   stats_and_cache.clear();
 }
 
-bool                         ESPEasyWiFi_STA_EventHandler::initialized()                    { return _ESPEasyWiFi_STA_EventHandler_initialized; }
+bool ESPEasyWiFi_STA_EventHandler::initialized()                                             {
+  return _ESPEasyWiFi_STA_EventHandler_initialized;
+}
 
-NWPluginData_static_runtime* ESPEasyWiFi_STA_EventHandler::getNWPluginData_static_runtime() { return &stats_and_cache; }
+NWPluginData_static_runtime * ESPEasyWiFi_STA_EventHandler::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
-WiFiDisconnectReason         ESPEasyWiFi_STA_EventHandler::getLastDisconnectReason() const  { return _wifi_disconnect_reason; }
+WiFiDisconnectReason          ESPEasyWiFi_STA_EventHandler::getLastDisconnectReason() const  { return _wifi_disconnect_reason; }
 
-uint8_t                      ESPEasyWiFi_STA_EventHandler::getAuthMode() const              { return _wifi_event_sta_connected.authmode; }
+uint8_t                       ESPEasyWiFi_STA_EventHandler::getAuthMode() const              { return _wifi_event_sta_connected.authmode; }
 
-bool                         ESPEasyWiFi_STA_EventHandler::restore_dns_from_cache() const
+bool                          ESPEasyWiFi_STA_EventHandler::restore_dns_from_cache() const
 {
   bool res{};
 
@@ -91,7 +93,7 @@ bool                         ESPEasyWiFi_STA_EventHandler::restore_dns_from_cach
   return res;
 }
 
-const __FlashStringHelper *  ESPEasyWiFi_STA_EventHandler::getWiFi_encryptionType() const
+const __FlashStringHelper * ESPEasyWiFi_STA_EventHandler::getWiFi_encryptionType() const
 {
   return WiFi_encryptionType(_wifi_event_sta_connected.authmode);
 }
@@ -146,7 +148,7 @@ void ESPEasyWiFi_STA_EventHandler::WiFiEvent(WiFiEvent_t event_id, arduino_event
       break;
 #  if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
-      stats_and_cache.mark_got_IPv6();
+      stats_and_cache.mark_got_IPv6(&info.got_ip6);
       break;
 #  endif // if FEATURE_USE_IPV6
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:

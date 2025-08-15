@@ -198,7 +198,7 @@ void addPlugin_Add_Edit_Button(const __FlashStringHelper * urlPrefix, size_t ind
   addHtml(urlPrefix);
   addHtml(F("?index="));
   addHtmlInt(index + 1);
-  addHtml(F("'>"));
+  addHtml('\'', '>');
 
   if (plugin_set) {
     addHtml(F("Edit"));

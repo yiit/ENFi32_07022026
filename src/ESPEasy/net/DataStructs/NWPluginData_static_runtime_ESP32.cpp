@@ -108,7 +108,7 @@ void NWPluginData_static_runtime::mark_got_IP()
 
 # if FEATURE_USE_IPV6
 
-void NWPluginData_static_runtime::mark_got_IPv6()
+void NWPluginData_static_runtime::mark_got_IPv6(ip_event_got_ip6_t *event)
 {
   _gotIP6Stats.setOn();
 
@@ -119,11 +119,23 @@ void NWPluginData_static_runtime::mark_got_IPv6()
   }
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    addLog(LOG_LEVEL_INFO, strformat(
-             F("%s: Got IPv6"),
-             _netif->desc()));
+    if (event) {
+      esp_ip6_addr_type_t addr_type    = esp_netif_ip6_get_addr_type(&event->ip6_info.ip);
+      static const char  *addr_types[] = { "UNKNOWN", "GLOBAL", "LINK_LOCAL", "SITE_LOCAL", "UNIQUE_LOCAL", "IPV4_MAPPED_IPV6" };
+      addLog(LOG_LEVEL_INFO, strformat(
+               F("%s: Got IPv6: IP Index: %d, Type: %s, Zone: %d, Address: " IPV6STR),
+               _netif->desc(),
+               event->ip_index,
+               addr_types[addr_type],
+               event->ip6_info.ip.zone,
+               IPV62STR(event->ip6_info.ip)
+               ));
+    } else {
+      addLog(LOG_LEVEL_INFO, strformat(
+               F("%s: Got IPv6"),
+               _netif->desc()));
+    }
   }
-
 }
 
 # endif // if FEATURE_USE_IPV6
@@ -145,9 +157,8 @@ void NWPluginData_static_runtime::mark_lost_IP()
 void NWPluginData_static_runtime::mark_begin_establish_connection()
 {
   _establishConnectStats.forceSet(true);
-  
-}
 
+}
 
 void NWPluginData_static_runtime::mark_connected()
 {
@@ -162,7 +173,7 @@ void NWPluginData_static_runtime::mark_connected()
              _netif->desc(),
              format_msec_duration_HMS(
                _establishConnectStats.getLastOnDuration_ms()).c_str(),
-               _establishConnectStats.getCycleCount()));
+             _establishConnectStats.getCycleCount()));
   } else {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Connected"),

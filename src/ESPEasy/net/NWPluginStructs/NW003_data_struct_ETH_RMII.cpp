@@ -49,10 +49,10 @@ bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
   return true;
 }
 
-NWPluginData_static_runtime* NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }
+NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
-void                         NW003_data_struct_ETH_RMII::onEvent(arduino_event_id_t   event,
-                                                                 arduino_event_info_t info)
+void                          NW003_data_struct_ETH_RMII::onEvent(arduino_event_id_t   event,
+                                                                  arduino_event_info_t info)
 {
   switch (event)
   {
@@ -73,7 +73,7 @@ void                         NW003_data_struct_ETH_RMII::onEvent(arduino_event_i
       break;
 # if FEATURE_USE_IPV6
     case ARDUINO_EVENT_ETH_GOT_IP6:
-      stats_and_cache.mark_got_IPv6();
+      stats_and_cache.mark_got_IPv6(&info.got_ip6);
       break;
 # endif // if FEATURE_USE_IPV6
     case ARDUINO_EVENT_ETH_LOST_IP:
