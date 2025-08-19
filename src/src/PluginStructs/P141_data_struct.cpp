@@ -69,7 +69,7 @@ bool P141_data_struct::plugin_init(struct EventStruct *event) {
 
     pcd8544 = new (std::nothrow) Adafruit_PCD8544(P141_DC_PIN, P141_CS_PIN, P141_RST_PIN
                                                   # ifdef ESP32
-                                                  , 0 == _spi_bus ? &SPI : &SPI1
+                                                  , 0 == _spi_bus ? &SPI : &SPIe
                                                   # endif // ifdef ESP32
                                                   );
     # ifndef BUILD_NO_DEBUG

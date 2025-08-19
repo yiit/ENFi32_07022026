@@ -6,7 +6,7 @@
 
 # include <MFRC522.h>
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # define P111_CS_PIN            PIN(0)
 # define P111_RST_PIN           PIN(1)

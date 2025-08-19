@@ -167,7 +167,7 @@ bool P095_data_struct::plugin_init(struct EventStruct *event) {
     # endif // if P095_ENABLE_ILI948X
     {
       # ifdef ESP32 // PIN(0) and PIN(1) swapped!
-      tft = new (std::nothrow) Adafruit_ILI9341(0 == _spi_bus ? &SPI : &SPI1,
+      tft = new (std::nothrow) Adafruit_ILI9341(0 == _spi_bus ? &SPI : &SPIe,
                                                 PIN(1),
                                                 PIN(0),
                                                 PIN(2),

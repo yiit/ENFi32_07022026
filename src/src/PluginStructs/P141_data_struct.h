@@ -7,7 +7,7 @@
 # include <Adafruit_GFX.h>     // include Adafruit graphics library
 # include <Adafruit_PCD8544.h> // include Adafruit PCD8544 LCD library
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # include "../Helpers/AdafruitGFX_helper.h" // Use Adafruit graphics helper object
 

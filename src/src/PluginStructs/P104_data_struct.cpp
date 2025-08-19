@@ -38,7 +38,7 @@ P104_data_struct::P104_data_struct(MD_MAX72XX::moduleType_t _mod,
   if (Settings.isSPI_valid(spi_bus)) {
     P = new (std::nothrow) MD_Parola(mod,
                                      # ifdef ESP32
-                                     0 == spi_bus ? SPI : SPI1,
+                                     0 == spi_bus ? SPI : SPIe,
                                      # endif // ifdef ESP32
                                      cs_pin, modules);
   } else {

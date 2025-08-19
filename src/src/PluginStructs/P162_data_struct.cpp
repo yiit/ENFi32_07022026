@@ -16,7 +16,7 @@ P162_data_struct::P162_data_struct(int8_t  csPin,
   : _csPin(csPin), _rstPin(rstPin), _shdPin(shdPin), _spi_bus(spi_bus)
 {
   # ifdef ESP32
-  _spi = 0 == _spi_bus ? SPI : SPI1;
+  _spi = 0 == _spi_bus ? SPI : SPIe;
   # endif // ifdef ESP32
 }
 

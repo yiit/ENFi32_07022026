@@ -4,7 +4,7 @@
 #include "../../_Plugin_Helper.h"
 #ifdef USES_P162
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # define P162_CS_PIN            PIN(0)
 # define P162_RST_PIN           PIN(1)

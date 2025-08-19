@@ -211,7 +211,7 @@ bool P116_data_struct::plugin_init(struct EventStruct *event) {
         }
 
         # ifdef ESP32
-        st7735 = new (std::nothrow) Adafruit_ST7735(0 == _spi_bus ? &SPI : &SPI1, PIN(0), PIN(1), PIN(2));
+        st7735 = new (std::nothrow) Adafruit_ST7735(0 == _spi_bus ? &SPI : &SPIe, PIN(0), PIN(1), PIN(2));
         # endif // ifdef ESP32
         # ifdef ESP8266
         st7735 = new (std::nothrow) Adafruit_ST7735(PIN(0), PIN(1), PIN(2));
@@ -234,7 +234,7 @@ bool P116_data_struct::plugin_init(struct EventStruct *event) {
       # endif // if P116_EXTRA_ST7789
       {
         # ifdef ESP32
-        st7789 = new (std::nothrow) Adafruit_ST7789(0 == _spi_bus ? &SPI : &SPI1, PIN(0), PIN(1), PIN(2));
+        st7789 = new (std::nothrow) Adafruit_ST7789(0 == _spi_bus ? &SPI : &SPIe, PIN(0), PIN(1), PIN(2));
         # endif // ifdef ESP32
         # ifdef ESP8266
         st7789 = new (std::nothrow) Adafruit_ST7789(PIN(0), PIN(1), PIN(2));
@@ -261,7 +261,7 @@ bool P116_data_struct::plugin_init(struct EventStruct *event) {
       case ST77xx_type_e::ST7796s_320x480:
       {
         # ifdef ESP32
-        st7796 = new (std::nothrow) Adafruit_ST7796S_kbv(0 == _spi_bus ? &SPI : &SPI1, PIN(0), PIN(1), PIN(2));
+        st7796 = new (std::nothrow) Adafruit_ST7796S_kbv(0 == _spi_bus ? &SPI : &SPIe, PIN(0), PIN(1), PIN(2));
         # endif // ifdef ESP32
         # ifdef ESP8266
         st7796 = new (std::nothrow) Adafruit_ST7796S_kbv(PIN(0), PIN(1), PIN(2));

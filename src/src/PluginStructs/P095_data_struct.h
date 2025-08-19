@@ -7,7 +7,7 @@
 # include <Adafruit_GFX.h>     // include Adafruit graphics library
 # include <Adafruit_ILI9341.h> // include Adafruit ILI9341 TFT library
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # include "../Helpers/AdafruitGFX_helper.h" // Use Adafruit graphics helper object
 # include "../CustomBuild/StorageLayout.h"

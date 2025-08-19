@@ -7,7 +7,7 @@
 # include <Adafruit_Sensor.h>
 # include <Adafruit_BMP3XX.h>
 
-#include "../Globals/SPI1.h"
+#include "../Globals/SPIe.h"
 
 
 # define P154_I2C_ADDR        PCONFIG(0)

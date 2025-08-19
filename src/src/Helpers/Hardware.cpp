@@ -108,7 +108,7 @@
 
 #include <SPI.h>
 
-#include "../Globals/SPI1.h"
+#include "../Globals/SPIe.h"
 
 
 # define GPIO_PLUGIN_ID  1
@@ -245,11 +245,11 @@ void hardwareInit()
       SPI.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]); // Use explicit GPIO configuration
       SPI_initialized |= 1;
     }
-    // Init second SPI interface (SPI1)
+    // Init second SPI interface (SPIe)
     const SPI_Options_e SPI1_selection = static_cast<SPI_Options_e>(Settings.InitSPI1);
     if (Settings.getSPI_pins(spi_gpios, 1u)) {
-      SPI1.setHwCs(false);
-      SPI1.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
+      SPIe.setHwCs(false);
+      SPIe.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
       SPI_initialized |= 2;
     }
 
@@ -278,7 +278,7 @@ void hardwareInit()
     {
       #ifdef ESP32
       const uint8_t sdspi = Settings.getSPIBusForSDCard();
-      if (SD.begin(Settings.Pin_sd_cs, 0 == sdspi ? SPI : SPI1))
+      if (SD.begin(Settings.Pin_sd_cs, 0 == sdspi ? SPI : SPIe))
       #endif // ifdef ESP32
       #ifdef ESP8266
       if (SD.begin(Settings.Pin_sd_cs))

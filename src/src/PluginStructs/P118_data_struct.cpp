@@ -35,7 +35,7 @@ bool P118_data_struct::plugin_init(struct EventStruct *event) {
     startInit = millis();
     _rf       = new (std::nothrow) IthoCC1101(_csPin, spi_pins[1]
                                               # ifdef ESP32
-                                              , 0 == _spi_bus ? SPI : SPI1 // defaults and SPI bus for ESP32 only
+                                              , 0 == _spi_bus ? SPI : SPIe // defaults and SPI bus for ESP32 only
                                               # endif // ifdef ESP32
                                               );                           // Pass CS and MISO
   } else {

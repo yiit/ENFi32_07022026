@@ -16,7 +16,7 @@
 # include "../Helpers/Misc.h"
 # include "../Helpers/StringParser.h"
 
-#include "../Globals/SPI1.h"
+#include "../Globals/SPIe.h"
 
 # include <vector>
 

@@ -32,7 +32,7 @@ void P111_data_struct::init() {
   // Instantiate a MFRC522
   mfrc522 = new (std::nothrow) MFRC522(_csPin, _rstPin
                                        # ifdef ESP32
-                                       , 0 == _spi_bus ? SPI : SPI1
+                                       , 0 == _spi_bus ? SPI : SPIe
                                        # endif // ifdef ESP32
                                        );
 

@@ -9,7 +9,7 @@
 # include "IthoCC1101.h"
 # include "IthoPacket.h"
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # define P118_DEBUG_LOG          // Enable for some (extra) logging
 # ifndef P118_FEATURE_ORCON

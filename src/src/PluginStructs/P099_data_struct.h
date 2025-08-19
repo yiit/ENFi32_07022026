@@ -8,7 +8,7 @@
 
 # include <XPT2046_Touchscreen.h>
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 // #define PLUGIN_099_DEBUG    // Additional debugging information
 

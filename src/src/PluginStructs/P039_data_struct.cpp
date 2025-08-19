@@ -5,7 +5,7 @@
 P039_data_struct::P039_data_struct(struct EventStruct*event) {
   # ifdef ESP32
   const uint8_t spi_bus = Settings.getSPIBusForTask(event->TaskIndex);
-  _spi = 0 == spi_bus ? SPI : SPI1;
+  _spi = 0 == spi_bus ? SPI : SPIe;
   # endif // ifdef ESP32
 }
 

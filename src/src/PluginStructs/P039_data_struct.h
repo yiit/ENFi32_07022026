@@ -7,7 +7,7 @@
 
 # include <SPI.h>
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # define MAX31865_RD_ADDRESS(n) (MAX31865_READ_ADDR_BASE + (n))
 # define MAX31865_WR_ADDRESS(n) (MAX31865_WRITE_ADDR_BASE + (n))

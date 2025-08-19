@@ -4,7 +4,7 @@
 
 # define P120_RAD_TO_DEG        57.295779f // 180.0/M_PI
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 P120_data_struct::P120_data_struct(uint8_t aSize)
   : _aSize(aSize)
@@ -241,7 +241,7 @@ bool P120_data_struct::init_sensor(struct EventStruct *event) {
     # endif // ifdef ESP32
     adxl345 = new (std::nothrow) ADXL345(_cs_pin
                                          # ifdef ESP32
-                                         , 0 == spi_bus ? SPI : SPI1
+                                         , 0 == spi_bus ? SPI : SPIe
                                          # endif // ifdef ESP32
                                          ); // Init using SPI
   }

@@ -4,7 +4,7 @@
 #include "../../_Plugin_Helper.h"
 #ifdef USES_P096
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # include <Adafruit_GFX.h>             // include Adafruit graphics library
 # include <LOLIN_EPD.h>                // include Adafruit Lolin eInk/ePaper library

@@ -2,5 +2,5 @@
 #ifdef ESP32
 # include <SPI.h>
 
-extern SPIClass SPI1;
+extern SPIClass SPIe;
 #endif // ifdef ESP32

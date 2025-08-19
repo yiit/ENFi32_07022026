@@ -127,21 +127,21 @@ bool P096_data_struct::plugin_init(struct EventStruct *event) {
       case EPD_type_e::EPD_IL3897:
         eInkScreen = new (std::nothrow) LOLIN_IL3897(_xpix, _ypix, PIN(1), PIN(2), PIN(0), PIN(3)
                                                      # ifdef ESP32
-                                                     , 0 == _spi_bus ? SPI : SPI1
+                                                     , 0 == _spi_bus ? SPI : SPIe
                                                      # endif // ifdef ESP32
                                                      ); // HSPI
         break;
       case EPD_type_e::EPD_UC8151D:
         eInkScreen = new (std::nothrow) LOLIN_UC8151D(_xpix, _ypix, PIN(1), PIN(2), PIN(0), PIN(3)
                                                       # ifdef ESP32
-                                                      , 0 == _spi_bus ? SPI : SPI1
+                                                      , 0 == _spi_bus ? SPI : SPIe
                                                       # endif // ifdef ESP32
                                                       ); // HSPI
         break;
       case EPD_type_e::EPD_SSD1680:
         eInkScreen = new (std::nothrow) LOLIN_SSD1680(_xpix, _ypix, PIN(1), PIN(2), PIN(0), PIN(3)
                                                       # ifdef ESP32
-                                                      , 0 == _spi_bus ? SPI : SPI1
+                                                      , 0 == _spi_bus ? SPI : SPIe
                                                       # endif // ifdef ESP32
                                                       ); // HSPI
         break;
@@ -149,7 +149,7 @@ bool P096_data_struct::plugin_init(struct EventStruct *event) {
       case EPD_type_e::EPD_WS2IN7:
         eInkScreen = new (std::nothrow) Waveshare_2in7(_xpix, _ypix, PIN(1), PIN(2), PIN(0), PIN(3)
                                                        #  ifdef ESP32
-                                                       , 0 == _spi_bus ? SPI : SPI1
+                                                       , 0 == _spi_bus ? SPI : SPIe
                                                        #  endif // ifdef ESP32
                                                        ); // HSPI
         break;

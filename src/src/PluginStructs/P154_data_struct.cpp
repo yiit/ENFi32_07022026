@@ -26,7 +26,7 @@ bool P154_data_struct::begin(bool _i2cMode)
 
   if (!i2cMode && !bmp.begin_SPI(csPin
                                  # ifdef ESP32
-                                 , 0 == _spi_bus ? &SPI : &SPI1
+                                 , 0 == _spi_bus ? &SPI : &SPIe
                                  # endif // ifdef ESP32
                                  )) {
     return false;

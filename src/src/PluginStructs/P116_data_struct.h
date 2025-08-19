@@ -32,7 +32,7 @@
 # include "../Helpers/AdafruitGFX_helper.h" // Use Adafruit graphics helper object
 # include "../CustomBuild/StorageLayout.h"
 
-# include "../Globals/SPI1.h"
+# include "../Globals/SPIe.h"
 
 # define P116_Nlines           24 // The number of different lines which can be displayed
 # define P116_Nchars           60

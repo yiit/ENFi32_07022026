@@ -59,7 +59,7 @@ bool P099_data_struct::init(taskIndex_t taskIndex,
 
   touchscreen = new (std::nothrow) XPT2046_Touchscreen(_address_ts_cs
                                                        # ifdef ESP32
-                                                       , 0 == _spi_bus ? SPI : SPI1
+                                                       , 0 == _spi_bus ? SPI : SPIe
                                                        # endif // ifdef ESP32
                                                        );
 
