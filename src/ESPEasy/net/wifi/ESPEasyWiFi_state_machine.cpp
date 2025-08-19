@@ -250,11 +250,11 @@ void ESPEasyWiFi_t::loop()
       // Check if still connected
       if (getSTA_connected_state() != STA_connected_state::Connected) {
         setState(WiFiState_e::WiFiOFF);
-          if (Settings.UseRules)
-  {
-    eventQueue.add(F("WiFi#Disonnected"));
-  }
-  statusLED(false);
+        if (Settings.UseRules)
+        {
+          eventQueue.add(F("WiFi#Disconnected"));
+        }
+        statusLED(false);
 
       } else {
         // Else mark last timestamp seen as connected
@@ -355,11 +355,11 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
     # endif // ifdef ESP32
       _last_seen_connected.setNow();
       _state_timeout.clear();
-        if (Settings.UseRules)
-  {
-    eventQueue.add(F("WiFi#Connected"));
-  }
-  statusLED(true);
+      if (Settings.UseRules)
+      {
+        eventQueue.add(F("WiFi#Connected"));
+      }
+      statusLED(true);
 
       break;
   }
