@@ -33,7 +33,7 @@ NW003_data_struct_ETH_RMII::~NW003_data_struct_ETH_RMII()
     Network.removeEvent(nw_event_id);
   }
   nw_event_id = 0;
-  stats_and_cache.clear();
+  stats_and_cache.processEvent_and_clear();
 }
 
 void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event) {}
@@ -45,7 +45,7 @@ bool NW003_data_struct_ETH_RMII::webform_getPort(String& str)     { return true;
 bool NW003_data_struct_ETH_RMII::init(EventStruct *event)         { return true; }
 
 bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
-
+  stats_and_cache.processEvents();
   return true;
 }
 

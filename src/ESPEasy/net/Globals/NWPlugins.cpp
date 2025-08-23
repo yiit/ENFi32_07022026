@@ -114,6 +114,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     case NWPlugin::Function::NWPLUGIN_RECORD_STATS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD_SHOW_STATS:
 #endif // if FEATURE_PLUGIN_STATS
+    case NWPlugin::Function::NWPLUGIN_PROCESS_EVENT:
     case NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION:
     {
       bool success = false;
@@ -154,6 +155,15 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
             break;
           }
 #endif // if FEATURE_PLUGIN_STATS
+
+          case NWPlugin::Function::NWPLUGIN_PROCESS_EVENT:
+          {
+            auto runtimeData = NW_data->getNWPluginData_static_runtime();
+            if (runtimeData) {
+              runtimeData->processEvents();
+            }
+            break;
+          }
 
           case NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION:
           {
@@ -301,6 +311,13 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 
         if (success && (Function == NWPlugin::Function::NWPLUGIN_EXIT)) {
           //          Cache.clearNetworkSettings(networkIndex);
+          auto data = getNWPluginData_static_runtime(event->NetworkIndex);
+
+          if (data) { 
+            delay(100); // Allow some time to process events
+            data->processEvent_and_clear(); 
+          }
+
         }
 #endif // ifdef ESP32
       }
@@ -394,6 +411,17 @@ const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()
     if (NW_data && NW_data->isDefaultRoute()) { return NW_data; }
   }
   return nullptr;
+}
+
+void processNetworkEvents()
+{
+  START_TIMER;
+  for (networkIndex_t i = 0; i < NETWORK_MAX; ++i) {
+    EventStruct tmpEvent;
+    tmpEvent.NetworkIndex = i;
+    NWPluginCall(NWPlugin::Function::NWPLUGIN_PROCESS_EVENT, &tmpEvent);
+  }
+  STOP_TIMER(NWPLUGIN_PROCESS_NETWORK_EVENTS);
 }
 
 } // namespace net

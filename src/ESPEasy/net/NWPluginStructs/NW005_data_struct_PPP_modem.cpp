@@ -30,7 +30,7 @@ namespace ESPEasy {
 namespace net {
 namespace ppp {
 
-static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE);
+static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE, F("PPP"));
 
 
 // Keys as used in the Key-value-store
@@ -112,7 +112,7 @@ NW005_data_struct_PPP_modem::~NW005_data_struct_PPP_modem() {
     Network.removeEvent(nw_event_id);
   }
   nw_event_id = 0;
-  stats_and_cache.clear();
+  stats_and_cache.processEvent_and_clear();
 }
 
 enum class NW005_modem_model {
@@ -151,6 +151,14 @@ ppp_modem_model_t to_ppp_modem_model_t(NW005_modem_model NW005_modemmodel)
     case NW005_modem_model::SIM800:  return PPP_MODEM_SIM800;
   }
   return PPP_MODEM_GENERIC;
+}
+
+int doGetRSSI()
+{
+  const int rssi_raw = NW_PLUGIN_INTERFACE.RSSI();
+  if (rssi_raw == 0) return -113;
+  if (rssi_raw == 99) return 0;
+  return map(rssi_raw, 2, 30, -109, -53);
 }
 
 String NW005_data_struct_PPP_modem::getRSSI() const
@@ -967,7 +975,8 @@ bool NW005_data_struct_PPP_modem::record_stats()
   if (_plugin_stats_array != nullptr) {
     EventStruct tmpEvent;
     size_t valueCount{};
-    tmpEvent.ParfN[valueCount++] = NW_PLUGIN_INTERFACE.RSSI();
+    const int rssi = doGetRSSI();
+    tmpEvent.ParfN[valueCount++] = rssi == 0 ? NAN : rssi;
     tmpEvent.ParfN[valueCount++] = getBER_float();
     bool trackPeaks                  = true;
     bool onlyUpdateTimestampWhenSame = true;

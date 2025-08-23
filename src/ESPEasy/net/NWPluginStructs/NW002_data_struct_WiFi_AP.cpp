@@ -29,7 +29,7 @@ namespace wifi {
 # ifdef ESP32
 static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE);
 # else
-static NWPluginData_static_runtime stats_and_cache(false);
+static NWPluginData_static_runtime stats_and_cache(false, F("AP"));
 # endif // ifdef ESP32
 static bool nw002_initialized{};
 # ifdef ESP32
@@ -78,7 +78,7 @@ NW002_data_struct_WiFi_AP::~NW002_data_struct_WiFi_AP()
   }
   nw_event_id = 0;
 # endif // ifdef ESP32
-  stats_and_cache.clear();
+  stats_and_cache.processEvent_and_clear();
 }
 
 void NW002_data_struct_WiFi_AP::webform_load(EventStruct *event) {}
@@ -108,6 +108,8 @@ bool NW002_data_struct_WiFi_AP::exit(EventStruct *event)
 # ifdef ESP8266
   WiFi.softAPdisconnect();
 # endif // ifdef ESP8266
+
+  stats_and_cache.processEvents();
 
   return true;
 }

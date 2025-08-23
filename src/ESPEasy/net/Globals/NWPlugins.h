@@ -48,5 +48,7 @@ NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime();
 NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index);
 const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime();
 
+void     processNetworkEvents();
+
 } // namespace net
 } // namespace ESPEasy

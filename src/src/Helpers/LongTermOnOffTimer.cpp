@@ -5,12 +5,14 @@ void LongTermOnOffTimer::clear()
   _onTimer.clear();
   _offTimer.clear();
   _prevDuration = 0;
+  _changedSinceLastCheck = false;
   resetCount();
 }
 
 bool LongTermOnOffTimer::setOn()
 {
   if (isOn()) { return false; }
+  _changedSinceLastCheck = true;
   ++_changeToOnCount;
 
   if (isOff()) {
@@ -23,6 +25,7 @@ bool LongTermOnOffTimer::setOn()
 bool LongTermOnOffTimer::setOff()
 {
   if (isOff()) { return false; }
+  _changedSinceLastCheck = true;
   ++_changeToOffCount;
 
   if (isOn()) {

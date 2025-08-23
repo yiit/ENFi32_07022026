@@ -75,6 +75,9 @@ void run50TimesPerSecond() {
     STOP_TIMER(NWPLUGIN_CALL_50PS);
   }
   {
+    ESPEasy::net::processNetworkEvents();
+  }
+  {
     START_TIMER;
     PluginCall(PLUGIN_FIFTY_PER_SECOND, 0, dummy);
     STOP_TIMER(PLUGIN_CALL_50PS);

@@ -34,7 +34,7 @@ namespace ESPEasy {
 namespace net {
 namespace wifi {
 
-static NWPluginData_static_runtime stats_and_cache(&WiFi.STA);
+static NWPluginData_static_runtime stats_and_cache(&WiFi.STA, F("WiFi"));
 
 static wifi_event_sta_connected_t _wifi_event_sta_connected;
 static WiFiDisconnectReason _wifi_disconnect_reason = WiFiDisconnectReason::WIFI_DISCONNECT_REASON_UNSPECIFIED;
@@ -56,7 +56,7 @@ ESPEasyWiFi_STA_EventHandler::~ESPEasyWiFi_STA_EventHandler()
   }
   nw_event_id                               = 0;
   _ESPEasyWiFi_STA_EventHandler_initialized = false;
-  stats_and_cache.clear();
+  stats_and_cache.processEvent_and_clear();
 }
 
 bool ESPEasyWiFi_STA_EventHandler::initialized()                                             {

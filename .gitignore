@@ -88,3 +88,5 @@ dependencies.lock
 .cache/
 
 src/src/CustomBuild/CompiletimeDefines_generated.h
+
+bhutan_16m.bin

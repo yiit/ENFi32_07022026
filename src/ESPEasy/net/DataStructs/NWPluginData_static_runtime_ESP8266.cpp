@@ -7,6 +7,12 @@
 namespace ESPEasy {
 namespace net {
 
+bool NWPluginData_static_runtime::started() const
+{
+  // FIXME TD-er: Does this work reliable on ESP8266?
+  return _startStopStats.isOn();
+}
+
 bool NWPluginData_static_runtime::connected() const
 {
   if (_isSTA) { return WiFi.status() == WL_CONNECTED; }
@@ -70,14 +76,20 @@ void NWPluginData_static_runtime::mark_connected()
 #endif
   _establishConnectStats.setOff();
   _connectedStats.setOn();
+}
+
+void NWPluginData_static_runtime::log_connected()
+{
 #ifndef BUILD_NO_DEBUG
-  if (logDuration) {
-    addLog(LOG_LEVEL_INFO, concat(
-             F("STA: Connected, took: "),             
-             format_msec_duration_HMS(
-               _establishConnectStats.getLastOnDuration_ms())));
-  } else {
-    addLog(LOG_LEVEL_INFO, F("STA: Connected"));
+  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+    if (_establishConnectStats.getCycleCount()) {
+      addLog(LOG_LEVEL_INFO, concat(
+              F("STA: Connected, took: "),             
+              format_msec_duration_HMS(
+                _establishConnectStats.getLastOnDuration_ms())));
+    } else {
+      addLog(LOG_LEVEL_INFO, F("STA: Connected"));
+    }
   }
 #endif
 }
@@ -86,7 +98,13 @@ void NWPluginData_static_runtime::mark_disconnected()
 {
   _connectedStats.setOff();
 #ifndef BUILD_NO_DEBUG
-  if (_isSTA) {
+#endif
+}
+
+void NWPluginData_static_runtime::log_disconnected()
+{
+#ifndef BUILD_NO_DEBUG
+  if (_isSTA && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, concat(
              F("STA: Disconnected. Connected for: "),
              format_msec_duration_HMS(_connectedStats.getLastOnDuration_ms())));

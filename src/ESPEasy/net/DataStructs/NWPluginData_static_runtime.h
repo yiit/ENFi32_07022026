@@ -2,6 +2,8 @@
 
 #include "../DataTypes/NetworkIndex.h"
 
+#include "../../../ESPEasy_common.h"
+
 #include "../../../src/Helpers/LongTermOnOffTimer.h"
 
 #include <IPAddress.h>
@@ -16,14 +18,26 @@ namespace net {
 
 struct NWPluginData_static_runtime {
 #ifdef ESP32
-  NWPluginData_static_runtime(NetworkInterface *netif) : _netif(netif) {}
+  NWPluginData_static_runtime(NetworkInterface *netif, const String& eventInterfaceName = EMPTY_STRING) 
+  : _netif(netif), _eventInterfaceName(eventInterfaceName) 
+  {
+    if (_eventInterfaceName.length() == 0 && _netif) {
+      _eventInterfaceName = _netif->desc();
+      _eventInterfaceName.toUpperCase();
+    }
+  }
 
 #else // ifdef ESP32
-  NWPluginData_static_runtime(bool isSTA) : _isSTA(isSTA) {}
+  NWPluginData_static_runtime(bool isSTA, String& eventInterfaceName) 
+  : _isSTA(isSTA), _eventInterfaceName(eventInterfaceName) {}
 
 #endif // ifdef ESP32
 
   void   clear(networkIndex_t networkIndex = INVALID_NETWORK_INDEX);
+
+  void   processEvent_and_clear();
+
+  bool   started() const;
 
   bool   connected() const;
 
@@ -60,9 +74,10 @@ struct NWPluginData_static_runtime {
   void mark_begin_establish_connection();
 
   void mark_connected();
+  void log_connected();
 
   void mark_disconnected();
-
+  void log_disconnected();
 
   // =============================================
   // Keep track of connection durations
@@ -85,6 +100,7 @@ struct NWPluginData_static_runtime {
 
   uint32_t getConnectionFailures() const { return _connectionFailures; }
 
+  void     processEvents();
 
   // =============================================
   // OnOffTimers for keeping track of:
@@ -101,6 +117,7 @@ struct NWPluginData_static_runtime {
 #if FEATURE_USE_IPV6
   LongTermOnOffTimer _gotIP6Stats{};
 #endif
+  LongTermOnOffTimer _operationalStats{}; // is started, connected and had IP
 
   // =============================================
   // Cached DNS servers & Route Prio
@@ -120,6 +137,8 @@ private:
 #ifdef ESP8266
   const bool _isSTA;
 #endif
+
+  String _eventInterfaceName;
 
   // Store durations it took to connect to some host.
   // This depends on host and interface.

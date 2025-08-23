@@ -1,6 +1,10 @@
 #include "../DataStructs/NWPluginData_static_runtime.h"
 
+#include "../../../src/Globals/EventQueue.h"
 #include "../../../src/Globals/Settings.h"
+
+#include "../../../src/Helpers/NetworkStatusLED.h"
+#include "../../../src/Helpers/StringConverter.h"
 
 namespace ESPEasy {
 namespace net {
@@ -25,9 +29,51 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
   // FIXME TD-er: Should also clear dns cache?
 }
 
+void NWPluginData_static_runtime::processEvent_and_clear()
+{
+  processEvents();
+  clear();
+}
+
+
 bool NWPluginData_static_runtime::operational() const
 {
-  return _startStopStats.isOn() && connected() && hasIP();
+  return started() && connected() && hasIP()
+   && Settings.getNetworkEnabled(_networkIndex);
+   // FIXME TD-er: WiFi STA keeps reporting it is 
+   // connected and has IP even after call to networkdisable,1
+}
+
+void NWPluginData_static_runtime::processEvents()
+{
+  if (_establishConnectStats.changedSinceLastCheck_and_clear())
+  {
+    if (_establishConnectStats.isOn()) {
+      log_connected();
+//    _establishConnectStats.resetCount();
+    } else {
+      log_disconnected();
+    }
+  }
+
+
+  _operationalStats.set(operational());
+  if (_operationalStats.changedSinceLastCheck_and_clear()) {
+    // Send out event
+    if (Settings.UseRules && _eventInterfaceName.length())
+    {
+      if (_operationalStats.isOn()) {
+        eventQueue.add(concat(
+          _eventInterfaceName, 
+          F("#Connected")));
+      } else {
+        eventQueue.add(concat(
+          _eventInterfaceName, 
+          F("#Disconnected")));
+      }
+    }
+    statusLED(true);
+  }
 }
 
 String NWPluginData_static_runtime::statusToString() const

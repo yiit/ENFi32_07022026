@@ -14,6 +14,12 @@
 namespace ESPEasy {
 namespace net {
 
+bool NWPluginData_static_runtime::started() const
+{
+  if (!_netif) { return false; }
+  return _netif->started();
+}
+
 bool NWPluginData_static_runtime::connected() const
 {
   if (!_netif) { return false; }
@@ -173,29 +179,37 @@ void NWPluginData_static_runtime::mark_connected()
 
   _establishConnectStats.setOff();
   _connectedStats.setOn();
-#if NW_PLUGIN_LOG_EVENTS
-  if (logDuration) {
-    addLog(LOG_LEVEL_INFO, strformat(
-             F("%s: Connected, took: %s in %d attempts"),
-             _netif->desc(),
-             format_msec_duration_HMS(
-               _establishConnectStats.getLastOnDuration_ms()).c_str(),
-             _establishConnectStats.getCycleCount()));
-  } else {
-    addLog(LOG_LEVEL_INFO, strformat(
-             F("%s: Connected"),
-             _netif->desc()));
-  }
-#endif
-  _establishConnectStats.resetCount();
 }
+
+void NWPluginData_static_runtime::log_connected()
+{
+  if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
+    if (_establishConnectStats.getCycleCount()) {
+      // Log duration
+      addLog(LOG_LEVEL_INFO, strformat(
+            F("%s: Connected, took: %s in %d attempts"),
+            _netif->desc(),
+            format_msec_duration_HMS(
+              _establishConnectStats.getLastOnDuration_ms()).c_str(),
+            _establishConnectStats.getCycleCount()));
+    } else {
+      addLog(LOG_LEVEL_INFO, strformat(
+            F("%s: Connected"),
+            _netif->desc()));
+    }
+  }
+}
+
 
 void NWPluginData_static_runtime::mark_disconnected()
 {
   _connectedStats.setOff();
 
   // TODO TD-er: Also clear _gotIPStats and _gotIP6Stats ?
-#if NW_PLUGIN_LOG_EVENTS
+}
+
+void NWPluginData_static_runtime::log_disconnected()
+{
   if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Disconnected. Connected for: %s"),
@@ -203,8 +217,8 @@ void NWPluginData_static_runtime::mark_disconnected()
              format_msec_duration_HMS(
                _connectedStats.getLastOnDuration_ms()).c_str()));
   }
-#endif
 }
+
 
 } // namespace net
 } // namespace ESPEasy

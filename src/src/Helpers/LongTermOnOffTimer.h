@@ -42,6 +42,17 @@ public:
 
   size_t                  getChangeToOffCount() const { return _changeToOffCount; }
 
+  bool                    changedSinceLastCheck() const { return _changedSinceLastCheck; }
+
+  bool                    changedSinceLastCheck_and_clear()
+  {
+    if (_changedSinceLastCheck) {
+      _changedSinceLastCheck = false;
+      return true;
+    }
+    return false;
+  }
+
 private:
 
   LongTermTimer _onTimer;
@@ -50,5 +61,7 @@ private:
   LongTermTimer::Duration _prevDuration{};
   size_t _changeToOnCount{};
   size_t _changeToOffCount{};
+
+  bool _changedSinceLastCheck{};
 
 }; // class LongTermOnOffTimer

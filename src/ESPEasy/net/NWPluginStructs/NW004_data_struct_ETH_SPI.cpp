@@ -32,7 +32,7 @@ NW004_data_struct_ETH_SPI::~NW004_data_struct_ETH_SPI()
     Network.removeEvent(nw_event_id);
   }
   nw_event_id = 0;
-  stats_and_cache.clear();
+  stats_and_cache.processEvent_and_clear();
 }
 
 void NW004_data_struct_ETH_SPI::webform_load(EventStruct *event) {}
