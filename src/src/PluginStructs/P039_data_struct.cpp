@@ -1182,7 +1182,7 @@ uint16_t P039_data_struct::readLM7xRegisters(int8_t l_CS_pin_no, uint8_t l_LM7xs
     TODO: c.k.i.: make it generic and carve out to generic _SPI_helper.c library
 
 
-   /**************************************************************************/
+   **************************************************************************/
 
 
 /**************************************************************************/
@@ -1196,7 +1196,7 @@ uint16_t P039_data_struct::readLM7xRegisters(int8_t l_CS_pin_no, uint8_t l_LM7xs
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 int P039_data_struct::get_SPI_CS_Pin(struct EventStruct *event) { // If no Pin is in Config we use 15 as default -> Hardware Chip Select on
                                                                   // ESP8266
   if (CONFIG_PIN1 != -1) {
@@ -1215,7 +1215,7 @@ int P039_data_struct::get_SPI_CS_Pin(struct EventStruct *event) { // If no Pin i
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::init_SPI_CS_Pin(int8_t l_CS_pin_no) {
   // set the slaveSelectPin as an output:
   pinMode(l_CS_pin_no, OUTPUT);
@@ -1232,7 +1232,7 @@ void P039_data_struct::init_SPI_CS_Pin(int8_t l_CS_pin_no) {
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::handle_SPI_CS_Pin(int8_t l_CS_pin_no, bool l_state) {
   P039_CS_Delay(); // tCWH (min) >= x00ns
   digitalWrite(l_CS_pin_no, l_state);
@@ -1251,7 +1251,7 @@ void P039_data_struct::handle_SPI_CS_Pin(int8_t l_CS_pin_no, bool l_state) {
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::write8BitRegister(int8_t l_CS_pin_no, uint8_t l_address, uint8_t value)
 {
   uint8_t l_messageBuffer[2] = { l_address, value };
@@ -1282,7 +1282,7 @@ void P039_data_struct::write8BitRegister(int8_t l_CS_pin_no, uint8_t l_address, 
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::write16BitRegister(int8_t l_CS_pin_no, uint8_t l_address, uint16_t value)
 {
   uint8_t l_messageBuffer[3] = { l_address, static_cast<uint8_t>((value >> 8) & 0xFF), static_cast<uint8_t>(value & 0xFF) };
@@ -1312,7 +1312,7 @@ void P039_data_struct::write16BitRegister(int8_t l_CS_pin_no, uint8_t l_address,
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 uint8_t P039_data_struct::read8BitRegister(int8_t l_CS_pin_no, uint8_t l_address)
 {
   uint8_t l_messageBuffer[2] = { l_address, 0x00 };
@@ -1344,7 +1344,7 @@ uint8_t P039_data_struct::read8BitRegister(int8_t l_CS_pin_no, uint8_t l_address
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 uint16_t P039_data_struct::read16BitRegister(int8_t l_CS_pin_no, uint8_t l_address)
 {
   uint8_t  l_messageBuffer[3] = { l_address, 0x00, 0x00 };
@@ -1380,7 +1380,7 @@ uint16_t P039_data_struct::read16BitRegister(int8_t l_CS_pin_no, uint8_t l_addre
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::transfer_n_ByteSPI(int8_t l_CS_pin_no, uint8_t l_noBytesToSend, uint8_t *l_inoutMessageBuffer)
 {
   // activate communication -> CS low
@@ -1430,7 +1430,7 @@ void P039_data_struct::transfer_n_ByteSPI(int8_t l_CS_pin_no, uint8_t l_noBytesT
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::change16BitRegister(int8_t   l_CS_pin_no,
                                            uint8_t  l_readaddress,
                                            uint8_t  l_writeaddress,
@@ -1469,7 +1469,7 @@ void P039_data_struct::change16BitRegister(int8_t   l_CS_pin_no,
 
     Initial Revision - chri.kai.in 2021
 
-   /**************************************************************************/
+   **************************************************************************/
 void P039_data_struct::change8BitRegister(int8_t  l_CS_pin_no,
                                           uint8_t l_readaddress,
                                           uint8_t l_writeaddress,
