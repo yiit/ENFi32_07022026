@@ -17,6 +17,7 @@
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/Hardware_GPIO.h"
 #include "../Helpers/Hardware_I2C.h"
+#include "../Helpers/Hardware_SPI.h"
 #include "../Helpers/SPI_Helper.h"
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringGenerator_GPIO.h"
@@ -121,7 +122,7 @@ void handle_hardware() {
     Settings.SPI1_MISO_pin = getFormItemInt(F("spipinmiso1"), -1);
     Settings.SPI1_MOSI_pin = getFormItemInt(F("spipinmosi1"), -1);
     for (uint8_t spi_bus = 0; spi_bus < getSPIBusCount(); ++spi_bus) {
-      if (!Settings.isSPI_valid(spi_bus)) { // Checks
+      if (Settings.isSPI_enabled(spi_bus) && !Settings.isSPI_valid(spi_bus)) { // Checks
         error += strformat(F("SPI bus %u pins not configured correctly!<BR>"), spi_bus);
       }
     }
@@ -163,6 +164,8 @@ void handle_hardware() {
     if (error.isEmpty()) {
       // Apply I2C settings.
       initI2C();
+      // Apply SPI settings
+      initializeSPIBuses();
     }
   }
 
@@ -332,7 +335,7 @@ void handle_hardware() {
       addFormPinSelect(PinSelectPurpose::SPI_MISO, formatGpioName_input(F("MISO")),  concat(F("spipinmiso"), spi_bus), spi_gpio[1]);
       addFormPinSelect(PinSelectPurpose::SPI,      formatGpioName_output(F("MOSI")), concat(F("spipinmosi"), spi_bus), spi_gpio[2]);
       html_add_script(strformat(F("document.getElementById('initspi%u').onchange();"), spi_bus), false); // Initial trigger onchange script
-      addFormNote(F("Changing SPI settings requires to press the hardware-reset button or power off-on!"));
+      // addFormNote(F("Changing SPI settings requires to press the hardware-reset button or power off-on!"));
       addFormNote(F("Chip Select (CS) config must be done in the plugin"));
     }
   }

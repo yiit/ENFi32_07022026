@@ -318,6 +318,7 @@ public:
                    uint8_t spi_bus = 0,
                    bool    noCheck = false) const;
 
+  bool isSPI_enabled(uint8_t spi_bus) const;
   #ifdef ESP32
   spi_host_device_t getSPI_host(uint8_t spi_bus = 0) const;
   #endif

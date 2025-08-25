@@ -896,6 +896,12 @@ void SettingsStruct_tmpl<N_TASKS>::setPinBootState(int8_t gpio_pin, PinBootState
 }
 
 template<unsigned int N_TASKS>
+bool SettingsStruct_tmpl<N_TASKS>::isSPI_enabled(uint8_t spi_bus) const {
+  const SPI_Options_e SPI_selection = static_cast<SPI_Options_e>(0 == spi_bus ? InitSPI : InitSPI1);
+  return SPI_Options_e::None != SPI_selection;
+}
+
+template<unsigned int N_TASKS>
 bool SettingsStruct_tmpl<N_TASKS>::getSPI_pins(int8_t spi_gpios[3], uint8_t spi_bus, bool noCheck) const {
   spi_gpios[0] = -1;
   spi_gpios[1] = -1;
