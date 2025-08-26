@@ -127,7 +127,7 @@ bool setControllerEnableStatus(controllerIndex_t controllerIndex, bool enabled)
       String dummy;
       const CPlugin::Function cfunction =
         enabled ? CPlugin::Function::CPLUGIN_INIT : CPlugin::Function::CPLUGIN_EXIT;
-      return CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy) || CPlugin::Function::CPLUGIN_EXIT == cfunction;
+      return do_CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy) || CPlugin::Function::CPLUGIN_EXIT == cfunction;
     }
   }
   return false;

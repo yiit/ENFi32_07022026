@@ -108,7 +108,7 @@ bool count_connection_results(bool success, const __FlashStringHelper *prefix, c
       data->markConnectionFailed(cpluginID);
       addLogMove(LOG_LEVEL_ERROR,
                  strformat(F("%s%s connection failed (%d/%d)"),
-                           prefix,
+                           FsP(prefix),
                            get_formatted_Controller_number(cpluginID).c_str(),
                            data->getConnectionFailures(),
                            Settings.ConnectionFailuresThreshold));
