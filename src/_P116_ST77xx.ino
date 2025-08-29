@@ -8,6 +8,7 @@
 
 
 /** History:
+ * 2025-08-29 tonhuisman: Fix GPIO pin display on Devices page, no default GPIO pins for ESP32
  * 2025-08-12 tonhuisman: Enable use of secondary SPI bus
  * 2025-06-11 tonhuisman: Add support for ST7789v3/ST7735 display with 170x320 resolution
  * 2025-02-20 tonhuisman: Add support for ST7735 display with 172x320 resolution
@@ -87,11 +88,13 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
       break;
     }
 
+    # ifndef LIMIT_BUILD_SIZE
     case PLUGIN_WEBFORM_SHOW_GPIO_DESCR:
     {
       const char *separator = event->String1.c_str(); // contains the NewLine sequence
       string = strformat(
-        F("CS: %s%sDC: %s%s RES: %s%sBtn: %s%sBckl: : %s"),
+        F("%sCS: %s%sDC: %s%s RES: %s%sBtn: %s%sBckl: : %s"),
+        separator,
         formatGpioLabel(PIN(0),                    false).c_str(),
         separator,
         formatGpioLabel(PIN(1),                    false).c_str(),
@@ -104,21 +107,15 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
       success = true;
       break;
     }
+    # endif // ifndef LIMIT_BUILD_SIZE
 
     case PLUGIN_SET_DEFAULTS:
     {
-      # ifdef ESP32
-
-      if (Settings.InitSPI == 2) { // When using ESP32 H(ardware-)SPI
-        PIN(0) = P116_TFT_CS_HSPI;
-      } else {
-        PIN(0) = P116_TFT_CS;
-      }
-      # else // ifdef ESP32
+      # ifdef ESP8266
       PIN(0) = P116_TFT_CS;
-      # endif // ifdef ESP32
-      PIN(1)                        = P116_TFT_DC;
-      PIN(2)                        = P116_TFT_RST;
+      PIN(1) = P116_TFT_DC;
+      PIN(2) = P116_TFT_RST;
+      # endif // ifdef ESP8266
       P116_CONFIG_BUTTON_PIN        = -1;  // No button connected
       P116_CONFIG_BACKLIGHT_PIN     = P116_BACKLIGHT_PIN;
       P116_CONFIG_BACKLIGHT_PERCENT = 100; // Percentage backlight
