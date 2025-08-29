@@ -655,13 +655,34 @@ void MQTT_execute_connect_task(void *parameter)
 {
   MQTT_connect_request*MQTT_task_data = static_cast<MQTT_connect_request *>(parameter);
 
+  MakeControllerSettings(ControllerSettings); // -V522
+
+  if (!AllocatedControllerSettings()) {
+    #ifndef BUILD_MINIMAL_OTA
+    addLog(LOG_LEVEL_ERROR, F("MQTT : Cannot load Controller settings, out of RAM"));
+    #endif
+    MQTT_task_data->taskHandle = NULL;
+    vTaskDelete(MQTT_task_data->taskHandle);
+    return;
+  }
+  LoadControllerSettings(MQTT_task_data->ControllerIndex, *ControllerSettings);
+
+  uint32_t timeout = ControllerSettings->MustCheckReply
+                     ? WiFiEventData.getSuggestedTimeout(Settings.Protocol[MQTT_task_data->ControllerIndex], ControllerSettings->ClientTimeout)
+                     : ControllerSettings->ClientTimeout;
+  uint8_t incr = 5; // Increment timeout between connection attempts 5 times by 100 msec
+
   while (!MQTTConnect(MQTT_task_data->ControllerIndex)
           # if FEATURE_MQTT_TLS
           && mqtt_tls_last_errorstr.isEmpty()
           # endif // if FEATURE_MQTT_TLS
           && !MQTTclient.connected()
         ) {
-          delay(1);
+          delay(timeout); // Use regular controller timeout also for delay between connection attempts (range 10..4000)
+          if (incr > 0) {
+            timeout += 100; // Increment next few (5) times with 100 msec
+            incr--;
+          }
           if (timePassedSince(MQTT_task_data->startTime) > 120000) { // Quit after 120 seconds
             break;
           }
