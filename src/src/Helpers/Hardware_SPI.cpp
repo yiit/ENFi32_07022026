@@ -46,20 +46,26 @@ void initializeSPIBuses() {
     const SPI_Options_e SPI_selection = static_cast<SPI_Options_e>(Settings.InitSPI);
     int8_t spi_gpios[3]               = {};
 
+    if (skipInitSPI != 1) {
+      SPI.end(); // Disconnect current GPIO mapping
+    }
+
     if ((skipInitSPI != 1) && Settings.getSPI_pins(spi_gpios, 0u)) {
-      SPI.end();                                           // Disconnect current GPIO mapping
       SPI.setHwCs(false);
       SPI.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]); // Use explicit GPIO configuration
       SPI_initialized |= 1;
     }
 
     delay(1);
-    
+
     // Init second SPI interface (SPIe)
     const SPI_Options_e SPI1_selection = static_cast<SPI_Options_e>(Settings.InitSPI1);
 
-    if ((skipInitSPI != 2) && Settings.getSPI_pins(spi_gpios, 1u)) {
+    if (skipInitSPI != 2) {
       SPIe.end(); // Disconnect current GPIO mapping
+    }
+
+    if ((skipInitSPI != 2) && Settings.getSPI_pins(spi_gpios, 1u)) {
       SPIe.setHwCs(false);
       SPIe.begin(spi_gpios[0], spi_gpios[1], spi_gpios[2]);
       SPI_initialized |= 2;
