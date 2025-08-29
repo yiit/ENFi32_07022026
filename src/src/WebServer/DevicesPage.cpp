@@ -159,7 +159,7 @@ void handle_devices() {
         const DeviceStruct& device = Device[DeviceIndex];
 
         if ((device.Type == DEVICE_TYPE_I2C) && device.I2CMax100kHz) {      // 100 kHz-only I2C device?
-          bitWrite(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED, 1); // Then: Enable Force Slow I2C speed checkbox by default
+          bitWrite(Settings.I2C_SPI_bus_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED, 1); // Then: Enable Force Slow I2C speed checkbox by default
         }
       }
     }
@@ -324,7 +324,7 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
 
 # endif // if FEATURE_I2CMULTIPLEXER
 
-    Settings.I2C_Flags[taskIndex] = flags;
+    Settings.I2C_SPI_bus_Flags[taskIndex] = flags;
   }
 
   // Must load from file system to make sure all caches and checksums match.
@@ -966,7 +966,7 @@ void format_I2C_port_description(taskIndex_t x)
   if (isI2CMultiplexerEnabled(i2cBus) && I2CMultiplexerPortSelectedForTask(x)) {
     String mux;
 
-    if (bitRead(Settings.I2C_Flags[x], I2C_FLAGS_MUX_MULTICHANNEL)) { // Multi-channel
+    if (bitRead(Settings.I2C_SPI_bus_Flags[x], I2C_FLAGS_MUX_MULTICHANNEL)) { // Multi-channel
       mux = F("<BR>Multiplexer channel(s)");
       uint8_t b = 0;                                                  // For adding lineBreaks
 
@@ -1397,7 +1397,7 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
   String dummy;
 
   PluginCall(PLUGIN_WEBFORM_SHOW_I2C_PARAMS, &TempEvent, dummy);
-  addFormCheckBox(F("Force Slow I2C speed"), F("taskdeviceflags0"), bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED));
+  addFormCheckBox(F("Force Slow I2C speed"), F("taskdeviceflags0"), bitRead(Settings.I2C_SPI_bus_Flags[taskIndex], I2C_FLAGS_SLOW_SPEED));
 
   if (Device[DeviceIndex].I2CMax100kHz) {
     addFormNote(F("This device is specified for max. 100 kHz operation!"));
@@ -1419,7 +1419,7 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
 
   // Show selector for an I2C multiplexer port if a multiplexer is configured
   if (isI2CMultiplexerEnabled(i2cBus)) {
-    bool multipleMuxPorts = bitRead(Settings.I2C_Flags[taskIndex], I2C_FLAGS_MUX_MULTICHANNEL);
+    bool multipleMuxPorts = bitRead(Settings.I2C_SPI_bus_Flags[taskIndex], I2C_FLAGS_MUX_MULTICHANNEL);
     {
       const __FlashStringHelper *i2c_mux_channels[] = {
         F("Single channel"),

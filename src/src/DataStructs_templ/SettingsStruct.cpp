@@ -1110,46 +1110,46 @@ bool SettingsStruct_tmpl<N_TASKS>::isI2CEnabled(uint8_t i2cBus) const {
         (getI2CClockSpeedSlow(i2cBus) > 0);
 }
 
-// stored in I2C_Flags per Task
+// stored in I2C_SPI_bus_Flags per Task
 template<unsigned int N_TASKS>
 uint8_t SettingsStruct_tmpl<N_TASKS>::getSPIBusForTask(taskIndex_t TaskIndex) const {
-  return get2BitFromUL(I2C_Flags[TaskIndex], SPI_FLAGS_TASK_BUS_NUMBER);
+  return get2BitFromUL(I2C_SPI_bus_Flags[TaskIndex], SPI_FLAGS_TASK_BUS_NUMBER);
 }
 
 template<unsigned int N_TASKS>
 void SettingsStruct_tmpl<N_TASKS>::setSPIBusForTask(taskIndex_t TaskIndex, uint8_t spi_bus) {
-  set2BitToUL(I2C_Flags[TaskIndex], SPI_FLAGS_TASK_BUS_NUMBER, spi_bus);
+  set2BitToUL(I2C_SPI_bus_Flags[TaskIndex], SPI_FLAGS_TASK_BUS_NUMBER, spi_bus);
 }
 
 #if FEATURE_ETHERNET
-// stored in I2C_Flags for Task 1 (index 0)
+// stored in I2C_SPI_bus_Flags for Task 1 (index 0)
 template<unsigned int N_TASKS>
 uint8_t SettingsStruct_tmpl<N_TASKS>::getSPIBusForEth() const {
-  return get2BitFromUL(I2C_Flags[0], SPI_FLAGS_ETH_BUS_NUMBER);
+  return get2BitFromUL(I2C_SPI_bus_Flags[0], SPI_FLAGS_ETH_BUS_NUMBER);
 }
 
 template<unsigned int N_TASKS>
 void SettingsStruct_tmpl<N_TASKS>::setSPIBusForEth(uint8_t spi_bus) {
-  set2BitToUL(I2C_Flags[0], SPI_FLAGS_ETH_BUS_NUMBER, spi_bus);
+  set2BitToUL(I2C_SPI_bus_Flags[0], SPI_FLAGS_ETH_BUS_NUMBER, spi_bus);
 }
 #endif // FEATURE_ETHERNET
 
 #if FEATURE_SD
-// stored in I2C_Flags for Task 1 (index 0)
+// stored in I2C_SPI_bus_Flags for Task 1 (index 0)
 template<unsigned int N_TASKS>
 uint8_t SettingsStruct_tmpl<N_TASKS>::getSPIBusForSDCard() const {
-  return get2BitFromUL(I2C_Flags[0], SPI_FLAGS_SDCARD_BUS_NUMBER);
+  return get2BitFromUL(I2C_SPI_bus_Flags[0], SPI_FLAGS_SDCARD_BUS_NUMBER);
 }
 
 template<unsigned int N_TASKS>
 void SettingsStruct_tmpl<N_TASKS>::setSPIBusForSDCard(uint8_t spi_bus) {
-  set2BitToUL(I2C_Flags[0], SPI_FLAGS_SDCARD_BUS_NUMBER, spi_bus);
+  set2BitToUL(I2C_SPI_bus_Flags[0], SPI_FLAGS_SDCARD_BUS_NUMBER, spi_bus);
 }
 #endif // if FEATURE_SD
 
 template<unsigned int N_TASKS>
 uint8_t SettingsStruct_tmpl<N_TASKS>::getI2CInterface(taskIndex_t TaskIndex) const {
-  return get3BitFromUL(I2C_Flags[TaskIndex], I2C_FLAGS_BUS_NUMBER);
+  return get3BitFromUL(I2C_SPI_bus_Flags[TaskIndex], I2C_FLAGS_BUS_NUMBER);
 }
 
 template<unsigned int N_TASKS>

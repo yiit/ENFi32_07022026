@@ -47,9 +47,9 @@
 // #define I2C_PERIPHERAL_BUS_???    9 // bit-offset for I2C bus used for the ???
 #endif // if FEATURE_I2C_MULTIPLE
 
-// Stored in Settings.I2C_Flags !!!
+// Stored in Settings.I2C_SPI_bus_Flags !!!
 #define SPI_FLAGS_TASK_BUS_NUMBER           0 // 2 bit, stores the configured bus for a task
-// Stored in Settings.I2C_Flags for Task 1 settings
+// Stored in Settings.I2C_SPI_bus_Flags for Task 1 settings
 #define SPI_FLAGS_ETH_BUS_NUMBER            2 // 2 bit, stores the configured bus for the Ethernet interface
 #define SPI_FLAGS_SDCARD_BUS_NUMBER         4 // 2 bit, stores the configured bus for the SDCard
 

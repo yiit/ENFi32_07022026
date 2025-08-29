@@ -590,7 +590,7 @@ void handle_json()
           stream_next_json_object_value(F("I2C_Interface"), static_cast<int>(i2cBus + 1));
           #endif
           int8_t channel = Settings.I2C_Multiplexer_Channel[TaskIndex];
-          if (bitRead(Settings.I2C_Flags[TaskIndex], I2C_FLAGS_MUX_MULTICHANNEL)) {
+          if (bitRead(Settings.I2C_SPI_bus_Flags[TaskIndex], I2C_FLAGS_MUX_MULTICHANNEL)) {
             addHtml(F("\"I2CBus\" : ["));
             uint8_t b = 0;
             for (uint8_t c = 0; c < I2CMultiplexerMaxChannels(i2cBus); ++c) {

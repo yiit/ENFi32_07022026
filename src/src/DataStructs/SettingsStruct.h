@@ -577,7 +577,7 @@ public:
   int8_t          I2C_Multiplexer_Type = I2C_MULTIPLEXER_NONE;
   int8_t          I2C_Multiplexer_Addr = -1;
   int8_t          I2C_Multiplexer_Channel[N_TASKS]{};
-  uint8_t         I2C_Flags[N_TASKS] = {0};
+  uint8_t         I2C_SPI_bus_Flags[N_TASKS] = {0};
   uint32_t        I2C_clockSpeed_Slow = 100000;
   int8_t          I2C_Multiplexer_ResetPin = -1;
 
