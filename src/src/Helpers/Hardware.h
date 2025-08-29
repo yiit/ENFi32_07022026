@@ -57,7 +57,7 @@ int                        espeasy_analogRead(int  pin,
 int                        getCPU_MaxFreqMHz();
 int                        getCPU_MinFreqMHz();
 
-// if ESP_IDF_VERSION_MAJOR < 5
+// if ESP_IDF_VERSION_MAJOR > 5
 # define ESP_PM_CONFIG_T esp_pm_config_t
 
 
