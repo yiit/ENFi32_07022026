@@ -18,13 +18,11 @@ namespace net {
 
 struct NWPluginData_static_runtime {
 #ifdef ESP32
-  NWPluginData_static_runtime(NetworkInterface *netif, const String& eventInterfaceName = EMPTY_STRING) 
-  : _netif(netif), _eventInterfaceName(eventInterfaceName) 
-  {}
-
+  NWPluginData_static_runtime(NetworkInterface *netif,
+                              const String    & eventInterfaceName = EMPTY_STRING);
 #else // ifdef ESP32
-  NWPluginData_static_runtime(bool isSTA, String& eventInterfaceName) 
-  : _isSTA(isSTA), _eventInterfaceName(eventInterfaceName) {}
+  NWPluginData_static_runtime(bool         isSTA,
+                              const char * eventInterfaceName);
 
 #endif // ifdef ESP32
 
