@@ -7,6 +7,7 @@
 #include "../ESPEasyCore/Serial.h"
 #include "../Globals/ESPEasy_time.h"
 #include "../Globals/Statistics.h"
+#include "../Helpers/_CPlugin_init.h"
 #include "../Helpers/ESPEasy_FactoryDefault.h"
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/Numerical.h"
