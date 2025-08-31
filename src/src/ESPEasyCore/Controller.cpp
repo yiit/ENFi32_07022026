@@ -668,7 +668,7 @@ void MQTT_execute_connect_task(void *parameter)
   LoadControllerSettings(MQTT_task_data->ControllerIndex, *ControllerSettings);
 
   uint32_t timeout = ControllerSettings->MustCheckReply
-                     ? WiFiEventData.getSuggestedTimeout(Settings.Protocol[MQTT_task_data->ControllerIndex], ControllerSettings->ClientTimeout)
+                     ? ControllerSettings->getSuggestedTimeout(Settings.Protocol[MQTT_task_data->ControllerIndex])
                      : ControllerSettings->ClientTimeout;
   uint8_t incr = 5; // Increment timeout between connection attempts 5 times by 100 msec
 
