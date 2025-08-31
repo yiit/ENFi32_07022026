@@ -894,6 +894,12 @@ To create/register a plugin, you have to :
     #define USES_P028   // BME280
 #endif
 
+#if defined(PLUGIN_SET_COLLECTION_B_ESP32) || defined(PLUGIN_SET_COLLECTION_C_ESP32) || defined(PLUGIN_SET_COLLECTION_D_ESP32) || defined(PLUGIN_SET_COLLECTION_E_ESP32) || defined(PLUGIN_SET_COLLECTION_F_ESP32) || defined(PLUGIN_SET_COLLECTION_G_ESP32)
+# ifndef BUILD_NO_DEBUG
+#  define BUILD_NO_DEBUG
+# endif
+#endif
+
 #ifdef PLUGIN_SET_COLLECTION_ESP32
   #if !defined(PLUGIN_SET_COLLECTION_B_ESP32) && !defined(PLUGIN_SET_COLLECTION_C_ESP32) && !defined(PLUGIN_SET_COLLECTION_D_ESP32) && !defined(PLUGIN_SET_COLLECTION_E_ESP32) && !defined(PLUGIN_SET_COLLECTION_F_ESP32) && !defined(PLUGIN_SET_COLLECTION_G_ESP32)
     #ifndef PLUGIN_DESCR // COLLECTION_A_ESP32_IRExt also passes here
@@ -1021,7 +1027,6 @@ To create/register a plugin, you have to :
 #endif
 
 #ifdef PLUGIN_SET_COLLECTION_E_ESP32
-  #define BUILD_NO_DEBUG
   #ifndef PLUGIN_DESCR // COLLECTION_E_ESP32_IRExt also passes here
     #define PLUGIN_DESCR  "Collection_E ESP32"
   #endif
