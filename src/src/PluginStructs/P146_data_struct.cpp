@@ -5,6 +5,7 @@
 # include "../ControllerQueue/C016_queue_element.h"
 # include "../Globals/C016_ControllerCache.h"
 # include "../Globals/MQTT.h"
+# include "../Helpers/_CPlugin_init.h"
 
 
 P146_data_struct::P146_data_struct(struct EventStruct *event)
