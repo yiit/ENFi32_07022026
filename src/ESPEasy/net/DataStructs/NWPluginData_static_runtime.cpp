@@ -37,15 +37,16 @@ static void tx_rx_event_handler(void *arg, esp_event_base_t event_base,
     interfaceTrafficCount[key]._tx_count += event->len;
   } else if (event->dir == ESP_NETIF_RX) {
     interfaceTrafficCount[key]._rx_count += event->len;
-/*
-    addLog(LOG_LEVEL_INFO, strformat(
-             F("RX: %s key: %d len: %d total: %d"),
-             esp_netif_get_desc(event->esp_netif),
-             key,
-             event->len,
-             interfaceTrafficCount[key]._rx_count
-             ));
-*/
+
+    /*
+        addLog(LOG_LEVEL_INFO, strformat(
+                 F("RX: %s key: %d len: %d total: %d"),
+                 esp_netif_get_desc(event->esp_netif),
+                 key,
+                 event->len,
+                 interfaceTrafficCount[key]._rx_count
+                 ));
+     */
   }
 }
 
@@ -57,7 +58,7 @@ void NWPluginData_static_runtime::enable_txrx_events()
 
     if (_netif->netif()) {
       static bool registered_IP_EVENT_TX_RX = false;
-      const int key = esp_netif_get_netif_impl_index(_netif->netif());
+      const int   key                       = esp_netif_get_netif_impl_index(_netif->netif());
       interfaceTrafficCount[key].clear();
       esp_netif_tx_rx_event_enable(_netif->netif());
 
@@ -83,8 +84,7 @@ bool NWPluginData_static_runtime::getTrafficCount(uint64_t& tx, uint64_t& rx) co
   return true;
 }
 
-#endif
-
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
 void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
 {
@@ -97,13 +97,14 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
   _networkIndex = networkIndex;
 #ifdef ESP32
   _route_prio = Settings.getRoutePrio_for_network(_networkIndex);
+
   if (_netif) {
-    if (_eventInterfaceName.length() == 0 && _netif) {
+    if ((_eventInterfaceName.length() == 0) && _netif) {
       _eventInterfaceName = _netif->desc();
       _eventInterfaceName.toUpperCase();
     }
   }
-#endif
+#endif // ifdef ESP32
 
   _connectionFailures = 0;
 
@@ -116,13 +117,13 @@ void NWPluginData_static_runtime::processEvent_and_clear()
   clear();
 }
 
-
 bool NWPluginData_static_runtime::operational() const
 {
   return started() && connected() && hasIP()
-   && Settings.getNetworkEnabled(_networkIndex);
-   // FIXME TD-er: WiFi STA keeps reporting it is 
-   // connected and has IP even after call to networkdisable,1
+         && Settings.getNetworkEnabled(_networkIndex);
+
+  // FIXME TD-er: WiFi STA keeps reporting it is
+  // connected and has IP even after call to networkdisable,1
 }
 
 void NWPluginData_static_runtime::processEvents()
@@ -131,7 +132,8 @@ void NWPluginData_static_runtime::processEvents()
   {
     if (_establishConnectStats.isOn()) {
       log_connected();
-//    _establishConnectStats.resetCount();
+
+      //    _establishConnectStats.resetCount();
     } else {
       log_disconnected();
     }
@@ -139,23 +141,26 @@ void NWPluginData_static_runtime::processEvents()
 
 
   _operationalStats.set(operational());
+
   if (_operationalStats.changedSinceLastCheck_and_clear()) {
 #if FEATURE_NETWORK_TRAFFIC_COUNT
+
     if (_operationalStats.isOn()) {
       enable_txrx_events();
     }
-#endif
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
+
     // Send out event
     if (Settings.UseRules && _eventInterfaceName.length())
     {
       if (_operationalStats.isOn()) {
         eventQueue.add(concat(
-          _eventInterfaceName, 
-          F("#Connected")));
+                         _eventInterfaceName,
+                         F("#Connected")));
       } else {
         eventQueue.add(concat(
-          _eventInterfaceName, 
-          F("#Disconnected")));
+                         _eventInterfaceName,
+                         F("#Disconnected")));
       }
     }
     statusLED(true);

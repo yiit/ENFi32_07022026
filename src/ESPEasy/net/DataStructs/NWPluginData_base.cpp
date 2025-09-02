@@ -23,9 +23,9 @@ NWPluginData_base::NWPluginData_base(
   , NetworkInterface *netif
 #endif
   ) :
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
   _plugin_stats_array(nullptr),
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
   _kvs(nullptr),
@@ -47,10 +47,10 @@ NWPluginData_base::NWPluginData_base(
 
 NWPluginData_base::~NWPluginData_base()
 {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
   delete _plugin_stats_array;
   _plugin_stats_array = nullptr;
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
@@ -60,36 +60,36 @@ NWPluginData_base::~NWPluginData_base()
 }
 
 bool NWPluginData_base::hasPluginStats() const {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   if (_plugin_stats_array != nullptr) {
     return _plugin_stats_array->hasStats();
   }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
   return false;
 }
 
 bool NWPluginData_base::hasPeaks() const {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   if (_plugin_stats_array != nullptr) {
     return _plugin_stats_array->hasPeaks();
   }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
   return false;
 }
 
 size_t NWPluginData_base::nrSamplesPresent() const {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   if (_plugin_stats_array != nullptr) {
     return _plugin_stats_array->nrSamplesPresent();
   }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
   return 0;
 }
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
 void NWPluginData_base::initPluginStats(
   networkStatsVarIndex_t      networkStatsVarIndex,
@@ -119,7 +119,7 @@ void NWPluginData_base::initPluginStats(
   }
 }
 
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+# if FEATURE_NETWORK_TRAFFIC_COUNT
 
 void NWPluginData_base::initPluginStats_trafficCount(networkStatsVarIndex_t networkStatsVarIndex, bool isTX)
 {
@@ -136,18 +136,19 @@ void NWPluginData_base::initPluginStats_trafficCount(networkStatsVarIndex_t netw
     displayConfig);
 }
 
-# endif
+# endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
 bool NWPluginData_base::initPluginStats()
 {
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+# if FEATURE_NETWORK_TRAFFIC_COUNT
+
   // Virtual function has no override in derived class, so only init traffic count
   initPluginStats_trafficCount(0, true);  // TX
   initPluginStats_trafficCount(1, false); // RX
   return true;
-# else
+# else // if FEATURE_NETWORK_TRAFFIC_COUNT
   return false;
-# endif
+# endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 }
 
 void NWPluginData_base::clearPluginStats(networkStatsVarIndex_t networkStatsVarIndex)
@@ -169,17 +170,17 @@ void NWPluginData_base::processTimeSet(const double& time_offset)
   }
 }
 
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 bool NWPluginData_base::pushStatsValues(EventStruct *event,
                                         size_t       valueCount,
                                         bool         trackPeaks,
                                         bool         onlyUpdateTimestampWhenSame)
 {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   if (_plugin_stats_array != nullptr) {
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+# if FEATURE_NETWORK_TRAFFIC_COUNT
 
     // Include traffic
     uint64_t tx{};
@@ -197,30 +198,30 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
       _prevTX                    = 0;
       _prevRX                    = 0;
     }
-# endif
+# endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
     if (valueCount) {
       return _plugin_stats_array->pushStatsValues(event, valueCount, trackPeaks, onlyUpdateTimestampWhenSame);
     }
   }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
   return false;
 }
 
 bool NWPluginData_base::plugin_write_base(EventStruct  *event,
                                           const String& string)
 {
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   if (_plugin_stats_array != nullptr) {
     return _plugin_stats_array->plugin_write_base(event, string);
   }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
   return false;
 }
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
 bool NWPluginData_base::record_stats()
 {
@@ -283,7 +284,7 @@ void NWPluginData_base::plot_ChartJS_scatter(
 }
 
 # endif // if FEATURE_CHART_JS
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
@@ -309,10 +310,7 @@ LongTermTimer::Duration NWPluginData_base::getConnectedDuration_ms() {
   return 0;
 }
 
-bool NWPluginData_base::handle_nwplugin_write(EventStruct *event, String& str)
-{
-  return false;
-}
+bool NWPluginData_base::handle_nwplugin_write(EventStruct *event, String& str) { return false; }
 
 #ifdef ESP32
 
@@ -347,12 +345,15 @@ bool NWPluginData_base::handle_priority_route_changed()
   }
   return res;
 }
-#endif
+
+#endif // ifdef ESP32
 
 #if FEATURE_NETWORK_TRAFFIC_COUNT
+
 void NWPluginData_base::enable_txrx_events()
 {
   auto cache = getNWPluginData_static_runtime();
+
   if (cache) {
     cache->enable_txrx_events();
   }
@@ -362,12 +363,12 @@ bool NWPluginData_base::getTrafficCount(uint64_t& tx, uint64_t& rx)
 {
   if (!_netif) { return false; }
   auto cache = getNWPluginData_static_runtime();
-  return (cache && cache->getTrafficCount(tx, rx));
+  return cache && cache->getTrafficCount(tx, rx);
 }
 
-#endif
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
 PluginStats * NWPluginData_base::getPluginStats(networkStatsVarIndex_t networkStatsVarIndex) const
 {
@@ -385,7 +386,7 @@ PluginStats * NWPluginData_base::getPluginStats(networkStatsVarIndex_t networkSt
   return nullptr;
 }
 
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 #ifdef ESP32
 

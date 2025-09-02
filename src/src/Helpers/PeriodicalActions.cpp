@@ -208,7 +208,7 @@ void runOncePerSecond()
   PluginCall(PLUGIN_ONCE_A_SECOND, 0, dummy);
 //  unsigned long elapsed = micros() - start;
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
   for (ESPEasy::net::networkIndex_t x = 0; x < NETWORK_MAX; x++) {
     if (Settings.getNetworkEnabled(x)) {
       EventStruct tempEvent;

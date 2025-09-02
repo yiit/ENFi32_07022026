@@ -19,12 +19,12 @@
 # include "../../ESPEasy/net/Helpers/_NWPlugin_init.h"
 # include "../../ESPEasy/net/_NWPlugin_Helper.h"
 
-#ifdef ESP8266
-#define MAX_NR_NETWORKS_IN_TABLE  2
-#endif
-#ifdef ESP32
-#define MAX_NR_NETWORKS_IN_TABLE  NETWORK_MAX
-#endif
+# ifdef ESP8266
+#  define MAX_NR_NETWORKS_IN_TABLE  2
+# endif
+# ifdef ESP32
+#  define MAX_NR_NETWORKS_IN_TABLE  NETWORK_MAX
+# endif
 
 
 using namespace ESPEasy::net;
@@ -168,7 +168,7 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(ESPEasy::net::networkInd
 # ifdef ESP32
     Settings.setRoutePrio_for_network(networkindex, getFormItemInt(F("routeprio"), 0));
     Settings.setNetworkInterfaceSubnetBlockClientIP(networkindex, isFormItemChecked(F("block_web_access")));
-# endif
+# endif // ifdef ESP32
     Settings.setNetworkInterfaceStartupDelayAtBoot(networkindex, getFormItemInt(F("delay_start")));
     String dummy;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
@@ -180,12 +180,12 @@ void handle_networks_ShowAllNetworksTable()
 {
   html_table_class_multirow();
   html_TR();
-  html_table_header(F(""),        70);
-  html_table_header(F("Nr"),      50);
-  html_table_header(F("Enabled"), 100);
+  html_table_header(F(""),           70);
+  html_table_header(F("Nr"),         50);
+  html_table_header(F("Enabled"),    100);
   html_table_header(F("Network Adapter"));
   # ifdef ESP32
-  html_table_header(F("Route Prio"),    50);
+  html_table_header(F("Route Prio"), 50);
   # endif
   html_table_header(F("Connected"));
   html_table_header(F("Hostname/SSID"));
@@ -371,7 +371,8 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     String str;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
+
     if (Settings.getNetworkEnabled(TempEvent.NetworkIndex))
     {
       // Task statistics and historic data in a chart
@@ -399,7 +400,7 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
       }
     }
 
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
 # ifdef ESP32
 
@@ -508,13 +509,14 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
           }
 
 #  if FEATURE_NETWORK_TRAFFIC_COUNT
+
           if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT, &TempEvent, str)) {
             addRowLabel(F("TX Bytes Total"));
             addHtmlInt(TempEvent.Par1);
             addRowLabel(F("RX Bytes Total"));
             addHtmlInt(TempEvent.Par2);
           }
-#  endif
+#  endif // if FEATURE_NETWORK_TRAFFIC_COUNT
         }
       }
     }

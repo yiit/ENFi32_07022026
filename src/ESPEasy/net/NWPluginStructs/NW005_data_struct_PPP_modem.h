@@ -50,15 +50,16 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 
   bool   exit(EventStruct *event);
 
-  bool   handle_nwplugin_write(EventStruct *event, String& str) override;
+  bool   handle_nwplugin_write(EventStruct *event,
+                               String     & str) override;
 
   String write_AT_cmd(const String& cmd,
                       int           timeout = 1000);
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
   bool initPluginStats() override;
   bool record_stats() override;
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();

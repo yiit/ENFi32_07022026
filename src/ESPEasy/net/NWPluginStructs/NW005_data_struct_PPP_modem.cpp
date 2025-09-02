@@ -156,8 +156,10 @@ ppp_modem_model_t to_ppp_modem_model_t(NW005_modem_model NW005_modemmodel)
 int doGetRSSI()
 {
   const int rssi_raw = NW_PLUGIN_INTERFACE.RSSI();
-  if (rssi_raw == 0) return -113;
-  if (rssi_raw == 99) return 0;
+
+  if (rssi_raw == 0) { return -113; }
+
+  if (rssi_raw == 99) { return 0; }
   return map(rssi_raw, 2, 30, -109, -53);
 }
 
@@ -914,9 +916,9 @@ String NW005_data_struct_PPP_modem::write_AT_cmd(const String& cmd, int timeout)
   return res;
 }
 
-bool  NW005_data_struct_PPP_modem::handle_nwplugin_write(EventStruct *event, String& str)
+bool NW005_data_struct_PPP_modem::handle_nwplugin_write(EventStruct *event, String& str)
 {
-  bool success = false;
+  bool success         = false;
   const String command = parseString(str, 1);
 
   if (equals(command, F("ppp"))) {
@@ -926,9 +928,9 @@ bool  NW005_data_struct_PPP_modem::handle_nwplugin_write(EventStruct *event, Str
       const String writeCommand = parseStringToEnd(str, 3);
       const String res          = write_AT_cmd(writeCommand);
       addLog(LOG_LEVEL_INFO, strformat(
-        F("PPP cmd: %s -> %s"), 
-        writeCommand.c_str(), 
-        res.c_str()));
+               F("PPP cmd: %s -> %s"),
+               writeCommand.c_str(),
+               res.c_str()));
       success = true;
       SendStatus(event, res);
     }
@@ -936,8 +938,7 @@ bool  NW005_data_struct_PPP_modem::handle_nwplugin_write(EventStruct *event, Str
   return success;
 }
 
-
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
 
 bool NW005_data_struct_PPP_modem::initPluginStats()
 {
@@ -964,10 +965,10 @@ bool NW005_data_struct_PPP_modem::initPluginStats()
     1,
     NAN,
     displayConfig);
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+#  if FEATURE_NETWORK_TRAFFIC_COUNT
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
-#endif
+#  endif // if FEATURE_NETWORK_TRAFFIC_COUNT
   return true;
 }
 
@@ -986,7 +987,7 @@ bool NW005_data_struct_PPP_modem::record_stats()
   return false;
 }
 
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
 NWPluginData_static_runtime * NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return &stats_and_cache; }
 

@@ -14,24 +14,24 @@ struct NW002_data_struct_WiFi_AP : public NWPluginData_base {
   ~NW002_data_struct_WiFi_AP();
 
 
-  void                         webform_load(EventStruct *event);
-  void                         webform_save(EventStruct *event);
+  void webform_load(EventStruct *event);
+  void webform_save(EventStruct *event);
 
-  bool                         webform_getPort(String& str);
+  bool webform_getPort(String& str);
 
-  bool                         init(EventStruct *event);
+  bool init(EventStruct *event);
 
-  bool                         exit(EventStruct *event);
+  bool exit(EventStruct *event);
 
 # ifdef ESP32
-  bool                         handle_priority_route_changed() override;
+  bool handle_priority_route_changed() override;
 # endif
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
   bool                         initPluginStats() override;
   bool                         record_stats() override;
   bool                         webformLoad_show_stats(struct EventStruct *event) const override;
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
 

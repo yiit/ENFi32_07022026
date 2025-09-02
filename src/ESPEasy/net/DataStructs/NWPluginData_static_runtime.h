@@ -21,16 +21,17 @@ struct NWPluginData_static_runtime {
   NWPluginData_static_runtime(NetworkInterface *netif,
                               const String    & eventInterfaceName = EMPTY_STRING);
 #else // ifdef ESP32
-  NWPluginData_static_runtime(bool         isSTA,
-                              const char * eventInterfaceName);
+  NWPluginData_static_runtime(bool        isSTA,
+                              const char *eventInterfaceName);
 
 #endif // ifdef ESP32
 
 #if FEATURE_NETWORK_TRAFFIC_COUNT
-  void   enable_txrx_events();
+  void enable_txrx_events();
 
-  bool   getTrafficCount(uint64_t& tx, uint64_t& rx) const;
-#endif
+  bool getTrafficCount(uint64_t& tx,
+                       uint64_t& rx) const;
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
   void   clear(networkIndex_t networkIndex = INVALID_NETWORK_INDEX);
 

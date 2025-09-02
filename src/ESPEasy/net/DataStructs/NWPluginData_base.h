@@ -42,39 +42,39 @@ struct NWPluginData_base {
     return _baseClassOnly;
   }
 
-  bool   hasPluginStats() const;
+  bool         hasPluginStats() const;
 
-  bool   hasPeaks() const;
+  bool         hasPeaks() const;
 
-  size_t nrSamplesPresent() const;
+  size_t       nrSamplesPresent() const;
 
-  #if FEATURE_PLUGIN_STATS
+  #if FEATURE_NETWORK_STATS
   virtual bool initPluginStats();
 
-  void clearPluginStats(networkStatsVarIndex_t networkStatsVarIndex);
+  void         clearPluginStats(networkStatsVarIndex_t networkStatsVarIndex);
 
   // Update any logged timestamp with this newly set system time.
-  void processTimeSet(const double& time_offset);
-  #endif // if FEATURE_PLUGIN_STATS
+  void         processTimeSet(const double& time_offset);
+  #endif // if FEATURE_NETWORK_STATS
 
 
   bool pushStatsValues(EventStruct *event,
-                       size_t              valueCount,
-                       bool                trackPeaks,
-                       bool                onlyUpdateTimestampWhenSame);
+                       size_t       valueCount,
+                       bool         trackPeaks,
+                       bool         onlyUpdateTimestampWhenSame);
 
 
-  bool plugin_write_base(EventStruct *event,
-                         const String      & string);
+  bool plugin_write_base(EventStruct  *event,
+                         const String& string);
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
   virtual bool record_stats();
   virtual bool webformLoad_show_stats(EventStruct *event) const;
 
 # if FEATURE_CHART_JS
-  void plot_ChartJS(bool onlyJSON = false) const;
+  void         plot_ChartJS(bool onlyJSON = false) const;
 
-  void plot_ChartJS_scatter(
+  void         plot_ChartJS_scatter(
     networkStatsVarIndex_t        values_X_axis_index,
     networkStatsVarIndex_t        values_Y_axis_index,
     const __FlashStringHelper    *id,
@@ -87,7 +87,7 @@ struct NWPluginData_base {
     bool                          onlyJSON    = false) const;
 
 # endif // if FEATURE_CHART_JS
-#endif  // if FEATURE_PLUGIN_STATS
+#endif  // if FEATURE_NETWORK_STATS
 
 
   // Should only be called from initNWPluginData
@@ -98,21 +98,22 @@ struct NWPluginData_base {
   nwpluginID_t                    getNWPluginID() const { return _nw_data_pluginID; }
 
   virtual LongTermTimer::Duration getConnectedDuration_ms();
-  virtual bool handle_nwplugin_write(EventStruct *event, String& str);
+  virtual bool                    handle_nwplugin_write(EventStruct *event,
+                                                        String     & str);
 
 #ifdef ESP32
-  virtual bool                    handle_priority_route_changed();
+  virtual bool handle_priority_route_changed();
 #endif
 #if FEATURE_NETWORK_TRAFFIC_COUNT
-  void                            enable_txrx_events();
-  bool                            getTrafficCount(uint64_t& tx,
-                                                  uint64_t& rx);
-#endif
+  void         enable_txrx_events();
+  bool         getTrafficCount(uint64_t& tx,
+                               uint64_t& rx);
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
   virtual NWPluginData_static_runtime* getNWPluginData_static_runtime() = 0;
 
 
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
 
   PluginStats* getPluginStats(networkStatsVarIndex_t networkStatsVarIndex) const;
 
@@ -120,21 +121,22 @@ struct NWPluginData_base {
 
 protected:
 
-  void   initPluginStats(
+  void initPluginStats(
     networkStatsVarIndex_t      networkStatsVarIndex,
     const String              & label,
     uint8_t                     nrDecimals,
     float                       errorValue,
     const PluginStats_Config_t& displayConfig);
 
-#if FEATURE_NETWORK_TRAFFIC_COUNT
-void initPluginStats_trafficCount(networkStatsVarIndex_t networkStatsVarIndex, bool isTX);
-#endif
+# if FEATURE_NETWORK_TRAFFIC_COUNT
+  void initPluginStats_trafficCount(networkStatsVarIndex_t networkStatsVarIndex,
+                                    bool                   isTX);
+# endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
 
   // Array of pointers to PluginStats. One per task value.
   PluginStats_array *_plugin_stats_array = nullptr;
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
 protected:
 
@@ -170,10 +172,10 @@ protected:
 
 #ifdef ESP32
   NetworkInterface *_netif{};
-# if FEATURE_PLUGIN_STATS && FEATURE_NETWORK_TRAFFIC_COUNT
+# if FEATURE_NETWORK_STATS && FEATURE_NETWORK_TRAFFIC_COUNT
   uint64_t _prevTX{};
   uint64_t _prevRX{};
-# endif
+# endif // if FEATURE_NETWORK_STATS && FEATURE_NETWORK_TRAFFIC_COUNT
 #endif // ifdef ESP32
 
 };

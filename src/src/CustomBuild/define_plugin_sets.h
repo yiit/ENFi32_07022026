@@ -1156,6 +1156,12 @@ To create/register a plugin, you have to :
     #ifndef FEATURE_PLUGIN_STATS
         #define FEATURE_PLUGIN_STATS  1
     #endif
+    #ifndef FEATURE_NETWORK_STATS
+        #define FEATURE_NETWORK_STATS         1
+    #endif
+    #ifndef FEATURE_NETWORK_TRAFFIC_COUNT
+        #define FEATURE_NETWORK_TRAFFIC_COUNT 1
+    #endif
     #ifndef FEATURE_CHART_JS
         #define FEATURE_CHART_JS  1
     #endif
@@ -3349,6 +3355,21 @@ To create/register a plugin, you have to :
 #ifndef FEATURE_PLUGIN_STATS
 #define FEATURE_PLUGIN_STATS                  0
 #endif
+
+#if FEATURE_NETWORK_STATS && !FEATURE_PLUGIN_STATS
+// FEATURE_NETWORK_STATS requires FEATURE_PLUGIN_STATS
+#undef FEATURE_NETWORK_STATS
+#endif
+
+
+#ifndef FEATURE_NETWORK_STATS
+#define FEATURE_NETWORK_STATS                 0
+#endif
+
+#ifndef FEATURE_NETWORK_TRAFFIC_COUNT
+#define FEATURE_NETWORK_TRAFFIC_COUNT         0
+#endif
+
 
 #ifndef FEATURE_REPORTING
 #define FEATURE_REPORTING                     0

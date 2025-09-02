@@ -94,8 +94,8 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                 Function,
                 event,
                 command)) {
-            if (Function == NWPlugin::Function::NWPLUGIN_WRITE || 
-                Function == NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN) {
+            if ((Function == NWPlugin::Function::NWPLUGIN_WRITE) ||
+                (Function == NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN)) {
               // Need to stop when call was handled
               return true;
             }
@@ -110,10 +110,10 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 #if FEATURE_NETWORK_TRAFFIC_COUNT
     case NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT:
 #endif
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_NETWORK_STATS
     case NWPlugin::Function::NWPLUGIN_RECORD_STATS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD_SHOW_STATS:
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
     case NWPlugin::Function::NWPLUGIN_PROCESS_EVENT:
     case NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION:
     {
@@ -140,8 +140,8 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
             }
             break;
           }
-#endif
-#if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
+#if FEATURE_NETWORK_STATS
           case NWPlugin::Function::NWPLUGIN_RECORD_STATS:
           {
             //            NWPluginData_static_runtime& runtime_data = NW_data->getNWPluginData_static_runtime();
@@ -154,11 +154,12 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
             success = NW_data->webformLoad_show_stats(event);
             break;
           }
-#endif // if FEATURE_PLUGIN_STATS
+#endif // if FEATURE_NETWORK_STATS
 
           case NWPlugin::Function::NWPLUGIN_PROCESS_EVENT:
           {
             auto runtimeData = NW_data->getNWPluginData_static_runtime();
+
             if (runtimeData) {
               runtimeData->processEvents();
             }
@@ -313,9 +314,9 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
           //          Cache.clearNetworkSettings(networkIndex);
           auto data = getNWPluginData_static_runtime(event->NetworkIndex);
 
-          if (data) { 
+          if (data) {
             delay(100); // Allow some time to process events
-            data->processEvent_and_clear(); 
+            data->processEvent_and_clear();
           }
 
         }
@@ -416,6 +417,7 @@ const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()
 void processNetworkEvents()
 {
   START_TIMER;
+
   for (networkIndex_t i = 0; i < NETWORK_MAX; ++i) {
     EventStruct tmpEvent;
     tmpEvent.NetworkIndex = i;

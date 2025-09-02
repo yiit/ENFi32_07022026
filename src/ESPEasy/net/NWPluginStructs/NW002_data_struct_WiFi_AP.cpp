@@ -13,7 +13,7 @@
 # ifdef ESP32
 #  include <esp_wifi.h>
 #  include <esp_wifi_ap_get_sta_list.h>
-# endif
+# endif // ifdef ESP32
 
 # define NW_PLUGIN_ID  2
 # ifdef ESP32
@@ -114,13 +114,13 @@ bool NW002_data_struct_WiFi_AP::exit(EventStruct *event)
   return true;
 }
 
-NWPluginData_static_runtime* NW002_data_struct_WiFi_AP::getNWPluginData_static_runtime() 
-{ 
-  if (nw002_initialized)
-    return &stats_and_cache; 
+NWPluginData_static_runtime * NW002_data_struct_WiFi_AP::getNWPluginData_static_runtime()
+{
+  if (nw002_initialized) {
+    return &stats_and_cache;
+  }
   return nullptr;
 }
-
 
 # ifdef ESP32
 
@@ -129,7 +129,7 @@ bool NW002_data_struct_WiFi_AP::handle_priority_route_changed() { return NW002_u
 # endif // ifdef ESP32
 
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
 
 bool NW002_data_struct_WiFi_AP::initPluginStats()
 {
@@ -158,10 +158,10 @@ bool NW002_data_struct_WiFi_AP::initPluginStats()
     NAN,
     displayConfig);
 
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+#   if FEATURE_NETWORK_TRAFFIC_COUNT
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
-#endif
+#   endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 #  endif // ifdef ESP32
   return true;
 }
@@ -208,7 +208,7 @@ bool NW002_data_struct_WiFi_AP::webformLoad_show_stats(struct EventStruct *event
   return false;
 }
 
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
 # ifdef ESP32
 

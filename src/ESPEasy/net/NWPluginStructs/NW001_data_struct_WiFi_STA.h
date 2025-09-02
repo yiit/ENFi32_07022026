@@ -34,11 +34,11 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
   bool handle_priority_route_changed() override;
 # endif
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
   bool                         initPluginStats() override;
   bool                         record_stats() override;
   bool                         webformLoad_show_stats(struct EventStruct *event) const override;
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
   const __FlashStringHelper*   getWiFi_encryptionType() const;

@@ -106,7 +106,7 @@ bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) {
   return true;
 }
 
-NWPluginData_static_runtime* NW001_data_struct_WiFi_STA::getNWPluginData_static_runtime() {
+NWPluginData_static_runtime * NW001_data_struct_WiFi_STA::getNWPluginData_static_runtime() {
   return _WiFiEventHandler.getNWPluginData_static_runtime();
 }
 
@@ -128,7 +128,7 @@ bool NW001_data_struct_WiFi_STA::handle_priority_route_changed()
 
 # endif // ifdef ESP32
 
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_NETWORK_STATS
 
 bool NW001_data_struct_WiFi_STA::initPluginStats()
 {
@@ -156,10 +156,10 @@ bool NW001_data_struct_WiFi_STA::initPluginStats()
     NAN,
     displayConfig);
 #  endif // if FEATURE_SET_WIFI_TX_PWR
-#if FEATURE_NETWORK_TRAFFIC_COUNT
+#  if FEATURE_NETWORK_TRAFFIC_COUNT
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
-#  endif
+#  endif // if FEATURE_NETWORK_TRAFFIC_COUNT
   return true;
 }
 
@@ -168,15 +168,15 @@ bool NW001_data_struct_WiFi_STA::record_stats()
   if (_plugin_stats_array != nullptr) {
     EventStruct tmpEvent;
     size_t valueCount{};
-    tmpEvent.ParfN[valueCount++] = 
-    #ifdef ESP32
+    tmpEvent.ParfN[valueCount++] =
+    #  ifdef ESP32
       WiFi.STA.RSSI();
-    #else
+    #  else
       WiFi.RSSI();
-    #endif
-#   if FEATURE_SET_WIFI_TX_PWR
+    #  endif // ifdef ESP32
+#  if FEATURE_SET_WIFI_TX_PWR
     tmpEvent.ParfN[valueCount++] = ESPEasy::net::wifi::GetWiFiTXpower();
-#   endif
+#  endif
 
     bool trackPeaks                  = true;
     bool onlyUpdateTimestampWhenSame = true;
@@ -205,7 +205,7 @@ bool NW001_data_struct_WiFi_STA::webformLoad_show_stats(struct EventStruct *even
   return false;
 }
 
-# endif // if FEATURE_PLUGIN_STATS
+# endif // if FEATURE_NETWORK_STATS
 
 
 } // namespace wifi

@@ -340,6 +340,7 @@ unsigned long ESPEasy_time::now_() {
               taskData->processTimeSet(externalUnixTime_offset_usec / 1000000.0);
             }
           }
+#if FEATURE_NETWORK_STATS
           // Process for network interfaces too
           for (ESPEasy::net::networkIndex_t networkIndex = 0; networkIndex < NETWORK_MAX; networkIndex++)
           {
@@ -349,6 +350,7 @@ unsigned long ESPEasy_time::now_() {
               NWdata->processTimeSet(externalUnixTime_offset_usec / 1000000.0);
             }
           }
+#endif
         }
       }
 
