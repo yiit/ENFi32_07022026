@@ -130,7 +130,7 @@ void NWPluginData_base::initPluginStats_trafficCount(networkStatsVarIndex_t netw
   displayConfig.setAxisIndex(3); // Set to a fixed index so RX/TX are on the same axis index
   initPluginStats(
     networkStatsVarIndex,
-    isTX ? F("Traffic TX") : F("Traffic RX"),
+    concat(isTX ? F("TX") : F("RX"), F(" Bytes")),
     0,
     NAN,
     displayConfig);
