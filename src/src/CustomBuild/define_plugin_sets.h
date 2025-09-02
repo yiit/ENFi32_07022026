@@ -160,9 +160,14 @@ To create/register a plugin, you have to :
 #endif
 
 
-#if FEATURE_ETHERNET && defined(PLUGIN_DISPLAY_COLLECTION)
+#if defined(PLUGIN_DISPLAY_COLLECTION)
   // Display builds are getting too large, so for now disable ETH for display buikds
+  #if FEATURE_ETHERNET
   #undef FEATURE_ETHERNET
+  #endif
+  #ifndef BUILD_NO_DEBUG
+      #define BUILD_NO_DEBUG
+  #endif
 #endif
 
 
