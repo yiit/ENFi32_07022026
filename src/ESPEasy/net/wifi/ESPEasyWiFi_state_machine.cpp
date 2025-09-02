@@ -55,7 +55,6 @@ void ESPEasyWiFi_t::loop()
 
   if (!wifi_STA_data) { return; }
 
-
   if (_state != WiFiState_e::IdleWaiting) {
     if (_callbackError ||
         (_state_timeout.isSet() && _state_timeout.timeReached()))

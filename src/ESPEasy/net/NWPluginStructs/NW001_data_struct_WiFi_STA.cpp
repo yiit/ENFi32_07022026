@@ -135,7 +135,7 @@ bool NW001_data_struct_WiFi_STA::initPluginStats()
   networkStatsVarIndex_t networkStatsVarIndex{};
   PluginStats_Config_t   displayConfig;
 
-  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Right);
+  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Left);
   displayConfig.setEnabled(true);
 
   displayConfig.setAxisIndex(networkStatsVarIndex);
@@ -156,10 +156,10 @@ bool NW001_data_struct_WiFi_STA::initPluginStats()
     NAN,
     displayConfig);
 #  endif // if FEATURE_SET_WIFI_TX_PWR
-#  ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
-#  endif // ifdef ESP32
+#  endif
   return true;
 }
 

@@ -944,7 +944,7 @@ bool NW005_data_struct_PPP_modem::initPluginStats()
   networkStatsVarIndex_t networkStatsVarIndex{};
   PluginStats_Config_t   displayConfig;
 
-  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Right);
+  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Left);
   displayConfig.setEnabled(true);
 
   displayConfig.setAxisIndex(networkStatsVarIndex);
@@ -964,9 +964,10 @@ bool NW005_data_struct_PPP_modem::initPluginStats()
     1,
     NAN,
     displayConfig);
-
+#if FEATURE_NETWORK_TRAFFIC_COUNT
   initPluginStats_trafficCount(++networkStatsVarIndex, true);  // TX
   initPluginStats_trafficCount(++networkStatsVarIndex, false); // RX
+#endif
   return true;
 }
 

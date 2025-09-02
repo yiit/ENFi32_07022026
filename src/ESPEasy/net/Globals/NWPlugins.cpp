@@ -107,9 +107,9 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     }
 
       // calls to specific network's NWPluginData_base (must be enabled)
-#ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
     case NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT:
-#endif // ifdef ESP32
+#endif
 #if FEATURE_PLUGIN_STATS
     case NWPlugin::Function::NWPLUGIN_RECORD_STATS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD_SHOW_STATS:
@@ -127,7 +127,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
       if (NW_data) {
         switch (Function)
         {
-#ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
           case NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT:
           {
             uint64_t tx{};
@@ -140,7 +140,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
             }
             break;
           }
-#endif // ifdef ESP32
+#endif
 #if FEATURE_PLUGIN_STATS
           case NWPlugin::Function::NWPLUGIN_RECORD_STATS:
           {

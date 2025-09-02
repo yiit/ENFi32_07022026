@@ -26,7 +26,7 @@ struct NWPluginData_static_runtime {
 
 #endif // ifdef ESP32
 
-#ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
   void   enable_txrx_events();
 
   bool   getTrafficCount(uint64_t& tx, uint64_t& rx) const;

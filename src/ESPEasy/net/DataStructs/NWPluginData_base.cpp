@@ -119,13 +119,13 @@ void NWPluginData_base::initPluginStats(
   }
 }
 
-# ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
 
 void NWPluginData_base::initPluginStats_trafficCount(networkStatsVarIndex_t networkStatsVarIndex, bool isTX)
 {
   PluginStats_Config_t displayConfig;
 
-  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Left);
+  displayConfig.setAxisPosition(PluginStats_Config_t::AxisPosition::Right);
   displayConfig.setEnabled(true);
   displayConfig.setAxisIndex(3); // Set to a fixed index so RX/TX are on the same axis index
   initPluginStats(
@@ -136,17 +136,18 @@ void NWPluginData_base::initPluginStats_trafficCount(networkStatsVarIndex_t netw
     displayConfig);
 }
 
-# endif // ifdef ESP32
+# endif
 
 bool NWPluginData_base::initPluginStats()
 {
-# ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
+  // Virtual function has no override in derived class, so only init traffic count
   initPluginStats_trafficCount(0, true);  // TX
   initPluginStats_trafficCount(1, false); // RX
   return true;
-# else // ifdef ESP32
+# else
   return false;
-# endif // ifdef ESP32
+# endif
 }
 
 void NWPluginData_base::clearPluginStats(networkStatsVarIndex_t networkStatsVarIndex)
@@ -178,7 +179,7 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
 #if FEATURE_PLUGIN_STATS
 
   if (_plugin_stats_array != nullptr) {
-# ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
 
     // Include traffic
     uint64_t tx{};
@@ -196,7 +197,7 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
       _prevTX                    = 0;
       _prevRX                    = 0;
     }
-# endif // ifdef ESP32
+# endif
 
     if (valueCount) {
       return _plugin_stats_array->pushStatsValues(event, valueCount, trackPeaks, onlyUpdateTimestampWhenSame);
@@ -346,7 +347,9 @@ bool NWPluginData_base::handle_priority_route_changed()
   }
   return res;
 }
+#endif
 
+#if FEATURE_NETWORK_TRAFFIC_COUNT
 void NWPluginData_base::enable_txrx_events()
 {
   auto cache = getNWPluginData_static_runtime();
@@ -362,7 +365,7 @@ bool NWPluginData_base::getTrafficCount(uint64_t& tx, uint64_t& rx)
   return (cache && cache->getTrafficCount(tx, rx));
 }
 
-#endif // ifdef ESP32
+#endif
 
 #if FEATURE_PLUGIN_STATS
 

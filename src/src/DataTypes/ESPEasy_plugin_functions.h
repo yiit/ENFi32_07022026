@@ -172,12 +172,14 @@ public:
     NWPLUGIN_EXIT,
     NWPLUGIN_WRITE,            // Send commands to a network adapter.
     NWPLUGIN_CREDENTIALS_CHANGED,
-    #ifdef ESP32
+#ifdef ESP32
     NWPLUGIN_GET_INTERFACE,
     NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO,
     NWPLUGIN_PRIORITY_ROUTE_CHANGED, // The default interface was changed, let other interfaces check to see if they need to do something.
+#endif
+#if FEATURE_NETWORK_TRAFFIC_COUNT
     NWPLUGIN_GET_TRAFFIC_COUNT,      // TX/RX count in event->Par64_1, resp. event->Par64_2
-    #endif // ifdef ESP32
+#endif 
     NWPLUGIN_GET_CONNECTED_DURATION,
     NWPLUGIN_PROCESS_EVENT,          // Process received event arduino_event_id_t
     NWPLUGIN_WEBSERVER_SHOULD_RUN,   // Check whether the addressed interface is active and needs the webserver to be active

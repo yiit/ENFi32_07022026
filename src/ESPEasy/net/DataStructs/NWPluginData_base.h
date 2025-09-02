@@ -102,10 +102,12 @@ struct NWPluginData_base {
 
 #ifdef ESP32
   virtual bool                    handle_priority_route_changed();
+#endif
+#if FEATURE_NETWORK_TRAFFIC_COUNT
   void                            enable_txrx_events();
   bool                            getTrafficCount(uint64_t& tx,
                                                   uint64_t& rx);
-#endif // ifdef ESP32
+#endif
 
   virtual NWPluginData_static_runtime* getNWPluginData_static_runtime() = 0;
 
@@ -125,7 +127,7 @@ protected:
     float                       errorValue,
     const PluginStats_Config_t& displayConfig);
 
-#ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
 void initPluginStats_trafficCount(networkStatsVarIndex_t networkStatsVarIndex, bool isTX);
 #endif
 
@@ -168,10 +170,10 @@ protected:
 
 #ifdef ESP32
   NetworkInterface *_netif{};
-# if FEATURE_PLUGIN_STATS
+# if FEATURE_PLUGIN_STATS && FEATURE_NETWORK_TRAFFIC_COUNT
   uint64_t _prevTX{};
   uint64_t _prevRX{};
-# endif // if FEATURE_PLUGIN_STATS
+# endif
 #endif // ifdef ESP32
 
 };

@@ -12,7 +12,7 @@ namespace net {
 #define CONNECTION_CONSIDERED_STABLE_MSEC    60000
 #define CONNECT_TIMEOUT_MAX                  10000 // in milliSeconds
 
-#ifdef ESP32
+#if FEATURE_NETWORK_TRAFFIC_COUNT
 struct TX_RX_traffic_count {
 
   void clear() { _tx_count = 0; _rx_count = 0; }
@@ -49,10 +49,6 @@ static void tx_rx_event_handler(void *arg, esp_event_base_t event_base,
   }
 }
 
-#endif // ifdef ESP32
-
-
-#ifdef ESP32
 void NWPluginData_static_runtime::enable_txrx_events()
 {
   if (_netif) {
@@ -144,7 +140,11 @@ void NWPluginData_static_runtime::processEvents()
 
   _operationalStats.set(operational());
   if (_operationalStats.changedSinceLastCheck_and_clear()) {
-    enable_txrx_events();
+#if FEATURE_NETWORK_TRAFFIC_COUNT
+    if (_operationalStats.isOn()) {
+      enable_txrx_events();
+    }
+#endif
     // Send out event
     if (Settings.UseRules && _eventInterfaceName.length())
     {

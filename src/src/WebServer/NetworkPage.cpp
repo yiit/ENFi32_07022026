@@ -507,15 +507,14 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
             addHtmlInt(TempEvent.Par64_2);
           }
 
-#  ifdef ESP32
-
+#  if FEATURE_NETWORK_TRAFFIC_COUNT
           if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT, &TempEvent, str)) {
             addRowLabel(F("TX Bytes Total"));
             addHtmlInt(TempEvent.Par1);
             addRowLabel(F("RX Bytes Total"));
             addHtmlInt(TempEvent.Par2);
           }
-#  endif // ifdef ESP32
+#  endif
         }
       }
     }
