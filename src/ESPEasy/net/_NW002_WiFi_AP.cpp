@@ -270,8 +270,9 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
         static_cast<ESPEasy::net::wifi::NW002_data_struct_WiFi_AP *>(getNWPluginData(event->NetworkIndex));
 
       if (NW_data) {
-        success = NW_data->exit(event);
+        NW_data->exit(event);
       }
+      success = true;
       break;
     }
 

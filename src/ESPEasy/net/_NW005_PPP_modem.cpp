@@ -202,8 +202,9 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
         static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
       if (NW_data) {
-        success = NW_data->exit(event);
+        NW_data->exit(event);
       }
+      success = true;
       break;
     }
 

@@ -295,16 +295,23 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
-      auto data = getNWPluginData_static_runtime(event->NetworkIndex);
+      initNWPluginData(event->NetworkIndex, new (std::nothrow) ESPEasy::net::eth::NW003_data_struct_ETH_RMII(event->NetworkIndex));
+      auto *NW_data = getNWPluginData(event->NetworkIndex);
 
-      if (data) { data->mark_begin_establish_connection(); }
-      ESPEasy::net::eth::ETHConnectRelaxed();
+      if (NW_data) {
+        success = NW_data->init(event);
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_EXIT:
     {
-      ETH.end();
+      auto *NW_data = getNWPluginData(event->NetworkIndex);
+
+      if (NW_data) {
+        NW_data->exit(event);
+      }
+      success = true;
       break;
     }
 

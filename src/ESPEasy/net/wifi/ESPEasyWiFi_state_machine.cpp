@@ -95,20 +95,21 @@ void ESPEasyWiFi_t::loop()
         // Do we have candidate to connect to ?
         if (WiFi_AP_Candidates.hasCandidates()) {
           setState(WiFiState_e::STA_Connecting, WIFI_STATE_MACHINE_STA_CONNECTING_TIMEOUT);
-/*
-        } else if (!WiFi_AP_Candidates.hasCandidateCredentials() ||
-                   !Settings.DoNotStartAP()) {
-          if (!WiFi_AP_Candidates.hasCandidateCredentials() &&
-              !WiFiEventData.warnedNoValidWiFiSettings)
-          {
-            addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
-            WiFiEventData.warnedNoValidWiFiSettings = true;
-          }
 
-          wifi_STA_data->_establishConnectStats.clear();
-          WiFiEventData.wifiConnectAttemptNeeded = false;
-          setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
-*/
+          /*
+                  } else if (!WiFi_AP_Candidates.hasCandidateCredentials() ||
+                             !Settings.DoNotStartAP()) {
+                    if (!WiFi_AP_Candidates.hasCandidateCredentials() &&
+                        !WiFiEventData.warnedNoValidWiFiSettings)
+                    {
+                      addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
+                      WiFiEventData.warnedNoValidWiFiSettings = true;
+                    }
+
+                    wifi_STA_data->_establishConnectStats.clear();
+                    WiFiEventData.wifiConnectAttemptNeeded = false;
+                    setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
+           */
         } else if (WiFi_AP_Candidates.scanComplete() == 0
 # ifdef ESP32
 #  if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2)
@@ -121,9 +122,10 @@ void ESPEasyWiFi_t::loop()
             // If not, then we can disable AP mode and switch to WiFiState_e::STA_Scanning
             setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
           } else {
-//            setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
+            //            setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
             setState(WiFiState_e::STA_Scanning, WIFI_STATE_MACHINE_STA_SCANNING_TIMEOUT);
           }
+
           // Move up?
         } else if (!WiFi_AP_Candidates.hasCandidateCredentials() ||
                    !Settings.DoNotStartAP()) {
@@ -137,6 +139,7 @@ void ESPEasyWiFi_t::loop()
           wifi_STA_data->_establishConnectStats.clear();
           WiFiEventData.wifiConnectAttemptNeeded = false;
           setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
+
           // end move up??
         }
       }
@@ -151,11 +154,11 @@ void ESPEasyWiFi_t::loop()
 # if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
         WiFi_AP_Candidates.process_WiFiscan(scanCompleteStatus);
 # endif
-#ifndef BUILD_NO_DEBUG
+# ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, strformat(
                  F("WiFi : Scan done, found %d APs"),
                  WiFi_AP_Candidates.scanComplete()));
-#endif
+# endif // ifndef BUILD_NO_DEBUG
       } else if (scanCompleteStatus == -2) { // WIFI_SCAN_FAILED
         addLog(LOG_LEVEL_ERROR, F("WiFi : Scan failed"));
         WiFi.scanDelete();
@@ -187,12 +190,12 @@ void ESPEasyWiFi_t::loop()
 # if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
         WiFi_AP_Candidates.process_WiFiscan(scanCompleteStatus);
 # endif
-#ifndef BUILD_NO_DEBUG
+# ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, strformat(
                  F("WiFi : Scan channel %d done, found %d APs"),
                  _scan_channel,
                  WiFi_AP_Candidates.scanComplete()));
-#endif
+# endif // ifndef BUILD_NO_DEBUG
       } else if (scanCompleteStatus == -2) { // WIFI_SCAN_FAILED
         addLog(LOG_LEVEL_ERROR, F("WiFi : Scan failed"));
         WiFi.scanDelete();
@@ -248,15 +251,16 @@ void ESPEasyWiFi_t::loop()
 
       // Check if still connected
       if (getSTA_connected_state() != STA_connected_state::Connected) {
-//        setState(WiFiState_e::WiFiOFF);
+        //        setState(WiFiState_e::WiFiOFF);
         setState(WiFiState_e::Disabled);
+
         /*
-        if (Settings.UseRules)
-        {
-          eventQueue.add(F("WiFi#Disconnected"));
-        }
-        statusLED(false);
-        */
+           if (Settings.UseRules)
+           {
+           eventQueue.add(F("WiFi#Disconnected"));
+           }
+           statusLED(false);
+         */
 
       } else {
         // Else mark last timestamp seen as connected
@@ -283,6 +287,7 @@ bool ESPEasyWiFi_t::connected() const
 void ESPEasyWiFi_t::disconnect() { doWiFiDisconnect(); }
 
 void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
+  if (newState == _state) return;
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(
       LOG_LEVEL_INFO,
@@ -294,6 +299,15 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
   if (_state == WiFiState_e::AP_only) {
     setAPinternal(false);
     setAP(false);
+  }
+
+  if (_state == WiFiState_e::STA_Connected)
+  {
+    auto wifi_STA_data = getWiFi_STA_NWPluginData_static_runtime();
+
+    if (wifi_STA_data) {
+      wifi_STA_data->mark_disconnected();
+    }
   }
 
   if ((_state == WiFiState_e::STA_AP_Scanning) ||
@@ -351,22 +365,31 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
       }
       break;
     case WiFiState_e::STA_Connected:
-    # ifdef ESP32
+    {
+# ifdef ESP32
 
       // FIXME TD-er: Must move to ESP32-specific cpp file
       // WiFi.STA.setDefault();
-    # endif // ifdef ESP32
+# endif // ifdef ESP32
       _last_seen_connected.setNow();
       _state_timeout.clear();
-      /*
-      if (Settings.UseRules)
-      {
-        eventQueue.add(F("WiFi#Connected"));
-      }
-      statusLED(true);
-      */
+      auto wifi_STA_data = getWiFi_STA_NWPluginData_static_runtime();
 
+      if (wifi_STA_data) {
+        wifi_STA_data->mark_connected();
+      }
+
+
+      /*
+         if (Settings.UseRules)
+         {
+         eventQueue.add(F("WiFi#Connected"));
+         }
+         statusLED(true);
+       */
       break;
+
+    }
   }
 }
 
@@ -412,11 +435,11 @@ bool ESPEasyWiFi_t::connectSTA()
   }
 
   if (WiFiEventData.lastDisconnectReason != WIFI_DISCONNECT_REASON_UNSPECIFIED) {
-#ifndef BUILD_NO_DEBUG
+# ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_INFO, concat(
              F("WiFi : Disconnect reason: "),
              getLastDisconnectReason()));
-#endif
+# endif // ifndef BUILD_NO_DEBUG
     WiFiEventData.processedDisconnect = true;
   }
 

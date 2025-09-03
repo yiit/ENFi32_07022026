@@ -310,7 +310,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
         }
 #ifdef ESP32
 
-        if (success && (Function == NWPlugin::Function::NWPLUGIN_EXIT)) {
+        if (Function == NWPlugin::Function::NWPLUGIN_EXIT) {
           //          Cache.clearNetworkSettings(networkIndex);
           auto data = getNWPluginData_static_runtime(event->NetworkIndex);
 
@@ -318,7 +318,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
             delay(100); // Allow some time to process events
             data->processEvent_and_clear();
           }
-
+          clearNWPluginData(event->NetworkIndex);
         }
 #endif // ifdef ESP32
       }

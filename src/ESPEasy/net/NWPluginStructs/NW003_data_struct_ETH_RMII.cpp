@@ -10,6 +10,8 @@
 
 # include "../Globals/NetworkState.h"
 
+# include "../eth/ESPEasyEth.h"
+
 # define NW_PLUGIN_ID  3
 # define NW_PLUGIN_INTERFACE   ETH
 
@@ -42,9 +44,18 @@ void NW003_data_struct_ETH_RMII::webform_save(EventStruct *event) {}
 
 bool NW003_data_struct_ETH_RMII::webform_getPort(String& str)     { return true; }
 
-bool NW003_data_struct_ETH_RMII::init(EventStruct *event)         { return true; }
+bool NW003_data_struct_ETH_RMII::init(EventStruct *event)
+{
+  auto data = getNWPluginData_static_runtime();
+
+  if (data) { data->mark_begin_establish_connection(); }
+  ESPEasy::net::eth::ETHConnectRelaxed();
+
+  return true;
+}
 
 bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
+  ETH.end();
   stats_and_cache.processEvents();
   return true;
 }

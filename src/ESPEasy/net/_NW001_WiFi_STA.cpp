@@ -338,8 +338,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
       initNWPluginData(event->NetworkIndex, new (std::nothrow) ESPEasy::net::wifi::NW001_data_struct_WiFi_STA(event->NetworkIndex));
-      ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *NW_data =
-        static_cast<ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *>(getNWPluginData(event->NetworkIndex));
+      auto *NW_data = getNWPluginData(event->NetworkIndex);
 
       if (NW_data) {
         success = NW_data->init(event);
@@ -349,12 +348,12 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_EXIT:
     {
-      ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *NW_data =
-        static_cast<ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *>(getNWPluginData(event->NetworkIndex));
+      auto *NW_data = getNWPluginData(event->NetworkIndex);
 
       if (NW_data) {
-        success = NW_data->exit(event);
+        NW_data->exit(event);
       }
+      success = true;
       break;
     }
 

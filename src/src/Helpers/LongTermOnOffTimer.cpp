@@ -2,10 +2,10 @@
 
 void LongTermOnOffTimer::clear()
 {
+  _changedSinceLastCheck = _onTimer.isSet() || _offTimer.isSet();
   _onTimer.clear();
   _offTimer.clear();
   _prevDuration = 0;
-  _changedSinceLastCheck = false;
   resetCount();
 }
 

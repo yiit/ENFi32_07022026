@@ -94,6 +94,13 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
   _gotIP6Stats.clear();
 #endif
   _operationalStats.clear();
+#if FEATURE_NETWORK_TRAFFIC_COUNT
+  if (_netif) {
+    const int key = _netif->impl_index();
+    interfaceTrafficCount[key].clear();
+  }
+#endif
+
   _networkIndex = networkIndex;
 #ifdef ESP32
   _route_prio = Settings.getRoutePrio_for_network(_networkIndex);
@@ -119,7 +126,7 @@ void NWPluginData_static_runtime::processEvent_and_clear()
 
 bool NWPluginData_static_runtime::operational() const
 {
-  return started() && connected() && hasIP()
+  return connected() && hasIP()
          && Settings.getNetworkEnabled(_networkIndex);
 
   // FIXME TD-er: WiFi STA keeps reporting it is
@@ -128,19 +135,32 @@ bool NWPluginData_static_runtime::operational() const
 
 void NWPluginData_static_runtime::processEvents()
 {
-  if (_establishConnectStats.changedSinceLastCheck_and_clear())
+  // TD-er: Just set these just to be sure we didn't miss any events.
+  _connectedStats.set(connected());
+  _gotIPStats.set(hasIP());
+#if FEATURE_USE_IPV6
+  _gotIP6Stats.set(hasIPv6());
+#endif
+  const bool connected_changed        = _connectedStats.changedSinceLastCheck_and_clear();
+  const bool establishConnect_changed = _establishConnectStats.changedSinceLastCheck_and_clear();
+  const bool gotIP_changed            = _gotIPStats.changedSinceLastCheck_and_clear();
+
+  if (connected_changed || establishConnect_changed)
   {
-    if (_establishConnectStats.isOn()) {
+    if (_connectedStats.isOn()) {
       log_connected();
 
       //    _establishConnectStats.resetCount();
-    } else {
+    } else if (_connectedStats.isOff()) {
       log_disconnected();
     }
   }
 
-
-  _operationalStats.set(operational());
+//  if (connected_changed || establishConnect_changed || gotIP_changed) {
+//    _operationalStats.forceSet(operational());
+//  } else {
+    _operationalStats.set(operational());
+//  }
 
   if (_operationalStats.changedSinceLastCheck_and_clear()) {
 #if FEATURE_NETWORK_TRAFFIC_COUNT
@@ -157,7 +177,7 @@ void NWPluginData_static_runtime::processEvents()
         eventQueue.add(concat(
                          _eventInterfaceName,
                          F("#Connected")));
-      } else {
+      } else if (_operationalStats.isOff()) {
         eventQueue.add(concat(
                          _eventInterfaceName,
                          F("#Disconnected")));

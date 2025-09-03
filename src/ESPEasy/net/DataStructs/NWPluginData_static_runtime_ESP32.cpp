@@ -180,15 +180,15 @@ void NWPluginData_static_runtime::mark_lost_IP()
 void NWPluginData_static_runtime::mark_begin_establish_connection()
 {
   _establishConnectStats.forceSet(true);
+  _connectedStats.setOff();
+  _operationalStats.setOff();
 
 }
 
 void NWPluginData_static_runtime::mark_connected()
 {
-  const bool logDuration = _establishConnectStats.isOn();
-
   _establishConnectStats.setOff();
-  _connectedStats.setOn();
+  _connectedStats.forceSet(true);
 }
 
 void NWPluginData_static_runtime::log_connected()
@@ -212,7 +212,9 @@ void NWPluginData_static_runtime::log_connected()
 
 void NWPluginData_static_runtime::mark_disconnected()
 {
+  _establishConnectStats.setOff();
   _connectedStats.setOff();
+  _operationalStats.setOff();
 
   // TODO TD-er: Also clear _gotIPStats and _gotIP6Stats ?
 }
