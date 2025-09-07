@@ -533,8 +533,8 @@ const char mqtt_valueType_default_ha_uom_names[] PROGMEM = // !! Offset, startin
   "|m/s|min||" // SWITCH_INVERTED .. DATE
   "|bit/s|B|dB|dBm|kvar|" // TIMESTAMP .. REACTIVE_ENERGY
   "Hz|kWh|kWh|" // FREQUENCY .. ENERGY_STORAGE
-  "g/m³|mbar|mmol/L" // ABS_HUMIDITY .. BLOOD_GLUCOSE_C
-  "ppm|kWh/100km|L|µg/m³|µg/m³" // CO_ONLY .. OZONE_ONLY
+  "g/m³|mbar|mmol/L|" // ABS_HUMIDITY .. BLOOD_GLUCOSE_C
+  "ppm|kWh/100km|L|µg/m³|µg/m³|" // CO_ONLY .. OZONE_ONLY
   "mm|mm/h|µg/m³|ppm|" // PRICIPIATION .. VOC_PARTS
   "L|m³/h|L|L|" // VOLUME .. WATER
   ;
