@@ -275,7 +275,7 @@ Available options, grouped per category:
 
 **Basic**: ``Single``
 
-**Environment**: ``Temp¹, Hum¹, Baro¹, Wind speed¹, Absolute humidity¹, Atmospheric pressure¹, Pricipitation¹,`` ``Pricipitation intensity¹``
+**Environment**: ``Temp¹, Hum¹, Baro¹, Wind speed¹, Absolute humidity¹, Atmospheric pressure¹, Precipitation¹,`` ``Precipitation intensity¹``
 
 **Dust/Gases**: ``Dust PM2.5¹, Dust PM1.0¹, Dust PM10¹, (e)CO2¹, CO¹, TVOC¹, VOC parts¹, AQI¹, NOx¹,`` ``Gas¹, N2O¹, Ozone¹, SO2¹``
 
