@@ -844,8 +844,8 @@ bool MQTT_HomeAssistant_SendAutoDiscovery(controllerIndex_t         ControllerIn
               case Sensor_VType::SENSOR_TYPE_GAS_ONLY:
               case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:
               case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:
-              case Sensor_VType::SENSOR_TYPE_PRICIPITATION:
-              case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN:
+              case Sensor_VType::SENSOR_TYPE_PRECIPITATION:
+              case Sensor_VType::SENSOR_TYPE_PRECIPITATION_INTEN:
               case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:
               case Sensor_VType::SENSOR_TYPE_VOC_PARTS:
               case Sensor_VType::SENSOR_TYPE_VOLUME:

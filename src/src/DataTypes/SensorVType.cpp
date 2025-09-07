@@ -109,8 +109,8 @@ uint8_t getValueCountFromSensorType(Sensor_VType sensorType, bool log)
     case Sensor_VType::SENSOR_TYPE_GAS_ONLY:
     case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:
     case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION_INTEN:
     case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:
     case Sensor_VType::SENSOR_TYPE_VOC_PARTS:
     case Sensor_VType::SENSOR_TYPE_VOLUME:
@@ -215,8 +215,8 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_GAS_ONLY:         return F("Gas");
     case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:    return F("N2O");
     case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:       return F("Ozone");
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION:    return F("Pricipitation");
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN: return F("Pricipitation intensity");
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION:    return F("Precipitation");
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION_INTEN: return F("Precipitation intensity");
     case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:  return F("SO2");
     case Sensor_VType::SENSOR_TYPE_VOC_PARTS:        return F("VOC parts");
     case Sensor_VType::SENSOR_TYPE_VOLUME:           return F("Volume");
@@ -275,8 +275,8 @@ const __FlashStringHelper* getSensorTypeLabel(Sensor_VType sensorType) {
     case Sensor_VType::SENSOR_TYPE_GAS_ONLY:
     case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:
     case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION_INTEN:
     case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:
     case Sensor_VType::SENSOR_TYPE_VOC_PARTS:
     case Sensor_VType::SENSOR_TYPE_VOLUME:
@@ -384,8 +384,8 @@ bool isMQTTDiscoverySensorType(Sensor_VType sensorType)
     case Sensor_VType::SENSOR_TYPE_GAS_ONLY:
     case Sensor_VType::SENSOR_TYPE_NITROUS_OXIDE:
     case Sensor_VType::SENSOR_TYPE_OZONE_ONLY:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION:
-    case Sensor_VType::SENSOR_TYPE_PRICIPITATION_INTEN:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION:
+    case Sensor_VType::SENSOR_TYPE_PRECIPITATION_INTEN:
     case Sensor_VType::SENSOR_TYPE_SULPHUR_DIOXIDE:
     case Sensor_VType::SENSOR_TYPE_VOC_PARTS:
     case Sensor_VType::SENSOR_TYPE_VOLUME:
