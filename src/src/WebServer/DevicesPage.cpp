@@ -408,9 +408,9 @@ void handle_devices_CopySubmittedSettings(taskIndex_t taskIndex, pluginID_t task
     #if FEATURE_STRING_VARIABLES
     Settings.SendDerivedTaskValues(taskIndex, controllerNr, isFormItemChecked(getPluginCustomArgName(F("TSND"), controllerNr)));
     #endif // if FEATURE_STRING_VARIABLES
-    #if FEATURE_MQTT
+    #if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
     Settings.SendRetainedTaskValues(taskIndex, controllerNr, isFormItemChecked(getPluginCustomArgName(F("TSRT"), controllerNr)));
-    #endif // if FEATURE_MQTT
+    #endif // if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
   }
 
   if (device.PullUpOption) {
@@ -1620,7 +1620,7 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
             getPluginCustomArgName(F("TDID"), controllerNr), // ="taskdeviceid"
             Settings.TaskDeviceID[controllerNr][taskIndex], 0, DOMOTICZ_MAX_IDX);
         }
-        #if FEATURE_MQTT
+        #if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
         if (showMqttGroup) {
           html_TD();
           addHtml(F("Retained:"));
@@ -1631,7 +1631,7 @@ void devicePage_show_controller_config(taskIndex_t taskIndex, deviceIndex_t Devi
                       #  endif // if FEATURE_TOOLTIPS
                       );
         }
-        #endif // if FEATURE_MQTT
+        #endif // if FEATURE_MQTT && FEATURE_MQTT_DISCOVER
         # if FEATURE_STRING_VARIABLES
         if (allowSendDerived) {
           html_TD();
