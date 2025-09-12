@@ -11,9 +11,9 @@
 
 #define MENU_INDEX_MAIN          0
 #define MENU_INDEX_CONFIG        1
-#define MENU_INDEX_NETWORK       2
-#define MENU_INDEX_CONTROLLERS   3
-#define MENU_INDEX_HARDWARE      4
+#define MENU_INDEX_HARDWARE      2
+#define MENU_INDEX_NETWORK       3
+#define MENU_INDEX_CONTROLLERS   4
 #define MENU_INDEX_BUSES         5
 #define MENU_INDEX_DEVICES       6
 #define MENU_INDEX_RULES         7
