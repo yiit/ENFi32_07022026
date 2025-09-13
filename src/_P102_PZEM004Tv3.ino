@@ -335,7 +335,9 @@ boolean                    Plugin_102(uint8_t function, struct EventStruct *even
         PZEM[5] = P102_PZEM_sensor->frequency();
 
         // Skip non-available values
-        const uint8_t toCheckMax = PZEM_model::PZEM004Tv30 == static_cast<PZEM_model>(P102_PZEM_TYPE) ? 6 : 4;
+        const uint8_t toCheckMax = PZEM_model::PZEM004Tv30 == static_cast<PZEM_model>(P102_PZEM_TYPE)
+                                    ? P102_PZEM004_VALUE_COUNT
+                                    : P102_PZEM017_VALUE_COUNT;
 
         for (uint8_t i = 0; i < toCheckMax; i++) // Check each PZEM field
         {
