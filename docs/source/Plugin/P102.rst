@@ -250,6 +250,13 @@ The command will be executed immediately, and afterward the status will shown:
 
 The blue message showing that the command was sent. The **PZEM Mode** is already reset to ``Read value``.
 
+To store this change in settings, the :cyan:`Submit` button should be used once more (you can of course change more settings if desired, that's why no automatic save is done.)
+
+Send the ``resetenergy,<modbus_address>`` command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For an easy alternative to reset the Energy counter, you can use the ``resetenergy,<modbus_address>`` command, f.e. from the ``Command`` field on the Tools page, to reset the counter for the specific modbus address (range 1..247, or 0 if only 1 device is on the bus).
+
 Installing multiple PZEM units on a single ESP
 ----------------------------------------------
 

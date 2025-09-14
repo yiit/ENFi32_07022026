@@ -233,7 +233,7 @@ boolean                    Plugin_102(uint8_t function, struct EventStruct *even
       if (P102_PZEM_ADDR_SET == 4)
       {
         addHtml(F("<span style=\"color:blue\"> <br><B>Energy reset on current PZEM ! </B></span>"));
-        addHtml(F("<span style=\"color:red\"> <br>Click <B>Submit</B> button once more to save 'Read value' PZEM Mode!</span>"));
+        addHtml(F("<span style=\"color:red\"> <br>Click <B>Submit</B> button once more to save 'Read value' PZEM Mode !</span>"));
         P102_PZEM_ADDR_SET = 0; // Reset programming confirmation
       }
 
