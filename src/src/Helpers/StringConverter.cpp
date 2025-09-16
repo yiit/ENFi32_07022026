@@ -341,6 +341,17 @@ String formatULLtoHex_decimal(const uint64_t& value)
     ull2String(value).c_str());
 }
 
+String formatToHex_wordarray(const uint16_t* data, size_t size)
+{
+  String res;
+  res.reserve(2 * size);
+  for (size_t i = 0; i < size; ++i) {
+    appendHexChar(data[i] << 8, res);
+    appendHexChar(data[i] & 0xFF, res);
+  }
+  return res;
+}
+
 String formatToHex(unsigned long value, 
                    const __FlashStringHelper * prefix,
                    unsigned int minimal_hex_digits) {
