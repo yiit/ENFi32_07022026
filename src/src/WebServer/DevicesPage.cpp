@@ -1075,7 +1075,7 @@ void handle_devices_TaskSettingsPage(taskIndex_t taskIndex, uint8_t page)
     addHtml(getPluginNameFromDeviceIndex(DeviceIndex));
 
     const uint8_t pid = Settings.getPluginID_for_task(taskIndex).value;
-    if (pid <= 56) { // Up to P056 seem to be listed in the old Wiki (and a few incomplete pages), so lets keep pointing there too
+    if (pid <= 79) { // Up to P079 seem to be listed in the old Wiki (and a few incomplete pages), so lets keep pointing there too
       addHelpButton(concat(F("Plugin"), Settings.getPluginID_for_task(taskIndex).value));
     }
     addRTDPluginButton(Settings.getPluginID_for_task(taskIndex));
