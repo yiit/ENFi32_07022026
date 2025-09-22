@@ -34,9 +34,11 @@
 
 #if defined(ESP8266)
   # include <ESP8266WiFi.h>
+  #define WIFI_CONNECTED   WiFi.isConnected()
 #endif // if defined(ESP8266)
 #if defined(ESP32)
   # include <WiFi.h>
+  #define WIFI_CONNECTED   WiFi.STA.connected()
 #endif // if defined(ESP32)
 
 
@@ -160,7 +162,7 @@ String SystemVariables::getSystemVariable(SystemVariables::Enum enumval) {
   switch (enumval)
   {
     case BOOT_CAUSE:        intvalue = lastBootCause; break;                         // Integer value to be used in rules
-    case BSSID:             return (WiFiEventData.WiFiDisconnected()) ? MAC_address().toString() : WiFi.BSSIDstr();
+    case BSSID:             return (!WIFI_CONNECTED) ? MAC_address().toString() : WiFi.BSSIDstr();
     case CR:                return String('\r');
     case IP4:               intvalue = static_cast<int>(ESPEasy::net::NetworkLocalIP()[3]); break; // 4th IP octet
     case ISVAR_DOUBLE:      intvalue =
@@ -190,13 +192,16 @@ String SystemVariables::getSystemVariable(SystemVariables::Enum enumval) {
         0; break;
 
     case ISNTP:             intvalue = statusNTPInitialized ? 1 : 0; break;
-    case ISWIFI:            intvalue = WiFiEventData.wifiStatus; break; // 0=disconnected, 1=connected, 2=got ip, 4=services
+    case ISWIFI:            intvalue = WIFI_CONNECTED ? 1 : 0; break;
+      // WiFiEventData.wifiStatus; break; // 0=disconnected, 1=connected, 2=got ip, 4=services
     // initialized
     case LCLTIME_AM:        return node_time.getDateTimeString_ampm('-', ':', ' ');
     case LF:                return String('\n');
     case MAC_INT:           intvalue = getChipId(); break; // Last 24 bit of MAC address as integer, to be used in rules.
     case SPACE:             return String(' ');
-    case SSID:              return (WiFiEventData.WiFiDisconnected()) ? String(F("--")) : WiFi.SSID();
+    case SSID:              return (!WIFI_CONNECTED) ? String(F("--")) : WiFi.SSID();
+
+
     case SYSBUILD_DATE:     return get_build_date();
     case SYSBUILD_TIME:     return get_build_time();
     case SYSDAY:            intvalue = node_time.day(); break;
@@ -248,7 +253,7 @@ String SystemVariables::getSystemVariable(SystemVariables::Enum enumval) {
     #else // if FEATURE_ADC_VCC
     case VCC:               intvalue = -1; break;
     #endif // if FEATURE_ADC_VCC
-    case WI_CH:             intvalue = (WiFiEventData.WiFiDisconnected()) ? 0 : WiFi.channel(); break;
+    case WI_CH:             intvalue = !WIFI_CONNECTED ? 0 : WiFi.channel(); break;
 
     default:
       // Already handled above.

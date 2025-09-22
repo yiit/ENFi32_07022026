@@ -141,44 +141,6 @@ WiFi_AP_Candidate::WiFi_AP_Candidate(uint8_t networkItem) : index(0) {
   last_seen = millis();
 }
 
-# ifdef ESP8266
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-WiFi_AP_Candidate::WiFi_AP_Candidate(const bss_info& ap) :
-  rssi(ap.rssi), channel(ap.channel), bssid(ap.bssid),
-  index(0), enc_type(0), isHidden(ap.is_hidden),
-  phy_11b(ap.phy_11b), phy_11g(ap.phy_11g), phy_11n(ap.phy_11n),
-  wps(ap.wps)
-{
-  _allBits  = 0u;
-  last_seen = millis();
-
-  switch (ap.authmode)
-  {
-    case AUTH_OPEN: enc_type = ENC_TYPE_NONE;
-      break;
-    case AUTH_WEP:  enc_type = ENC_TYPE_WEP;
-      break;
-    case AUTH_WPA_PSK: enc_type =  ENC_TYPE_TKIP;
-      break;
-    case AUTH_WPA2_PSK: enc_type =  ENC_TYPE_CCMP;
-      break;
-    case AUTH_WPA_WPA2_PSK: enc_type =  ENC_TYPE_AUTO;
-      break;
-    case AUTH_MAX: break;
-  }
-
-  char tmp[33]; // ssid can be up to 32chars, => plus null term
-  const size_t ssid_len = std::min(static_cast<size_t>(ap.ssid_len), sizeof(ap.ssid));
-
-  memcpy(tmp, ap.ssid, ssid_len);
-  tmp[ssid_len] = 0; // nullterm marking end of string
-
-  ssid = String(reinterpret_cast<const char *>(tmp));
-}
-
-#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-# endif // ifdef ESP8266
-
 
 bool WiFi_AP_Candidate::operator<(const WiFi_AP_Candidate& other) const {
   if (bits.isEmergencyFallback != other.bits.isEmergencyFallback) {
@@ -234,7 +196,7 @@ bool WiFi_AP_Candidate::usable() const {
 
     if ((getUptimeMinutes() > allowedUptimeMinutes) ||
         !SecuritySettings.hasWiFiCredentials() ||
-        WiFiEventData.performedClearWiFiCredentials ||
+//        WiFiEventData.performedClearWiFiCredentials ||
         (lastBootCause != BOOT_CAUSE_COLD_BOOT)) {
       return false;
     }

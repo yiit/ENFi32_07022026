@@ -678,7 +678,7 @@ bool P145_data_struct::plugin_ten_per_second()
   // Algorithm uses mean value with exeption of max and min values
   // See declaraion of the global variables for their usage
   // Skip measurement in analog input is used to calibrate WiFi
-  if (!WiFiEventData.wifiConnectInProgress)
+//  if (!WiFiEventData.wifiConnectInProgress)
   {
     ovs.add(espeasy_analogRead(analogPin));
   }

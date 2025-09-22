@@ -24,7 +24,6 @@
 # include "../Globals/ESPEasyWiFi.h"
 # include "../Globals/ESPEasyWiFiEvent.h"
 # include "../Globals/NetworkState.h"
-# include "../wifi/ESPEasyWifi_ProcessEvent.h"
 # include "../wifi/ESPEasyWifi_abstracted.h"
 
 
@@ -271,7 +270,8 @@ bool WiFiUseStaticIP()            { return Settings.IP[0] != 0 && Settings.IP[0]
 
 bool wifiAPmodeActivelyUsed()
 {
-  if (!WifiIsAP(WiFi.getMode()) || (!WiFiEventData.timerAPoff.isSet())) {
+  if (!WifiIsAP(WiFi.getMode()) //|| (!WiFiEventData.timerAPoff.isSet())
+     ) {
     // AP not active or soon to be disabled in processDisableAPmode()
     return false;
   }
@@ -290,7 +290,7 @@ void setupStaticIPconfig() {
   const IPAddress subnet(Settings.Subnet);
   const IPAddress dns(Settings.DNS);
 
-  WiFiEventData.dns0_cache = dns;
+//  WiFiEventData.dns0_cache = dns;
 
   WiFi.config(ip, gw, subnet, dns);
 
@@ -342,49 +342,14 @@ void logConnectionStatus() {
     }
   }
   #  endif // ifdef ESP8266
-
+/*
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLogMove(LOG_LEVEL_INFO, strformat(
                  F("WIFI : Arduino wifi status: %s ESPeasy internal wifi status: %s"),
                  ArduinoWifiStatusToString(WiFi.status()).c_str(),
                  WiFiEventData.ESPeasyWifiStatusToString().c_str()));
   }
-
-  /*
-     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-      String log;
-
-      switch (WiFi.status()) {
-        case WL_NO_SSID_AVAIL: {
-          log = F("WIFI : No SSID found matching: ");
-          break;
-        }
-        case WL_CONNECT_FAILED: {
-          log = F("WIFI : Connection failed to: ");
-          break;
-        }
-        case WL_DISCONNECTED: {
-          log = F("WIFI : WiFi.status() = WL_DISCONNECTED  SSID: ");
-          break;
-        }
-        case WL_IDLE_STATUS: {
-          log = F("WIFI : Connection in IDLE state: ");
-          break;
-        }
-        case WL_CONNECTED: {
-          break;
-        }
-        default:
-          break;
-      }
-
-      if (log.length() > 0) {
-        const char *ssid = getLastWiFiSettingsSSID();
-        log += ssid;
-        addLog(LOG_LEVEL_INFO, log);
-      }
-     }
-   */
+*/
 # endif // ifndef BUILD_NO_DEBUG
 }
 

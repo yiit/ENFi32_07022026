@@ -35,17 +35,8 @@ struct WiFi_AP_CandidatesList {
 
   void purge_expired();
 
-# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
   // Add found WiFi access points to the list if they are possible candidates.
   void process_WiFiscan();
-# endif // if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
-# ifdef ESP8266
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-  void process_WiFiscan(const bss_info& ap);
-#  endif
-# endif // ifdef ESP8266
 
   void after_process_WiFiscan();
 

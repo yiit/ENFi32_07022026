@@ -13,7 +13,6 @@
 
 #  include "../ESPEasyNetwork.h"
 #  include "../wifi/ESPEasyWifi.h"
-#  include "../wifi/ESPEasyWifi_ProcessEvent.h"
 
 #  include "../Globals/ESPEasyWiFiEvent.h"
 #  include "../Globals/NetworkState.h"
@@ -116,52 +115,6 @@ void ESPEasyWiFi_STA_EventHandler::onStationModeAuthModeChanged(const WiFiEventS
 
   //  WiFiEventData.setAuthMode(event.newMode);
 }
-
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
-void ESPEasyWiFi_STA_EventHandler::onWiFiScanDone(void ESPEasyWiFi_STA_EventHandler::*arg, STATUS status) {
-  if (status == OK) {
-    auto *head      = reinterpret_cast<bss_info *>(arg);
-    int   scanCount = 0;
-
-    for (bss_info *it = head; it != nullptr; it = STAILQ_NEXT(it, next)) {
-      WiFi_AP_Candidates.process_WiFiscan(*it);
-      ++scanCount;
-    }
-    WiFi_AP_Candidates.after_process_WiFiscan();
-
-    //    WiFiEventData.processedScanDone = true;
-#   ifndef BUILD_NO_DEBUG
-
-    /*
-        if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-          addLogMove(LOG_LEVEL_INFO, concat(F("WiFi : Scan finished (ESP8266), found: "), scanCount));
-        }
-     */
-#   endif // ifndef BUILD_NO_DEBUG
-    WiFi_AP_Candidates.load_knownCredentials();
-
-    if (WiFi_AP_Candidates.addedKnownCandidate() || !NetworkConnected()) {
-      WiFiEventData.wifiConnectAttemptNeeded = true;
-      #   ifndef BUILD_NO_DEBUG
-
-      if (WiFi_AP_Candidates.addedKnownCandidate()) {
-        // addLog(LOG_LEVEL_INFO, F("WiFi : Added known candidate, try to connect"));
-      }
-      #   endif // ifndef BUILD_NO_DEBUG
-      //      NetworkConnectRelaxed();
-    }
-
-  }
-
-  WiFiMode_t mode = WiFi.getMode();
-  ESPEasy::net::wifi::setWifiMode(WIFI_OFF);
-  delay(1);
-  ESPEasy::net::wifi::setWifiMode(mode);
-  delay(1);
-}
-
-#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
 
 } // namespace wifi
 } // namespace net

@@ -15,7 +15,4 @@ WiFiEventHandler APModeStationDisconnectedHandler;
 # endif // ifdef ESP8266
 
 
-// TODO TD-er: Must remove
-WiFiEventData_t WiFiEventData;
-
 #endif // if FEATURE_WIFI

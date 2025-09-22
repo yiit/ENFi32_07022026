@@ -417,7 +417,7 @@ void NodesHandler::updateThisNode() {
   #ifdef USES_ESPEASY_NOW
   thisNode.channel = getESPEasyNOW_channel();
   #else
-  thisNode.channel = WiFiEventData.usedChannel;
+  thisNode.channel = WiFi.channel(); //WiFiEventData.usedChannel;
   #endif
   if (thisNode.channel == 0) {
     thisNode.channel = WiFi.channel();
@@ -643,7 +643,7 @@ uint8_t NodesHandler::getESPEasyNOW_channel() const
       return preferred->channel;
     }
   }
-  return WiFiEventData.usedChannel;
+  return WiFi.channel(); // WiFiEventData.usedChannel;
 }
 #endif
 

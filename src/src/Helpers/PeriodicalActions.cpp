@@ -573,7 +573,7 @@ void flushAndDisconnectAllClients() {
 
 void prepareShutdown(IntendedRebootReason_e reason)
 {
-  WiFiEventData.intent_to_reboot = true;
+//  WiFiEventData.intent_to_reboot = true;
 #if FEATURE_MQTT
   runPeriodicalMQTT(); // Flush outstanding MQTT messages
 #endif // if FEATURE_MQTT

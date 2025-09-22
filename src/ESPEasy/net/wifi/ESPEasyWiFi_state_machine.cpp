@@ -127,15 +127,16 @@ void ESPEasyWiFi_t::loop()
           // Move up?
         } else if (!WiFi_AP_Candidates.hasCandidateCredentials() ||
                    !Settings.DoNotStartAP()) {
-          if (!WiFi_AP_Candidates.hasCandidateCredentials() &&
-              !WiFiEventData.warnedNoValidWiFiSettings)
+          if (!WiFi_AP_Candidates.hasCandidateCredentials()
+            //  && !WiFiEventData.warnedNoValidWiFiSettings
+            )
           {
             addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
-            WiFiEventData.warnedNoValidWiFiSettings = true;
+//            WiFiEventData.warnedNoValidWiFiSettings = true;
           }
 
           wifi_STA_data->_establishConnectStats.clear();
-          WiFiEventData.wifiConnectAttemptNeeded = false;
+//          WiFiEventData.wifiConnectAttemptNeeded = false;
           setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
 
           // end move up??
@@ -149,9 +150,7 @@ void ESPEasyWiFi_t::loop()
 
       if (scanCompleteStatus >= 0) {
         WiFi_AP_Candidates.load_knownCredentials();
-# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
         WiFi_AP_Candidates.process_WiFiscan();
-# endif
 # ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, strformat(
                  F("WiFi : Scan done, found %d APs"),
@@ -161,7 +160,6 @@ void ESPEasyWiFi_t::loop()
         addLog(LOG_LEVEL_ERROR, F("WiFi : Scan failed"));
 //        WiFi.scanDelete();
         setState(WiFiState_e::WiFiOFF, 1000);
-        WiFiEventData.processedScanDone = true;
       }
 
       if (_state_timeout.timeReached() || (scanCompleteStatus >= 0)) {
@@ -173,8 +171,6 @@ void ESPEasyWiFi_t::loop()
 # endif
         }
         setState(WiFiState_e::WiFiOFF, 100);
-        WiFiEventData.processedScanDone = true;
-
       }
       break;
     }
@@ -185,9 +181,7 @@ void ESPEasyWiFi_t::loop()
 
       if (scanCompleteStatus >= 0) {
         WiFi_AP_Candidates.load_knownCredentials();
-# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
         WiFi_AP_Candidates.process_WiFiscan();
-# endif
 # ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, strformat(
                  F("WiFi : Scan channel %d done, found %d APs"),
@@ -198,7 +192,6 @@ void ESPEasyWiFi_t::loop()
         addLog(LOG_LEVEL_ERROR, F("WiFi : Scan failed"));
 //        WiFi.scanDelete();
         setState(WiFiState_e::WiFiOFF, 1000);
-        WiFiEventData.processedScanDone = true;
       }
 
       if (_state_timeout.timeReached() || (scanCompleteStatus >= 0)) {
@@ -218,8 +211,6 @@ void ESPEasyWiFi_t::loop()
         else {
           setState(WiFiState_e::STA_AP_Scanning, 500);
         }
-        WiFiEventData.processedScanDone = true;
-
       }
       break;
 
@@ -418,6 +409,7 @@ bool ESPEasyWiFi_t::connectSTA()
 
   if (!WiFi_AP_Candidates.hasCandidateCredentials())
   {
+/*
     if (!WiFiEventData.warnedNoValidWiFiSettings)
     {
       addLog(LOG_LEVEL_ERROR, F("WIFI : No valid wifi settings"));
@@ -428,7 +420,7 @@ bool ESPEasyWiFi_t::connectSTA()
     //    WiFiEventData.last_wifi_connect_attempt_moment.clear();
     //    _connect_attempt     = 1;
     WiFiEventData.wifiConnectAttemptNeeded = false;
-
+*/
     // No need to wait longer to start AP mode.
     if (!Settings.DoNotStartAP())
     {
@@ -436,7 +428,7 @@ bool ESPEasyWiFi_t::connectSTA()
     }
     return false;
   }
-
+/*
   if (WiFiEventData.lastDisconnectReason != WIFI_DISCONNECT_REASON_UNSPECIFIED) {
 # ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_INFO, concat(
@@ -447,6 +439,7 @@ bool ESPEasyWiFi_t::connectSTA()
   }
 
   WiFiEventData.warnedNoValidWiFiSettings = false;
+*/
   setSTA(true);
 # if defined(ESP8266)
   wifi_station_set_hostname(NetworkCreateRFCCompliantHostname().c_str());
@@ -492,7 +485,7 @@ bool ESPEasyWiFi_t::connectSTA()
 # endif // if FEATURE_SET_WIFI_TX_PWR
 
     // Start connect attempt now, so no longer needed to attempt new connection.
-    WiFiEventData.wifiConnectAttemptNeeded = false;
+//    WiFiEventData.wifiConnectAttemptNeeded = false;
 
     //    WiFiEventData.wifiConnectInProgress    = true;
     const String key = WiFi_AP_CandidatesList::get_key(candidate.index);

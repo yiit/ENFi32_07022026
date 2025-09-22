@@ -34,8 +34,8 @@ void setNetworkMedium(NetworkMedium_t new_medium) {
     case NetworkMedium_t::Ethernet:
       break;
     case NetworkMedium_t::WIFI:
-      WiFiEventData.timerAPoff.setMillisFromNow(WIFI_AP_OFF_TIMER_DURATION);
-      WiFiEventData.timerAPstart.clear();
+//      WiFiEventData.timerAPoff.setMillisFromNow(WIFI_AP_OFF_TIMER_DURATION);
+//      WiFiEventData.timerAPstart.clear();
       break;
     case NetworkMedium_t::NotSet:
       break;

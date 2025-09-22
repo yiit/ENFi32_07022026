@@ -865,7 +865,7 @@ String SaveSecuritySettings(bool forFactoryReset) {
       if (SecuritySettings.hasWiFiCredentials() && (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)) {
         ESPEasy::net::wifi::WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
         if (!ESPEasy::net::NetworkConnected()) {
-          WiFiEventData.wifiConnectAttemptNeeded = true;
+//          WiFiEventData.wifiConnectAttemptNeeded = true;
           ESPEasy::net::wifi::resetWiFi();
           String dummy;
           ESPEasy::net::NWPluginCall(

@@ -70,7 +70,7 @@ bool doWiFiScanAllowed() {
   if (WiFi_AP_Candidates.scanComplete() == WIFI_SCAN_RUNNING) {
     return false;
   }
-  return WiFiEventData.processedConnect;
+  return true; // WiFiEventData.processedConnect;
 }
 
 // Only internal scope
@@ -154,7 +154,7 @@ void doSetAPinternal(bool enable)
       }
     }
     # endif // ifdef ESP32
-    WiFiEventData.timerAPoff.setMillisFromNow(WIFI_AP_OFF_TIMER_DURATION);
+//    WiFiEventData.timerAPoff.setMillisFromNow(WIFI_AP_OFF_TIMER_DURATION);
   } else {
     # if FEATURE_DNS_SERVER
 
@@ -234,18 +234,19 @@ void doSetWiFiTXpower(float dBm, float rssi) {
 
   doSetWiFiTXpower(dBm);
 
-  if (WiFiEventData.wifi_TX_pwr < dBm) {
+//  if (WiFiEventData.wifi_TX_pwr < dBm) {
     // Will increase the TX power, give power supply of the unit some rest
-    delay(1);
-  }
+//    delay(1);
+  //}
 
-  WiFiEventData.wifi_TX_pwr = dBm;
+//  WiFiEventData.wifi_TX_pwr = dBm;
 
   delay(0);
+
   #  ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
-    const int TX_pwr_int   = WiFiEventData.wifi_TX_pwr * 4;
+    const int TX_pwr_int   = dBm * 4;
     const int maxTXpwr_int = maxTXpwr * 4;
 
     if (TX_pwr_int != maxTXpwr_int) {

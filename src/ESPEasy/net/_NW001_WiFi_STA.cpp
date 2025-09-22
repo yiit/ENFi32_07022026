@@ -31,7 +31,6 @@
 # include "../net/Helpers/_NWPlugin_init.h"
 # include "../net/NWPluginStructs/NW001_data_struct_WiFi_STA.h"
 # include "../net/wifi/ESPEasyWifi.h"
-# include "../net/wifi/ESPEasyWifi_ProcessEvent.h"
 
 # ifdef ESP8266
 #  include "../net/Helpers/NWAccessControl.h"

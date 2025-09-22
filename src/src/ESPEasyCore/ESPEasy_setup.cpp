@@ -11,7 +11,6 @@
 #include "../ESPEasyCore/ESPEasyRules.h"
 #include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 
-#include "../../ESPEasy/net/wifi/ESPEasyWifi_ProcessEvent.h"
 #include "../ESPEasyCore/Serial.h"
 #include "../Globals/Cache.h"
 #include "../Globals/ESPEasy_Console.h"
@@ -238,7 +237,7 @@ void ESPEasy_setup()
   ESPEasy::net::NWPluginSetup();
 
 //  ESPEasy::net::wifi::initWiFi();
-  WiFiEventData.clearAll();
+//  WiFiEventData.clearAll();
 
 #ifndef LIMIT_BUILD_SIZE
   run_compiletime_checks();

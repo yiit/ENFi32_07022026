@@ -16,8 +16,7 @@
 
 void set_mDNS() {
   #if FEATURE_MDNS
-
-  if (!WiFiEventData.WiFiServicesInitialized()) { return; }
+  if (!ESPEasy::net::NetworkConnected()) return;
 
   update_mDNS();
   #endif // if FEATURE_MDNS

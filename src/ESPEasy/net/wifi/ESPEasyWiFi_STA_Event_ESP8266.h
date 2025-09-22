@@ -60,11 +60,6 @@ public:
 
   static void onStationModeAuthModeChanged(const WiFiEventStationModeAuthModeChanged& event);
 
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-  static void onWiFiScanDone(void  *arg,
-                             STATUS status);
-#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
 }; // class ESPEasyWiFi_STA_EventHandler
 
 } // namespace wifi

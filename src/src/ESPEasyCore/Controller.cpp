@@ -638,14 +638,16 @@ String getMQTTclientID(const ControllerSettingsStruct& ControllerSettings) {
   parseSystemVariables(clientid, false);
   clientid.replace(' ', '_'); // Make sure no spaces are present in the client ID
 
-  if ((WiFiEventData.wifi_reconnects >= 1) && ControllerSettings.mqtt_uniqueMQTTclientIdReconnect()) {
+  if (// (WiFiEventData.wifi_reconnects >= 1) && 
+      ControllerSettings.mqtt_uniqueMQTTclientIdReconnect()) {
     // Work-around for 'lost connections' to the MQTT broker.
     // If the broker thinks the connection is still alive, a reconnect from the
     // client will be refused.
     // To overcome this issue, append the number of reconnects to the client ID to
     // make it different from the previous one.
+    static int id{};
     clientid += '_';
-    clientid += WiFiEventData.wifi_reconnects;
+    clientid += ++id; //WiFiEventData.wifi_reconnects;
   }
   return clientid;
 }

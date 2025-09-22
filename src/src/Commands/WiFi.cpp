@@ -84,7 +84,7 @@ const __FlashStringHelper* Command_Wifi_Scan(struct EventStruct *event, const ch
 
 const __FlashStringHelper* Command_Wifi_Connect(struct EventStruct *event, const char *Line)
 {
-  WiFiEventData.wifiConnectAttemptNeeded = true;
+//  WiFiEventData.wifiConnectAttemptNeeded = true;
   return return_command_success_flashstr();
 }
 

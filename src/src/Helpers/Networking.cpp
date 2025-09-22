@@ -1169,6 +1169,7 @@ bool connectClient(WiFiClient& client, IPAddress ip, uint16_t port, uint32_t tim
 #endif // FEATURE_HTTP_CLIENT
 
 void scrubDNS() {
+  /*
   #if FEATURE_ETHERNET
 
   if (active_network_medium == ESPEasy::net::NetworkMedium_t::Ethernet) {
@@ -1179,11 +1180,7 @@ void scrubDNS() {
     return;
   }
   #endif // if FEATURE_ETHERNET
-
-  if (WiFiEventData.WiFiServicesInitialized()) {
-    setDNS(0, WiFiEventData.dns0_cache);
-    setDNS(1, WiFiEventData.dns1_cache);
-  }
+  */
 }
 
 bool valid_DNS_address(const IPAddress& dns) {

@@ -91,7 +91,7 @@ void handle_setup() {
         const bool emptyPassAllowed = isFormItemChecked(F("emptypass"));
         const bool performRescan = hasArg(F("performrescan"));
         if (performRescan) {
-          WiFiEventData.lastScanMoment.clear();
+//          WiFiEventData.lastScanMoment.clear();
           ESPEasy::net::wifi::WifiScan(false);
         }
 
@@ -119,8 +119,8 @@ void handle_setup() {
 #endif
 
               addHtmlError(SaveSettings());
-              WiFiEventData.wifiSetupConnect         = true;
-              WiFiEventData.wifiConnectAttemptNeeded = true;
+//              WiFiEventData.wifiSetupConnect         = true;
+//              WiFiEventData.wifiConnectAttemptNeeded = true;
               ESPEasy::net::wifi::WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
 
               if (loglevelActiveFor(LOG_LEVEL_INFO)) {
@@ -192,7 +192,7 @@ void handle_setup() {
         }
         #endif
 
-        WiFiEventData.wifiSetup = false;
+//        WiFiEventData.wifiSetup = false;
       } 
       html_end_table();
 
@@ -392,7 +392,7 @@ bool handle_setup_connectingStage(uint8_t refreshCount) {
     addButton(F("/setup"), F("Back to Setup"));
     html_TR_TD();
     html_BR();
-    WiFiEventData.wifiSetupConnect = false;
+//    WiFiEventData.wifiSetupConnect = false;
     return false;
   }
   int wait = WIFI_RECONNECT_WAIT / 1000;

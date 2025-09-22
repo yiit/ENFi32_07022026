@@ -12,7 +12,6 @@
 #  include "../../net/ESPEasyNetwork.h" // Needed for NetworkCreateRFCCompliantHostname, WiFi code should not include network code
 #  include "../Globals/ESPEasyWiFiEvent.h"
 #  include "../wifi/ESPEasyWiFi_STA_Event_ESP32.h"
-#  include "../wifi/ESPEasyWifi_ProcessEvent.h"
 
 #  include <WiFiGeneric.h>
 #  include <esp_wifi.h> // Needed to call ESP-IDF functions like esp_wifi_....
@@ -222,7 +221,7 @@ void doWifiScan(bool async, uint8_t channel) {
   }
 
   START_TIMER;
-  WiFiEventData.lastScanMoment.setNow();
+//  WiFiEventData.lastScanMoment.setNow();
   #  ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
@@ -234,9 +233,8 @@ void doWifiScan(bool async, uint8_t channel) {
   }
   #  endif // ifndef BUILD_NO_DEBUG
   bool show_hidden = true;
-  WiFiEventData.processedScanDone = false;
-  WiFiEventData.lastGetScanMoment.setNow();
-  WiFiEventData.lastScanChannel = channel;
+//  WiFiEventData.lastGetScanMoment.setNow();
+//  WiFiEventData.lastScanChannel = channel;
 
   unsigned int nrScans = 1 + (async ? 0 : Settings.NumberExtraWiFiScans);
 
@@ -286,9 +284,9 @@ void doWifiScan(bool async, uint8_t channel) {
     addLog(LOG_LEVEL_INFO, F("WiFi : Disconnect after scan"));
     #   endif
 
-    const bool needReconnect = WiFiEventData.wifiConnectAttemptNeeded;
+//    const bool needReconnect = WiFiEventData.wifiConnectAttemptNeeded;
     WifiDisconnect();
-    WiFiEventData.wifiConnectAttemptNeeded = needReconnect;
+//    WiFiEventData.wifiConnectAttemptNeeded = needReconnect;
   }
 #  endif // if ESP_IDF_VERSION_MAJOR < 5
 #  if CONFIG_SOC_WIFI_SUPPORT_5G
@@ -468,15 +466,6 @@ void doSetConnectionSpeed(bool ForceWiFi_bg_mode)
     protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G; // Default to BG
   }
 
-  /*
-     if (WiFiEventData.connectionFailures > 10) {
-      // Set to allow all protocols
-      protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
-   #   if CONFIG_SOC_WIFI_HE_SUPPORT
-      protocol |= WIFI_PROTOCOL_11AX;
-   #   endif
-     }
-   */
   const WiFi_AP_Candidate candidate = WiFi_AP_Candidates.getCurrent();
 
   if (candidate.phy_known()) {

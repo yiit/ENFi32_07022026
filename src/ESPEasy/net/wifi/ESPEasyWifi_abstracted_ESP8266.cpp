@@ -10,7 +10,6 @@
 
 #  include "../Globals/ESPEasyWiFiEvent.h"
 #  include "../wifi/ESPEasyWiFi_STA_Event_ESP8266.h"
-#  include "../wifi/ESPEasyWifi_ProcessEvent.h"
 
 // #  include "../wifi/ESPEasyWifi.h"
 
@@ -139,7 +138,7 @@ void doWifiScan(bool async, uint8_t channel) {
   }
 
   START_TIMER;
-  WiFiEventData.lastScanMoment.setNow();
+//  WiFiEventData.lastScanMoment.setNow();
   #  ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
@@ -151,9 +150,8 @@ void doWifiScan(bool async, uint8_t channel) {
   }
   #  endif // ifndef BUILD_NO_DEBUG
   bool show_hidden = true;
-  WiFiEventData.processedScanDone = false;
-  WiFiEventData.lastGetScanMoment.setNow();
-  WiFiEventData.lastScanChannel = channel;
+//  WiFiEventData.lastGetScanMoment.setNow();
+//  WiFiEventData.lastScanChannel = channel;
 
   unsigned int nrScans = 1 + (async ? 0 : Settings.NumberExtraWiFiScans);
 
@@ -163,40 +161,7 @@ void doWifiScan(bool async, uint8_t channel) {
       FeedSW_watchdog();
     }
     --nrScans;
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-    {
-      static bool FIRST_SCAN = true;
-
-      struct scan_config config;
-      memset(&config, 0, sizeof(config));
-      config.ssid        = nullptr;
-      config.bssid       = nullptr;
-      config.channel     = channel;
-      config.show_hidden = show_hidden ? 1 : 0;
-      config.scan_type   = WIFI_SCAN_TYPE_ACTIVE;
-
-      if (FIRST_SCAN) {
-        config.scan_time.active.min = 100;
-        config.scan_time.active.max = 200;
-      } else {
-        config.scan_time.active.min = 400;
-        config.scan_time.active.max = 500;
-      }
-      FIRST_SCAN = false;
-      wifi_station_scan(&config, &onWiFiScanDone);
-
-      if (!async) {
-        // will resume when SYSTEM_EVENT_SCAN_DONE event is fired
-        do
-        {
-          delay(0);
-        } while (!WiFiEventData.processedScanDone);
-      }
-
-    }
-#  else // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
     WiFi.scanNetworks(async, show_hidden, channel);
-#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
 
     if (!async) {
       FeedSW_watchdog();

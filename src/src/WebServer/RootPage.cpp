@@ -72,7 +72,8 @@ void handle_root() {
   }
 
   // if Wifi setup, launch setup wizard if AP_DONT_FORCE_SETUP is not set.
-  if (WiFiEventData.wifiSetup && !Settings.ApDontForceSetup())
+  if (!ESPEasy::net::NetworkConnected() &&
+      !Settings.ApDontForceSetup())
   {
     web_server.send_P(200, (PGM_P)F("text/html"), (PGM_P)F("<meta HTTP-EQUIV='REFRESH' content='0; url=/setup'>"));
     return;
@@ -205,7 +206,7 @@ void handle_root() {
     addRowLabelValue(LabelType::ETH_WIFI_MODE);
   # endif // if FEATURE_ETHERNET
 
-    if (!WiFiEventData.WiFiDisconnected())
+    if (ESPEasy::net::NetworkConnected())
     {
       addRowLabelValue(LabelType::IP_ADDRESS);
 #if FEATURE_USE_IPV6

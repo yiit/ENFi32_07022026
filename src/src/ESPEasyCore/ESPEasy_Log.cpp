@@ -5,6 +5,7 @@
 #include "../Globals/Cache.h"
 #include "../Globals/ESPEasy_Console.h"
 #include "../../ESPEasy/net/Globals/ESPEasyWiFiEvent.h"
+#include "../../ESPEasy/net/ESPEasyNetwork.h"
 #include "../Globals/Logging.h"
 #include "../Globals/Settings.h"
 #include "../Helpers/Networking.h"
@@ -143,7 +144,7 @@ uint8_t getSerialLogLevel() {
 #else
   if (log_to_serial_disabled || !Settings.UseSerial || activeTaskUseSerial0()) return 0;
 #endif
-  if (!(WiFiEventData.WiFiServicesInitialized())){
+  if (!ESPEasy::net::NetworkConnected()) {
     if (Settings.SerialLogLevel < LOG_LEVEL_INFO) {
       return LOG_LEVEL_INFO;
     }

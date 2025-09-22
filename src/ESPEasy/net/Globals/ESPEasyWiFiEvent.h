@@ -4,8 +4,6 @@
 
 #if FEATURE_WIFI
 
-# include "../DataStructs/WiFiEventData.h"
-
 
 # include <IPAddress.h>
 # include <stdint.h>
@@ -31,9 +29,6 @@ extern WiFiEventHandler stationModeAuthModeChangeHandler;
 extern WiFiEventHandler APModeStationConnectedHandler;
 extern WiFiEventHandler APModeStationDisconnectedHandler;
 # endif // ifdef ESP8266
-
-
-extern WiFiEventData_t WiFiEventData;
 
 
 #endif // if FEATURE_WIFI

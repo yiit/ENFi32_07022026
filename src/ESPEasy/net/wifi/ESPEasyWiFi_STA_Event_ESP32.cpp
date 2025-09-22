@@ -24,7 +24,6 @@
 #  include "../Globals/WiFi_AP_Candidates.h"
 #  include "../eth/ESPEasyEth.h"
 #  include "../wifi/ESPEasyWifi.h"
-#  include "../wifi/ESPEasyWifi_ProcessEvent.h"
 
 #  if FEATURE_ETHERNET
 #   include "../Globals/ESPEasyEthEvent.h"
@@ -280,7 +279,6 @@ void ESPEasyWiFi_STA_EventHandler::WiFiEvent(WiFiEvent_t event_id, arduino_event
         WiFiEventData.markDisconnectedAPmode(info.wifi_ap_stadisconnected.mac);
         break;
       case ARDUINO_EVENT_WIFI_SCAN_DONE:
-        WiFiEventData.processedScanDone = false;
         break;
    #  if FEATURE_ETHERNET
       case ARDUINO_EVENT_ETH_START:

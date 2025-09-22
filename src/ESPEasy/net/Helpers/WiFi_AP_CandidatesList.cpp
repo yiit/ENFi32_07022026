@@ -127,8 +127,6 @@ void WiFi_AP_CandidatesList::purge_expired() {
   }
 }
 
-# if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
 void WiFi_AP_CandidatesList::process_WiFiscan() {
 //  if (_last_scan.isOn()) {
     // Append or update found APs from scan.
@@ -146,20 +144,6 @@ void WiFi_AP_CandidatesList::process_WiFiscan() {
     }
 //  }
 }
-
-# endif // if !FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
-# ifdef ESP8266
-#  if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-
-void WiFi_AP_CandidatesList::process_WiFiscan(const bss_info& ap) {
-  WiFi_AP_Candidate tmp(ap);
-
-  scanned_new.push_back(tmp);
-}
-
-#  endif // if FEATURE_ESP8266_DIRECT_WIFI_SCAN
-# endif // ifdef ESP8266
 
 void WiFi_AP_CandidatesList::after_process_WiFiscan() {
   _last_scan.setOff();
