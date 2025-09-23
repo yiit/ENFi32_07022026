@@ -12,6 +12,7 @@
 #endif
 
 #include <map>
+#include <list>
 
 namespace ESPEasy {
 namespace net {
@@ -138,6 +139,7 @@ struct NWPluginData_static_runtime {
   LongTermOnOffTimer _gotIPStats{};
 #if FEATURE_USE_IPV6
   LongTermOnOffTimer _gotIP6Stats{};
+  std::list<ip_event_got_ip6_t> _gotIP6Events{};
 #endif
   LongTermOnOffTimer _operationalStats{}; // is started, connected and had IP
 

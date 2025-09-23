@@ -142,13 +142,71 @@ void NWPluginData_static_runtime::processEvents()
 {
   // TD-er: Just set these just to be sure we didn't miss any events.
   _connectedStats.set(connected());
-  _gotIPStats.set(hasIP());
+
+  //  _gotIPStats.set(hasIP());
 #if FEATURE_USE_IPV6
-  _gotIP6Stats.set(hasIPv6());
-#endif
+
+  //  _gotIP6Stats.set(hasIPv6());
+#endif // if FEATURE_USE_IPV6
   const bool connected_changed        = _connectedStats.changedSinceLastCheck_and_clear();
   const bool establishConnect_changed = _establishConnectStats.changedSinceLastCheck_and_clear();
-  const bool gotIP_changed            = _gotIPStats.changedSinceLastCheck_and_clear();
+
+  if (_gotIPStats.changedSinceLastCheck_and_clear()) {
+#ifdef ESP32
+
+    if (loglevelActiveFor(LOG_LEVEL_INFO) && _netif) {
+      auto ip = _netif->localIP();
+
+      if (ip != INADDR_NONE) {
+        addLog(LOG_LEVEL_INFO, strformat(
+                 F("%s: Got IP: %s/%d GW: %s"),
+                 _netif->desc(),
+                 ip.toString().c_str(),
+                 _netif->subnetCIDR(),
+                 _netif->gatewayIP().toString().c_str()
+                 ));
+      }
+    }
+#endif // ifdef ESP32
+#ifdef ESP8266
+  # ifndef BUILD_NO_DEBUG
+
+    if (_isAP) {
+      addLog(LOG_LEVEL_INFO, F("AP: Got IP"));
+    }
+    else {
+      addLog(LOG_LEVEL_INFO, concat(
+               F("STA: Got IP "),
+               WiFi.localIP().toString()));
+    }
+  # endif // ifndef BUILD_NO_DEBUG
+#endif // ifdef ESP8266
+  }
+
+#if FEATURE_USE_IPV6
+
+  if (_gotIP6Stats.changedSinceLastCheck_and_clear() || !_gotIP6Events.empty()) {
+    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+      while (!_gotIP6Events.empty()) {
+        auto ip6Event                    = _gotIP6Events.front();
+        esp_ip6_addr_type_t addr_type    = esp_netif_ip6_get_addr_type(&ip6Event.ip6_info.ip);
+        static const char  *addr_types[] = { "UNKNOWN", "GLOBAL", "LINK_LOCAL", "SITE_LOCAL", "UNIQUE_LOCAL", "IPV4_MAPPED_IPV6" };
+
+        if (addr_type < NR_ELEMENTS(addr_types)) {
+          addLog(LOG_LEVEL_INFO, strformat(
+                   F("%s: Got IPv6: IP Index: %d, Type: %s, Zone: %d, Address: " IPV6STR),
+                   _netif->desc(),
+                   ip6Event.ip_index,
+                   addr_types[addr_type],
+                   ip6Event.ip6_info.ip.zone,
+                   IPV62STR(ip6Event.ip6_info.ip)
+                   ));
+        }
+        _gotIP6Events.pop_front();
+      }
+    }
+  }
+#endif // if FEATURE_USE_IPV6
 
   if (connected_changed || establishConnect_changed)
   {
@@ -188,11 +246,11 @@ void NWPluginData_static_runtime::processEvents()
   }
 
   if (_startStopStats.changedSinceLastCheck_and_clear() && _isAP && Settings.UseRules) {
-      if (_startStopStats.isOn()) {
-        eventQueue.add(F("WiFi#APmodeEnabled"));
-      } else if (_startStopStats.isOff()) {
-        eventQueue.add(F("WiFi#APmodeDisabled"));
-      }
+    if (_startStopStats.isOn()) {
+      eventQueue.add(F("WiFi#APmodeEnabled"));
+    } else if (_startStopStats.isOff()) {
+      eventQueue.add(F("WiFi#APmodeDisabled"));
+    }
   }
 }
 
