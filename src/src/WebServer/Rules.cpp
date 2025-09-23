@@ -575,7 +575,7 @@ bool Rule_Download(const String& path)
   filename.replace(RULE_FILE_SEPARAROR, '_');
   String str = concat(F("attachment; filename="), filename);
   sendHeader(F("Content-Disposition"), str);
-  sendHeader(F("Cache-Control"),       F("max-age=3600, public"));
+  sendHeader(F("Cache-Control"),       F("public,max-age=3600"));
   sendHeader(F("Vary"),                "*");
   sendHeader(F("ETag"),                F("\"2.0.0\""));
 

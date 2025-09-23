@@ -10,6 +10,7 @@
 
 #  include "../Globals/ESPEasyWiFiEvent.h"
 #  include "../wifi/ESPEasyWiFi_STA_Event_ESP8266.h"
+#  include "../../net/ESPEasyNetwork.h"
 
 // #  include "../wifi/ESPEasyWifi.h"
 

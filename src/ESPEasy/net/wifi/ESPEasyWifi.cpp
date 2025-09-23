@@ -275,7 +275,7 @@ bool wifiAPmodeActivelyUsed()
     // AP not active or soon to be disabled in processDisableAPmode()
     return false;
   }
-  return WiFi.softAPgetStationNum() != 0;
+  return SOFTAP_STATION_COUNT != 0;
 
   // FIXME TD-er: is effectively checking for AP active enough or must really check for connected clients to prevent automatic wifi
   // reconnect?

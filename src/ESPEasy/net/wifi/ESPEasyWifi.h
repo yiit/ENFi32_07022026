@@ -16,6 +16,14 @@
 
 # include "../../../src/Helpers/LongTermTimer.h"
 
+#ifdef ESP32
+#define SOFTAP_STATION_COUNT  WiFi.AP.stationCount()
+#endif
+#ifdef ESP8266
+#define SOFTAP_STATION_COUNT  WiFi.softAPgetStationNum()
+#endif
+
+
 namespace ESPEasy {
 namespace net {
 namespace wifi {

@@ -92,13 +92,18 @@ void ESPEasyWiFi_t::loop()
 
       if (WiFi_AP_Candidates.hasCandidates() ||
           (_state_timeout.timeReached() &&
-           (WiFi.softAPgetStationNum() == 0))) {
+           !ESPEasy::net::wifi::wifiAPmodeActivelyUsed())) {
         setState(WiFiState_e::IdleWaiting, 100);
       }
       break;
     case WiFiState_e::IdleWaiting:
 
-      if (_state_timeout.timeReached() || getSTA_connected_state() == STA_connected_state::Idle) {
+      if (connected()) {
+        setState(WiFiState_e::STA_Connected, 100);
+        break;
+      }
+
+      if (_state_timeout.timeReached() || (getSTA_connected_state() == STA_connected_state::Idle)) {
         // This is where we decide what to do next:
         // - Reconnect
         // - Scan
@@ -108,8 +113,8 @@ void ESPEasyWiFi_t::loop()
         // Do we have candidate to connect to ?
         if (WiFi_AP_Candidates.hasCandidates()) {
           setState(WiFiState_e::STA_Connecting, WIFI_STATE_MACHINE_STA_CONNECTING_TIMEOUT);
-        } else if ((WiFi_AP_Candidates.scanComplete() == 0) 
-        || WiFi_AP_Candidates.scanComplete() == -3) {
+        } else if ((WiFi_AP_Candidates.scanComplete() == 0)
+                   || (WiFi_AP_Candidates.scanComplete() == -3)) {
           if (WifiIsAP(WiFi.getMode())) {
             // TODO TD-er: Must check if any client is connected.
             // If not, then we can disable AP mode and switch to WiFiState_e::STA_Scanning

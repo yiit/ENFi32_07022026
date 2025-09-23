@@ -82,11 +82,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
     {
-# ifdef ESP32
-      success = WiFi.AP.stationCount() > 0;
-# else
-      success = WiFi.softAPgetStationNum() > 0;
-# endif // ifdef ESP32
+      success = ESPEasy::net::wifi::wifiAPmodeActivelyUsed();
 
       break;
     }
@@ -142,7 +138,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       wifi_softap_free_station_info();
 
 #  else // ifndef LIMIT_BUILD_SIZE
-      const uint8_t num = WiFi.softAPgetStationNum();
+      const uint8_t num = SOFTAP_STATION_COUNT;
 
       if (num > 0) {
         success = true;

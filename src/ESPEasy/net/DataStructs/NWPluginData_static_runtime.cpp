@@ -6,6 +6,9 @@
 #include "../../../src/Helpers/NetworkStatusLED.h"
 #include "../../../src/Helpers/StringConverter.h"
 
+#include "../wifi/ESPEasyWifi.h"
+
+
 namespace ESPEasy {
 namespace net {
 
@@ -127,12 +130,7 @@ bool NWPluginData_static_runtime::operational() const
   if (!Settings.getNetworkEnabled(_networkIndex)) { return false; }
 
   if (_isAP) {
-    return
-#ifdef ESP32
-      WiFi.AP.stationCount() > 0;
-#else
-      WiFi.softAPgetStationNum() > 0;
-#endif // ifdef ESP32
+    return ESPEasy::net::wifi::wifiAPmodeActivelyUsed();
   }
   return connected() && hasIP();
 

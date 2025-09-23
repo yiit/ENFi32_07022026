@@ -457,7 +457,7 @@ void ESPEasy_setup()
   #endif // if FEATURE_ETHERNET
 
   // FIXME TD-er: This network medium setting may be obsolete as we need a priority scale/order
-  ESPEasy::net::setNetworkMedium(Settings.NetworkMedium);
+//  ESPEasy::net::setNetworkMedium(Settings.NetworkMedium);
   #ifndef BUILD_NO_RAM_TRACKER
   logMemUsageAfter(F("WifiScan()"));
   #endif // ifndef BUILD_NO_RAM_TRACKER

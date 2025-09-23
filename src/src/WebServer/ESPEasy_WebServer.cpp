@@ -129,7 +129,7 @@ void sendHeadandTail_stdtemplate(bool Tail, bool rebooting) {
   sendHeadandTail(F("TmplStd"), Tail, rebooting);
 
   if (!Tail) {
-    if (!clientIPinSubnetDefaultNetwork() &&  ESPEasy::net::wifi::WifiIsAP(WiFi.getMode()) && (WiFi.softAPgetStationNum() > 0)) {
+    if (!clientIPinSubnetDefaultNetwork() &&  ESPEasy::net::wifi::wifiAPmodeActivelyUsed()) {
       addHtmlError(F("Warning: Connected via AP"));
     }
 
@@ -215,7 +215,14 @@ void WebServerInit()
   // Entries for several captive portal URLs.
   // Maybe not needed. Might be handled by notFound handler.
   web_server.on(UriGlob("/generate_204*"), handle_root); // Android captive portal. Handle "/generate_204_<uuid>"-like requests.
+//web_server.on(F("/generate_204"),        handle_root); // android captive portal redirect
   web_server.on(F("/fwlink"),              handle_root); // Microsoft captive portal.
+  web_server.on(F("/redirect"),            handle_root); // microsoft redirect
+  web_server.on(F("/hotspot-detect.html"), handle_root); // apple call home
+  web_server.on(F("/canonical.html"),      handle_root); // firefox captive portal call home
+  web_server.on(F("/success.txt"),         handle_root); // firefox captive portal call home
+  web_server.on(F("/ncsi.txt"),            handle_root); // windows call home
+
   #endif // ifdef WEBSERVER_ROOT
   #ifdef WEBSERVER_ADVANCED
   web_server.on(F("/advanced"),            handle_advanced);

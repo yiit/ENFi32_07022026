@@ -278,7 +278,7 @@ bool loadFromFS(String path) {
 
   // prevent reloading stuff on every click
   if (static_file) {
-    sendHeader(F("Cache-Control"), F("public, max-age=31536000, s-maxage=31536000, immutable"));
+    sendHeader(F("Cache-Control"), F("public,max-age=31536000,s-maxage=31536000,immutable"));
 
     //    sendHeader(F("Cache-Control"), F("max-age=86400"));
 //    sendHeader(F("Expires"),       F("-1"));

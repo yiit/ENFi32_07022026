@@ -187,8 +187,8 @@ bool NWPluginData_base::pushStatsValues(EventStruct *event,
 
     if (getTrafficCount(traffic)) {
       // Only set value when _prevRX/TX was set to make sure there isn't an enormous spike
-      event->ParfN[valueCount++] = _prevTX == 0 ? 0 : traffic._tx_count - _prevTX;
-      event->ParfN[valueCount++] = _prevRX == 0 ? 0 : traffic._rx_count - _prevRX;
+      event->ParfN[valueCount++] = _prevTX == 0 || (traffic._tx_count < _prevTX) ? 0 : traffic._tx_count - _prevTX;
+      event->ParfN[valueCount++] = _prevRX == 0 || (traffic._rx_count < _prevRX) ? 0 : traffic._rx_count - _prevRX;
       _prevRX                    = traffic._rx_count;
       _prevTX                    = traffic._tx_count;
     } else {

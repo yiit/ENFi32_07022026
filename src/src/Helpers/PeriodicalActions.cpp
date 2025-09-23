@@ -129,13 +129,7 @@ void run10TimesPerSecond() {
   }
   #endif
   if (!UseRTOSMultitasking && 
-    (ESPEasy::net::NetworkConnected() || 
-    #ifdef ESP32
-    WiFi.AP.stationCount()
-    #else
-    WiFi.softAPgetStationNum()
-    #endif
-  )) {
+    (ESPEasy::net::NetworkConnected() || ESPEasy::net::wifi::wifiAPmodeActivelyUsed())) {
     // FIXME TD-er: What about client connected via AP?
     START_TIMER
     web_server.handleClient();

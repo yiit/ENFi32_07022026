@@ -172,12 +172,7 @@ bool NW002_data_struct_WiFi_AP::record_stats()
   if (_plugin_stats_array != nullptr) {
     EventStruct tmpEvent;
     size_t valueCount{};
-    tmpEvent.ParfN[valueCount++] =
-    #  ifdef ESP32
-      NW_PLUGIN_INTERFACE.stationCount();
-    #  else
-      WiFi.softAPgetStationNum();
-    #  endif // ifdef ESP32
+    tmpEvent.ParfN[valueCount++] = SOFTAP_STATION_COUNT;
 
 #  ifdef ESP32
     {
@@ -231,7 +226,7 @@ void NW002_data_struct_WiFi_AP::onEvent(arduino_event_id_t   event,
       break;
     case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
 
-      if (WiFi.AP.stationCount() == 0) {
+      if (!ESPEasy::net::wifi::wifiAPmodeActivelyUsed()) {
         stats_and_cache.mark_disconnected();
       }
       NW002_update_NAPT();
