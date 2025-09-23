@@ -76,6 +76,7 @@ void NWPluginData_static_runtime::enable_txrx_events()
 
 bool NWPluginData_static_runtime::getTrafficCount(TX_RX_traffic_count& traffic) const
 {
+  if (_netif == nullptr) return false;
   const int key = _netif->impl_index();
   auto it       = interfaceTrafficCount.find(key);
 
@@ -140,6 +141,9 @@ bool NWPluginData_static_runtime::operational() const
 
 void NWPluginData_static_runtime::processEvents()
 {
+#ifdef ESP32
+  if (_netif == nullptr) return;
+#endif
   // TD-er: Just set these just to be sure we didn't miss any events.
   _connectedStats.set(connected());
 
