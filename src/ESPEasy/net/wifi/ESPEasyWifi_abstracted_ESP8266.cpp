@@ -5,6 +5,7 @@
 
 #  include "../../../src/DataStructs/TimingStats.h"
 #  include "../../../src/Helpers/StringConverter.h"
+#  include "../../../src/Globals/Services.h"
 #  include "../../../src/Globals/Settings.h"
 #  include "../Globals/WiFi_AP_Candidates.h"
 
@@ -17,7 +18,6 @@
 namespace ESPEasy {
 namespace net {
 namespace wifi {
-
 
 bool WiFi_pre_setup() {
   if (!ESPEasyWiFi_STA_EventHandler::initialized()) { return false; }
@@ -60,14 +60,17 @@ bool doWifiIsSTA(WiFiMode_t wifimode) { return (wifimode == WIFI_STA) || (wifimo
 bool doSetWifiMode(WiFiMode_t new_mode)
 {
   if (!Settings.getNetworkEnabled(NETWORK_INDEX_WIFI_AP)) {
-    if (new_mode == WIFI_AP) new_mode = WIFI_OFF;
-    if (new_mode == WIFI_AP_STA) new_mode = WIFI_STA;
+    if (new_mode == WIFI_AP) { new_mode = WIFI_OFF; }
+
+    if (new_mode == WIFI_AP_STA) { new_mode = WIFI_STA; }
   }
+
   if (!Settings.getNetworkEnabled(NETWORK_INDEX_WIFI_STA)) {
-    if (new_mode == WIFI_STA) new_mode = WIFI_OFF;
-    if (new_mode == WIFI_AP_STA) new_mode = WIFI_AP;
+    if (new_mode == WIFI_STA) { new_mode = WIFI_OFF; }
+
+    if (new_mode == WIFI_AP_STA) { new_mode = WIFI_AP; }
   }
-    
+
   const WiFiMode_t cur_mode = WiFi.getMode();
 
   // Made this static flag an int as ESP8266 and ESP32 differ in the "not set" values
@@ -96,9 +99,16 @@ bool doSetWifiMode(WiFiMode_t new_mode)
     WiFi.forceSleepWake(); // Make sure WiFi is really active.
     delay(100);
   }
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
   addLog(LOG_LEVEL_INFO, concat(F("WIFI : Set WiFi to "), doGetWifiModeString(new_mode)));
-#endif
+#  endif
+
+# if FEATURE_DNS_SERVER
+   if (!doWifiIsAP(new_mode) && dnsServerActive) {
+     dnsServerActive = false;
+     dnsServer.stop();
+   }
+# endif // if FEATURE_DNS_SERVER
 
   int retry = 2;
 
@@ -109,17 +119,17 @@ bool doSetWifiMode(WiFiMode_t new_mode)
   retry = 2;
 
   while (WiFi.getMode() != new_mode && retry > 0) {
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_INFO, F("WIFI : mode not yet set"));
-#endif
+#  endif
     delay(100);
     --retry;
   }
 
   if (WiFi.getMode() != new_mode) {
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_ERROR, F("WIFI : Cannot set mode!!!!!"));
-#endif
+#  endif
     return false;
   }
 
@@ -148,7 +158,8 @@ void doWifiScan(bool async, uint8_t channel) {
   }
 
   START_TIMER;
-//  WiFiEventData.lastScanMoment.setNow();
+
+  //  WiFiEventData.lastScanMoment.setNow();
   #  ifndef BUILD_NO_DEBUG
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
@@ -160,13 +171,15 @@ void doWifiScan(bool async, uint8_t channel) {
   }
   #  endif // ifndef BUILD_NO_DEBUG
   bool show_hidden = true;
-//  WiFiEventData.lastGetScanMoment.setNow();
-//  WiFiEventData.lastScanChannel = channel;
+
+  //  WiFiEventData.lastGetScanMoment.setNow();
+  //  WiFiEventData.lastScanChannel = channel;
 
   unsigned int nrScans = 1 + (async ? 0 : Settings.NumberExtraWiFiScans);
 
   while (nrScans > 0) {
     WiFi_AP_Candidates.begin_scan();
+
     if (!async) {
       FeedSW_watchdog();
     }
@@ -178,7 +191,7 @@ void doWifiScan(bool async, uint8_t channel) {
       WiFi_AP_Candidates.process_WiFiscan();
 
       // FIXME TD-er: This should call WiFi_AP_Candidates.process_WiFiscan();
-//      processScanDone();
+      //      processScanDone();
     }
   }
 #  if FEATURE_TIMING_STATS
@@ -239,9 +252,9 @@ WiFiConnectionProtocol doGetConnectionProtocol()
 
 #  if FEATURE_SET_WIFI_TX_PWR
 
-void doSetWiFiTXpower(float& dBm) { WiFi.setOutputPower(dBm); }
+void  doSetWiFiTXpower(float& dBm) { WiFi.setOutputPower(dBm); }
 
-float doGetWiFiTXpower() { return WiFi.getOutputPower(); }
+float doGetWiFiTXpower()           { return WiFi.getOutputPower(); }
 
 #  endif // if FEATURE_SET_WIFI_TX_PWR
 
@@ -256,23 +269,24 @@ void doSetConnectionSpeed(bool ForceWiFi_bg_mode) {
     if (candidate.phy_known() && (candidate.bits.phy_11g != candidate.bits.phy_11n)) {
       if ((WIFI_PHY_MODE_11G == phyMode) && !candidate.bits.phy_11g) {
         phyMode = WIFI_PHY_MODE_11N;
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, F("WIFI : AP is set to 802.11n only"));
-#endif
+#  endif
       } else if ((WIFI_PHY_MODE_11N == phyMode) && !candidate.bits.phy_11n) {
         phyMode = WIFI_PHY_MODE_11G;
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, F("WIFI : AP is set to 802.11g only"));
-#endif
+#  endif
       }
-/*
-    } else {
-      bool useAlternate = WiFiEventData.connectionFailures > 10;
 
-      if (useAlternate) {
-        phyMode = (WIFI_PHY_MODE_11G == phyMode) ? WIFI_PHY_MODE_11N : WIFI_PHY_MODE_11G;
-      }
-*/
+      /*
+          } else {
+            bool useAlternate = WiFiEventData.connectionFailures > 10;
+
+            if (useAlternate) {
+              phyMode = (WIFI_PHY_MODE_11G == phyMode) ? WIFI_PHY_MODE_11N : WIFI_PHY_MODE_11G;
+            }
+       */
     }
   } else {
     // No need to perform a next attempt.

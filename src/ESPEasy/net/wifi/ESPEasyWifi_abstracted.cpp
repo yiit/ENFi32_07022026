@@ -85,15 +85,14 @@ void doSetAPinternal(bool enable)
     IPAddress subnet(DEFAULT_AP_SUBNET);
     # ifdef ESP32
     IPAddress dhcp_lease_start = (uint32_t)0;
-    IPAddress dns(DEFAULT_AP_DNS);
+//    IPAddress dns(DEFAULT_AP_DNS);
 
-    if (!WiFi.softAPConfig(apIP, apIP, subnet, dhcp_lease_start, dns)) {
+    if (!WiFi.softAPConfig(apIP, apIP, subnet, dhcp_lease_start/*, dns*/)) {
       addLog(LOG_LEVEL_ERROR, strformat(
-               ("WIFI : [AP] softAPConfig failed! IP: %s, GW: %s, SN: %s, DNS: %s"),
+               ("WIFI : [AP] softAPConfig failed! IP: %s, GW: %s, SN: %s"),
                apIP.toString().c_str(),
                apIP.toString().c_str(),
-               subnet.toString().c_str(),
-               dns.toString().c_str())
+               subnet.toString().c_str())
              );
     }
     WiFi.AP.bandwidth(WIFI_BW_HT20);
@@ -148,16 +147,20 @@ void doSetAPinternal(bool enable)
     }
     #  endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 2)
 
-
-    # else // ifdef ESP32
-
-    if (wifi_softap_dhcps_status() != DHCP_STARTED) {
-      if (!wifi_softap_dhcps_start()) {
-        addLog(LOG_LEVEL_ERROR, F("WIFI : [AP] wifi_softap_dhcps_start failed!"));
-      }
+# if FEATURE_DNS_SERVER
+    if (!dnsServerActive) {
+      dnsServerActive = true;
+      dnsServer.start();
     }
-    # endif // ifdef ESP32
-//    WiFiEventData.timerAPoff.setMillisFromNow(WIFI_AP_OFF_TIMER_DURATION);
+#endif
+#else
+# if FEATURE_DNS_SERVER
+    if (!dnsServerActive) {
+      dnsServerActive = true;
+      dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+    }
+#endif
+# endif // ifdef ESP32
   } else {
     # if FEATURE_DNS_SERVER
 

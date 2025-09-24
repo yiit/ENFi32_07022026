@@ -5,6 +5,7 @@
 
 #  include "../../../src/DataStructs/TimingStats.h"
 #  include "../../../src/Globals/EventQueue.h"
+#  include "../../../src/Globals/Services.h"
 #  include "../../../src/Globals/Settings.h"
 #  include "../Globals/WiFi_AP_Candidates.h"
 #  include "../../../src/Helpers/StringConverter.h"
@@ -118,6 +119,15 @@ bool doSetWifiMode(WiFiMode_t new_mode)
   }
 
   addLog(LOG_LEVEL_INFO, concat(F("WIFI : Set WiFi to "), doGetWifiModeString(new_mode)));
+
+  # if FEATURE_DNS_SERVER
+  if (!doWifiIsAP(new_mode)) {
+    if (dnsServerActive) {
+      dnsServerActive = false;
+      dnsServer.stop();
+    }
+  }
+  #endif
 
   int retry = 2;
 
