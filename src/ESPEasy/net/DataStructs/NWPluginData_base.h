@@ -38,10 +38,6 @@ struct NWPluginData_base {
 
   virtual bool exit(EventStruct *event) = 0;
 
-  bool         baseClassOnly() const {
-    return _baseClassOnly;
-  }
-
   bool         hasPluginStats() const;
 
   bool         hasPeaks() const;
@@ -162,12 +158,6 @@ protected:
   // at random in the Plugin_task_data array.
   nwpluginID_t   _nw_data_pluginID = INVALID_NW_PLUGIN_ID;
   networkIndex_t _networkIndex = INVALID_NETWORK_INDEX;
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-  bool _baseClassOnly = false;
-#else
-  bool _baseClassOnly = true;
-#endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
 #ifdef ESP32
   NetworkInterface *_netif{};

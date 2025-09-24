@@ -344,7 +344,7 @@ unsigned long ESPEasy_time::now_() {
           // Process for network interfaces too
           for (ESPEasy::net::networkIndex_t networkIndex = 0; networkIndex < NETWORK_MAX; networkIndex++)
           {
-            ESPEasy::net::NWPluginData_base *NWdata = ESPEasy::net::getNWPluginDataBaseClassOnly(networkIndex);
+            ESPEasy::net::NWPluginData_base *NWdata = ESPEasy::net::getNWPluginData(networkIndex);
 
             if (NWdata != nullptr) {
               NWdata->processTimeSet(externalUnixTime_offset_usec / 1000000.0);

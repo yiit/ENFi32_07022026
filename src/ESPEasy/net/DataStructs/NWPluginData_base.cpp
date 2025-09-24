@@ -31,8 +31,7 @@ NWPluginData_base::NWPluginData_base(
   _kvs(nullptr),
 #endif
   _nw_data_pluginID(nwpluginID),
-  _networkIndex(networkIndex),
-  _baseClassOnly(false)
+  _networkIndex(networkIndex)
 #ifdef ESP32
   , _netif(netif)
 #endif

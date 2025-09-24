@@ -421,11 +421,31 @@ NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index
 
 const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()
 {
+  #ifdef ESP32
+  networkIndex_t index_highest_prio = NETWORK_MAX;
+  int highest_prio = -1;
+  #endif
+
   for (networkIndex_t i = 0; validNetworkIndex(i); ++i) {
     auto NW_data = getNWPluginData_static_runtime(i);
 
     if (NW_data && NW_data->isDefaultRoute()) { return NW_data; }
+    #ifdef ESP32
+    if (NW_data) {
+      if (NW_data->_route_prio > highest_prio) {
+        index_highest_prio = i;
+        highest_prio = NW_data->_route_prio;
+      }
+    }
+    #endif
   }
+  #ifdef ESP32
+  if (validNetworkIndex(index_highest_prio)) {
+    return getNWPluginData_static_runtime(index_highest_prio);
+  }
+
+  #endif
+  
   return nullptr;
 }
 

@@ -31,7 +31,6 @@ bool initNWPluginData(ESPEasy::net::networkIndex_t     networkIndex,
                       NWPluginData_base * data);
 
 NWPluginData_base* getNWPluginData(ESPEasy::net::networkIndex_t networkIndex);
-NWPluginData_base* getNWPluginDataBaseClassOnly(ESPEasy::net::networkIndex_t networkIndex);
 
 bool nwpluginTaskData_initialized(ESPEasy::net::networkIndex_t networkIndex);
 

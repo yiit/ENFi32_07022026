@@ -71,16 +71,6 @@ bool initNWPluginData(ESPEasy::net::networkIndex_t networkIndex, NWPluginData_ba
 
 NWPluginData_base* getNWPluginData(ESPEasy::net::networkIndex_t networkIndex) {
   if (nwpluginTaskData_initialized(networkIndex)) {
-
-    if (!NWPlugin_task_data[networkIndex]->baseClassOnly()) {
-      return NWPlugin_task_data[networkIndex];
-    }
-  }
-  return nullptr;
-}
-
-NWPluginData_base* getNWPluginDataBaseClassOnly(ESPEasy::net::networkIndex_t networkIndex) {
-  if (nwpluginTaskData_initialized(networkIndex)) {
     return NWPlugin_task_data[networkIndex];
   }
   return nullptr;
