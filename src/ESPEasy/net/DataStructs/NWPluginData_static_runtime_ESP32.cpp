@@ -165,29 +165,6 @@ void NWPluginData_static_runtime::mark_got_IPv6(ip_event_got_ip6_t *event)
       _gotIP6Stats.forceSet(true);
     }
   }
-
-#  if NW_PLUGIN_LOG_EVENTS
-
-  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    if (event) {
-      esp_ip6_addr_type_t addr_type    = esp_netif_ip6_get_addr_type(&event->ip6_info.ip);
-      static const char  *addr_types[] = { "UNKNOWN", "GLOBAL", "LINK_LOCAL", "SITE_LOCAL", "UNIQUE_LOCAL", "IPV4_MAPPED_IPV6" };
-      if (addr_type < NR_ELEMENTS(addr_types))
-      addLog(LOG_LEVEL_INFO, strformat(
-               F("%s: Got IPv6: IP Index: %d, Type: %s, Zone: %d, Address: " IPV6STR),
-               _netif->desc(),
-               event->ip_index,
-               addr_types[addr_type],
-               event->ip6_info.ip.zone,
-               IPV62STR(event->ip6_info.ip)
-               ));
-    } else {
-      addLog(LOG_LEVEL_INFO, strformat(
-               F("%s: Got IPv6"),
-               _netif->desc()));
-    }
-  }
-#  endif // if NW_PLUGIN_LOG_EVENTS
 }
 
 # endif // if FEATURE_USE_IPV6

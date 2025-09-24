@@ -250,11 +250,15 @@ void NWPluginData_static_runtime::processEvents()
     statusLED(true);
   }
 
-  if (_startStopStats.changedSinceLastCheck_and_clear() && _isAP && Settings.UseRules) {
+  if (_startStopStats.changedSinceLastCheck_and_clear() && Settings.UseRules) {
     if (_startStopStats.isOn()) {
-      eventQueue.add(F("WiFi#APmodeEnabled"));
+        eventQueue.add(concat(
+                         _eventInterfaceName,
+                         _isAP ? F("#APmodeEnabled") : F("#Enabled")));
     } else if (_startStopStats.isOff()) {
-      eventQueue.add(F("WiFi#APmodeDisabled"));
+        eventQueue.add(concat(
+                         _eventInterfaceName,
+                         _isAP ? F("#APmodeDisabled") : F("#Disabled")));
     }
   }
 }
