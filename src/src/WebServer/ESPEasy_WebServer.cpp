@@ -357,6 +357,8 @@ void WebServerInit()
 
   #if defined(ESP8266)
 
+  web_server.enableCORS(true);
+
   # if FEATURE_SSDP
 
   if (Settings.UseSSDP)
