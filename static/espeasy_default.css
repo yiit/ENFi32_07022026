@@ -458,8 +458,7 @@ textarea,
     position: inherit;
     top: 54px;
     max-width: 960px;
-    width: 100%;
-    justify-content: space-evenly
+    width: 100%
 }
 
 a.menu {
