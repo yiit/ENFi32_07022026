@@ -454,16 +454,21 @@ textarea,
 }
 
 .menubar {
-	position: inherit;
-	top: 54px;
-	width: 100%
+    display: flex;
+    position: inherit;
+    top: 54px;
+    max-width: 960px;
+    width: 100%;
+    justify-content: space-evenly
 }
 
 a.menu {
 	align-items: center;
 	display: flex;
 	height: 46px;
-	justify-content: center
+	justify-content: center;
+	gap: 2px;
+	width: 100%
 }
 
 .menu {
@@ -576,13 +581,9 @@ canvas {
 	filter: invert(var(--iv)) hue-rotate(var(--ro));
 }
 
-@media screen and (max-width:780px) {
+@media screen and (max-width:960px) {
 	.showmenulabel {
 		display: none
-	}
-
-	a.menu {
-		width: 12%
 	}
 }
 
