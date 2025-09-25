@@ -907,10 +907,22 @@ To create/register a plugin, you have to :
 #endif
 */
 
+// Reduce build size for Collection builds
 #if defined(PLUGIN_SET_COLLECTION_A_ESP32) || defined(PLUGIN_SET_COLLECTION_B_ESP32) || defined(PLUGIN_SET_COLLECTION_C_ESP32) || defined(PLUGIN_SET_COLLECTION_D_ESP32) || defined(PLUGIN_SET_COLLECTION_E_ESP32) || defined(PLUGIN_SET_COLLECTION_F_ESP32) || defined(PLUGIN_SET_COLLECTION_G_ESP32)
 # ifndef BUILD_NO_DEBUG
 #  define BUILD_NO_DEBUG
 # endif
+# ifdef FEATURE_NETWORK_STATS
+# undef FEATURE_NETWORK_STATS
+# endif
+# define FEATURE_NETWORK_STATS   0
+# ifdef FEATURE_PPP_MODEM
+# undef FEATURE_PPP_MODEM
+# endif
+# define FEATURE_PPP_MODEM        0
+#ifndef P036_LIMIT_BUILD_SIZE
+  #define P036_LIMIT_BUILD_SIZE // Reduce build size for P036 (FramedOLED) only
+#endif
 #endif
 
 #ifdef PLUGIN_SET_COLLECTION_ESP32
