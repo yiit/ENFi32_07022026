@@ -3,9 +3,9 @@
 #ifdef USES_P146
 
 # include "../ControllerQueue/C016_queue_element.h"
+# include "../ESPEasyCore/ESPEasyRules.h"
 # include "../Globals/C016_ControllerCache.h"
 # include "../Globals/MQTT.h"
-
 
 P146_data_struct::P146_data_struct(struct EventStruct *event)
 {
@@ -27,7 +27,7 @@ P146_data_struct::~P146_data_struct()
 
 uint32_t writeToMqtt(const String& str, bool send) {
   if (send) {
-    MQTTclient.write((const uint8_t*)str.c_str(), str.length());
+    MQTTclient.write((const uint8_t *)str.c_str(), str.length());
   }
   return str.length();
 }
@@ -338,16 +338,21 @@ bool P146_data_struct::sendViaOriginalTask(
   const int peekReadPos =  ControllerCache.getPeekFilePos(peekFileNr);
 
 
-  unsigned long timestamp;
-  uint8_t valueCount;
-  float   taskValues[VARS_PER_TASK] = {};
-  EventStruct tmpEvent(C016_getTaskSample(
-                         timestamp, valueCount,
-                         taskValues[0], taskValues[1], taskValues[2], taskValues[3]));
+  C016_binary_element element{};
 
-  if (!validTaskIndex(tmpEvent.TaskIndex)) {
+  if (!C016_getTaskSample(element)) {
     return false;
   }
+
+  if (!validTaskIndex(element.TaskIndex)) {
+    return false;
+  }
+
+  if (Settings.UseRules) {
+    EventStruct tmpEvent(element.TaskIndex);
+    createRuleEvents(&tmpEvent);
+  }
+
 
   bool success        = false;
   bool unusableSample = false;
@@ -362,16 +367,23 @@ bool P146_data_struct::sendViaOriginalTask(
   // - Copy values from the cache bin files to the task it had
   // - Call CPLUGIN_PROTOCOL_SEND
   // - Restore the values
-  for (int valIndex = 0; valIndex < VARS_PER_TASK; ++valIndex) {
-    const float tmp = UserVar.getFloat(tmpEvent.TaskIndex, valIndex);
-    UserVar.setFloat(tmpEvent.TaskIndex, valIndex, taskValues[valIndex]);
-    taskValues[valIndex] = tmp;
+
+  TaskValues_Data_t tmp;
+  {
+    const TaskValues_Data_t*data = UserVar.getRawTaskValues_Data(element.TaskIndex);
+
+    if (data != nullptr) {
+      for (uint8_t i = 0; i < element.valueCount; ++i) {
+        tmp.copyValue(*data, i, element.sensorType);
+      }
+    }
   }
 
   for (controllerIndex_t x = 0; !unusableSample && x < CONTROLLER_MAX; x++)
   {
     // Make sure we are not sending to the cache controller.
     if (Settings.Protocol[x] != 16) {
+      EventStruct tmpEvent(element.TaskIndex);
       tmpEvent.ControllerIndex = x;
       tmpEvent.idx             = Settings.TaskDeviceID[x][P146_TaskIndex];
 
@@ -397,10 +409,14 @@ bool P146_data_struct::sendViaOriginalTask(
     }
   }
 
-  for (int valIndex = 0; valIndex < VARS_PER_TASK; ++valIndex) {
-    const float tmp = UserVar.getFloat(tmpEvent.TaskIndex, valIndex);
-    UserVar.setFloat(tmpEvent.TaskIndex, valIndex, taskValues[valIndex]);
-    taskValues[valIndex] = tmp;
+  {
+    TaskValues_Data_t*data = UserVar.getRawTaskValues_Data(element.TaskIndex);
+
+    if (data != nullptr) {
+      for (uint8_t i = 0; i < element.valueCount; ++i) {
+        data->copyValue(tmp, i, element.sensorType);
+      }
+    }
   }
 
   if (!success && !unusableSample) {
@@ -476,9 +492,7 @@ bool P146_data_struct::setPeekFilePos(int peekFileNr, int peekReadPos)
   return true;
 }
 
-void P146_data_struct::flush() {
-  C016_flush();
-}
+void P146_data_struct::flush() { C016_flush(); }
 
 bool P146_data_struct::getPeekFilePos(int& peekFileNr, int& peekReadPos, int& peekFileSize) const {
   peekFileNr  = 0;
