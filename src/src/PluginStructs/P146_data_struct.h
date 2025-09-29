@@ -82,7 +82,7 @@ public:
                                   bool        sendTimestamp);
 
   // Send as event using the following format:
-  // TaskName#AllCache,<unixTime>,<valueCount>,<taskValue1>,...,<taskValueN>
+  // TaskName#AllCache,<unixTime>,<valueCount>,<cacheFileNr>,<readPosCacheFile>,<taskValue1>,...,<taskValueN>
   static bool sendViaEvent_AllCache(taskIndex_t P146_TaskIndex,
                                     bool        sendTimestamp);
 

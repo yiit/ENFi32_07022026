@@ -458,9 +458,11 @@ bool P146_data_struct::sendViaEvent_AllCache(taskIndex_t P146_TaskIndex,
   String eventvalues;
   reserve_special(eventvalues, 64); // Enough for most use cases, prevent lots of memory allocations.
   eventvalues = strformat(
-    F("%d,%d"),
+    F("%d,%d,%d,%d"),
     element.unixTime,
-    element.valueCount);
+    element.valueCount,
+    peekFileNr,
+    peekReadPos);
 
   for (uint8_t varNr = 0; varNr < element.valueCount; ++varNr) {
     eventvalues += ',';
