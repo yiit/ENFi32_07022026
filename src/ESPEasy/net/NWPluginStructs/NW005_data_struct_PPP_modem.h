@@ -18,6 +18,7 @@ struct NW005_modem_task_data {
   int               baud_rate = 115200;
   bool              initializing{};
   bool              modem_initialized{};
+  int               dtrPin = -1;
   String            logString;
   String            AT_CPSI; // Result from "AT+CPSI?"
 

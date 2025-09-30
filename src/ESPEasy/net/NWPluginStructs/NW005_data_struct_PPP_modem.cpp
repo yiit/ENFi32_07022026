@@ -47,6 +47,7 @@ static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE, F("PPP"
 # define NW005_KEY_MODEM_MODEL          11
 # define NW005_KEY_APN                  12
 # define NW005_KEY_SIM_PIN              13
+# define NW005_KEY_PIN_DTR              14
 
 const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString, ESPEasy_key_value_store::StorageType& storageType)
 {
@@ -60,6 +61,7 @@ const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString
     case NW005_KEY_PIN_TX: return F("TX");
     case NW005_KEY_PIN_RTS: return F("RTS");
     case NW005_KEY_PIN_CTS: return F("CTS");
+    case NW005_KEY_PIN_DTR: return F("DTR");
     case NW005_KEY_PIN_RESET: return displayString ? F("Reset") : F("rst");
     case NW005_KEY_PIN_RESET_ACTIVE_LOW:
       storageType = ESPEasy_key_value_store::StorageType::bool_type;
@@ -105,6 +107,12 @@ NW005_data_struct_PPP_modem::~NW005_data_struct_PPP_modem() {
     _modem_task_data.modem_taskHandle = NULL;
   }
   NW_PLUGIN_INTERFACE.mode(ESP_MODEM_MODE_COMMAND);
+
+  const int dtrPin = _kvs->getValueAsInt_or_default(NW005_KEY_PIN_DTR, -1);
+  if (dtrPin != -1) {
+    digitalWrite(dtrPin, LOW);
+  }
+
   NW_PLUGIN_INTERFACE.end();
   _modem_task_data.modem_initialized = false;
 
@@ -446,15 +454,25 @@ void NW005_data_struct_PPP_modem::webform_load(EventStruct *event)
     showFormSelector(*_kvs, selector, NW005_makeWebFormItemParams(NW005_KEY_SERIAL_PORT));
   }
 
-  for (int i = NW005_KEY_PIN_RX; i <= NW005_KEY_PIN_RESET; ++i)
+  const int gpio_keys[] = {
+    NW005_KEY_PIN_RX,
+    NW005_KEY_PIN_TX,
+    NW005_KEY_PIN_RTS,
+    NW005_KEY_PIN_CTS,
+    NW005_KEY_PIN_DTR,
+    NW005_KEY_PIN_RESET
+  };
+
+  for (int i = 0; i < NR_ELEMENTS(gpio_keys); ++i)
   {
+    const int key = gpio_keys[i];
     ESPEasy_key_value_store::StorageType storageType;
-    const __FlashStringHelper *id = NW005_getLabelString(i, false, storageType);
+    const __FlashStringHelper *id = NW005_getLabelString(key, false, storageType);
     PinSelectPurpose purpose      = PinSelectPurpose::Generic;
-    String label                  = NW005_formatGpioLabel(i, purpose);
+    String label                  = NW005_formatGpioLabel(key, purpose);
 
     int8_t pin = -1;
-    _kvs->getValue(i, pin);
+    _kvs->getValue(key, pin);
 
     addFormPinSelect(purpose, label, id, pin);
   }
@@ -700,7 +718,8 @@ void NW005_data_struct_PPP_modem::webform_save(EventStruct *event)
     NW005_KEY_FLOWCTRL,
     NW005_KEY_MODEM_MODEL,
     NW005_KEY_APN,
-    NW005_KEY_SIM_PIN
+    NW005_KEY_SIM_PIN,
+    NW005_KEY_PIN_DTR
   };
 
 
@@ -727,6 +746,7 @@ bool NW005_data_struct_PPP_modem::webform_getPort(String& str)
         NW005_KEY_PIN_TX,
         NW005_KEY_PIN_RTS,
         NW005_KEY_PIN_CTS,
+        NW005_KEY_PIN_DTR,
         NW005_KEY_PIN_RESET
       };
 
@@ -753,6 +773,10 @@ void NW005_begin_modem_task(void *parameter)
 
   if (!modem_task_data->modem_initialized) {
     modem_task_data->initializing = true;
+    if (modem_task_data->dtrPin != -1) {
+      digitalWrite(modem_task_data->dtrPin, LOW);
+    }
+
     const bool res =
       NW_PLUGIN_INTERFACE.begin(
         modem_task_data->model,
@@ -776,6 +800,10 @@ void NW005_begin_modem_task(void *parameter)
 
       NW_PLUGIN_INTERFACE.mode(ESP_MODEM_MODE_CMUX);
       modem_task_data->AT_CPSI = NW_PLUGIN_INTERFACE.cmd(F("AT+CPSI?"), 3000);
+      if (modem_task_data->dtrPin != -1) {
+        NW_PLUGIN_INTERFACE.cmd(F("AT&D1"), 9000);
+        digitalWrite(modem_task_data->dtrPin, HIGH);
+      }
     }
     modem_task_data->modem_initialized = res;
   }
@@ -804,7 +832,6 @@ bool NW005_data_struct_PPP_modem::init(EventStruct *event)
   const int ctsPin               = _kvs->getValueAsInt_or_default(NW005_KEY_PIN_CTS, -1);
   esp_modem_flow_ctrl_t flow_ctl = static_cast<esp_modem_flow_ctrl_t>(_kvs->getValueAsInt_or_default(NW005_KEY_FLOWCTRL,
                                                                                                      ESP_MODEM_FLOW_CONTROL_NONE));
-
   if ((rtsPin < 0) || (ctsPin < 0)) {
     if (flow_ctl != ESP_MODEM_FLOW_CONTROL_NONE) {
       addLog(LOG_LEVEL_INFO, F("PPP: Disable flow control as RTS/CTS are not set"));
@@ -875,6 +902,7 @@ bool NW005_data_struct_PPP_modem::init(EventStruct *event)
   _modem_task_data.baud_rate         = _kvs->getValueAsInt_or_default(NW005_KEY_BAUDRATE, 115200);
   _modem_task_data.modem_initialized = false;
   _modem_task_data.initializing      = false;
+  _modem_task_data.dtrPin            = _kvs->getValueAsInt_or_default(NW005_KEY_PIN_DTR, -1);
 
   stats_and_cache.mark_begin_establish_connection();
 
@@ -1035,7 +1063,8 @@ String NW005_data_struct_PPP_modem::NW005_formatGpioLabel(uint32_t key, PinSelec
 {
   String label;
 
-  if ((key >= NW005_KEY_PIN_RX) && (key <= NW005_KEY_PIN_RESET))
+  if (key == NW005_KEY_PIN_DTR ||
+     ((key >= NW005_KEY_PIN_RX) && (key <= NW005_KEY_PIN_RESET)))
   {
     ESPEasy_key_value_store::StorageType storageType;
     purpose = PinSelectPurpose::Generic;
@@ -1063,10 +1092,7 @@ String NW005_data_struct_PPP_modem::NW005_formatGpioLabel(uint32_t key, PinSelec
           label, gpio_direction::gpio_input, optional);
         break;
       case NW005_KEY_PIN_RTS:
-        purpose = PinSelectPurpose::Generic_output;
-        label   = formatGpioName(
-          label, gpio_direction::gpio_output, optional);
-        break;
+      case NW005_KEY_PIN_DTR:
       case NW005_KEY_PIN_RESET:
         purpose = PinSelectPurpose::Generic_output;
         label   = formatGpioName(
