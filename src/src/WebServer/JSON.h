@@ -67,7 +67,7 @@ void stream_last_json_object_value(const __FlashStringHelper * object, String&& 
 void stream_last_json_object_value(const String& object, const String& value);
 void stream_last_json_object_value(const __FlashStringHelper * object, int value);
 
-void stream_json_object_values(const LabelType::Enum labels[]);
+//void stream_json_object_values(const LabelType::Enum labels[]);
 
 void stream_next_json_object_value(LabelType::Enum label);
 

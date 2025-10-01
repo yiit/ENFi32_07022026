@@ -11,6 +11,7 @@
 # include "../Helpers/StringConverter.h"
 # include "../WebServer/ESPEasy_WebServer.h"
 # include "../WebServer/HTML_wrappers.h"
+# include "../WebServer/KeyValueWriter_WebForm.h"
 # include "../WebServer/Markup.h"
 # include "../WebServer/Markup_Buttons.h"
 # include "../WebServer/Markup_Forms.h"
@@ -398,90 +399,16 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
       {
-        addFormSubHeader(F("Network Interface"));
-
-        {
-          String str;
-          const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS, &TempEvent, str);
-
-          if (res && !TempEvent.String1.isEmpty()) {
-            addRowLabel(TempEvent.String1);
-          } else {
-            addRowLabel(F("MAC Address"));
-          }
-          addHtml_pre(res
-            ? str
-            : TempEvent.networkInterface->macAddress());
-        }
-
-        const NWPlugin::NetforkFlags flags[] = {
-          NWPlugin::NetforkFlags::DHCP_client,
-          NWPlugin::NetforkFlags::DHCP_server,
-          NWPlugin::NetforkFlags::AutoUp,
-          NWPlugin::NetforkFlags::GratuituousArp,
-          NWPlugin::NetforkFlags::EventIPmodified,
-          NWPlugin::NetforkFlags::isPPP,
-          NWPlugin::NetforkFlags::isBridge,
-#  if CONFIG_LWIP_IPV6
-          NWPlugin::NetforkFlags::MLD_v6_report,
-          NWPlugin::NetforkFlags::IPv6_autoconf_enabled,
-#  endif // if CONFIG_LWIP_IPV6
-        };
-
-        addRowLabel(F("Flags"));
-        String labels_str;
-
-        for (size_t i = 0; i < NR_ELEMENTS(flags); ++i) {
-          if (NWPlugin::isFlagSet(flags[i], TempEvent.networkInterface)) {
-            if (!labels_str.isEmpty()) {
-              labels_str += F("<br>");
-            }
-            labels_str += NWPlugin::toString(flags[i]);
-
-            if (flags[i] == NWPlugin::NetforkFlags::DHCP_client) {
-              if (TempEvent.networkInterface->getStatusBits() & ESP_NETIF_HAS_STATIC_IP_BIT) {
-                labels_str += F(" (static IP)");
-              }
-            }
-          }
-        }
-        addHtml_pre(labels_str);
+        KeyValueWriter_WebForm writer(F("Network Interface"));
+        write_NetworkAdapterFlags(networkindex, writer);
       }
       {
-        addFormSubHeader(F("IP Config"));
-
-        const NWPlugin::IP_type ip_types[] = {
-          NWPlugin::IP_type::inet,
-          NWPlugin::IP_type::network_id_cdr,
-          NWPlugin::IP_type::netmask,
-          NWPlugin::IP_type::broadcast,
-          NWPlugin::IP_type::gateway,
-          NWPlugin::IP_type::dns1,
-          NWPlugin::IP_type::dns2,
-#  if CONFIG_LWIP_IPV6
-          NWPlugin::IP_type::ipv6_unknown,
-          NWPlugin::IP_type::ipv6_global,
-          NWPlugin::IP_type::ipv6_link_local,
-          NWPlugin::IP_type::ipv6_site_local,
-          NWPlugin::IP_type::ipv6_unique_local,
-          NWPlugin::IP_type::ipv4_mapped_ipv6,
-#  endif // if CONFIG_LWIP_IPV6
-
-        };
-
-        for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
-
-          PrintToString str;
-
-          if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
-            addRowLabel(NWPlugin::toString(ip_types[i]));
-            addHtml_pre(str.get());
-          }
-        }
+        KeyValueWriter_WebForm writer(F("IP Config"));
+        write_IP_config(networkindex, writer);
       }
       {
         String str;
-        const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED, &TempEvent, str);
+        const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_EXTENDED, &TempEvent, str);
 
         if (res && !str.isEmpty()) {
           addFormSubHeader(F("Connection Information"));
@@ -504,18 +431,18 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
           if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT, &TempEvent, str)) {
             addRowLabel(F("TX / RX Frames"));
             addHtml(strformat(
-              F("%d / %d"), 
-              TempEvent.Par5, 
-              TempEvent.Par6));
+                      F("%d / %d"),
+                      TempEvent.Par5,
+                      TempEvent.Par6));
 
             addRowLabel(F("TX / RX Frame Bytes"));
             addHtml(strformat(
-              F("%s%cB / %s%cB"),
-              formatHumanReadable(TempEvent.Par64_1, 1024).c_str(),
-              TempEvent.Par64_1 < 1024 ? ' ' : 'i',
-              formatHumanReadable(TempEvent.Par64_2, 1024).c_str(),
-              TempEvent.Par64_2 < 1024 ? ' ' : 'i'
-            ));
+                      F("%s%cB / %s%cB"),
+                      formatHumanReadable(TempEvent.Par64_1, 1024).c_str(),
+                      TempEvent.Par64_1 < 1024 ? ' ' : 'i',
+                      formatHumanReadable(TempEvent.Par64_2, 1024).c_str(),
+                      TempEvent.Par64_2 < 1024 ? ' ' : 'i'
+                      ));
           }
 #  endif // if FEATURE_NETWORK_TRAFFIC_COUNT
         }
@@ -534,5 +461,117 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
   html_end_form();
 
 }
+
+# ifdef ESP32
+
+bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter& writer)
+{
+  struct EventStruct TempEvent;
+
+  TempEvent.NetworkIndex = networkindex;
+  String str;
+
+  if (!NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str)) {
+    return false;
+  }
+
+  {
+    String str;
+    const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS, &TempEvent, str);
+
+    KeyValueStruct kv;
+    kv._value_pre = true;
+
+    if (res && !TempEvent.String1.isEmpty()) {
+      kv._key = TempEvent.String1;
+    } else {
+      kv._key = F("MAC Address");
+    }
+    kv.appendValue(res
+            ? std::move(str)
+            : TempEvent.networkInterface->macAddress());
+
+    writer.write(kv);
+  }
+
+  {
+    KeyValueStruct kv(F("Flags"));
+    kv._value_pre = true;
+
+    const NWPlugin::NetforkFlags flags[] = {
+      NWPlugin::NetforkFlags::DHCP_client,
+      NWPlugin::NetforkFlags::DHCP_server,
+      NWPlugin::NetforkFlags::AutoUp,
+      NWPlugin::NetforkFlags::GratuituousArp,
+      NWPlugin::NetforkFlags::EventIPmodified,
+      NWPlugin::NetforkFlags::isPPP,
+      NWPlugin::NetforkFlags::isBridge,
+#  if CONFIG_LWIP_IPV6
+      NWPlugin::NetforkFlags::MLD_v6_report,
+      NWPlugin::NetforkFlags::IPv6_autoconf_enabled,
+#  endif // if CONFIG_LWIP_IPV6
+    };
+
+    for (size_t i = 0; i < NR_ELEMENTS(flags); ++i) {
+      if (NWPlugin::isFlagSet(flags[i], TempEvent.networkInterface)) {
+        String labels_str = NWPlugin::toString(flags[i]);
+
+        if (flags[i] == NWPlugin::NetforkFlags::DHCP_client) {
+          if (TempEvent.networkInterface->getStatusBits() & ESP_NETIF_HAS_STATIC_IP_BIT) {
+            labels_str += F(" (static IP)");
+          }
+        }
+        kv.appendValue(labels_str);
+      }
+    }
+    writer.write(kv);
+  }
+  return true;
+}
+
+bool write_IP_config(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter& writer)
+{
+  struct EventStruct TempEvent;
+
+  TempEvent.NetworkIndex = networkindex;
+  String str;
+
+  if (!NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str)) {
+    return false;
+  }
+  const NWPlugin::IP_type ip_types[] = {
+    NWPlugin::IP_type::inet,
+    NWPlugin::IP_type::network_id_cdr,
+    NWPlugin::IP_type::netmask,
+    NWPlugin::IP_type::broadcast,
+    NWPlugin::IP_type::gateway,
+    NWPlugin::IP_type::dns1,
+    NWPlugin::IP_type::dns2,
+#  if CONFIG_LWIP_IPV6
+    NWPlugin::IP_type::ipv6_unknown,
+    NWPlugin::IP_type::ipv6_global,
+    NWPlugin::IP_type::ipv6_link_local,
+    NWPlugin::IP_type::ipv6_site_local,
+    NWPlugin::IP_type::ipv6_unique_local,
+    NWPlugin::IP_type::ipv4_mapped_ipv6,
+#  endif // if CONFIG_LWIP_IPV6
+
+  };
+
+  for (size_t i = 0; i < NR_ELEMENTS(ip_types); ++i) {
+
+    PrintToString str;
+
+    if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
+      KeyValueStruct kv(NWPlugin::toString(ip_types[i]), str.get());
+      kv._value_pre = true;
+      writer.write(kv);
+    }
+  }
+  return true;
+}
+
+# endif // ifdef ESP32
+
 
 #endif // ifdef WEBSERVER_NETWORK

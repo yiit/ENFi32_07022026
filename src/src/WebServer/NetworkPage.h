@@ -5,6 +5,8 @@
 
 #ifdef WEBSERVER_NETWORK
 
+#include "../Helpers/KeyValueWriter.h"
+
 #include "../../ESPEasy/net/DataTypes/NetworkIndex.h"
 #include "../../ESPEasy/net/DataStructs/NetworkSettingsStruct.h"
 
@@ -36,6 +38,13 @@ void handle_networks_ShowAllNetworksTable();
 // Show the network settings page
 // ********************************************************************************
 void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkindex);
+
+#ifdef ESP32
+bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter& writer);
+
+bool write_IP_config(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter& writer);
+
+#endif
 
 
 #endif // ifdef WEBSERVER_NETWORK

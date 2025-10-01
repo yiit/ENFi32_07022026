@@ -195,6 +195,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
     case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_EXTENDED:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
