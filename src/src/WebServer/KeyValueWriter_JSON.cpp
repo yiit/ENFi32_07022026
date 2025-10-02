@@ -39,7 +39,10 @@ KeyValueWriter_JSON::~KeyValueWriter_JSON()
     addHtml('\n');
 
     if (_hasHeader) {
+#ifdef USE_KVW_JSON_INDENT
       indent();
+#endif
+
       addHtml(_isArray ? ']' : '}');
     }
   }
@@ -59,7 +62,9 @@ void KeyValueWriter_JSON::write()
     if (_parent != nullptr) { _parent->write(); }
 
     if (_hasHeader) {
+#ifdef USE_KVW_JSON_INDENT
       indent();
+#endif
 
       if (_header.isEmpty()) {
         addHtml('{', '\n');
@@ -79,14 +84,19 @@ void KeyValueWriter_JSON::write()
 void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
 {
   write();
+#ifdef USE_KVW_JSON_INDENT
   indent();
-  addHtml('"');
-  addHtml(kv._key);
-  addHtml('"', ':');
+#endif
+
+  if (kv._key.length()) {
+    addHtml('"');
+    addHtml(kv._key);
+    addHtml('"', ':');
+  }
 
   const size_t nrValues = kv._values.size();
 
-  if (nrValues < 2) {
+  if (!kv._isArray) {
     // Either 1 value or empty value
     if (nrValues == 0) {
       addHtml('"', '"');
@@ -102,11 +112,14 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
       if (i != 0) {
         addHtml(',', '\n');
       }
+#ifdef USE_KVW_JSON_INDENT
       indent();
+      addHtml('\t');
+#endif
+
       writeValue(kv._values[i]);
     }
-    indent();
-    addHtml(']', '\n');
+    addHtml(']');
   }
 }
 
@@ -115,17 +128,20 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
   if (val.isInt) {
     addHtml(val.str);
   } else if (val.isBoolean) {
-    addHtml(val.str.equals("0") ? F("false") : F("true"));
+    addHtml(val.str.equals("1") ? F("true") : F("false"));
   } else {
     addHtml(to_json_value(val.str));
   }
 }
 
+#ifdef USE_KVW_JSON_INDENT
+
 void KeyValueWriter_JSON::indent() const
 {
-  const int level = getLevel();
-
-  for (int i = 0; i < level; ++i) {
+  if (_parent != nullptr) {
     addHtml('\t');
+    _parent->indent();
   }
 }
+
+#endif // ifdef USE_KVW_JSON_INDENT

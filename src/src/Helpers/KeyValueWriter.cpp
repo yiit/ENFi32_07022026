@@ -14,39 +14,41 @@ ValueStruct::ValueStruct(int64_t val) : str(ll2String(val)), isInt(true) {}
 
 ValueStruct::ValueStruct(const __FlashStringHelper *val) : str(val) {}
 
+ValueStruct::ValueStruct(String&& val) : str(std::move(val)) {}
+
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key) : _key(key) {}
 
 KeyValueStruct::KeyValueStruct(const String& key) : _key(key) {}
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct                value)
+                               ValueStruct             && value)
   : _key(key) {
   _values.emplace_back(std::move(value));
 }
 
 KeyValueStruct::KeyValueStruct(const String& key,
-                               ValueStruct   value)
+                               ValueStruct&& value)
   : _key(key) {
   _values.emplace_back(std::move(value));
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct                value,
+                               ValueStruct             && value,
                                const __FlashStringHelper *unit)
   : _key(key), _unit(unit) {
   _values.emplace_back(std::move(value));
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct                value,
+                               ValueStruct             && value,
                                const String             & unit)
   : _key(key), _unit(unit) {
   _values.emplace_back(std::move(value));
 }
 
 KeyValueStruct::KeyValueStruct(const String& key,
-                               ValueStruct   value,
+                               ValueStruct&& value,
                                const String& unit)
   : _key(key), _unit(unit) {
   _values.emplace_back(std::move(value));
@@ -57,11 +59,19 @@ KeyValueStruct::KeyValueStruct(LabelType::Enum label)
   _values.emplace_back(getValue(label));
 }
 
-void KeyValueStruct::appendValue(const ValueStruct& value) { _values.emplace_back(std::move(value)); }
+void KeyValueStruct::appendValue(const ValueStruct& value)
+{
+  _values.emplace_back(std::move(value));
+  _isArray = true;
+}
 
-void KeyValueStruct::appendValue(ValueStruct&& value)      { _values.emplace_back(std::move(value)); }
+void KeyValueStruct::appendValue(ValueStruct&& value)
+{
+  _values.emplace_back(std::move(value));
+  _isArray = true;
+}
 
-void KeyValueWriter::clear()                               {}
+void KeyValueWriter::clear() {}
 
 void KeyValueWriter::writeLabels(const LabelType::Enum labels[])
 {

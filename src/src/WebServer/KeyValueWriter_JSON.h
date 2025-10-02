@@ -2,6 +2,8 @@
 
 #include "../Helpers/KeyValueWriter.h"
 
+ #define USE_KVW_JSON_INDENT
+
 class KeyValueWriter_JSON : public KeyValueWriter
 {
 public:
@@ -27,8 +29,6 @@ public:
 
   virtual void setHeader(const String& header);
 
-  void         setIsArray() { _isArray = true; }
-
   virtual void clear() override;
 
   virtual void write();
@@ -37,10 +37,14 @@ public:
 
 private:
 
-  void writeValue(const ValueStruct& val);
+  void writeValue(const ValueStruct& value);
 
-  void indent() const;
+#ifdef USE_KVW_JSON_INDENT
 
-  bool _isArray{};
+public:
+
+  virtual void indent() const override;
+#endif // ifdef USE_KVW_JSON_INDENT
+
 
 }; // class KeyValueWriter_JSON

@@ -17,6 +17,7 @@ struct ValueStruct
   explicit ValueStruct(uint64_t val);
   explicit ValueStruct(int64_t val);
   ValueStruct(const __FlashStringHelper *val);
+  ValueStruct(String&& val);
 
   template<typename T>
   ValueStruct(const T& val) : str(val) {}
@@ -37,22 +38,22 @@ struct KeyValueStruct
 
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct                value);
+                 ValueStruct             && value);
 
   KeyValueStruct(const String& key,
-                 ValueStruct   value);
+                 ValueStruct&& value);
 
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct                value,
+                 ValueStruct             && value,
                  const __FlashStringHelper *unit);
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct                value,
+                 ValueStruct             && value,
                  const String             & unit);
 
   KeyValueStruct(const String& key,
-                 ValueStruct   value,
+                 ValueStruct&& value,
                  const String& unit);
 
   KeyValueStruct(LabelType::Enum label);
@@ -70,7 +71,7 @@ struct KeyValueStruct
 
   // output as pre-formatted monospaced
   bool _value_pre{};
-
+  bool _isArray{};
 
 };
 
@@ -106,9 +107,13 @@ public:
 
   void         writeLabels(const LabelType::Enum labels[]);
 
-//  virtual void setParent(KeyValueWriter*parent) { _parent = parent; }
+  //  virtual void setParent(KeyValueWriter*parent) { _parent = parent; }
 
   virtual int  getLevel() const;
+
+  virtual void setIsArray()   { _isArray = true; }
+
+  virtual void indent() const {}
 
 protected:
 
@@ -119,6 +124,8 @@ protected:
   bool _hasHeader = true;
 
   bool _isEmpty = true;
+
+  bool _isArray{};
 
 
 }; // class KeyValueWriter
