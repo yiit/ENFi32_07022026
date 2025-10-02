@@ -156,14 +156,21 @@ void handle_json()
   }
 
   TXBuffer.startJsonStream();
-
-  if (!showSpecificTask)
   {
-    addHtml('{');
 
-    if (showSystem) {
-      {
-        KeyValueWriter_JSON writer(F("System"));
+    KeyValueWriter_JSON mainLevelWriter(true);
+
+    if (!showSpecificTask)
+    {
+      if (showSystem) {
+        KeyValueWriter_JSON writer(F("System"), &mainLevelWriter);
+
+        if (wdcounter > 0)
+        {
+          writer.write(LabelType::LOAD_PCT);
+          writer.write(LabelType::LOOP_COUNT);
+        }
+
 
         static const LabelType::Enum labels[] PROGMEM =
         {
@@ -249,33 +256,25 @@ void handle_json()
           LabelType::MAX_LABEL
         };
         writer.writeLabels(labels);
-
-        if (wdcounter > 0)
-        {
-          writer.write(LabelType::LOAD_PCT);
-          writer.write(LabelType::LOOP_COUNT);
-        }
       }
-      stream_comma_newline();
-    }
 
 
-    if (showWifi) {
-      {
-        KeyValueWriter_JSON writer(F("WiFi"));
+      if (showWifi) {
+        KeyValueWriter_JSON writer(F("WiFi"), &mainLevelWriter);
 
-#ifdef ESP32
+#ifdef WEBSERVER_NETWORK
+# ifdef ESP32
         {
-          KeyValueWriter_JSON writer2(F("Network Interface"));
+          KeyValueWriter_JSON writer2(F("Network Interface"), &writer);
           write_NetworkAdapterFlags(0, writer2);
         }
-        stream_comma_newline();
         {
-          KeyValueWriter_JSON writer2(F("IP Config"));
+          KeyValueWriter_JSON writer2(F("IP Config"), &writer);
           write_IP_config(0, writer2);
         }
-        stream_comma_newline();
-#endif // ifdef ESP32
+# endif // ifdef ESP32
+#endif // ifdef WEBSERVER_NETWORK
+
 
         static const LabelType::Enum labels[] PROGMEM =
         {
@@ -340,16 +339,14 @@ void handle_json()
           LabelType::MAX_LABEL
         };
         writer.writeLabels(labels);
-      }
 
-      // TODO: PKR: Add ETH Objects
-      stream_comma_newline();
-    }
+        // TODO: PKR: Add ETH Objects
+      }
 
     #if FEATURE_ETHERNET
 
-    if (showEthernet) {
-      {
+      if (showEthernet) {
+
         static const LabelType::Enum labels[] PROGMEM =
         {
           LabelType::ETH_WIFI_MODE,
@@ -363,362 +360,341 @@ void handle_json()
 
           LabelType::MAX_LABEL
         };
-        KeyValueWriter_JSON writer(F("Ethernet"));
+        KeyValueWriter_JSON writer(F("Ethernet"), &mainLevelWriter);
         writer.writeLabels(labels);
-      }
 
-      stream_comma_newline();
-    }
+      }
     #endif // if FEATURE_ETHERNET
 
   #if FEATURE_ESPEASY_P2P
 
-    if (showNodes) {
-      bool comma_between = false;
+      if (showNodes) {
+        KeyValueWriter_JSON nodesWriter(F("nodes"), &mainLevelWriter);
+        nodesWriter.setIsArray();
 
-      for (auto it = Nodes.begin(); it != Nodes.end(); ++it)
-      {
-        if (it->second.ip[0] != 0)
+        for (auto it = Nodes.begin(); it != Nodes.end(); ++it)
         {
-          if (comma_between) {
-            addHtml(',');
-          } else {
-            comma_between = true;
-            addHtml(F("\"nodes\":[\n")); // open json array if >0 nodes
-          }
+          if (it->second.ip[0] != 0)
+          {
+            KeyValueWriter_JSON writer(&nodesWriter);
 
-          addHtml('{');
-          stream_next_json_object_value(F("nr"), it->first);
-          stream_next_json_object_value(F("name"),
-                                        (it->first != Settings.Unit) ? it->second.getNodeName() : Settings.getName());
+            writer.write({ F("nr"), it->first });
+            writer.write({ F("name"),
+                           (it->first != Settings.Unit) ? it->second.getNodeName() : Settings.getName() });
 
-          if (it->second.build) {
-            stream_next_json_object_value(F("build"), formatSystemBuildNr(it->second.build));
-          }
-
-          if (it->second.nodeType) {
-            stream_next_json_object_value(F("platform"), it->second.getNodeTypeDisplayString());
-          }
-          const int8_t rssi = it->second.getRSSI();
-
-          if (rssi < 0) {
-            stream_next_json_object_value(F("rssi"), rssi);
-          }
-
-          if (it->second.build >= 20107) {
-            stream_next_json_object_value(F("load"), toString(it->second.getLoad(), 2));
-
-            if (it->second.webgui_portnumber != 80) {
-              stream_next_json_object_value(F("webport"), it->second.webgui_portnumber);
+            if (it->second.build) {
+              writer.write({ F("build"), formatSystemBuildNr(it->second.build) });
             }
-          }
-          stream_next_json_object_value(F("ip"), formatIP(it->second.IP()));
+
+            if (it->second.nodeType) {
+              writer.write({ F("platform"), it->second.getNodeTypeDisplayString() });
+            }
+            const int8_t rssi = it->second.getRSSI();
+
+            if (rssi < 0) {
+              writer.write({ F("rssi"), rssi });
+            }
+
+            if (it->second.build >= 20107) {
+              writer.write({ F("load"), toString(it->second.getLoad(), 2) });
+
+              if (it->second.webgui_portnumber != 80) {
+                writer.write({ F("webport"), it->second.webgui_portnumber });
+              }
+            }
+            writer.write({ F("ip"), formatIP(it->second.IP()) });
 # if FEATURE_USE_IPV6
 
-          if (it->second.hasIPv6_mac_based_link_local) {
-            stream_next_json_object_value(F("ipv6local"), formatIP(it->second.IPv6_link_local(true), true));
-          }
+            if (it->second.hasIPv6_mac_based_link_local) {
+              writer.write({ F("ipv6local"), formatIP(it->second.IPv6_link_local(true), true) });
+            }
 
-          if (it->second.hasIPv6_mac_based_link_global) {
-            stream_next_json_object_value(F("ipv6global"), formatIP(it->second.IPv6_global()));
-          }
+            if (it->second.hasIPv6_mac_based_link_global) {
+              writer.write({ F("ipv6global"), formatIP(it->second.IPv6_global()) });
+            }
 # endif // if FEATURE_USE_IPV6
-          stream_last_json_object_value(F("age"), it->second.getAge());
-        } // if node info exists
-      }   // for loop
+            writer.write({ F("age"), it->second.getAge() });
+          } // if node info exists
+        }   // for loop
+      }
+  #endif // if FEATURE_ESPEASY_P2P
+    }
 
-      if (comma_between) {
-        addHtml(F("],\n")); // close array if >0 nodes
+    taskIndex_t firstTaskIndex = 0;
+    taskIndex_t lastTaskIndex  = TASKS_MAX - 1;
+
+    if (showSpecificTask)
+    {
+      firstTaskIndex = taskNr - 1;
+      lastTaskIndex  = taskNr - 1;
+    }
+    taskIndex_t lastActiveTaskIndex = 0;
+
+    for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastTaskIndex; TaskIndex++) {
+      if (validPluginID_fullcheck(Settings.getPluginID_for_task(TaskIndex))) {
+        lastActiveTaskIndex = TaskIndex;
       }
     }
-  #endif // if FEATURE_ESPEASY_P2P
-  }
 
-  taskIndex_t firstTaskIndex = 0;
-  taskIndex_t lastTaskIndex  = TASKS_MAX - 1;
-
-  if (showSpecificTask)
-  {
-    firstTaskIndex = taskNr - 1;
-    lastTaskIndex  = taskNr - 1;
-  }
-  taskIndex_t lastActiveTaskIndex = 0;
-
-  for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastTaskIndex; TaskIndex++) {
-    if (validPluginID_fullcheck(Settings.getPluginID_for_task(TaskIndex))) {
-      lastActiveTaskIndex = TaskIndex;
-    }
-  }
-
-  if (!showSpecificTask) {
-    addHtml(F("\"Sensors\":[\n"));
-  }
-
-  // Keep track of the lowest reported TTL and use that as refresh interval.
-  unsigned long lowest_ttl_json = 60;
-
-  for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastActiveTaskIndex && validTaskIndex(TaskIndex); TaskIndex++)
-  {
-    const deviceIndex_t DeviceIndex = getDeviceIndex_from_TaskIndex(TaskIndex);
-
-    if (validDeviceIndex(DeviceIndex))
+    // Keep track of the lowest reported TTL and use that as refresh interval.
+    unsigned long lowest_ttl_json = 60;
     {
-      const unsigned long taskInterval = Settings.TaskDeviceTimer[TaskIndex];
+      KeyValueWriter_JSON sensorsWriter(false, &mainLevelWriter);
 
-      // LoadTaskSettings(TaskIndex);
-      addHtml('{', '\n');
+      if (!showSpecificTask) {
+        sensorsWriter.setHeader(F("Sensors"));
+        sensorsWriter.setIsArray();
+      }
 
-      unsigned long ttl_json = 60; // Default value
 
-      // For simplicity, do the optional values first.
-      const uint8_t valueCount = getValueCountForTask(TaskIndex);
+      for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastActiveTaskIndex && validTaskIndex(TaskIndex); TaskIndex++)
+      {
+        const deviceIndex_t DeviceIndex = getDeviceIndex_from_TaskIndex(TaskIndex);
 
-      if (valueCount != 0) {
-        if (Settings.TaskDeviceEnabled[TaskIndex]) {
-          if (taskInterval == 0) {
-            ttl_json = 1;
-          } else {
-            ttl_json = taskInterval;
-          }
-
-          if (ttl_json < lowest_ttl_json) {
-            lowest_ttl_json = ttl_json;
-          }
-        }
-        addHtml(F("\"TaskValues\": [\n"));
-
-        struct EventStruct TempEvent(TaskIndex);
-
-        for (uint8_t x = 0; x < valueCount; x++)
+        if (validDeviceIndex(DeviceIndex))
         {
-          uint8_t nrDecimals = Cache.getTaskDeviceValueDecimals(TaskIndex, x);
-          String  value      = formatUserVarNoCheck(&TempEvent, x);
+          const unsigned long taskInterval = Settings.TaskDeviceTimer[TaskIndex];
+
+          KeyValueWriter_JSON taskWriter(&sensorsWriter);
+
+          // LoadTaskSettings(TaskIndex);
+
+          unsigned long ttl_json = 60; // Default value
+
+          // For simplicity, do the optional values first.
+          const uint8_t valueCount = getValueCountForTask(TaskIndex);
+
+          if (valueCount != 0) {
+            if (Settings.TaskDeviceEnabled[TaskIndex]) {
+              if (taskInterval == 0) {
+                ttl_json = 1;
+              } else {
+                ttl_json = taskInterval;
+              }
+
+              if (ttl_json < lowest_ttl_json) {
+                lowest_ttl_json = ttl_json;
+              }
+            }
+            KeyValueWriter_JSON taskValueWriter(F("TaskValues"), &taskWriter);
+            taskValueWriter.setIsArray();
+
+            struct EventStruct TempEvent(TaskIndex);
+
+            for (uint8_t x = 0; x < valueCount; x++)
+            {
+              uint8_t nrDecimals = Cache.getTaskDeviceValueDecimals(TaskIndex, x);
+              String  value      = formatUserVarNoCheck(&TempEvent, x);
           #if FEATURE_STRING_VARIABLES
-          bool hasPresentation;
-          const String presentation = formatUserVarForPresentation(&TempEvent, x, hasPresentation, value, DeviceIndex);
+              bool hasPresentation;
+              const String presentation = formatUserVarForPresentation(&TempEvent, x, hasPresentation, value, DeviceIndex);
           #endif // if FEATURE_STRING_VARIABLES
 
-          if (mustConsiderAsJSONString(value)) {
-            // Flag as not to treat as a float
-            nrDecimals = 255;
-          }
+              if (mustConsiderAsJSONString(value)) {
+                // Flag as not to treat as a float
+                nrDecimals = 255;
+              }
           #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-          String uom;
-          const uint8_t uomIndex = Cache.getTaskVarUnitOfMeasure(TaskIndex, x);
+              String uom;
+              const uint8_t uomIndex = Cache.getTaskVarUnitOfMeasure(TaskIndex, x);
 
-          if (uomIndex != 0) {
-            uom = toUnitOfMeasureName(uomIndex);
-          }
+              if (uomIndex != 0) {
+                uom = toUnitOfMeasureName(uomIndex);
+              }
           #else // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-          const String uom;
+              const String uom;
           #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-          handle_json_stream_task_value_data(x + 1,
-                                             Cache.getTaskDeviceValueName(TaskIndex, x),
-                                             nrDecimals,
-                                             value,
+              handle_json_stream_task_value_data(&taskValueWriter,
+                                                 x + 1,
+                                                 Cache.getTaskDeviceValueName(TaskIndex, x),
+                                                 nrDecimals,
+                                                 value,
                                              #if FEATURE_STRING_VARIABLES
-                                             presentation,
+                                                 presentation,
                                              #else // if FEATURE_STRING_VARIABLES
-                                             EMPTY_STRING,
+                                                 EMPTY_STRING,
                                              #endif // if FEATURE_STRING_VARIABLES
-                                             uom,
-                                             x < (valueCount - 1));
-        }
+                                                 uom);
+            }
         #if FEATURE_STRING_VARIABLES
 
-        if (Settings.ShowDerivedTaskValues(TaskIndex)) {
-          int varNr       = VARS_PER_TASK;
-          String taskName = getTaskDeviceName(TaskIndex);
-          taskName.toLowerCase();
-          String postfix;
-          const String search = getDerivedValueSearchAndPostfix(taskName, postfix);
+            if (Settings.ShowDerivedTaskValues(TaskIndex)) {
+              int varNr       = VARS_PER_TASK;
+              String taskName = getTaskDeviceName(TaskIndex);
+              taskName.toLowerCase();
+              String postfix;
+              const String search = getDerivedValueSearchAndPostfix(taskName, postfix);
 
-          auto it = customStringVar.begin();
+              auto it = customStringVar.begin();
 
-          while (it != customStringVar.end()) {
-            if (it->first.startsWith(search) && it->first.endsWith(postfix)) {
-              String valueName = it->first.substring(search.length(), it->first.indexOf('-'));
-              String uom;
-              String vType;
-              const String vname2 = getDerivedValueNameUomAndVType(taskName, valueName, uom, vType);
+              while (it != customStringVar.end()) {
+                if (it->first.startsWith(search) && it->first.endsWith(postfix)) {
+                  String valueName = it->first.substring(search.length(), it->first.indexOf('-'));
+                  String uom;
+                  String vType;
+                  const String vname2 = getDerivedValueNameUomAndVType(taskName, valueName, uom, vType);
 
-              if (!vname2.isEmpty()) {
-                valueName = vname2;
-              }
+                  if (!vname2.isEmpty()) {
+                    valueName = vname2;
+                  }
 
-              if (!it->second.isEmpty()) {
-                String value(it->second);
-                stripEscapeCharacters(value);
-                value = parseTemplate(value);
-                uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
-                bool    hasPresentation;
-                const String presentation = formatUserVarForPresentation(&TempEvent,
-                                                                         INVALID_TASKVAR_INDEX,
-                                                                         hasPresentation,
-                                                                         value,
-                                                                         DeviceIndex,
-                                                                         valueName);
+                  if (!it->second.isEmpty()) {
+                    String value(it->second);
+                    stripEscapeCharacters(value);
+                    value = parseTemplate(value);
+                    uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
+                    bool    hasPresentation;
+                    const String presentation = formatUserVarForPresentation(&TempEvent,
+                                                                             INVALID_TASKVAR_INDEX,
+                                                                             hasPresentation,
+                                                                             value,
+                                                                             DeviceIndex,
+                                                                             valueName);
 
-                stream_comma_newline(); // Push out a comma and newline
-                handle_json_stream_task_value_data(varNr + 1,
-                                                   valueName,
-                                                   nrDecimals,
-                                                   value,
-                                                   presentation,
-                                                   uom,
-                                                   false); // No comma here
-                ++varNr;
+                    handle_json_stream_task_value_data(&taskValueWriter,
+                                                       varNr + 1,
+                                                       valueName,
+                                                       nrDecimals,
+                                                       value,
+                                                       presentation,
+                                                       uom);
+                    ++varNr;
+                  }
+                }
+                else if (it->first.substring(0, search.length()).compareTo(search) > 0) {
+                  break;
+                }
+                ++it;
               }
             }
-            else if (it->first.substring(0, search.length()).compareTo(search) > 0) {
-              break;
-            }
-            ++it;
-          }
-        }
         #endif // if FEATURE_STRING_VARIABLES
-        addHtml(F("],\n"));
-      }
+          }
 
 #if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
 
-      if (showPluginStats && Device[DeviceIndex].PluginStats) {
-        PluginTaskData_base *taskData = getPluginTaskDataBaseClassOnly(TaskIndex);
+          if (showPluginStats && Device[DeviceIndex].PluginStats) {
+            PluginTaskData_base *taskData = getPluginTaskDataBaseClassOnly(TaskIndex);
 
-        if ((taskData != nullptr) && (taskData->nrSamplesPresent() > 0)) {
-          addHtml(F("\"PluginStats\":\n"));
-          taskData->plot_ChartJS(true);
-          stream_comma_newline();
-        }
-      }
+            if ((taskData != nullptr) && (taskData->nrSamplesPresent() > 0)) {
+              addHtml(F("\"PluginStats\":\n"));
+              taskData->plot_ChartJS(true);
+              stream_comma_newline();
+            }
+          }
 #endif // if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
 
 
-      if (showSpecificTask) {
-        stream_next_json_object_value(F("TTL"),     ttl_json * 1000);
+          if (showSpecificTask) {
+            stream_next_json_object_value(F("TTL"),     ttl_json * 1000);
         #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-        stream_next_json_object_value(F("ShowUoM"), jsonBool(Settings.ShowUnitOfMeasureOnDevicesPage()));
+            stream_next_json_object_value(F("ShowUoM"), jsonBool(Settings.ShowUnitOfMeasureOnDevicesPage()));
         #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-      }
-
-      if (showDataAcquisition) {
-        addHtml(F("\"DataAcquisition\": [\n"));
-
-        for (controllerIndex_t x = 0; x < CONTROLLER_MAX; x++)
-        {
-          addHtml('{');
-          stream_next_json_object_value(F("Controller"), x + 1);
-          stream_next_json_object_value(F("IDX"),        Settings.TaskDeviceID[x][TaskIndex]);
-          stream_last_json_object_value(F("Enabled"), jsonBool(Settings.TaskDeviceSendData[x][TaskIndex]));
-
-          if (x < (CONTROLLER_MAX - 1)) {
-            stream_comma_newline();
           }
-        }
-        addHtml(F("],\n"));
-      }
 
-      if (showTaskDetails) {
-        stream_next_json_object_value(F("TaskInterval"),     taskInterval);
-        stream_next_json_object_value(F("Type"),             getPluginNameFromDeviceIndex(DeviceIndex));
-        stream_next_json_object_value(F("TaskName"),         getTaskDeviceName(TaskIndex));
-        stream_next_json_object_value(F("TaskDeviceNumber"), Settings.getPluginID_for_task(TaskIndex).value);
+          if (showDataAcquisition) {
+            KeyValueWriter_JSON dataAquisitionWriter(F("DataAcquisition"), &taskWriter);
+            dataAquisitionWriter.setIsArray();
 
-        for (int i = 0; i < 3; i++) {
-          if (Settings.TaskDevicePin[i][TaskIndex] >= 0) {
-            stream_next_json_object_value(concat(F("TaskDeviceGPIO"), i + 1), static_cast<int>(Settings.TaskDevicePin[i][TaskIndex]));
+            for (controllerIndex_t x = 0; x < CONTROLLER_MAX; x++)
+            {
+              KeyValueWriter_JSON controllerWriter(&dataAquisitionWriter);
+              controllerWriter.write({ F("Controller"), x + 1 });
+              controllerWriter.write({ F("IDX"),        Settings.TaskDeviceID[x][TaskIndex] });
+              controllerWriter.write({ F("Enabled"), jsonBool(Settings.TaskDeviceSendData[x][TaskIndex]) });
+            }
           }
-        }
 
-        #if FEATURE_I2CMULTIPLEXER
-        uint8_t i2cBus = 0;
-        # if FEATURE_I2C_MULTIPLE
-        i2cBus = Settings.getI2CInterface(TaskIndex);
-        # endif
+          if (showTaskDetails) {
+            taskWriter.write({ F("TaskInterval"),     taskInterval });
+            taskWriter.write({ F("Type"),             getPluginNameFromDeviceIndex(DeviceIndex) });
+            taskWriter.write({ F("TaskName"),         getTaskDeviceName(TaskIndex) });
+            taskWriter.write({ F("TaskDeviceNumber"), Settings.getPluginID_for_task(TaskIndex).value });
 
-        if ((Device[DeviceIndex].Type == DEVICE_TYPE_I2C) && isI2CMultiplexerEnabled(i2cBus)) {
-          # if FEATURE_I2C_MULTIPLE
-          stream_next_json_object_value(F("I2C_Interface"), static_cast<int>(i2cBus + 1));
-          # endif
-          int8_t channel = Settings.I2C_Multiplexer_Channel[TaskIndex];
-
-          if (bitRead(Settings.I2C_Flags[TaskIndex], I2C_FLAGS_MUX_MULTICHANNEL)) {
-            addHtml(F("\"I2CBus\" : ["));
-            uint8_t b = 0;
-
-            for (uint8_t c = 0; c < I2CMultiplexerMaxChannels(i2cBus); ++c) {
-              if (bitRead(channel, c)) {
-                if (b > 0) { stream_comma_newline(); }
-                b++;
-                addHtml(F("\"Multiplexer channel "));
-                addHtmlInt(c);
-                addHtml('"');
+            for (int i = 0; i < 3; i++) {
+              if (Settings.TaskDevicePin[i][TaskIndex] >= 0) {
+                taskWriter.write({ concat(F("TaskDeviceGPIO"), i + 1), static_cast<int>(Settings.TaskDevicePin[i][TaskIndex]) });
               }
             }
-            addHtml(F("],\n"));
-          } else {
-            if (channel == -1) {
-              stream_next_json_object_value(F("I2Cbus"), F("Standard I2C bus"));
-            } else {
-              String i2cChannel = concat(F("Multiplexer channel "), channel);
-              stream_next_json_object_value(F("I2Cbus"), i2cChannel);
+
+        #if FEATURE_I2CMULTIPLEXER
+            uint8_t i2cBus = 0;
+        # if FEATURE_I2C_MULTIPLE
+            i2cBus = Settings.getI2CInterface(TaskIndex);
+        # endif
+
+            if ((Device[DeviceIndex].Type == DEVICE_TYPE_I2C) && isI2CMultiplexerEnabled(i2cBus)) {
+          # if FEATURE_I2C_MULTIPLE
+              taskWriter.write({ F("I2C_Interface"), static_cast<int>(i2cBus + 1) });
+          # endif
+              int8_t channel = Settings.I2C_Multiplexer_Channel[TaskIndex];
+
+              if (bitRead(Settings.I2C_Flags[TaskIndex], I2C_FLAGS_MUX_MULTICHANNEL)) {
+
+                KeyValueStruct kv(F("I2CBus"));
+
+                addHtml(F("\"I2CBus\" : ["));
+
+                for (uint8_t c = 0; c < I2CMultiplexerMaxChannels(i2cBus); ++c) {
+                  if (bitRead(channel, c)) {
+                    kv.appendValue(strformat(F("Multiplexer channel %d"), c));
+                  }
+                }
+                taskWriter.write(kv);
+              } else {
+                if (channel == -1) {
+                  taskWriter.write({ F("I2Cbus"), F("Standard I2C bus") });
+                } else {
+                  taskWriter.write({ F("I2Cbus"), concat(F("Multiplexer channel "), channel) });
+                }
+              }
             }
-          }
-        }
         #endif // if FEATURE_I2CMULTIPLEXER
+          }
+          taskWriter.write({ F("TaskEnabled"),
+                             jsonBool(Settings.TaskDeviceEnabled[TaskIndex]) });
+          taskWriter.write({ F("TaskNumber"), TaskIndex + 1 });
+        }
       }
-      stream_next_json_object_value(F("TaskEnabled"),
-
-// jsonBool(Settings.TaskDeviceEnabled[TaskIndex].enabled));
-                                    jsonBool(Settings.TaskDeviceEnabled[TaskIndex]));
-
-      stream_last_json_object_value(F("TaskNumber"), TaskIndex + 1);
-
-      if (TaskIndex != lastActiveTaskIndex) {
-        addHtml(',');
-      }
-      addHtml('\n');
     }
-  }
 
-  if (!showSpecificTask) {
-    addHtml(F("],\n"));
+    if (!showSpecificTask) {
     #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    stream_next_json_object_value(F("ShowUoM"), jsonBool(Settings.ShowUnitOfMeasureOnDevicesPage()));
+
+      // Explicit cast to bool, since the function is an inline function, which is returning part of a bitset.
+      // Thus is considered an int by the compiler
+      mainLevelWriter.write({ F("ShowUoM"), !!Settings.ShowUnitOfMeasureOnDevicesPage() });
     #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    stream_last_json_object_value(F("TTL"), lowest_ttl_json * 1000);
+      mainLevelWriter.write({ F("TTL"), lowest_ttl_json * 1000 });
+    }
   }
 
   TXBuffer.endStream();
   STOP_TIMER(HANDLE_SERVING_WEBPAGE_JSON);
 }
 
-void handle_json_stream_task_value_data(uint16_t      valueNumber,
-                                        const String& valueName,
-                                        uint8_t       nrDecimals,
-                                        const String& value,
-                                        const String& presentation,
-                                        const String& uom,
-                                        bool          appendComma) {
-  addHtml('{');
-  stream_next_json_object_value(F("ValueNumber"), valueNumber);
-  stream_next_json_object_value(F("Name"),        valueName);
-  stream_next_json_object_value(F("NrDecimals"),  nrDecimals);
+void handle_json_stream_task_value_data(KeyValueWriter_JSON*parent,
+                                        uint16_t            valueNumber,
+                                        const String      & valueName,
+                                        uint8_t             nrDecimals,
+                                        const String      & value,
+                                        const String      & presentation,
+                                        const String      & uom) {
+  KeyValueWriter_JSON writer(parent);
+
+  writer.write({ F("ValueNumber"), valueNumber });
+  writer.write({ F("Name"),        valueName });
+  writer.write({ F("NrDecimals"),  nrDecimals });
   #if FEATURE_STRING_VARIABLES
 
   if (!presentation.isEmpty()) {
-    stream_next_json_object_value(F("Presentation"), presentation);
+    writer.write({ F("Presentation"), presentation });
   }
   #endif // if FEATURE_STRING_VARIABLES
 
   if (!uom.isEmpty()) {
-    stream_next_json_object_value(F("UoM"), uom);
+    writer.write({ F("UoM"), uom });
   }
-  stream_last_json_object_value(F("Value"), value);
-
-  if (appendComma) {
-    stream_comma_newline();
-  }
+  writer.write({ F("Value"), value });
 }
 
 // ********************************************************************************

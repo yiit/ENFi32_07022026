@@ -74,3 +74,9 @@ void KeyValueWriter::writeLabels(const LabelType::Enum labels[])
     ++i;
   }
 }
+
+int KeyValueWriter::getLevel() const
+{
+  if (_parent == nullptr) { return 0; }
+  return _parent->getLevel() + 1;
+}

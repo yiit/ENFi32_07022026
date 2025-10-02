@@ -78,12 +78,47 @@ class KeyValueWriter
 {
 public:
 
+  KeyValueWriter(bool emptyHeader = false) : _hasHeader(emptyHeader) {}
+
+protected:
+
+  KeyValueWriter(KeyValueWriter*parent) : _parent(parent) {}
+
+  KeyValueWriter(bool emptyHeader, KeyValueWriter*parent) : _parent(parent), _hasHeader(emptyHeader) {}
+
+  KeyValueWriter(const String& header, KeyValueWriter*parent) : _header(header), _parent(parent) {}
+
+public:
+
   virtual ~KeyValueWriter() {}
+
+  virtual void setHeader(const String& header) {
+    _header    = header;
+    _hasHeader = true;
+  }
 
   virtual void clear();
 
+  // Mark a write, typically called from a child calling its parent it is about to write
+  virtual void write() = 0;
+
   virtual void write(const KeyValueStruct& kv) = 0;
 
-  void writeLabels(const LabelType::Enum labels[]);
+  void         writeLabels(const LabelType::Enum labels[]);
+
+//  virtual void setParent(KeyValueWriter*parent) { _parent = parent; }
+
+  virtual int  getLevel() const;
+
+protected:
+
+  String _header;
+
+  KeyValueWriter *_parent{};
+
+  bool _hasHeader = true;
+
+  bool _isEmpty = true;
+
 
 }; // class KeyValueWriter

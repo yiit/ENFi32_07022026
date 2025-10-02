@@ -4,30 +4,82 @@
 
 #include "../WebServer/HTML_wrappers.h"
 
+KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader)
+  : KeyValueWriter(emptyHeader)
+{}
+
+KeyValueWriter_JSON::KeyValueWriter_JSON(KeyValueWriter_JSON*parent)
+  : KeyValueWriter(parent)
+{}
+
+KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader, KeyValueWriter_JSON*parent)
+  : KeyValueWriter(emptyHeader, parent)
+{}
+
 KeyValueWriter_JSON::KeyValueWriter_JSON(const String& header)
-  : _hasHeader(true)
-{
-  addHtml(strformat(F("\"%s\":{\n"), header.c_str()));
-}
+  : KeyValueWriter(header, nullptr)
+{}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(const __FlashStringHelper *header)
-  : _hasHeader(true)
-{
-  addHtml(strformat(F("\"%s\":{\n"), FsP(header)));
-}
+  : KeyValueWriter(String(header), nullptr)
+{}
+
+
+KeyValueWriter_JSON::KeyValueWriter_JSON(const String& header, KeyValueWriter_JSON*parent)
+  : KeyValueWriter(header, parent)
+{}
+
+KeyValueWriter_JSON::KeyValueWriter_JSON(const __FlashStringHelper *header, KeyValueWriter_JSON*parent)
+  : KeyValueWriter(String(header), parent)
+{}
 
 KeyValueWriter_JSON::~KeyValueWriter_JSON()
 {
-  if (_hasHeader) { addHtml('}', '\n'); }
+  if (!_isEmpty) {
+    addHtml('\n');
+
+    if (_hasHeader) {
+      indent();
+      addHtml(_isArray ? ']' : '}');
+    }
+  }
 }
 
-void KeyValueWriter_JSON::clear() { _isFirst = true; }
+void KeyValueWriter_JSON::setHeader(const String& header)
+{
+  _header    = header;
+  _hasHeader = true;
+}
+
+void KeyValueWriter_JSON::clear() { _isEmpty = true; }
+
+void KeyValueWriter_JSON::write()
+{
+  if (_isEmpty) {
+    if (_parent != nullptr) { _parent->write(); }
+
+    if (_hasHeader) {
+      indent();
+
+      if (_header.isEmpty()) {
+        addHtml('{', '\n');
+      } else {
+        addHtml(strformat(
+                  F("\"%s\":%c\n"),
+                  _header.c_str(),
+                  _isArray ? '[' : '{'));
+      }
+    }
+    _isEmpty = false;
+  } else {
+    addHtml(',', '\n');
+  }
+}
 
 void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
 {
-  if (!_isFirst) {
-    addHtml(',', '\n');
-  }
+  write();
+  indent();
   addHtml('"');
   addHtml(kv._key);
   addHtml('"', ':');
@@ -50,12 +102,12 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
       if (i != 0) {
         addHtml(',', '\n');
       }
+      indent();
       writeValue(kv._values[i]);
     }
+    indent();
     addHtml(']', '\n');
   }
-
-  _isFirst = false;
 }
 
 void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
@@ -66,5 +118,14 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
     addHtml(val.str.equals("0") ? F("false") : F("true"));
   } else {
     addHtml(to_json_value(val.str));
+  }
+}
+
+void KeyValueWriter_JSON::indent() const
+{
+  const int level = getLevel();
+
+  for (int i = 0; i < level; ++i) {
+    addHtml('\t');
   }
 }
