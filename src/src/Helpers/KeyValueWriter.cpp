@@ -18,19 +18,6 @@ KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key) : _key(key) {}
 
 KeyValueStruct::KeyValueStruct(const String& key) : _key(key) {}
 
-/*
-   KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct             && value)
-   : _key(key) {
-   _values.emplace_back(std::move(value));
-   }
-
-   KeyValueStruct::KeyValueStruct(const String& key,
-                               ValueStruct&& value)
-   : _key(key) {
-   _values.emplace_back(std::move(value));
-   }
- */
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                bool                   val,
@@ -47,13 +34,27 @@ KeyValueStruct::KeyValueStruct(const String         & key,
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
+                               const uint64_t       & val,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  _values.emplace_back(ull2String(val), vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               const int64_t        & val,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  _values.emplace_back(ll2String(val), vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
                                const float          & val,
                                int                    nrDecimals,
                                ValueStruct::ValueType vType)
   : _key(key) {
   String str;
 
-  if (!toValidString(str, val, nrDecimals, true)) {
+  if (!toValidString(str, val, nrDecimals)) {
     vType = ValueStruct::ValueType::String;
   }
 
@@ -67,7 +68,7 @@ KeyValueStruct::KeyValueStruct(const String         & key,
   : _key(key) {
   String str;
 
-  if (!doubleToValidString(str, val, nrDecimals, true)) {
+  if (!doubleToValidString(str, val, nrDecimals)) {
     vType = ValueStruct::ValueType::String;
   }
 

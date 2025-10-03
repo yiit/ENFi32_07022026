@@ -135,13 +135,12 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
       return;
     case ValueStruct::ValueType::Bool:
 
-      if (Settings.JSONBoolWithoutQuotes())
-      {
-        addHtml(val.str.equals("0") ? F("false") : F("true"));
-        return;
-      }
+      if (!Settings.JSONBoolWithoutQuotes()) { addHtml('"'); }
+      addHtml(val.str.equals("0") ? F("false") : F("true"));
 
-    // Fall through
+      if (!Settings.JSONBoolWithoutQuotes()) { addHtml('"'); }
+      return;
+
     case ValueStruct::ValueType::Auto:
     case ValueStruct::ValueType::String:
       break;

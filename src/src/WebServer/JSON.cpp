@@ -447,7 +447,6 @@ void handle_json()
         sensorsWriter.setIsArray();
       }
 
-
       for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastActiveTaskIndex && validTaskIndex(TaskIndex); TaskIndex++)
       {
         const deviceIndex_t DeviceIndex = getDeviceIndex_from_TaskIndex(TaskIndex);
@@ -838,6 +837,7 @@ void stream_to_json_object_value(const String& object, int value) {
 
 String jsonBool(bool value) { return boolToString(value); }
 
+#ifdef WEBSERVER_NEW_UI
 // Add JSON formatted data directly to the TXbuffer, including a trailing comma.
 void   stream_next_json_object_value(const __FlashStringHelper *object, const String& value) {
   stream_to_json_object_value(object, value);
@@ -911,3 +911,4 @@ void stream_last_json_object_value(const __FlashStringHelper *object, int value)
 void stream_next_json_object_value(LabelType::Enum label) { stream_next_json_object_value(getLabel(label), getValue(label)); }
 
 void stream_last_json_object_value(LabelType::Enum label) { stream_last_json_object_value(getLabel(label), getValue(label)); }
+#endif

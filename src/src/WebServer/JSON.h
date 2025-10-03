@@ -54,7 +54,7 @@ void stream_to_json_object_value(const String& object, int value);
 
 
 String jsonBool(bool value);
-
+#ifdef WEBSERVER_NEW_UI
 // Add JSON formatted data directly to the TXbuffer, including a trailing comma.
 void stream_next_json_object_value(const __FlashStringHelper * object, const String& value);
 void stream_next_json_object_value(const __FlashStringHelper * object, String&& value);
@@ -73,7 +73,7 @@ void stream_last_json_object_value(const __FlashStringHelper * object, int value
 void stream_next_json_object_value(LabelType::Enum label);
 
 void stream_last_json_object_value(LabelType::Enum label);
-
+#endif
 
 
 

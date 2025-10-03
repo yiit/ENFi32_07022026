@@ -33,7 +33,7 @@ struct ValueStruct
               ValueType vType = ValueType::Auto);
 
 
-  String str;
+  String    str;
   ValueType valueType = ValueType::Auto;
 
 };
@@ -43,24 +43,8 @@ struct KeyValueStruct
 
   KeyValueStruct() {}
 
-   KeyValueStruct(const __FlashStringHelper *key);
-   KeyValueStruct(const String& key);
-
-  /*
-     KeyValueStruct(const __FlashStringHelper *key,
-                   ValueStruct             && value);
-
-     KeyValueStruct(const String& key,
-                   ValueStruct&& value);
-   */
-
-  template<typename T>
-  KeyValueStruct(const String         & key,
-                 const T              & val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto)
-    : _key(key) {
-    _values.emplace_back(String(val), vType);
-  }
+  KeyValueStruct(const __FlashStringHelper *key);
+  KeyValueStruct(const String& key);
 
   KeyValueStruct(const String         & key,
                  bool                   val,
@@ -71,14 +55,23 @@ struct KeyValueStruct
                  ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
-                 const float&           val,
-                 int nrDecimals = 4,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Float);
+                 const uint64_t       & val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
-                 const double&          val,
-                 int nrDecimals = 4,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Double);
+                 const int64_t        & val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+
+
+  KeyValueStruct(const String         & key,
+                 const float          & val,
+                 int                    nrDecimals = 4,
+                 ValueStruct::ValueType vType      = ValueStruct::ValueType::Float);
+
+  KeyValueStruct(const String         & key,
+                 const double         & val,
+                 int                    nrDecimals = 4,
+                 ValueStruct::ValueType vType      = ValueStruct::ValueType::Double);
 
 
   KeyValueStruct(const __FlashStringHelper *key,
@@ -94,13 +87,21 @@ struct KeyValueStruct
                  ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 String              && val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
+                 String                  && val,
+                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
 
 
   KeyValueStruct(const String         & key,
                  String              && val,
                  ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
+
+  template<typename T>
+  KeyValueStruct(const String         & key,
+                 const T              & val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto)
+    : _key(key) {
+    _values.emplace_back(String(val), vType);
+  }
 
   KeyValueStruct(LabelType::Enum label);
 

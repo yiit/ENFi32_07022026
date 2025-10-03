@@ -2,7 +2,9 @@
 
 #include "../Helpers/KeyValueWriter.h"
 
+#ifndef BUILD_NO_DEBUG
  #define USE_KVW_JSON_INDENT
+#endif
 
 class KeyValueWriter_JSON : public KeyValueWriter
 {

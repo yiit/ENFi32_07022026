@@ -626,9 +626,7 @@ void json_quote_name(const String& val) {
 }
 
 void json_quote_val(const String& val) {
-  addHtml('\"');
-  addHtml(val);
-  addHtml('\"');
+  addHtml(to_json_value(val));
 }
 
 void json_open(bool arr) {
