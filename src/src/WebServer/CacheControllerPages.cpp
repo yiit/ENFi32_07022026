@@ -100,20 +100,20 @@ void handle_cache_json() {
       columnWriter.setIsArray();
 
       //     addHtml(F("UNIX timestamp;contr. idx;sensortype;taskindex;value count"));
-      columnWriter.write({ F(""), F("UNIX timestamp") });
-      columnWriter.write({ F(""), F("UTC timestamp") });
-      columnWriter.write({ F(""), F("task index") });
+      columnWriter.write({ EMPTY_STRING, F("UNIX timestamp") });
+      columnWriter.write({ EMPTY_STRING, F("UTC timestamp") });
+      columnWriter.write({ EMPTY_STRING, F("task index") });
 
       if (hasArg(F("pluginID"))) {
-        columnWriter.write({ F(""), F("plugin ID") });
+        columnWriter.write({ EMPTY_STRING, F("plugin ID") });
       }
 
       for (taskIndex_t i = 0; i < TASKS_MAX; ++i) {
         for (int j = 0; j < VARS_PER_TASK; ++j) {
-          columnWriter.write({ F(""), strformat(
+          columnWriter.write({ EMPTY_STRING, strformat(
                                  F("%s#%s"),
                                  getTaskDeviceName(i).c_str(),
-                                 getTaskValueName(i, j).c_str()) });
+                                 getTaskValueName(i, j).c_str())});
         }
       }
     }
@@ -130,7 +130,7 @@ void handle_cache_json() {
 
         if (currentFile.length() > 0) {
           ++fileCount;
-          filesWriter.write({ F(""), currentFile });
+          filesWriter.write({ EMPTY_STRING, currentFile });
         }
       }
     }
@@ -139,7 +139,7 @@ void handle_cache_json() {
       pluginIDWriter.setIsArray();
 
       for (taskIndex_t taskIndex = 0; validTaskIndex(taskIndex); ++taskIndex) {
-        pluginIDWriter.write({ F(""), getPluginID_from_TaskIndex(taskIndex).value });
+        pluginIDWriter.write({ EMPTY_STRING, getPluginID_from_TaskIndex(taskIndex).value });
       }
     }
     writer.write({ F("separator"), F(";") });

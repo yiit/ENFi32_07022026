@@ -1,5 +1,6 @@
 #include "../WebServer/KeyValueWriter_JSON.h"
 
+#include "../Globals/Settings.h"
 #include "../Helpers/StringConverter.h"
 
 #include "../WebServer/HTML_wrappers.h"
@@ -115,7 +116,7 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
 #ifdef USE_KVW_JSON_INDENT
       indent();
       addHtml('\t');
-#endif
+#endif // ifdef USE_KVW_JSON_INDENT
 
       writeValue(kv._values[i]);
     }
@@ -125,13 +126,27 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
 
 void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
 {
-  if (val.isInt) {
-    addHtml(val.str);
-  } else if (val.isBoolean) {
-    addHtml(val.str.equals("1") ? F("true") : F("false"));
-  } else {
-    addHtml(to_json_value(val.str));
+  switch (val.valueType)
+  {
+    case ValueStruct::ValueType::Float:
+    case ValueStruct::ValueType::Double:
+    case ValueStruct::ValueType::Int:
+      addHtml(val.str);
+      return;
+    case ValueStruct::ValueType::Bool:
+
+      if (Settings.JSONBoolWithoutQuotes())
+      {
+        addHtml(val.str.equals("0") ? F("false") : F("true"));
+        return;
+      }
+
+    // Fall through
+    case ValueStruct::ValueType::Auto:
+    case ValueStruct::ValueType::String:
+      break;
   }
+  addHtml(to_json_value(val.str));
 }
 
 #ifdef USE_KVW_JSON_INDENT

@@ -2,62 +2,121 @@
 
 #include "../Helpers/StringConverter_Numerical.h"
 
-ValueStruct::ValueStruct(bool val) : str(val), isBoolean(true) {}
 
-ValueStruct::ValueStruct(int val) : str(val), isInt(true) {}
+ValueStruct::ValueStruct(const uint64_t& val, ValueType vType) : str(ull2String(val)), valueType(vType) {}
 
-ValueStruct::ValueStruct(uint32_t val) : str(val), isInt(true) {}
+ValueStruct::ValueStruct(const int64_t& val, ValueType vType) : str(ll2String(val)), valueType(vType) {}
 
-ValueStruct::ValueStruct(uint64_t val) : str(ull2String(val)), isInt(true) {}
+ValueStruct::ValueStruct(const String& val, ValueType vType) : str(val), valueType(vType) {}
 
-ValueStruct::ValueStruct(int64_t val) : str(ll2String(val)), isInt(true) {}
+ValueStruct::ValueStruct(const __FlashStringHelper *val, ValueType vType) : str(val), valueType(vType) {}
 
-ValueStruct::ValueStruct(const __FlashStringHelper *val) : str(val) {}
-
-ValueStruct::ValueStruct(String&& val) : str(std::move(val)) {}
+ValueStruct::ValueStruct(String&& val, ValueType vType) : str(std::move(val)), valueType(vType) {}
 
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key) : _key(key) {}
 
 KeyValueStruct::KeyValueStruct(const String& key) : _key(key) {}
 
-KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
+/*
+   KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
                                ValueStruct             && value)
-  : _key(key) {
-  _values.emplace_back(std::move(value));
-}
+   : _key(key) {
+   _values.emplace_back(std::move(value));
+   }
 
-KeyValueStruct::KeyValueStruct(const String& key,
+   KeyValueStruct::KeyValueStruct(const String& key,
                                ValueStruct&& value)
+   : _key(key) {
+   _values.emplace_back(std::move(value));
+   }
+ */
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               bool                   val,
+                               ValueStruct::ValueType vType)
   : _key(key) {
-  _values.emplace_back(std::move(value));
+  _values.emplace_back(String(val), vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               int                    val,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  _values.emplace_back(String(val), vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               const float          & val,
+                               int                    nrDecimals,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  String str;
+
+  if (!toValidString(str, val, nrDecimals, true)) {
+    vType = ValueStruct::ValueType::String;
+  }
+
+  _values.emplace_back(str, vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               const double         & val,
+                               int                    nrDecimals,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  String str;
+
+  if (!doubleToValidString(str, val, nrDecimals, true)) {
+    vType = ValueStruct::ValueType::String;
+  }
+
+  _values.emplace_back(str, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct             && value,
-                               const __FlashStringHelper *unit)
-  : _key(key), _unit(unit) {
-  _values.emplace_back(std::move(value));
+                               const String             & val,
+                               ValueStruct::ValueType     vType)
+  : _key(key) {
+  _values.emplace_back(val, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
-                               ValueStruct             && value,
-                               const String             & unit)
-  : _key(key), _unit(unit) {
-  _values.emplace_back(std::move(value));
+                               const __FlashStringHelper *val,
+                               ValueStruct::ValueType     vType)
+  : _key(key) {
+  _values.emplace_back(val, vType);
 }
 
-KeyValueStruct::KeyValueStruct(const String& key,
-                               ValueStruct&& value,
-                               const String& unit)
-  : _key(key), _unit(unit) {
-  _values.emplace_back(std::move(value));
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               const String         & val,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  _values.emplace_back(val, vType);
+}
+
+KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
+                               String                  && val,
+                               ValueStruct::ValueType     vType)
+  : _key(key) {
+  _values.emplace_back(std::move(val), vType);
+}
+
+KeyValueStruct::KeyValueStruct(const String         & key,
+                               String              && val,
+                               ValueStruct::ValueType vType)
+  : _key(key) {
+  _values.emplace_back(std::move(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(LabelType::Enum label)
   : _key(getLabel(label)), _unit(getFormUnit(label)) {
   _values.emplace_back(getValue(label));
 }
+
+void KeyValueStruct::setUnit(const String& unit)              { _unit = unit; }
+
+void KeyValueStruct::setUnit(const __FlashStringHelper *unit) { _unit = unit; }
 
 void KeyValueStruct::appendValue(const ValueStruct& value)
 {

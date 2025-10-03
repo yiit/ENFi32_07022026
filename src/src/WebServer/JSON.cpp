@@ -343,7 +343,7 @@ void handle_json()
         // TODO: PKR: Add ETH Objects
       }
 
-    #if FEATURE_ETHERNET
+#if FEATURE_ETHERNET
 
       if (showEthernet) {
 
@@ -364,9 +364,9 @@ void handle_json()
         writer.writeLabels(labels);
 
       }
-    #endif // if FEATURE_ETHERNET
+#endif // if FEATURE_ETHERNET
 
-  #if FEATURE_ESPEASY_P2P
+#if FEATURE_ESPEASY_P2P
 
       if (showNodes) {
         KeyValueWriter_JSON nodesWriter(F("nodes"), &mainLevelWriter);
@@ -417,7 +417,7 @@ void handle_json()
           } // if node info exists
         }   // for loop
       }
-  #endif // if FEATURE_ESPEASY_P2P
+#endif // if FEATURE_ESPEASY_P2P
     }
 
     taskIndex_t firstTaskIndex = 0;
@@ -439,10 +439,11 @@ void handle_json()
     // Keep track of the lowest reported TTL and use that as refresh interval.
     unsigned long lowest_ttl_json = 60;
     {
-      KeyValueWriter_JSON sensorsWriter(false, &mainLevelWriter);
+      KeyValueWriter_JSON sensorsWriter = showSpecificTask
+        ? KeyValueWriter_JSON()
+        : KeyValueWriter_JSON(F("Sensors"), &mainLevelWriter);
 
       if (!showSpecificTask) {
-        sensorsWriter.setHeader(F("Sensors"));
         sensorsWriter.setIsArray();
       }
 
@@ -485,38 +486,38 @@ void handle_json()
             {
               uint8_t nrDecimals = Cache.getTaskDeviceValueDecimals(TaskIndex, x);
               String  value      = formatUserVarNoCheck(&TempEvent, x);
-          #if FEATURE_STRING_VARIABLES
+#if FEATURE_STRING_VARIABLES
               bool hasPresentation;
               const String presentation = formatUserVarForPresentation(&TempEvent, x, hasPresentation, value, DeviceIndex);
-          #endif // if FEATURE_STRING_VARIABLES
+#endif // if FEATURE_STRING_VARIABLES
 
               if (mustConsiderAsJSONString(value)) {
                 // Flag as not to treat as a float
                 nrDecimals = 255;
               }
-          #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
               String uom;
               const uint8_t uomIndex = Cache.getTaskVarUnitOfMeasure(TaskIndex, x);
 
               if (uomIndex != 0) {
                 uom = toUnitOfMeasureName(uomIndex);
               }
-          #else // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+#else // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
               const String uom;
-          #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+#endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
               handle_json_stream_task_value_data(&taskValueWriter,
                                                  x + 1,
                                                  Cache.getTaskDeviceValueName(TaskIndex, x),
                                                  nrDecimals,
                                                  value,
-                                             #if FEATURE_STRING_VARIABLES
+          #if FEATURE_STRING_VARIABLES
                                                  presentation,
-                                             #else // if FEATURE_STRING_VARIABLES
+          #else // if FEATURE_STRING_VARIABLES
                                                  EMPTY_STRING,
-                                             #endif // if FEATURE_STRING_VARIABLES
+          #endif // if FEATURE_STRING_VARIABLES
                                                  uom);
             }
-        #if FEATURE_STRING_VARIABLES
+#if FEATURE_STRING_VARIABLES
 
             if (Settings.ShowDerivedTaskValues(TaskIndex)) {
               int varNr       = VARS_PER_TASK;
@@ -544,12 +545,13 @@ void handle_json()
                     value = parseTemplate(value);
                     uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
                     bool    hasPresentation;
-                    const String presentation = formatUserVarForPresentation(&TempEvent,
-                                                                             INVALID_TASKVAR_INDEX,
-                                                                             hasPresentation,
-                                                                             value,
-                                                                             DeviceIndex,
-                                                                             valueName);
+                    const String presentation =
+                      formatUserVarForPresentation(&TempEvent,
+                                                   INVALID_TASKVAR_INDEX,
+                                                   hasPresentation,
+                                                   value,
+                                                   DeviceIndex,
+                                                   valueName);
 
                     handle_json_stream_task_value_data(&taskValueWriter,
                                                        varNr + 1,
@@ -567,7 +569,7 @@ void handle_json()
                 ++it;
               }
             }
-        #endif // if FEATURE_STRING_VARIABLES
+#endif // if FEATURE_STRING_VARIABLES
           }
 
 #if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
@@ -584,13 +586,6 @@ void handle_json()
 #endif // if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
 
 
-          if (showSpecificTask) {
-            stream_next_json_object_value(F("TTL"),     ttl_json * 1000);
-        #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-            stream_next_json_object_value(F("ShowUoM"), jsonBool(Settings.ShowUnitOfMeasureOnDevicesPage()));
-        #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-          }
-
           if (showDataAcquisition) {
             KeyValueWriter_JSON dataAquisitionWriter(F("DataAcquisition"), &taskWriter);
             dataAquisitionWriter.setIsArray();
@@ -600,7 +595,7 @@ void handle_json()
               KeyValueWriter_JSON controllerWriter(&dataAquisitionWriter);
               controllerWriter.write({ F("Controller"), x + 1 });
               controllerWriter.write({ F("IDX"),        Settings.TaskDeviceID[x][TaskIndex] });
-              controllerWriter.write({ F("Enabled"), jsonBool(Settings.TaskDeviceSendData[x][TaskIndex]) });
+              controllerWriter.write({ F("Enabled"), Settings.TaskDeviceSendData[x][TaskIndex] });
             }
           }
 
@@ -616,16 +611,16 @@ void handle_json()
               }
             }
 
-        #if FEATURE_I2CMULTIPLEXER
+#if FEATURE_I2CMULTIPLEXER
             uint8_t i2cBus = 0;
-        # if FEATURE_I2C_MULTIPLE
+# if FEATURE_I2C_MULTIPLE
             i2cBus = Settings.getI2CInterface(TaskIndex);
-        # endif
+# endif
 
             if ((Device[DeviceIndex].Type == DEVICE_TYPE_I2C) && isI2CMultiplexerEnabled(i2cBus)) {
-          # if FEATURE_I2C_MULTIPLE
+# if FEATURE_I2C_MULTIPLE
               taskWriter.write({ F("I2C_Interface"), static_cast<int>(i2cBus + 1) });
-          # endif
+# endif
               int8_t channel = Settings.I2C_Multiplexer_Channel[TaskIndex];
 
               if (bitRead(Settings.I2C_Flags[TaskIndex], I2C_FLAGS_MUX_MULTICHANNEL)) {
@@ -648,22 +643,27 @@ void handle_json()
                 }
               }
             }
-        #endif // if FEATURE_I2CMULTIPLEXER
+#endif // if FEATURE_I2CMULTIPLEXER
           }
+
           taskWriter.write({ F("TaskEnabled"),
-                             jsonBool(Settings.TaskDeviceEnabled[TaskIndex]) });
+                             Settings.TaskDeviceEnabled[TaskIndex] });
           taskWriter.write({ F("TaskNumber"), TaskIndex + 1 });
+
+          if (showSpecificTask) {
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+            taskWriter.write({ F("ShowUoM"), Settings.ShowUnitOfMeasureOnDevicesPage() });
+#endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+            taskWriter.write({ F("TTL"),     ttl_json * 1000 });
+          }
         }
       }
     }
 
     if (!showSpecificTask) {
-    #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-
-      // Explicit cast to bool, since the function is an inline function, which is returning part of a bitset.
-      // Thus is considered an int by the compiler
-      mainLevelWriter.write({ F("ShowUoM"), !!Settings.ShowUnitOfMeasureOnDevicesPage() });
-    #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+      mainLevelWriter.write({ F("ShowUoM"), Settings.ShowUnitOfMeasureOnDevicesPage() });
+#endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
       mainLevelWriter.write({ F("TTL"), lowest_ttl_json * 1000 });
     }
   }

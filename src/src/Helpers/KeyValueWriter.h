@@ -8,23 +8,33 @@
 
 struct ValueStruct
 {
+  enum class ValueType {
+    Auto,
+    String,
+    Float,
+    Double,
+    Int,
+    Bool
+
+  };
+
+
   ValueStruct() {}
 
-  explicit ValueStruct(bool val);
+  explicit ValueStruct(const uint64_t& val,
+                       ValueType       vType = ValueType::Int);
+  explicit ValueStruct(const int64_t& val,
+                       ValueType      vType = ValueType::Int);
+  ValueStruct(const String& val,
+              ValueType     vType = ValueType::Auto);
+  ValueStruct(const __FlashStringHelper *val,
+              ValueType                  vType = ValueType::Auto);
+  ValueStruct(String && val,
+              ValueType vType = ValueType::Auto);
 
-  ValueStruct(int val);
-  ValueStruct(uint32_t val);
-  explicit ValueStruct(uint64_t val);
-  explicit ValueStruct(int64_t val);
-  ValueStruct(const __FlashStringHelper *val);
-  ValueStruct(String&& val);
-
-  template<typename T>
-  ValueStruct(const T& val) : str(val) {}
 
   String str;
-  bool   isBoolean{};
-  bool   isInt{};
+  ValueType valueType = ValueType::Auto;
 
 };
 
@@ -33,30 +43,69 @@ struct KeyValueStruct
 
   KeyValueStruct() {}
 
-  KeyValueStruct(const __FlashStringHelper *key);
-  KeyValueStruct(const String& key);
+   KeyValueStruct(const __FlashStringHelper *key);
+   KeyValueStruct(const String& key);
+
+  /*
+     KeyValueStruct(const __FlashStringHelper *key,
+                   ValueStruct             && value);
+
+     KeyValueStruct(const String& key,
+                   ValueStruct&& value);
+   */
+
+  template<typename T>
+  KeyValueStruct(const String         & key,
+                 const T              & val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto)
+    : _key(key) {
+    _values.emplace_back(String(val), vType);
+  }
+
+  KeyValueStruct(const String         & key,
+                 bool                   val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Bool);
+
+  KeyValueStruct(const String         & key,
+                 int                    val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+
+  KeyValueStruct(const String         & key,
+                 const float&           val,
+                 int nrDecimals = 4,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Float);
+
+  KeyValueStruct(const String         & key,
+                 const double&          val,
+                 int nrDecimals = 4,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Double);
 
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct             && value);
-
-  KeyValueStruct(const String& key,
-                 ValueStruct&& value);
-
+                 const String             & val,
+                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct             && value,
-                 const __FlashStringHelper *unit);
+                 const __FlashStringHelper *val,
+                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+
+  KeyValueStruct(const String         & key,
+                 const String         & val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
-                 ValueStruct             && value,
-                 const String             & unit);
+                 String              && val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
 
-  KeyValueStruct(const String& key,
-                 ValueStruct&& value,
-                 const String& unit);
+
+  KeyValueStruct(const String         & key,
+                 String              && val,
+                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(LabelType::Enum label);
+
+  void setUnit(const String& unit);
+  void setUnit(const __FlashStringHelper *unit);
 
   void appendValue(const ValueStruct& value);
 
