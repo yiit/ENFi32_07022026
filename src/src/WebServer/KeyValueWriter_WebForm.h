@@ -2,6 +2,7 @@
 
 #include "../Helpers/KeyValueWriter.h"
 
+
 class KeyValueWriter_WebForm : public KeyValueWriter
 {
 public:
@@ -29,5 +30,14 @@ public:
   virtual void           write();
 
   virtual void           write(const KeyValueStruct& kv);
+
+    // Create writer of the same derived type, with this set as parent
+  virtual Sp_KeyValueWriter createChild();
+  virtual Sp_KeyValueWriter createChild(const String& header);
+
+  // Create new writer of the same derived type, without parent
+  virtual Sp_KeyValueWriter createNew();
+  virtual Sp_KeyValueWriter createNew(const String& header);
+
 
 }; // class KeyValueWriter_WebForm

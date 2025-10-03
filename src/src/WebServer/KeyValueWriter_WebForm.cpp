@@ -1,36 +1,35 @@
 #include "../WebServer/KeyValueWriter_WebForm.h"
 
-
 #include "../WebServer/HTML_wrappers.h"
 #include "../WebServer/Markup.h"
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(bool emptyHeader)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, emptyHeader)
+  : KeyValueWriter(emptyHeader)
 {}
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(KeyValueWriter_WebForm*parent)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, parent)
+  : KeyValueWriter(parent)
 {}
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(bool emptyHeader, KeyValueWriter_WebForm*parent)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, emptyHeader, parent)
+  : KeyValueWriter(emptyHeader, parent)
 {}
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(const String& header)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, header, nullptr)
+  : KeyValueWriter(header, nullptr)
 {}
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(const __FlashStringHelper *header)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, String(header), nullptr)
+  : KeyValueWriter(String(header), nullptr)
 {}
 
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(const String& header, KeyValueWriter_WebForm*parent)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, header, parent)
+  : KeyValueWriter(header, parent)
 {}
 
 KeyValueWriter_WebForm::KeyValueWriter_WebForm(const __FlashStringHelper *header, KeyValueWriter_WebForm*parent)
-  : KeyValueWriter(KEYVALUEWRITER_WEBFORM, String(header), parent)
+  : KeyValueWriter(String(header), parent)
 {}
 
 
@@ -69,4 +68,24 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
   if (nrValues == 1) {
     addUnit(kv._unit);
   }
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createChild()
+{
+   return std::make_shared<KeyValueWriter_WebForm>(this);
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createChild(const String& header)
+{
+      return std::make_shared<KeyValueWriter_WebForm>(header, this);
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createNew()
+{
+      return std::make_shared<KeyValueWriter_WebForm>();
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createNew(const String& header)
+{
+      return std::make_shared<KeyValueWriter_WebForm>(header);
 }

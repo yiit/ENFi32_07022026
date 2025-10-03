@@ -6,32 +6,32 @@
 #include "../WebServer/HTML_wrappers.h"
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, emptyHeader)
+  : KeyValueWriter(emptyHeader)
 {}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(KeyValueWriter_JSON*parent)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, parent)
+  : KeyValueWriter(parent)
 {}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader, KeyValueWriter_JSON*parent)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, emptyHeader, parent)
+  : KeyValueWriter(emptyHeader, parent)
 {}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(const String& header)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, header, nullptr)
+  : KeyValueWriter(header, nullptr)
 {}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(const __FlashStringHelper *header)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, String(header), nullptr)
+  : KeyValueWriter(String(header), nullptr)
 {}
 
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(const String& header, KeyValueWriter_JSON*parent)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, header, parent)
+  : KeyValueWriter(header, parent)
 {}
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(const __FlashStringHelper *header, KeyValueWriter_JSON*parent)
-  : KeyValueWriter(KEYVALUEWRITER_JSON, String(header), parent)
+  : KeyValueWriter(String(header), parent)
 {}
 
 KeyValueWriter_JSON::~KeyValueWriter_JSON()
@@ -142,6 +142,27 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
   }
   addHtml(to_json_value(val.str));
 }
+
+Sp_KeyValueWriter KeyValueWriter_JSON::createChild()
+{
+   return std::make_shared<KeyValueWriter_JSON>(this);
+}
+
+Sp_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
+{
+      return std::make_shared<KeyValueWriter_JSON>(header, this);
+}
+
+Sp_KeyValueWriter KeyValueWriter_JSON::createNew()
+{
+      return std::make_shared<KeyValueWriter_JSON>();
+}
+
+Sp_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header)
+{
+      return std::make_shared<KeyValueWriter_JSON>(header);
+}
+
 
 #ifdef USE_KVW_JSON_INDENT
 

@@ -128,9 +128,6 @@ struct KeyValueStruct
 
 };
 
-#define KEYVALUEWRITER_BASE     0
-#define KEYVALUEWRITER_JSON     1
-#define KEYVALUEWRITER_WEBFORM  2
 
 class KeyValueWriter;
 typedef std::shared_ptr<KeyValueWriter> Sp_KeyValueWriter;
@@ -142,16 +139,16 @@ class KeyValueWriter
 {
 public:
 
-  KeyValueWriter(int writerType, bool emptyHeader = false) : _writerType(writerType), _hasHeader(emptyHeader) {}
+  KeyValueWriter(bool emptyHeader = false) :  _hasHeader(emptyHeader) {}
 
 protected:
 
-  KeyValueWriter(int writerType, KeyValueWriter*parent) : _writerType(writerType), _parent(parent) {}
+  KeyValueWriter(KeyValueWriter*parent) :  _parent(parent) {}
 
-  KeyValueWriter(int writerType, bool emptyHeader, KeyValueWriter*parent) : _writerType(writerType), _parent(parent),
+  KeyValueWriter(bool emptyHeader, KeyValueWriter*parent) :  _parent(parent),
     _hasHeader(emptyHeader) {}
 
-  KeyValueWriter(int writerType, const String& header, KeyValueWriter*parent) : _writerType(writerType), _header(header), _parent(parent) {}
+  KeyValueWriter(const String& header, KeyValueWriter*parent) :  _header(header), _parent(parent) {}
 
 public:
 
@@ -180,17 +177,15 @@ public:
   virtual void indent() const {}
 
   // Create writer of the same derived type, with this set as parent
-  Sp_KeyValueWriter createChild();
-  Sp_KeyValueWriter createChild(const String& header);
+  virtual Sp_KeyValueWriter createChild() = 0;
+  virtual Sp_KeyValueWriter createChild(const String& header) = 0;
 
   // Create new writer of the same derived type, without parent
-  Sp_KeyValueWriter createNew();
-  Sp_KeyValueWriter createNew(const String& header);
+  virtual Sp_KeyValueWriter createNew() = 0;
+  virtual Sp_KeyValueWriter createNew(const String& header) = 0;
 
 
 protected:
-
-  const int _writerType = KEYVALUEWRITER_BASE;
 
   String _header;
 

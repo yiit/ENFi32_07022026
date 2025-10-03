@@ -47,11 +47,12 @@ void handle_buildinfo();
 /*********************************************************************************************\
    Streaming versions directly to TXBuffer
 \*********************************************************************************************/
+#if FEATURE_CHART_JS || defined(WEBSERVER_NEW_UI)
 void stream_to_json_object_value(const __FlashStringHelper *  object, const String& value);
 void stream_to_json_object_value(const String& object, const String& value);
 void stream_to_json_object_value(const __FlashStringHelper *  object, int value);
 void stream_to_json_object_value(const String& object, int value);
-
+#endif
 
 String jsonBool(bool value);
 #ifdef WEBSERVER_NEW_UI
