@@ -34,8 +34,10 @@
 # include "../WebServer/AccessControl.h"
 # include "../WebServer/ESPEasy_WebServer.h"
 # include "../WebServer/HTML_wrappers.h"
+# include "../WebServer/KeyValueWriter_WebForm.h"
 # include "../WebServer/Markup.h"
 # include "../WebServer/Markup_Buttons.h"
+# include "../WebServer/NetworkPage.h"
 
 # if FEATURE_MQTT
 #  include "../Globals/MQTT.h"
@@ -486,6 +488,8 @@ void handle_sysinfo_Ethernet() {
 #  endif // if FEATURE_ETHERNET
 
 void handle_sysinfo_Network() {
+
+
   addTableSeparator(F("Network"), 2, 3);
 
   {
@@ -515,68 +519,27 @@ void handle_sysinfo_Network() {
     addRowLabelValues(labels);
   }
 
-  addTableSeparator(F("WiFi"), 2, 3, F("Wifi"));
-
-  const bool showWiFiConnectionInfo = ESPEasyWiFi.connected();
-
-  addRowLabel(LabelType::WIFI_CONNECTION);
-
-  if (showWiFiConnectionInfo)
+  for (ESPEasy::net::networkIndex_t x = 0; x < NETWORK_MAX; ++x)
   {
-    addHtml(strformat(
-              F("%s (RSSI %d dBm)"),
-              FsP(toString(ESPEasy::net::wifi::getConnectionProtocol())),
-              WiFi.RSSI()));
-  } else { addHtml('-'); }
+    if (Settings.getNetworkEnabled(x)) {
+      auto pluginID = Settings.getNWPluginID_for_network(x);
 
-  addRowLabel(LabelType::SSID);
-
-  if (showWiFiConnectionInfo)
-  {
-    addHtml(WiFi.SSID());
-    addHtml(F(" ("));
-    addHtml(WiFi.BSSIDstr());
-    addHtml(')');
-  } else { addHtml('-'); }
-
-  #  ifdef ESP32
-  const int64_t tsf_time = ESPEasy::net::wifi::WiFi_get_TSF_time();
-
-  if (tsf_time > 0) {
-    addRowLabel(F("WiFi TSF time"));
-
-    // Split it while printing, so we're not loosing a lot of decimals in the float conversion
-    uint32_t tsf_usec{};
-    addHtml(secondsToDayHourMinuteSecond(micros_to_sec_usec(tsf_time, tsf_usec)));
-    addHtml(strformat(F(".%06u"), tsf_usec));
-  }
-  #  endif // ifdef ESP32
-
-  addRowLabel(getLabel(LabelType::CHANNEL));
-
-  if (showWiFiConnectionInfo) {
-    addHtml(getValue(LabelType::CHANNEL));
-#  if CONFIG_SOC_WIFI_SUPPORT_5G
-    addHtml(WiFi.channel() < 36 ? F(" (2.4 GHz)") : F(" (5 GHz)"));
-#  endif
-  } else { addHtml('-'); }
-
-  addRowLabel(getLabel(LabelType::ENCRYPTION_TYPE_STA));
-
-  if (showWiFiConnectionInfo) {
-    addHtml(getValue(LabelType::ENCRYPTION_TYPE_STA));
-  } else { addHtml('-'); }
-
-  if (active_network_medium == ESPEasy::net::NetworkMedium_t::WIFI)
-  {
-    addRowLabel(LabelType::LAST_DISCONNECT_REASON);
-    addHtml(getValue(LabelType::LAST_DISC_REASON_STR));
-    addRowLabelValue(LabelType::WIFI_STORED_SSID1);
-    addRowLabelValue(LabelType::WIFI_STORED_SSID2);
+      if (pluginID != ESPEasy::net::INVALID_NW_PLUGIN_ID) {
+        KeyValueWriter_WebForm writer(
+          strformat(F("%s (%d)"),
+          getNWPluginNameFromNWPluginID(pluginID).c_str(),
+           x + 1 ));
+#  ifdef WEBSERVER_NETWORK
+#   ifdef ESP32
+        write_NetworkAdapterFlags(x, &writer);
+        write_IP_config(x, &writer);
+#   endif // ifdef ESP32
+#  endif // ifdef WEBSERVER_NETWORK
+        write_NetworkConnectionInfo(x, &writer);
+      }
+    }
   }
 
-  addRowLabelValue(LabelType::STA_MAC);
-  addRowLabelValue(LabelType::AP_MAC);
   html_TR();
 }
 

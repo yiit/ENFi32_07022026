@@ -261,123 +261,96 @@ void handle_json()
       }
 
       if (showWifi) {
-        auto writer = mainLevelWriter.createChild(F("WiFi"));
+        for (ESPEasy::net::networkIndex_t x = 0; x < NETWORK_MAX; ++x)
+        {
+          if (Settings.getNetworkEnabled(x)) {
+            auto pluginID = Settings.getNWPluginID_for_network(x);
 
-        if (writer) {
+            if (pluginID != ESPEasy::net::INVALID_NW_PLUGIN_ID) {
+              auto writer = mainLevelWriter.createChild(getNWPluginNameFromNWPluginID(pluginID));
 
+              if (writer) {
+                writer->write({ F("Network Index"), x + 1 });
 #ifdef WEBSERVER_NETWORK
 # ifdef ESP32
-          {
-            auto writer2 = writer->createChild(F("Network Interface"));
-
-            if (writer2) {
-              write_NetworkAdapterFlags(0, writer2.get());
-            }
-          }
-          {
-            auto writer2 = writer->createChild(F("IP Config"));
-
-            if (writer2) {
-              write_IP_config(0, writer2.get());
-            }
-          }
+                write_NetworkAdapterFlags(x, writer->createChild(F("Interface")).get());
+                write_IP_config(x, writer->createChild(F("IP")).get());
 # endif // ifdef ESP32
 #endif // ifdef WEBSERVER_NETWORK
+                write_NetworkConnectionInfo(x, writer->createChild(F("Connection")).get());
+              }
 
-
-          static const LabelType::Enum labels[] PROGMEM =
-          {
-            LabelType::HOST_NAME,
+              if (x == 0) {
+                static const LabelType::Enum labels[] PROGMEM =
+                {
+                  LabelType::HOST_NAME,
 #if FEATURE_MDNS
-            LabelType::M_DNS,
+                  LabelType::M_DNS,
 #endif // if FEATURE_MDNS
-            //        LabelType::IP_CONFIG,
+                  //        LabelType::IP_CONFIG,
 #ifdef ESP8266
-            LabelType::IP_ADDRESS,
+                  LabelType::IP_ADDRESS,
 # if FEATURE_USE_IPV6
-            LabelType::IP6_LOCAL,
-            LabelType::IP6_GLOBAL,
-            LabelType::ENABLE_IPV6,
+                  LabelType::IP6_LOCAL,
+                  LabelType::IP6_GLOBAL,
+                  LabelType::ENABLE_IPV6,
 # endif // if FEATURE_USE_IPV6
-            LabelType::IP_SUBNET,
-            LabelType::GATEWAY,
-            LabelType::STA_MAC,
-            LabelType::DNS_1,
-            LabelType::DNS_2,
+                  LabelType::IP_SUBNET,
+                  LabelType::GATEWAY,
+                  LabelType::STA_MAC,
+                  LabelType::DNS_1,
+                  LabelType::DNS_2,
 #endif // ifdef ESP8266
-            LabelType::SSID,
-            LabelType::BSSID,
-            LabelType::CHANNEL,
-            LabelType::ENCRYPTION_TYPE_STA,
-            LabelType::CONNECTED_MSEC,
-            LabelType::LAST_DISCONNECT_REASON,
-            LabelType::LAST_DISC_REASON_STR,
-            LabelType::NUMBER_RECONNECTS,
-            LabelType::WIFI_STORED_SSID1,
-            LabelType::WIFI_STORED_SSID2,
-            LabelType::FORCE_WIFI_BG,
-            LabelType::RESTART_WIFI_LOST_CONN,
-            LabelType::FORCE_WIFI_NOSLEEP,
+                  LabelType::SSID,
+                  LabelType::BSSID,
+                  LabelType::CHANNEL,
+                  LabelType::ENCRYPTION_TYPE_STA,
+                  LabelType::CONNECTED_MSEC,
+                  LabelType::LAST_DISCONNECT_REASON,
+                  LabelType::LAST_DISC_REASON_STR,
+                  LabelType::NUMBER_RECONNECTS,
+                  LabelType::WIFI_STORED_SSID1,
+                  LabelType::WIFI_STORED_SSID2,
+                  LabelType::FORCE_WIFI_BG,
+                  LabelType::RESTART_WIFI_LOST_CONN,
+                  LabelType::FORCE_WIFI_NOSLEEP,
 #ifdef SUPPORT_ARP
-            LabelType::PERIODICAL_GRAT_ARP,
+                  LabelType::PERIODICAL_GRAT_ARP,
 #endif // ifdef SUPPORT_ARP
 #ifdef USES_ESPEASY_NOW
-            LabelType::USE_ESPEASY_NOW,
-            LabelType::FORCE_ESPEASY_NOW_CHANNEL,
+                  LabelType::USE_ESPEASY_NOW,
+                  LabelType::FORCE_ESPEASY_NOW_CHANNEL,
 #endif // ifdef USES_ESPEASY_NOW
-            LabelType::CONNECTION_FAIL_THRESH,
+                  LabelType::CONNECTION_FAIL_THRESH,
 #if FEATURE_SET_WIFI_TX_PWR
-            LabelType::WIFI_TX_MAX_PWR,
-            LabelType::WIFI_CUR_TX_PWR,
-            LabelType::WIFI_SENS_MARGIN,
-            LabelType::WIFI_SEND_AT_MAX_TX_PWR,
+                  LabelType::WIFI_TX_MAX_PWR,
+                  LabelType::WIFI_CUR_TX_PWR,
+                  LabelType::WIFI_SENS_MARGIN,
+                  LabelType::WIFI_SEND_AT_MAX_TX_PWR,
 #endif // if FEATURE_SET_WIFI_TX_PWR
-            LabelType::WIFI_NR_EXTRA_SCANS,
+                  LabelType::WIFI_NR_EXTRA_SCANS,
 #ifdef ESP32
-            LabelType::WIFI_PASSIVE_SCAN,
+                  LabelType::WIFI_PASSIVE_SCAN,
 #endif
-            LabelType::WIFI_USE_LAST_CONN_FROM_RTC,
-            LabelType::WIFI_RSSI,
+                  LabelType::WIFI_USE_LAST_CONN_FROM_RTC,
+                  LabelType::WIFI_RSSI,
 #ifndef ESP32
-            LabelType::WAIT_WIFI_CONNECT,
+                  LabelType::WAIT_WIFI_CONNECT,
 #endif
-            LabelType::HIDDEN_SSID_SLOW_CONNECT,
-            LabelType::CONNECT_HIDDEN_SSID,
-            LabelType::SDK_WIFI_AUTORECONNECT,
+                  LabelType::HIDDEN_SSID_SLOW_CONNECT,
+                  LabelType::CONNECT_HIDDEN_SSID,
+                  LabelType::SDK_WIFI_AUTORECONNECT,
 
-            LabelType::MAX_LABEL
-          };
-          writer->writeLabels(labels);
+                  LabelType::MAX_LABEL
+                };
+                writer->writeLabels(labels);
 
-          // TODO: PKR: Add ETH Objects
+                // TODO: PKR: Add ETH Objects
+              }
+            }
+          }
         }
       }
-
-#if FEATURE_ETHERNET
-
-      if (showEthernet) {
-
-        static const LabelType::Enum labels[] PROGMEM =
-        {
-          LabelType::ETH_WIFI_MODE,
-          LabelType::ETH_CONNECTED,
-          LabelType::ETH_CHIP,
-          LabelType::ETH_DUPLEX,
-          LabelType::ETH_SPEED,
-          LabelType::ETH_STATE,
-          LabelType::ETH_SPEED_STATE,
-
-
-          LabelType::MAX_LABEL
-        };
-        auto writer = mainLevelWriter.createChild(F("Ethernet"));
-
-        if (writer) {
-          writer->writeLabels(labels);
-        }
-
-      }
-#endif // if FEATURE_ETHERNET
 
 #if FEATURE_ESPEASY_P2P
 
@@ -872,7 +845,8 @@ void stream_to_json_object_value(const String& object, int value) {
   addHtml(':');
   addHtmlInt(value);
 }
-#endif
+
+#endif // if FEATURE_CHART_JS || defined(WEBSERVER_NEW_UI)
 
 String jsonBool(bool value) { return boolToString(value); }
 

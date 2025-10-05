@@ -17,6 +17,7 @@
 # include "../../src/Helpers/ESPEasy_Storage.h"
 # include "../../src/Helpers/PrintToString.h"
 # include "../../src/Helpers/StringConverter.h"
+# include "../../src/Helpers/StringGenerator_WiFi.h"
 # include "../../src/WebServer/ESPEasy_WebServer.h"
 # include "../../src/WebServer/HTML_Print.h"
 # include "../../src/WebServer/HTML_wrappers.h"
@@ -127,8 +128,18 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
                 STA_SSID_STR,
                 KeyValueStruct::Format::PreFormatted });
           event->kvWriter->write({
-                F("Channel"), 
+                F("Channel"),
                 WiFi.channel() });
+# if CONFIG_SOC_WIFI_SUPPORT_5G
+          {
+            KeyValueStruct kv(
+              F("Band"),
+              (WiFi.channel() < 36) ? F("2.4") : F("5"));
+            kv.setUnit(F("GHz"));
+            event->kvWriter->write(kv);
+          }
+# endif // if CONFIG_SOC_WIFI_SUPPORT_5G
+
         }
         {
           KeyValueStruct kv(
@@ -138,8 +149,43 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
               WiFi.RSSI()));
 
           kv.setUnit(F("dBm"));
-          
+
           event->kvWriter->write(kv);
+        }
+
+        if (!event->kvWriter->summaryValueOnly()) {
+          {
+            KeyValueStruct kv(
+              F("WiFi TX Power"),
+              ESPEasy::net::wifi::GetWiFiTXpower(), 2);
+            kv.setUnit(F("dBm"));
+            event->kvWriter->write(kv);
+          }
+          event->kvWriter->write({
+                F("Last Disconnect Reason"),
+                getWiFi_disconnectReason_str()
+              });
+
+# ifdef ESP32
+          {
+            const int64_t tsf_time = ESPEasy::net::wifi::WiFi_get_TSF_time();
+
+            if (tsf_time > 0) {
+
+              // Split it while printing, so we're not loosing a lot of decimals in the float conversion
+              uint32_t tsf_usec{};
+
+              KeyValueStruct kv(
+                F("WiFi TSF time"),
+                concat(
+                  secondsToDayHourMinuteSecond(micros_to_sec_usec(tsf_time, tsf_usec)),
+                  strformat(F(".%06u"), tsf_usec))
+                );
+              kv.setUnit(F("usec"));
+              event->kvWriter->write(kv);
+            }
+          }
+# endif // ifdef ESP32
         }
         event->kvWriter->write({
               F("BSSID"),
