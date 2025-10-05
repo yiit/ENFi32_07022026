@@ -9,20 +9,27 @@ public:
 
   using KeyValueWriter::writeLabels;
 
-  KeyValueWriter_WebForm(bool emptyHeader = false);
+  KeyValueWriter_WebForm(bool           emptyHeader = false,
+                         PrintToString *toStr       = nullptr);
 
-  KeyValueWriter_WebForm(KeyValueWriter_WebForm*parent);
+  KeyValueWriter_WebForm(KeyValueWriter_WebForm*parent,
+                         PrintToString         *toStr = nullptr);
 
   KeyValueWriter_WebForm(bool                   emptyHeader,
-                         KeyValueWriter_WebForm*parent);
+                         KeyValueWriter_WebForm*parent,
+                         PrintToString         *toStr = nullptr);
 
-  KeyValueWriter_WebForm(const String& header);
-  KeyValueWriter_WebForm(const __FlashStringHelper *header);
+  KeyValueWriter_WebForm(const String & header,
+                         PrintToString *toStr = nullptr);
+  KeyValueWriter_WebForm(const __FlashStringHelper *header,
+                         PrintToString             *toStr = nullptr);
 
   KeyValueWriter_WebForm(const String         & header,
-                         KeyValueWriter_WebForm*parent);
+                         KeyValueWriter_WebForm*parent,
+                         PrintToString         *toStr = nullptr);
   KeyValueWriter_WebForm(const __FlashStringHelper *header,
-                         KeyValueWriter_WebForm    *parent);
+                         KeyValueWriter_WebForm    *parent,
+                         PrintToString             *toStr = nullptr);
 
 
   virtual ~KeyValueWriter_WebForm();

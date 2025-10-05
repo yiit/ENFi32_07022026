@@ -97,36 +97,67 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
     {
 # ifdef ESP32
       success = WiFi.STA.connected();
-
-      if (success) {
-        string = strformat(F("%s (ch: %d)\n%s"),
-                           WiFi.STA.SSID().c_str(),
-                           WiFi.channel(),
-                           WiFi.STA.BSSIDstr().c_str());
-      }
-# else // ifdef ESP32
+# else
       success = WiFi.isConnected();
-
-      if (success) {
-        string = strformat(F("%s (ch: %d)\n%s"),
-                           WiFi.SSID().c_str(),
-                           WiFi.channel(),
-                           WiFi.BSSIDstr().c_str());
-      }
 # endif // ifdef ESP32
 
+      if (event->kvWriter == nullptr) {
+        break;
+      }
+
       if (success) {
-        string += strformat(
-          F("\n%s\nRSSI: %d dBm"),
-          FsP(ESPEasy::net::wifi::toString(ESPEasy::net::wifi::getConnectionProtocol())),
-          WiFi.RSSI());
+# ifdef ESP32
+#  define STA_SSID_STR  WiFi.STA.SSID()
+#  define STA_BSSID_STR WiFi.STA.BSSIDstr()
+# else // ifdef ESP32
+#  define STA_SSID_STR  WiFi.SSID()
+#  define STA_BSSID_STR WiFi.BSSIDstr()
+# endif // ifdef ESP32
+
+
+        if (event->kvWriter->ignoreKey()) {
+          event->kvWriter->write({
+                EMPTY_STRING,
+                strformat(F("%s (ch: %d)"),
+                          STA_SSID_STR.c_str(),
+                          WiFi.channel()) });
+        } else {
+          event->kvWriter->write({
+                F("SSID"),
+                STA_SSID_STR,
+                KeyValueStruct::Format::PreFormatted });
+          event->kvWriter->write({
+                F("Channel"), 
+                WiFi.channel() });
+        }
+        {
+          KeyValueStruct kv(
+            F("RSSI"),
+            strformat(
+              event->kvWriter->ignoreKey() ? F("RSSI: %d dBm") : F("%d"),
+              WiFi.RSSI()));
+
+          kv.setUnit(F("dBm"));
+          
+          event->kvWriter->write(kv);
+        }
+        event->kvWriter->write({
+              F("BSSID"),
+              STA_BSSID_STR,
+              KeyValueStruct::Format::PreFormatted });
+
+        event->kvWriter->write({
+              F("Protocol"),
+              ESPEasy::net::wifi::toString(ESPEasy::net::wifi::getConnectionProtocol())
+            });
 
         ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *NW_data =
           static_cast<ESPEasy::net::wifi::NW001_data_struct_WiFi_STA *>(getNWPluginData(event->NetworkIndex));
 
         if (NW_data) {
-          string += '\n';
-          string += NW_data->getWiFi_encryptionType();
+          event->kvWriter->write({
+                F("Encryption Type"),
+                NW_data->getWiFi_encryptionType() });
         }
       }
 
@@ -136,22 +167,29 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
 # ifdef ESP8266
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
-      string  = WiFi.hostname();
-      success = true;
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("Hostname"), WiFi.hostname() });
+        success = true;
+      }
       break;
     }
+  }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
-      string  = WiFi.macAddress();
-      success = true;
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("MAC"), WiFi.macAddress(), KeyValueStruct::Format::PreFormatted });
+        success = true;
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
-      string  = WiFi.localIP().toString();
-      success = true;
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("IP"), WiFi.localIP().toString(), KeyValueStruct::Format::PreFormatted });
+        success = true;
+      }
       break;
     }
 
@@ -176,6 +214,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
+      // TODO TD-er: Show ESP32-P4 GPIOs for WiFi
       break;
     }
 

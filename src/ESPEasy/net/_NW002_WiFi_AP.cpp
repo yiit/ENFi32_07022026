@@ -89,6 +89,12 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
+      if (event->kvWriter == nullptr) {
+        break;
+      }
+
+      KeyValueStruct kv(F("Clients"));
+
 # ifdef ESP32
       wifi_sta_list_t wifi_sta_list               = { 0 };
       wifi_sta_mac_ip_list_t wifi_sta_mac_ip_list = { 0 };
@@ -101,16 +107,12 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
         const MAC_address mac(wifi_sta_mac_ip_list.sta[i].mac);
         const IPAddress   ip(wifi_sta_mac_ip_list.sta[i].ip.addr);
 
-        if (string.length() > 0) {
-          string += '\n';
-        }
-
-        string += strformat(
-          F("%s IP:%s (%d dBm)"),
-          mac.toString().c_str(),
-          ip.toString().c_str(),
-          wifi_sta_list.sta[i].rssi
-          );
+        kv.appendValue(strformat(
+                         F("%s IP:%s (%d dBm)"),
+                         mac.toString().c_str(),
+                         ip.toString().c_str(),
+                         wifi_sta_list.sta[i].rssi
+                         ));
       }
 # endif // ifdef ESP32
 
@@ -123,15 +125,11 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
         const MAC_address mac(station->bssid);
         const IPAddress   ip(station->ip.addr);
 
-        if (string.length() > 0) {
-          string += '\n';
-        }
-
-        string += strformat(
-          F("%s IP:%s"),
-          mac.toString().c_str(),
-          ip.toString().c_str()
-          );
+        kv.appendValue(strformat(
+                         F("%s IP:%s"),
+                         mac.toString().c_str(),
+                         ip.toString().c_str()
+                         ));
 
         station = STAILQ_NEXT(station, next);
       }
@@ -149,33 +147,45 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       }
 #  endif // ifndef LIMIT_BUILD_SIZE
 # endif // ifdef ESP8266
-      success = string.length() > 0;
+
+      if (kv._values.size() > 0) {
+        success = true;
+        event->kvWriter->write(kv);
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("Hostname"), 
 # ifdef ESP32
-      string = WiFi.AP.SSID();
+      WiFi.AP.SSID()
 # else
-      string = WiFi.softAPSSID();
+      WiFi.softAPSSID()
 # endif // ifdef ESP32
-      success = true;
+         });
+        success = true;
+      }
       break;
     }
 
 # ifdef ESP8266
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
-      string  = WiFi.softAPmacAddress();
-      success = true;
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("MAC"), WiFi.softAPmacAddress(), KeyValueStruct::Format::PreFormatted });
+        success = true;
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
     {
-      string  = WiFi.softAPIP().toString();
-      success = true;
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("IP"), WiFi.softAPIP().toString(), KeyValueStruct::Format::PreFormatted });
+        success = true;
+      }
       break;
     }
 
@@ -234,7 +244,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       addFormPasswordBox(F("WPA AP Mode Key"), F("apkey"), SecuritySettings.WifiAPKey, 63);
       addFormNote(F("WPA Key must be at least 8 characters long"));
 
-    
+
       {
 # if CONFIG_SOC_WIFI_SUPPORT_5G
 
@@ -257,7 +267,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
         selector.addFormSelector(
           F("Wifi AP channel"), F("apchannel"),
           Settings.WiFiAP_channel);
-# else
+# else // if CONFIG_SOC_WIFI_SUPPORT_5G
         addFormNumericBox(F("Wifi AP channel"), F("apchannel"), Settings.WiFiAP_channel, 1, 14);
 # endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 
@@ -266,7 +276,8 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
 
 
       addFormCheckBox(F("Force /setup in AP-Mode"), F("captiveportal"), Settings.ApCaptivePortal());
-      addFormNote(F("When set, user will be redirected to /setup or root page when connecting to this AP. /setup can still be called when disabled."));
+      addFormNote(F(
+                    "When set, user will be redirected to /setup or root page when connecting to this AP. /setup can still be called when disabled."));
 
       addFormCheckBox(F("Do Not Start AP"), F("DoNotStartAP"), Settings.DoNotStartAP());
   # if FEATURE_ETHERNET
@@ -277,7 +288,7 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
   # ifdef ESP32
       addFormCheckBox(F("Enable NAPT"), F("napt"), Settings.WiFi_AP_enable_NAPT());
       addFormNote(F("NAPT will have no effect when 'force /setup' is enabled"));
-  # endif
+  # endif // ifdef ESP32
 
       break;
     }

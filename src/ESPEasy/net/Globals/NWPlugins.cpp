@@ -130,7 +130,8 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 #if FEATURE_NETWORK_TRAFFIC_COUNT
           case NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT:
           {
-            TX_RX_traffic_count traffic{};  
+            TX_RX_traffic_count traffic{};
+
             if (NW_data->getTrafficCount(traffic)) {
               event->Par64_1 = traffic._tx_count;
               event->Par64_2 = traffic._rx_count;
@@ -174,10 +175,17 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
               auto duration = runtime_data->_connectedStats.getLastOnDuration_ms();
 
               if (duration > 0) {
-                str            = format_msec_duration_HMS(duration);
                 event->Par64_1 = duration;
                 event->Par64_2 = runtime_data->_connectedStats.getCycleCount();
-                success        = true;
+
+                if (event->kvWriter) {
+                  event->kvWriter->write({ F("Connection Duration"), format_msec_duration_HMS(duration) });
+
+                  if (!event->kvWriter->ignoreKey()) {
+                    event->kvWriter->write({ F("Number of Reconnects"), event->Par64_2 });
+                  }
+                }
+                success = true;
               }
             }
             break;
@@ -261,24 +269,43 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                     break;
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
-                    str     = event->networkInterface->getHostname();
-                    success = true;
+
+                    if (event->kvWriter) {
+                      event->kvWriter->write({ F("Hostname"), event->networkInterface->getHostname() });
+                      success = true;
+                    }
                     break;
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
-                    str            = event->networkInterface->macAddress();
-                    event->String1 = F("MAC");
-                    success        = true;
+
+                    if (event->kvWriter) {
+                      if (event->kvWriter->ignoreKey()) {
+                        event->kvWriter->write({
+                            EMPTY_STRING,
+                            concat(F("MAC: "), event->networkInterface->macAddress()) });
+                      }
+                      else {
+                        event->kvWriter->write({
+                            F("MAC"),
+                            event->networkInterface->macAddress(),
+                            KeyValueStruct::Format::PreFormatted
+                          });
+                      }
+                      success = true;
+                    }
                     break;
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
                   {
-                    PrintToString prstr;
-                    success = NWPlugin::print_IP_address(
-                      static_cast<NWPlugin::IP_type>(event->Par1),
-                      event->networkInterface,
-                      prstr);
-                    str = prstr.get();
+                    if (event->kvWriter) {
+                      PrintToString prstr;
+                      success = NWPlugin::print_IP_address(
+                        static_cast<NWPlugin::IP_type>(event->Par1),
+                        event->networkInterface,
+                        prstr);
+                      event->kvWriter->write({ F("ip"), prstr.getMove() });
+                      success = true;
+                    }
                     break;
                   }
 
@@ -389,22 +416,17 @@ String getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID) {
   return getNWPluginNameFromNetworkDriverIndex(networkDriverIndex);
 }
 
-NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime()
-{
-  return getNWPluginData_static_runtime(NETWORK_INDEX_WIFI_STA);
-}
+NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime() { return getNWPluginData_static_runtime(NETWORK_INDEX_WIFI_STA); }
 
-NWPluginData_static_runtime* getWiFi_AP_NWPluginData_static_runtime()
-{
-  return getNWPluginData_static_runtime(NETWORK_INDEX_WIFI_AP);
-}
+NWPluginData_static_runtime* getWiFi_AP_NWPluginData_static_runtime()  { return getNWPluginData_static_runtime(NETWORK_INDEX_WIFI_AP); }
 
 NWPluginData_static_runtime* getFirst_ETH_NWPluginData_static_runtime()
 {
   for (networkIndex_t i = 0; validNetworkIndex(i); ++i) {
     if (Settings.getNetworkEnabled(i)) {
       const auto nwpluginID = Settings.getNWPluginID_for_network(i);
-      if (nwpluginID.value == 3 || nwpluginID.value == 4) {
+
+      if ((nwpluginID.value == 3) || (nwpluginID.value == 4)) {
         return getNWPluginData_static_runtime(i);
       }
     }
@@ -424,29 +446,31 @@ const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()
 {
   #ifdef ESP32
   networkIndex_t index_highest_prio = NETWORK_MAX;
-  int highest_prio = -1;
-  #endif
+  int highest_prio                  = -1;
+  #endif // ifdef ESP32
 
   for (networkIndex_t i = 0; validNetworkIndex(i); ++i) {
     auto NW_data = getNWPluginData_static_runtime(i);
 
     if (NW_data && NW_data->isDefaultRoute()) { return NW_data; }
     #ifdef ESP32
+
     if (NW_data) {
       if (NW_data->_route_prio > highest_prio) {
         index_highest_prio = i;
-        highest_prio = NW_data->_route_prio;
+        highest_prio       = NW_data->_route_prio;
       }
     }
-    #endif
+    #endif // ifdef ESP32
   }
   #ifdef ESP32
+
   if (validNetworkIndex(index_highest_prio)) {
     return getNWPluginData_static_runtime(index_highest_prio);
   }
 
-  #endif
-  
+  #endif // ifdef ESP32
+
   return nullptr;
 }
 

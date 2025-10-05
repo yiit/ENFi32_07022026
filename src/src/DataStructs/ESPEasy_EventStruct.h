@@ -9,6 +9,7 @@
 #include "../DataTypes/NotifierIndex.h"
 #include "../ESPEasy/net/DataTypes/NetworkIndex.h"
 #include "../DataStructs/DeviceStruct.h"
+#include "../Helpers/KeyValueWriter.h"
 
 #ifdef ESP32
 # include <NetworkInterface.h>
@@ -68,6 +69,7 @@ public:
   NetworkInterface*networkInterface = nullptr;
   #endif
 
+  KeyValueWriter* kvWriter = nullptr;
 
   uint32_t timestamp_sec  = 0u;
   uint32_t timestamp_frac = 0u;

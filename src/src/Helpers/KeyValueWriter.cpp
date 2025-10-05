@@ -17,65 +17,73 @@ ValueStruct::ValueStruct(String&& val, ValueType vType) : str(std::move(val)), v
 // KeyValueStruct
 // ********************************************************************************
 
-KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key) : _key(key) {}
+KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key, Format format) : _key(key), _format(format) {}
 
-KeyValueStruct::KeyValueStruct(const String& key) : _key(key) {}
+KeyValueStruct::KeyValueStruct(const String& key, Format format) : _key(key), _format(format) {}
 
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const bool           & val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                int                    val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                int32_t                val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                uint32_t               val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                size_t                 val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const uint64_t       & val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(ull2String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const int64_t        & val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(ll2String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const float          & val,
                                int                    nrDecimals,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   String str;
 
   if (!toValidString(str, val, nrDecimals)) {
@@ -88,8 +96,9 @@ KeyValueStruct::KeyValueStruct(const String         & key,
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const double         & val,
                                int                    nrDecimals,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   String str;
 
   if (!doubleToValidString(str, val, nrDecimals)) {
@@ -101,55 +110,62 @@ KeyValueStruct::KeyValueStruct(const String         & key,
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
                                const String             & val,
+                               Format                     format,
                                ValueStruct::ValueType     vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(val, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String             & key,
                                const __FlashStringHelper *val,
+                               Format                     format,
                                ValueStruct::ValueType     vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(val, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
                                const __FlashStringHelper *val,
+                               Format                     format,
                                ValueStruct::ValueType     vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(val, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
                                const char                *val,
+                               Format                     format,
                                ValueStruct::ValueType     vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(String(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                const String         & val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(val, vType);
 }
 
 KeyValueStruct::KeyValueStruct(const __FlashStringHelper *key,
                                String                  && val,
+                               Format                     format,
                                ValueStruct::ValueType     vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(std::move(val), vType);
 }
 
 KeyValueStruct::KeyValueStruct(const String         & key,
                                String              && val,
+                               Format                 format,
                                ValueStruct::ValueType vType)
-  : _key(key) {
+  : _key(key), _format(format) {
   _values.emplace_back(std::move(val), vType);
 }
 
-KeyValueStruct::KeyValueStruct(LabelType::Enum label)
-  : _key(getLabel(label)), _unit(getFormUnit(label)) {
+KeyValueStruct::KeyValueStruct(LabelType::Enum label, Format format)
+  : _key(getLabel(label)), _unit(getFormUnit(label)), _format(format) {
   _values.emplace_back(getValue(label));
 }
 
@@ -197,4 +213,15 @@ int KeyValueWriter::getLevel() const
 {
   if (_parent == nullptr) { return 0; }
   return _parent->getLevel() + 1;
+}
+
+bool KeyValueWriter::plainText() const {
+  if (_toString != nullptr) { return true; }
+
+  if (_parent && _parent->plainText()) { return true; }
+  return _plainText;
+}
+
+bool KeyValueWriter::ignoreKey() const {
+  return plainText() || _ignoreKey;
 }

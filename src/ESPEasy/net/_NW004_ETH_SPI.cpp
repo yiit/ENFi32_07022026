@@ -94,13 +94,26 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
-      success = ETH.connected();
+      if (event->kvWriter) {
+        success = ETH.connected();
 
-      if (ETH.linkUp()) {
-        string  = ETH.linkSpeed();
-        string += ETH.fullDuplex() ? F("Mbps FD") : F("Mbps HD");
+        if (ETH.linkUp()) {
+          if (event->kvWriter->ignoreKey()) {
+            String s = concat(
+              String(ETH.linkSpeed()),
+              ETH.fullDuplex() ? F("Mbps FD") : F("Mbps HD"));
 
-        if (!ETH.autoNegotiation()) { string += F("(manual)"); }
+            if (!ETH.autoNegotiation()) { s += F("(manual)"); }
+            event->kvWriter->write({ EMPTY_STRING, s });
+          } else {
+            KeyValueStruct kv(F("Link Speed"), ETH.linkSpeed());
+            kv.setUnit(F("Mbps"));
+            event->kvWriter->write(kv);
+            event->kvWriter->write({ F("Link Speed"), ETH.linkSpeed() });
+            event->kvWriter->write({ F("Duplex Mode"), ETH.fullDuplex() ? F("Full Duplex") : F("Half Duplex") });
+            event->kvWriter->write({ F("Negotiation Mode"), ETH.autoNegotiation() ? F("Auto") : F("Manual") });
+          }
+        }
       }
       break;
     }
@@ -161,9 +174,9 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
 # if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
           toString(EthPhyType_t::LAN8720),
-# if ETH_PHY_LAN867X_SUPPORTED
+#  if ETH_PHY_LAN867X_SUPPORTED
           toString(ESPEasy::net::EthPhyType_t::LAN867X),
-# endif
+#  endif
           toString(EthPhyType_t::TLK110),
           toString(EthPhyType_t::RTL8201),
 #  if ETH_TYPE_JL1101_SUPPORTED
@@ -191,9 +204,9 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
 # if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
           static_cast<int>(EthPhyType_t::LAN8720),
-# if ETH_PHY_LAN867X_SUPPORTED
+#  if ETH_PHY_LAN867X_SUPPORTED
           static_cast<int>(ESPEasy::net::EthPhyType_t::LAN867X),
-# endif
+#  endif
           static_cast<int>(EthPhyType_t::TLK110),
           static_cast<int>(EthPhyType_t::RTL8201),
 #  if ETH_TYPE_JL1101_SUPPORTED

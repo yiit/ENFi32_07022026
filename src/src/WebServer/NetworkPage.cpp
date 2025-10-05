@@ -217,12 +217,16 @@ void handle_networks_ShowAllNetworksTable()
 
       for (uint8_t i = 0; i < NR_ELEMENTS(functions); ++i) {
         html_TD();
+        KeyValueWriter_WebForm webFormWriter;
+        webFormWriter.setPlainText();
         struct EventStruct TempEvent;
+        TempEvent.kvWriter = &webFormWriter;
+
         TempEvent.NetworkIndex = x;
 
         String str;
 
-        const bool res = NWPluginCall(functions[i], &TempEvent, str);
+        const bool res = NWPluginCall(functions[i], &TempEvent);
 # ifdef ESP32
 
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO) {
@@ -237,29 +241,9 @@ void handle_networks_ShowAllNetworksTable()
 # endif // ifdef ESP32
 
         if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED) {
-          if (!res || str.isEmpty()) {
-            addEnabled(res);
-          } else {
-            String conn_duration;
-
-            if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent, conn_duration)) {
-              if (conn_duration.length()) {
-                str += '\n';
-                str += conn_duration;
-              }
-            }
-          }
-        } else if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS) {
-          if (res && !TempEvent.String1.isEmpty() && !str.isEmpty()) {
-            addHtml(strformat(F("%s: "), TempEvent.String1.c_str()));
-          }
+          NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent);
+          addEnabled(res);
         }
-
-        if (!str.isEmpty()) {
-          str.replace(F("\n"), F("<br>"));
-          addHtml(str);
-        }
-
       }
 
       /*
@@ -400,49 +384,43 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     {
       {
         KeyValueWriter_WebForm writer(F("Network Interface"));
-        write_NetworkAdapterFlags(networkindex, &writer);
+        write_NetworkAdapterFlags(networkindex, writer.createChild().get());
       }
       {
         KeyValueWriter_WebForm writer(F("IP Config"));
-        write_IP_config(networkindex, &writer);
+        write_IP_config(networkindex, writer.createChild().get());
       }
       {
+        KeyValueWriter_WebForm writer(F("Connection Information"));
+        struct EventStruct TempEvent2;
+        TempEvent2.NetworkIndex = networkindex;
+        auto child = writer.createChild();
+        TempEvent2.kvWriter = child.get();
+
+
         String str;
-        const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_EXTENDED, &TempEvent, str);
+        const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED, &TempEvent2, str);
 
-        if (res && !str.isEmpty()) {
-          addFormSubHeader(F("Connection Information"));
-
-          addRowLabel(F("Connected"));
-          str.replace(F("\n"), F("<br>"));
-          addHtml_pre(str);
-
+        if (res) {
           String conn_duration;
 
-          if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent, conn_duration)) {
-            addRowLabel(F("Connection Duration"));
-            addHtml(conn_duration);
-            addRowLabel(F("Number of Reconnects"));
-            addHtmlInt(TempEvent.Par64_2);
-          }
+          NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent2, conn_duration);
 
 #  if FEATURE_NETWORK_TRAFFIC_COUNT
 
-          if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT, &TempEvent, str)) {
-            addRowLabel(F("TX / RX Frames"));
-            addHtml(strformat(
+          if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_TRAFFIC_COUNT, &TempEvent2, str)) {
+            writer.write({ F("TX / RX Frames"), strformat(
                       F("%d / %d"),
                       TempEvent.Par5,
-                      TempEvent.Par6));
+                      TempEvent.Par6)});
 
-            addRowLabel(F("TX / RX Frame Bytes"));
-            addHtml(strformat(
+            writer.write({ F("TX / RX Frame Bytes"), strformat(
                       F("%s%cB / %s%cB"),
                       formatHumanReadable(TempEvent.Par64_1, 1024).c_str(),
                       TempEvent.Par64_1 < 1024 ? ' ' : 'i',
                       formatHumanReadable(TempEvent.Par64_2, 1024).c_str(),
                       TempEvent.Par64_2 < 1024 ? ' ' : 'i'
-                      ));
+                      ) });
           }
 #  endif // if FEATURE_NETWORK_TRAFFIC_COUNT
         }
@@ -468,8 +446,10 @@ bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyVal
 {
   if (writer == nullptr) return false;
   struct EventStruct TempEvent;
+  TempEvent.kvWriter = writer;
 
   TempEvent.NetworkIndex = networkindex;
+  
   String str;
 
   if (!NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str)) {
@@ -479,25 +459,10 @@ bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyVal
   {
     String str;
     const bool res = NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS, &TempEvent, str);
-
-    KeyValueStruct kv;
-    kv._value_pre = true;
-
-    if (res && !TempEvent.String1.isEmpty()) {
-      kv._key = TempEvent.String1;
-    } else {
-      kv._key = F("MAC Address");
-    }
-    kv.appendValue(res
-            ? std::move(str)
-            : TempEvent.networkInterface->macAddress());
-
-    writer->write(kv);
   }
 
   {
-    KeyValueStruct kv(F("Flags"));
-    kv._value_pre = true;
+    KeyValueStruct kv(F("Flags"), KeyValueStruct::Format::PreFormatted);
 
     const NWPlugin::NetforkFlags flags[] = {
       NWPlugin::NetforkFlags::DHCP_client,
@@ -565,8 +530,7 @@ bool write_IP_config(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter* 
     PrintToString str;
 
     if (NWPlugin::print_IP_address(ip_types[i], TempEvent.networkInterface, str)) {
-      KeyValueStruct kv(NWPlugin::toString(ip_types[i]), str.get());
-      kv._value_pre = true;
+      KeyValueStruct kv(NWPlugin::toString(ip_types[i]), str.get(), KeyValueStruct::Format::PreFormatted);
       writer->write(kv);
     }
   }

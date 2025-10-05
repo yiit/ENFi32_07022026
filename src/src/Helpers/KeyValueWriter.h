@@ -46,80 +46,104 @@ struct ValueStruct
 // ********************************************************************************
 struct KeyValueStruct
 {
+  enum class Format {
+    Default,
+    PreFormatted
 
-  KeyValueStruct() {}
+  };
 
-  KeyValueStruct(const __FlashStringHelper *key);
-  KeyValueStruct(const String& key);
+
+  KeyValueStruct(Format format = Format::Default) : _format(format) {}
+
+  KeyValueStruct(const __FlashStringHelper *key,
+                 Format                     format = Format::Default);
+  KeyValueStruct(const String& key,
+                 Format        format = Format::Default);
 
   KeyValueStruct(const String         & key,
                  const bool           & val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Bool);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Bool);
 
   KeyValueStruct(const String         & key,
                  int                    val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
                  int32_t                val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
                  uint32_t               val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
                  size_t                 val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
                  const uint64_t       & val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
   KeyValueStruct(const String         & key,
                  const int64_t        & val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Int);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
 
 
   KeyValueStruct(const String         & key,
                  const float          & val,
                  int                    nrDecimals = 4,
+                 Format                 format     = Format::Default,
                  ValueStruct::ValueType vType      = ValueStruct::ValueType::Float);
 
   KeyValueStruct(const String         & key,
                  const double         & val,
                  int                    nrDecimals = 4,
+                 Format                 format     = Format::Default,
                  ValueStruct::ValueType vType      = ValueStruct::ValueType::Double);
 
 
   KeyValueStruct(const __FlashStringHelper *key,
                  const String             & val,
-                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+                 Format                     format = Format::Default,
+                 ValueStruct::ValueType     vType  = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const String             & key,
                  const __FlashStringHelper *val,
-                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+                 Format                     format = Format::Default,
+                 ValueStruct::ValueType     vType  = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
                  const __FlashStringHelper *val,
-                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+                 Format                     format = Format::Default,
+                 ValueStruct::ValueType     vType  = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
                  const char                *val,
-                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+                 Format                     format = Format::Default,
+                 ValueStruct::ValueType     vType  = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const String         & key,
                  const String         & val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Auto);
 
   KeyValueStruct(const __FlashStringHelper *key,
                  String                  && val,
-                 ValueStruct::ValueType     vType = ValueStruct::ValueType::Auto);
+                 Format                     format = Format::Default,
+                 ValueStruct::ValueType     vType  = ValueStruct::ValueType::Auto);
 
 
   KeyValueStruct(const String         & key,
                  String              && val,
-                 ValueStruct::ValueType vType = ValueStruct::ValueType::Auto);
+                 Format                 format = Format::Default,
+                 ValueStruct::ValueType vType  = ValueStruct::ValueType::Auto);
 
   /*
      // TD-er: Do not use template types as it may 'explode' in binary size.
@@ -127,13 +151,15 @@ struct KeyValueStruct
      // as they are  const char[3] and const char[4] respectively.
      template<typename T>
      KeyValueStruct(const String         & key,
-                   const T              & val,
-                   ValueStruct::ValueType vType = ValueStruct::ValueType::Auto)
-      : _key(key) {
+                    const T              & val,
+                    Format                 format = Format::Default,
+                    ValueStruct::ValueType vType  = ValueStruct::ValueType::Auto)
+      : _key(key), _format(format) {
       _values.emplace_back(String(val), vType);
      }
    */
-  KeyValueStruct(LabelType::Enum label);
+  KeyValueStruct(LabelType::Enum label,
+                 Format          format = Format::Default);
 
   void setUnit(const String& unit);
   void setUnit(const __FlashStringHelper *unit);
@@ -149,8 +175,8 @@ struct KeyValueStruct
 
   std::vector<ValueStruct>_values;
 
-  // output as pre-formatted monospaced
-  bool _value_pre{};
+  Format _format = Format::Default;
+
   bool _isArray{};
 
 };
@@ -170,7 +196,8 @@ public:
 
 protected:
 
-  KeyValueWriter(KeyValueWriter*parent, PrintToString *toStr = nullptr) :  _toString(toStr), _parent(parent) {}
+  KeyValueWriter(KeyValueWriter*parent, PrintToString *toStr = nullptr) :  _toString(toStr), _parent(parent)
+  {}
 
   KeyValueWriter(bool emptyHeader, KeyValueWriter*parent, PrintToString *toStr = nullptr) :  _toString(toStr), _parent(parent),
     _hasHeader(emptyHeader) {}
@@ -201,7 +228,15 @@ public:
 
   virtual int  getLevel() const;
 
-  virtual void setIsArray() { _isArray = true; }
+  virtual void setIsArray()   { _isArray = true; }
+
+  virtual void setPlainText() { _plainText = true; }
+
+  virtual bool plainText() const;
+
+  virtual void setIgnoreKey() { _ignoreKey = true; }
+
+  virtual bool ignoreKey() const;
 
   // Only supported for JSON writer right now
   // TODO TD-er: Change this to std::shared_ptr<PrintToString>
@@ -258,6 +293,12 @@ protected:
   bool _isEmpty = true;
 
   bool _isArray{};
+
+private:
+
+  bool _plainText = false;
+
+  bool _ignoreKey = false;
 
 
 }; // class KeyValueWriter

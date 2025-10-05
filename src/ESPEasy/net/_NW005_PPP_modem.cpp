@@ -86,17 +86,33 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
-      ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
-        static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
+      if (event->kvWriter) {
+        ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
+          static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
-      if (NW_data) {
-        success = NW_data->attached();
+        if (NW_data) {
+          success = NW_data->attached();
 
-        if (success) {
-          string = strformat(
-            F("%s (%s dBm)"),
-            NW_data->operatorName().c_str(),
-            NW_data->getRSSI().c_str());
+          if (success) {
+            if (event->kvWriter->ignoreKey()) {
+              event->kvWriter->write({
+                    EMPTY_STRING,
+                    strformat(
+                      F("%s (%s dBm)"),
+                      NW_data->operatorName().c_str(),
+                      NW_data->getRSSI().c_str())
+                  });
+            } else {
+              event->kvWriter->write({
+                    F("Operator Name"),
+                    NW_data->operatorName()
+                  });
+              event->kvWriter->write({
+                    F("RSSI"),
+                    NW_data->getRSSI()
+                  });
+            }
+          }
         }
       }
 
@@ -105,12 +121,18 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
-      ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
-        static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
+      if (event->kvWriter) {
+        ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
+          static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
-      if (NW_data) {
-        string         = NW_data->IMEI();
-        event->String1 = F("IMEI");
+        if (NW_data) {
+          if (event->kvWriter->ignoreKey()) {
+            event->kvWriter->write({ EMPTY_STRING, concat(F("IMEI: "), NW_data->IMEI()) });
+          }
+          else {
+            event->kvWriter->write({ F("IMEI"), NW_data->IMEI(), KeyValueStruct::Format::PreFormatted  });
+          }
+        }
       }
 
       // Still mark success = true to prevent a call to get the MAC address
@@ -121,11 +143,18 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
-      ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
-        static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
+      if (event->kvWriter) {
+        ESPEasy::net::ppp::NW005_data_struct_PPP_modem *NW_data =
+          static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
-      if (NW_data) {
-        success = NW_data->webform_getPort(string);
+        if (NW_data) {
+          String portStr;
+          success = NW_data->webform_getPort(portStr);
+
+          if (success) {
+            event->kvWriter->write({ F("Port"), portStr });
+          }
+        }
       }
       break;
     }
