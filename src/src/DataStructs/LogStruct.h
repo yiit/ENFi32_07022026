@@ -40,7 +40,7 @@ struct LogStruct {
 //    bool get(String& output, const String& lineEnd);
 
     // Returns whether a line was retrieved.
-    bool getNext(bool& logLinesAvailable, unsigned long& timestamp, String& message, uint8_t& loglevel);
+    bool getNext(bool& logLinesAvailable, uint32_t& timestamp, String& message, uint8_t& loglevel);
 
     bool isEmpty() const {
       return !is_full && (write_idx == read_idx);
@@ -66,7 +66,7 @@ struct LogStruct {
     LogEntry_t Message[LOG_STRUCT_MESSAGE_LINES];
     int write_idx = 0;
     int read_idx = 0;
-    unsigned long lastReadTimeStamp = 0;
+    uint32_t lastReadTimeStamp = 0;
     bool is_full = false;
 };
 

@@ -428,7 +428,7 @@ void handle_json()
     }
 
     // Keep track of the lowest reported TTL and use that as refresh interval.
-    unsigned long lowest_ttl_json = 60;
+    uint32_t lowest_ttl_json = 60;
     {
       auto sensorsWriter = showSpecificTask
         ? mainLevelWriter.createNew()
@@ -446,7 +446,7 @@ void handle_json()
 
           if (validDeviceIndex(DeviceIndex))
           {
-            const unsigned long taskInterval = Settings.TaskDeviceTimer[TaskIndex];
+            const uint32_t taskInterval = Settings.TaskDeviceTimer[TaskIndex];
 
             auto taskWriter = sensorsWriter->createChild();
 
@@ -454,7 +454,7 @@ void handle_json()
 
               // LoadTaskSettings(TaskIndex);
 
-              unsigned long ttl_json = 60; // Default value
+              uint32_t ttl_json = 60; // Default value
 
               // For simplicity, do the optional values first.
               const uint8_t valueCount = getValueCountForTask(TaskIndex);

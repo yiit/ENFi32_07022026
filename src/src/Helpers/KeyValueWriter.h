@@ -70,22 +70,22 @@ struct KeyValueStruct
                  int                    val,
                  Format                 format = Format::Default,
                  ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
-
+#ifdef ESP32
   KeyValueStruct(const String         & key,
                  int32_t                val,
                  Format                 format = Format::Default,
                  ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
-
+#endif
   KeyValueStruct(const String         & key,
                  uint32_t               val,
                  Format                 format = Format::Default,
                  ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
-
+#ifdef ESP32
   KeyValueStruct(const String         & key,
                  size_t                 val,
                  Format                 format = Format::Default,
                  ValueStruct::ValueType vType  = ValueStruct::ValueType::Int);
-
+#endif
   KeyValueStruct(const String         & key,
                  const uint64_t       & val,
                  Format                 format = Format::Default,

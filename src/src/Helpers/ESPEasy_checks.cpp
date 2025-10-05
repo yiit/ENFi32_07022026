@@ -105,7 +105,7 @@ void run_compiletime_checks() {
   // String class has increased with 4 bytes
   check_size<EventStruct,                           152u>(); // Is not stored
   #else
-  check_size<EventStruct,                           120u>(); // Is not stored
+  check_size<EventStruct,                           128u>(); // Is not stored
   #endif
 
 

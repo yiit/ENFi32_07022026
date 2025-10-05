@@ -203,7 +203,7 @@ MAC_address NodeStruct::ESPEasy_Now_MAC() const {
   return MAC_address(sta_mac);
 }
 
-unsigned long NodeStruct::getAge() const {
+uint32_t NodeStruct::getAge() const {
   return timePassedSince(lastUpdated);
 }
 

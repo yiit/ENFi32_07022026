@@ -154,6 +154,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
         }
 
         if (!event->kvWriter->summaryValueOnly()) {
+# if FEATURE_SET_WIFI_TX_PWR
           {
             KeyValueStruct kv(
               F("WiFi TX Power"),
@@ -161,6 +162,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
             kv.setUnit(F("dBm"));
             event->kvWriter->write(kv);
           }
+#endif
           event->kvWriter->write({
                 F("Last Disconnect Reason"),
                 getWiFi_disconnectReason_str()
@@ -219,7 +221,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-  }
+  
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {

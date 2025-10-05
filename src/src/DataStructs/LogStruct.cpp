@@ -23,7 +23,7 @@ void LogStruct::add(const uint8_t loglevel, String&& line) {
   }
 }
 
-bool LogStruct::getNext(bool& logLinesAvailable, unsigned long& timestamp, String& message, uint8_t& loglevel) {
+bool LogStruct::getNext(bool& logLinesAvailable, uint32_t& timestamp, String& message, uint8_t& loglevel) {
   lastReadTimeStamp = millis();
   logLinesAvailable = false;
 
