@@ -2257,6 +2257,9 @@ To create/register a plugin, you have to :
   #ifndef PLUGIN_DESCR
     #define PLUGIN_DESCR  "NeoPixel"
   #endif
+  #ifndef BUILD_NO_DEBUG
+    #define BUILD_NO_DEBUG
+  #endif
   #if !defined(FEATURE_SD) && !defined(ESP8266)
     #define FEATURE_SD  1
   #endif
