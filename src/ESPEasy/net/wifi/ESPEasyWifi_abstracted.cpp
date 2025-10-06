@@ -111,12 +111,14 @@ void doSetAPinternal(bool enable)
     # ifdef ESP8266
 
     if (!WiFi.softAPConfig(apIP, apIP, subnet)) {
+#  ifndef BUILD_NO_DEBUG
       addLog(LOG_LEVEL_ERROR, strformat(
                ("WIFI : [AP] softAPConfig failed! IP: %s, GW: %s, SN: %s"),
                apIP.toString().c_str(),
                apIP.toString().c_str(),
                subnet.toString().c_str())
              );
+#endif
     }
     # endif // ifdef ESP8266
 

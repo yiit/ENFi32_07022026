@@ -122,12 +122,13 @@ void handle_setup() {
 //              WiFiEventData.wifiSetupConnect         = true;
 //              WiFiEventData.wifiConnectAttemptNeeded = true;
               ESPEasy::net::wifi::WiFi_AP_Candidates.force_reload(); // Force reload of the credentials and found APs from the last scan
-
+#ifndef BUILD_NO_DEBUG
               if (loglevelActiveFor(LOG_LEVEL_INFO)) {
                 String reconnectlog = F("WIFI : Credentials Changed, retry connection. SSID: ");
                 reconnectlog += ssid;
                 addLogMove(LOG_LEVEL_INFO, reconnectlog);
               }
+#endif
               status       = HANDLE_SETUP_CONNECTING_STAGE;
               refreshCount = 0;
               String dummy;

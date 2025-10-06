@@ -189,6 +189,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
           }
 # endif // ifdef ESP32
         }
+#ifndef LIMIT_BUILD_SIZE
         event->kvWriter->write({
               F("BSSID"),
               STA_BSSID_STR,
@@ -207,6 +208,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
                 F("Encryption Type"),
                 NW_data->getWiFi_encryptionType() });
         }
+#endif
       }
 
       break;

@@ -253,24 +253,32 @@ void hardwareInit()
 
   if (SPI_initialized)
   {
+#ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_INFO, F("INIT : SPI Init (without CS)"));
+#endif
     #if FEATURE_SD
 
     if (Settings.Pin_sd_cs >= 0)
     {
       if (SD.begin(Settings.Pin_sd_cs))
       {
+#ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_INFO, F("SD   : Init OK"));
+#endif
       }
       else
       {
         SD.end();
+#ifndef BUILD_NO_DEBUG
         addLog(LOG_LEVEL_ERROR, F("SD   : Init failed"));
+#endif
       }
     }
 #endif // if FEATURE_SD
+#ifndef BUILD_NO_DEBUG
   } else {
     addLog(LOG_LEVEL_INFO, F("INIT : SPI not enabled"));
+#endif
   }
 }
 

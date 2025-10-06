@@ -48,9 +48,11 @@ void handle_rules() {
   // Make sure file exists
   if (!fileExists(fileName))
   {
+#ifndef BUILD_NO_DEBUG
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       addLogMove(LOG_LEVEL_INFO, concat(F("Rules : Create new file: %s"), fileName));
     }
+#endif
     fs::File f = tryOpenFile(fileName, "w");
 
     if (f) { f.close(); }

@@ -236,7 +236,9 @@ void updateUDPport(bool force)
     if (lastUsedUDPPort != 0) {
       portUDP.stop();
       lastUsedUDPPort = 0;
+#ifndef BUILD_NO_DEBUG
       addLogMove(LOG_LEVEL_INFO, concat(F("UDP : Stop listening on port "), Settings.UDPPort));
+#endif
     }
     if (!connected) {
       return;
@@ -245,15 +247,18 @@ void updateUDPport(bool force)
 
   if (Settings.UDPPort != 0) {
     if (portUDP.begin(Settings.UDPPort) == 0) {
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
         addLogMove(LOG_LEVEL_ERROR, concat(F("UDP : Cannot bind to ESPEasy p2p UDP port "), Settings.UDPPort));
       }
+#endif
     } else {
       lastUsedUDPPort = Settings.UDPPort;
-
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         addLogMove(LOG_LEVEL_INFO, concat(F("UDP : Start listening on port "), Settings.UDPPort));
       }
+#endif
     }
   }
 }
@@ -1651,9 +1656,11 @@ int http_authenticate(const String& logIdentifier,
 
     if (authReq.indexOf(F("Digest")) != -1) {
       // Use Digest authorization
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         addLogMove(LOG_LEVEL_INFO, concat(F("HTTP : Start Digest Authorization for "), host));
       }
+#endif
 
       http.setAuthorization("");     // Clear Basic authorization
 # ifdef ESP32
@@ -1904,10 +1911,11 @@ bool downloadFile(const String& url, String file_save, const String& user, const
     f.close();
     http.end();
     client.stop();
-
+#ifndef BUILD_NO_DEBUG
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       addLog(LOG_LEVEL_INFO, strformat(F("downloadFile: %s Success"), file_save.c_str()));
     }
+#endif
     return true;
   }
   http.end();
@@ -2000,10 +2008,11 @@ bool downloadFirmware(const String& url, String& file_save, String& user, String
   }
   http.end();
   client.stop();
-
+#ifndef BUILD_NO_DEBUG
   if (error.isEmpty() && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(F("downloadFile: %s Success"), file_save.c_str()));
   }
+#endif
 
   uint8_t errorcode = 0;
 

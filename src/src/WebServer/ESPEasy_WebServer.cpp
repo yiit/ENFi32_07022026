@@ -175,9 +175,9 @@ bool captivePortal() {
   const IPAddress client_localIP = web_server.client().localIP();
   const bool fromAP              = client_localIP == apIP;
   const bool hasWiFiCredentials  = SecuritySettings.hasWiFiCredentials();
-
+#ifndef BUILD_NO_DEBUG
   addLog(LOG_LEVEL_INFO, concat(F("CaptivePortal: hostHeader: "), web_server.hostHeader()));
-
+#endif
   if (hasWiFiCredentials || !fromAP) {
     return false;
   }

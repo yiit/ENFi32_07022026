@@ -283,7 +283,9 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
   # if FEATURE_ETHERNET
       addFormNote(F("Do not allow to start an AP when unable to connect to configured LAN/WiFi"));
   # else // if FEATURE_ETHERNET
+#ifndef LIMIT_BUILD_SIZE
       addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
+#endif
   # endif // if FEATURE_ETHERNET
   # ifdef ESP32
       addFormCheckBox(F("Enable NAPT"), F("napt"), Settings.WiFi_AP_enable_NAPT());

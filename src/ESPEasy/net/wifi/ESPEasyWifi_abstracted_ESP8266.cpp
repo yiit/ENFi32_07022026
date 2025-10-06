@@ -33,10 +33,11 @@ bool WiFi_pre_STA_setup() {
   // Assign to 2 separate bools to make sure both are executed.
   const bool autoConnect   = WiFi.setAutoConnect(true);
   const bool autoReconnect = WiFi.setAutoReconnect(true);
-
+#ifndef LIMIT_BUILD_SIZE
   if (!autoConnect || !autoReconnect) {
     addLog(LOG_LEVEL_ERROR, F("WiFi  : Disabling auto (re)connect failed"));
   }
+#endif
   delay(100);
   return true;
 }

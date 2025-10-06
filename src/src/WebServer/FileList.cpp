@@ -155,7 +155,9 @@ void handle_filelist() {
   # ifdef USES_C016
 
   if (hasArg(F("delcache"))) {
+#ifndef BUILD_NO_DEBUG
     addLog(LOG_LEVEL_INFO, F("RTC  : delcache"));
+#endif
     C016_deleteAllCacheBlocks();
 
     while (GarbageCollection()) {

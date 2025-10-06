@@ -389,7 +389,7 @@ unsigned long ESPEasy_time::now_() {
           syncInterval = 3600;
         }
       }
-
+#ifndef BUILD_NO_DEBUG
       if (loglevelActiveFor(LOG_LEVEL_INFO)) {
         String log = F("Time set to ");
         #if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
@@ -408,7 +408,7 @@ unsigned long ESPEasy_time::now_() {
         }
         addLogMove(LOG_LEVEL_INFO, log);
       }
-
+#endif
       time_zone.applyTimeZone(unixTime_d);
       lastSyncTime_ms = millis();
       nextSyncTime    = getUptime_in_sec() + syncInterval;
@@ -429,13 +429,13 @@ unsigned long ESPEasy_time::now_() {
   calcSunRiseAndSet(timeSynced);
 
   if (timeSynced) {
-    #ifndef BUILD_MINIMAL_OTA
+#ifndef BUILD_NO_DEBUG
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       addLog(LOG_LEVEL_INFO, strformat(
                F("Local time: %s"),
                getDateTimeString('-', ':', ' ').c_str()));
     }
-    #endif
+#endif
     {
       // Notify plugins the time has been set.
       String dummy;
