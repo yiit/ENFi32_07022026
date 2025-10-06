@@ -4,10 +4,6 @@
 #include "../WebServer/JSON.h"
 #include "../WebServer/Markup_Forms.h"
 
-// TODO TD-er: Needed for write_NetworkAdapterFlags and write_IP_config
-// Move to other file
-#include "../WebServer/NetworkPage.h"
-
 #include "../CustomBuild/CompiletimeDefines.h"
 
 #include "../DataStructs/TimingStats.h"
@@ -26,6 +22,8 @@
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringProvider.h"
 #include "../Helpers/StringGenerator_System.h"
+
+#include "../../ESPEasy/net/Helpers/NW_info_writer.h"
 
 #include "../../_Plugin_Helper.h"
 #include "../../ESPEasy-Globals.h"
@@ -273,11 +271,11 @@ void handle_json()
                 writer->write({ F("Network Index"), x + 1 });
 #ifdef WEBSERVER_NETWORK
 # ifdef ESP32
-                write_NetworkAdapterFlags(x, writer->createChild(F("Interface")).get());
-                write_IP_config(x, writer->createChild(F("IP")).get());
+                ESPEasy::net::write_NetworkAdapterFlags(x, writer->createChild(F("Interface")).get());
+                ESPEasy::net::write_IP_config(x, writer->createChild(F("IP")).get());
 # endif // ifdef ESP32
 #endif // ifdef WEBSERVER_NETWORK
-                write_NetworkConnectionInfo(x, writer->createChild(F("Connection")).get());
+                ESPEasy::net::write_NetworkConnectionInfo(x, writer->createChild(F("Connection")).get());
               }
 
               if (x == 0) {

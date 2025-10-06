@@ -8,6 +8,7 @@
 # include "../../ESPEasy/net/Globals/ESPEasyWiFiEvent.h"
 # include "../../ESPEasy/net/Globals/NetworkState.h"
 # include "../../ESPEasy/net/Helpers/NWAccessControl.h"
+# include "../../ESPEasy/net/Helpers/NW_info_writer.h"
 # include "../../ESPEasy/net/eth/ESPEasyEth.h"
 # include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 # include "../Commands/Diagnostic.h"
@@ -527,15 +528,15 @@ void handle_sysinfo_Network() {
       if (pluginID != ESPEasy::net::INVALID_NW_PLUGIN_ID) {
         KeyValueWriter_WebForm writer(
           strformat(F("%s (%d)"),
-          getNWPluginNameFromNWPluginID(pluginID).c_str(),
-           x + 1 ));
+                    getNWPluginNameFromNWPluginID(pluginID).c_str(),
+                    x + 1));
 #  ifdef WEBSERVER_NETWORK
 #   ifdef ESP32
-        write_NetworkAdapterFlags(x, &writer);
-        write_IP_config(x, &writer);
+        ESPEasy::net::write_NetworkAdapterFlags(x, &writer);
+        ESPEasy::net::write_IP_config(x, &writer);
 #   endif // ifdef ESP32
 #  endif // ifdef WEBSERVER_NETWORK
-        write_NetworkConnectionInfo(x, &writer);
+        ESPEasy::net::write_NetworkConnectionInfo(x, &writer);
       }
     }
   }
