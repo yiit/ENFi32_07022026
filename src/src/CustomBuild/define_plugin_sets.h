@@ -3000,6 +3000,9 @@ To create/register a plugin, you have to :
   #ifdef LIMIT_BUILD_SIZE
     #undef LIMIT_BUILD_SIZE
   #endif
+  #ifdef BUILD_NO_DEBUG
+    #undef BUILD_NO_DEBUG
+  #endif
 #endif
 
 // Disable some diagnostic parts to make builds fit.

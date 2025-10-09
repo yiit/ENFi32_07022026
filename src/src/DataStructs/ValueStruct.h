@@ -27,16 +27,16 @@ public:
 
   virtual ~ValueStruct() {}
 
-  virtual size_t print(Print& out) const = 0;
+  virtual size_t    print(Print& out) const = 0;
 
-  virtual String toString() const;
+  virtual String    toString() const;
 
-  virtual String toString(ValueType& valueType) const;
+  virtual String    toString(ValueType& valueType) const;
 
-  virtual ValueType getValueType() const { return _valueType; };
+  virtual ValueType getValueType() const { return _valueType; }
 
 protected:
-  
+
   const ValueType _valueType;
 
 }; // class ValueStruct
@@ -55,7 +55,7 @@ public:
   virtual ~ValueStruct_String();
 
   ValueStruct_String(const String& val);
-  ValueStruct_String(String && val);
+  ValueStruct_String(String&& val);
 
   virtual size_t print(Print& out) const;
 
@@ -82,9 +82,9 @@ public:
 
   virtual ~ValueStruct_Double();
 
-  ValueStruct_Double(double val,
-                     uint8_t nrDecimals = 2,
-                     bool trimTrailingZeros = false);
+  ValueStruct_Double(double  val,
+                     uint8_t nrDecimals        = 2,
+                     bool    trimTrailingZeros = false);
 
   virtual size_t print(Print& out) const;
 
@@ -93,7 +93,7 @@ public:
   const double _val;
   const uint8_t _nrDecimals;
   const bool _trimTrailingZeros;
-}; 
+}; // class ValueStruct_Double
 
 class ValueStruct_Float : public ValueStruct
 {
@@ -101,9 +101,9 @@ public:
 
   virtual ~ValueStruct_Float();
 
-  ValueStruct_Float(float val,
-                     uint8_t nrDecimals = 2,
-                     bool trimTrailingZeros = false);
+  ValueStruct_Float(float   val,
+                    uint8_t nrDecimals        = 2,
+                    bool    trimTrailingZeros = false);
 
   virtual size_t print(Print& out) const;
 
@@ -112,7 +112,36 @@ public:
   const float _val;
   const uint8_t _nrDecimals;
   const bool _trimTrailingZeros;
-}; 
+}; // class ValueStruct_Float
+
+class ValueStruct_uint64_t : public ValueStruct
+{
+public:
+
+  virtual ~ValueStruct_uint64_t();
+
+  ValueStruct_uint64_t(uint64_t  val,
+                       ValueType vType);
+
+  virtual size_t print(Print& out) const;
+
+  const uint64_t _val;
+}; // class ValueStruct_uint64_t
+
+
+class ValueStruct_int64_t : public ValueStruct
+{
+public:
+
+  virtual ~ValueStruct_int64_t();
+
+  ValueStruct_int64_t(int64_t   val,
+                      ValueType vType);
+
+  virtual size_t print(Print& out) const;
+
+  const int64_t _val;
+}; // class ValueStruct_int64_t
 
 
 template<class T>

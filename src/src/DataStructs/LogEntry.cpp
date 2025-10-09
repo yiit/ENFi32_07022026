@@ -16,8 +16,9 @@ LogEntry_t::LogEntry_t(const uint8_t              logLevel,
   _message((void *)(message)),
   _strLength(message ? strlen_P((const char *)(message)) : 0),
   _timestamp(millis()),
+  _isFlashString(true),
   _logLevel(logLevel),
-  _isFlashString(true)
+  _subscriberPendingRead(0)
 {}
 
 LogEntry_t::LogEntry_t(const uint8_t logLevel,
@@ -25,8 +26,9 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
   _message(nullptr),
   _strLength(message ? strlen_P((const char *)(message)) : 0),
   _timestamp(millis()),
+  _isFlashString(false),
   _logLevel(logLevel),
-  _isFlashString(false)
+  _subscriberPendingRead(0)
 {
   if (_strLength) {
     _message = special_calloc(1, _strLength + 1);
@@ -42,8 +44,9 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
   _message(nullptr),
   _strLength(message.length()),
   _timestamp(millis()),
+  _isFlashString(false),
   _logLevel(logLevel),
-  _isFlashString(false)
+  _subscriberPendingRead(0)
 {
   if (_strLength) {
 
@@ -60,8 +63,9 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
   _message(nullptr),
   _strLength(message.length()),
   _timestamp(millis()),
+  _isFlashString(false),
   _logLevel(logLevel),
-  _isFlashString(false)
+  _subscriberPendingRead(0)
 {
   if (_strLength) {
     // We can't move the allocated memory from 'message'.

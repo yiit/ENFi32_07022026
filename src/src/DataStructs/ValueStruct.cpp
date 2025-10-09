@@ -59,9 +59,9 @@ size_t ValueStruct_FlashString::print(Print& out) const
 ValueStruct_Double::~ValueStruct_Double() {}
 
 ValueStruct_Double::ValueStruct_Double(
-  double    val,
-  uint8_t  nrDecimals,
-  bool      trimTrailingZeros)
+  double  val,
+  uint8_t nrDecimals,
+  bool    trimTrailingZeros)
   : ValueStruct(ValueType::Double), _val(val), _nrDecimals(nrDecimals), _trimTrailingZeros(trimTrailingZeros) {}
 
 size_t ValueStruct_Double::print(Print& out) const
@@ -89,9 +89,9 @@ String ValueStruct_Double::toString(ValueType& valueType) const
 ValueStruct_Float::~ValueStruct_Float() {}
 
 ValueStruct_Float::ValueStruct_Float(
-  float     val,
-  uint8_t  nrDecimals,
-  bool      trimTrailingZeros)
+  float   val,
+  uint8_t nrDecimals,
+  bool    trimTrailingZeros)
   : ValueStruct(ValueType::Float), _val(val), _nrDecimals(nrDecimals), _trimTrailingZeros(trimTrailingZeros) {}
 
 size_t ValueStruct_Float::print(Print& out) const
@@ -113,4 +113,33 @@ String ValueStruct_Float::toString(ValueType& valueType) const
   }
 
   return res;
+}
+
+// ********************************************************************************
+// ValueStruct_uint64_t
+// ********************************************************************************
+
+ValueStruct_uint64_t::~ValueStruct_uint64_t() {}
+
+ValueStruct_uint64_t::ValueStruct_uint64_t(uint64_t  val,
+                                           ValueType vType)
+  : ValueStruct(vType), _val(val) {}
+
+size_t ValueStruct_uint64_t::print(Print& out) const
+{
+  return out.print(ull2String(_val));
+}
+
+// ********************************************************************************
+// ValueStruct_int64_t
+// ********************************************************************************
+
+ValueStruct_int64_t::~ValueStruct_int64_t() {}
+
+ValueStruct_int64_t::ValueStruct_int64_t(int64_t val, ValueType vType)
+  : ValueStruct(vType), _val(val) {}
+
+size_t ValueStruct_int64_t::print(Print& out) const
+{
+  return out.print(ll2String(_val));
 }

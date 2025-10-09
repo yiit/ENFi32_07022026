@@ -99,14 +99,14 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
 
     if (kv._values[i]) {
 
-    String str(kv._values[i]->toString());
+      String str(kv._values[i]->toString());
 
-    if (!plain_text && (str.indexOf('\n') != -1))
-    {
-      str.replace(F("\n"), F("<br>"));
+      if (!plain_text && (str.indexOf('\n') != -1))
+      {
+        str.replace(F("\n"), F("<br>"));
+      }
+      getPrint().print(str);
     }
-    getPrint().print(str);
-  }
   }
 
   // May need to include the unit before ending </pre>
@@ -130,10 +130,38 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
   }
 }
 
-Sp_KeyValueWriter KeyValueWriter_WebForm::createChild()                     { return std::make_unique<KeyValueWriter_WebForm>(this); }
+Sp_KeyValueWriter KeyValueWriter_WebForm::createChild()
+{
+  std::unique_ptr<KeyValueWriter_WebForm> child(new (std::nothrow) KeyValueWriter_WebForm(this));
 
-Sp_KeyValueWriter KeyValueWriter_WebForm::createChild(const String& header) { return std::make_unique<KeyValueWriter_WebForm>(header, this); }
+  return std::move(child);
 
-Sp_KeyValueWriter KeyValueWriter_WebForm::createNew()                       { return std::make_unique<KeyValueWriter_WebForm>(); }
+  // return std::make_unique<KeyValueWriter_WebForm>(this);
+}
 
-Sp_KeyValueWriter KeyValueWriter_WebForm::createNew(const String& header)   { return std::make_unique<KeyValueWriter_WebForm>(header); }
+Sp_KeyValueWriter KeyValueWriter_WebForm::createChild(const String& header)
+{
+  std::unique_ptr<KeyValueWriter_WebForm> child(new (std::nothrow) KeyValueWriter_WebForm(header, this));
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_WebForm>(header, this);
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createNew()
+{
+  std::unique_ptr<KeyValueWriter_WebForm> child(new (std::nothrow) KeyValueWriter_WebForm());
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_WebForm>();
+}
+
+Sp_KeyValueWriter KeyValueWriter_WebForm::createNew(const String& header)
+{
+  std::unique_ptr<KeyValueWriter_WebForm> child(new (std::nothrow) KeyValueWriter_WebForm(header));
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_WebForm>(header);
+}

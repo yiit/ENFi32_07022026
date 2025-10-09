@@ -63,6 +63,8 @@ private:
   size_t   _strLength;
   uint32_t _timestamp;
   union {
+    uint32_t _flags;
+
     struct {
       uint32_t _isFlashString         : 1;
       uint32_t _logLevel              : 4;
@@ -71,9 +73,6 @@ private:
       uint32_t unused : 19;
 
     };
-
-    uint32_t _flags{};
-
   };
 
 };

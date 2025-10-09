@@ -98,7 +98,7 @@ void LogHelper::loop()
     LOG_TO_SDCARD
   };
 
-  for (int i = 0; i < NR_ELEMENTS(destinations); ++i) {
+  for (uint8_t i = 0; i < NR_ELEMENTS(destinations); ++i) {
     String   message;
     uint32_t timestamp{};
     uint8_t  loglevel{};

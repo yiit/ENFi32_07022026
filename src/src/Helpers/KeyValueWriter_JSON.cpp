@@ -5,6 +5,9 @@
 
 #include "../WebServer/HTML_wrappers.h"
 
+#include <memory>
+
+
 KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader, PrintToString *toStr)
   : KeyValueWriter(emptyHeader, toStr)
 {}
@@ -130,9 +133,9 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
   }
 }
 
-void KeyValueWriter_JSON::writeValue(const ValueStruct* val)
+void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
 {
-  if (val == nullptr) return;
+  if (val == nullptr) { return; }
   auto& pr = getPrint();
 
   ValueStruct::ValueType valueType(ValueStruct::ValueType::Auto);
@@ -160,17 +163,41 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct* val)
   pr.print(to_json_value(str));
 }
 
-Sp_KeyValueWriter KeyValueWriter_JSON::createChild() { return std::make_unique<KeyValueWriter_JSON>(this, _toString); }
+Sp_KeyValueWriter KeyValueWriter_JSON::createChild()
+{
+  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(this, _toString));
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_JSON>(this, _toString);
+}
 
 Sp_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
 {
-  return std::make_unique<KeyValueWriter_JSON>(header, this, _toString);
+  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, this, _toString));
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_JSON>(header, this, _toString);
 }
 
-Sp_KeyValueWriter KeyValueWriter_JSON::createNew()                     { return std::make_unique<KeyValueWriter_JSON>(false, _toString); }
+Sp_KeyValueWriter KeyValueWriter_JSON::createNew()
+{
+  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(false, _toString));
 
-Sp_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header) { return std::make_unique<KeyValueWriter_JSON>(header, _toString); }
+  return std::move(child);
 
+  // return std::make_unique<KeyValueWriter_JSON>(false, _toString);
+}
+
+Sp_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header)
+{
+  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, _toString));
+
+  return std::move(child);
+
+  // return std::make_unique<KeyValueWriter_JSON>(header, _toString);
+}
 
 #ifdef USE_KVW_JSON_INDENT
 
