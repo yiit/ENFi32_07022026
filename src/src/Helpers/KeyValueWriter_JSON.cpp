@@ -158,6 +158,7 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
 
     case ValueStruct::ValueType::Auto:
     case ValueStruct::ValueType::String:
+    case ValueStruct::ValueType::FlashString:
       break;
   }
   pr.print(to_json_value(str));

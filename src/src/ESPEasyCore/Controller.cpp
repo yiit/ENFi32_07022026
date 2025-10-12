@@ -469,10 +469,10 @@ bool MQTTConnect_clientConnect(controllerIndex_t controller_idx) {
   const bool hasCredentials = hasControllerCredentialsSet(controller_idx, *ControllerSettings);
 
   const uint64_t statisticsTimerStart(getMicros64());
-
+# if FEATURE_MQTT_TLS
   mqtt_tls_last_errorstr.clear();
   mqtt_tls_last_error = 0;
-
+#endif
   MQTTresult =
     MQTTclient.connect(clientid.c_str(),
                        hasCredentials ? getControllerUser(controller_idx, *ControllerSettings).c_str() : nullptr,
