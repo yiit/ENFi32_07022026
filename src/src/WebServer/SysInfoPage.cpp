@@ -756,9 +756,9 @@ void handle_sysinfo_Storage() {
 
   addRowLabel(LabelType::FLASH_WRITE_COUNT);
   addHtml(strformat(
-            F("%d daily / %d boot"),
-            RTC.flashDayCounter,
-            static_cast<int>(RTC.flashCounter)));
+    F("%d daily / %d cold boot"),
+    RTC.flashDayCounter,
+    static_cast<int>(RTC.flashCounter)));
 
   {
     uint32_t maxSketchSize;
