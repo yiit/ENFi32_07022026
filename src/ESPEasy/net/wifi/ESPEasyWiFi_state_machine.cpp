@@ -50,13 +50,18 @@ void ESPEasyWiFi_t::begin()   {
   if (WiFi_AP_Candidates.hasCandidates()) {
     setState(WiFiState_e::IdleWaiting, 100);
   } else {
-    if (WifiIsAP(WiFi.getMode())) {
-      // TODO TD-er: Must check if any client is connected.
-      // If not, then we can disable AP mode and switch to WiFiState_e::STA_Scanning
-      setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
-    } else {
-      //            setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
-      setState(WiFiState_e::STA_Scanning, WIFI_STATE_MACHINE_STA_SCANNING_TIMEOUT);
+//    if (!Settings.DoNotStartAP()) {
+//      setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
+//    } else 
+    {
+      if (WifiIsAP(WiFi.getMode())) {
+        // TODO TD-er: Must check if any client is connected.
+        // If not, then we can disable AP mode and switch to WiFiState_e::STA_Scanning
+        setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
+      } else {
+        //            setState(WiFiState_e::STA_AP_Scanning, WIFI_STATE_MACHINE_STA_AP_SCANNING_TIMEOUT);
+        setState(WiFiState_e::STA_Scanning, WIFI_STATE_MACHINE_STA_SCANNING_TIMEOUT);
+      }
     }
   }
 }
@@ -173,11 +178,14 @@ void ESPEasyWiFi_t::loop()
 # endif
         }
 
-        if (!WiFi_AP_Candidates.hasCandidateCredentials() &&
-            !Settings.DoNotStartAP()) {
-          setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
-        } else {
+        if (WiFi_AP_Candidates.hasCandidates()) {
           setState(WiFiState_e::WiFiOFF, 100);
+        } else {
+          if (!Settings.DoNotStartAP()) {
+            setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
+          } else {
+            setState(WiFiState_e::WiFiOFF, 1000);
+          }
         }
       }
       break;
@@ -296,7 +304,8 @@ void ESPEasyWiFi_t::disconnect() { doWiFiDisconnect(); }
 
 void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
   if (newState == _state) { return; }
-#ifndef BUILD_NO_DEBUG
+# ifndef BUILD_NO_DEBUG
+
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(
       LOG_LEVEL_INFO,
@@ -304,7 +313,8 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
       concat(F(" to: "),                   toString(newState)) +
       concat(F(" timeout: "),              timeout));
   }
-#endif
+# endif // ifndef BUILD_NO_DEBUG
+
   if (_state == WiFiState_e::AP_only) {
     setAPinternal(false);
     setAP(false);
@@ -316,8 +326,10 @@ void ESPEasyWiFi_t::setState(WiFiState_e newState, uint32_t timeout) {
 
     if (wifi_STA_data) {
       wifi_STA_data->mark_disconnected();
-      if (WiFi.status() == WL_CONNECTED)
+
+      if (WiFi.status() == WL_CONNECTED) {
         WiFi.disconnect();
+      }
     }
   }
 
@@ -482,14 +494,16 @@ bool ESPEasyWiFi_t::connectSTA()
   }
 
   const WiFi_AP_Candidate candidate = WiFi_AP_Candidates.getCurrent();
-#ifndef BUILD_NO_DEBUG
+# ifndef BUILD_NO_DEBUG
+
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLogMove(LOG_LEVEL_INFO, strformat(
                  F("WIFI : Connecting %s attempt #%u"),
                  candidate.toString().c_str(),
                  wifi_STA_data->_establishConnectStats.getCycleCount() + 1));
   }
-#endif
+# endif // ifndef BUILD_NO_DEBUG
+
   // WiFiEventData.markWiFiBegin();
 
   if (prepareWiFi()) {
@@ -533,7 +547,7 @@ bool ESPEasyWiFi_t::connectSTA()
 # ifdef ESP32
       WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
       WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL);
-# endif
+# endif // ifdef ESP32
       delay(100);
       WiFi.begin(candidate.ssid.c_str(), key.c_str(), candidate.channel, candidate.bssid.mac);
 
@@ -554,7 +568,7 @@ bool ESPEasyWiFi_t::connectSTA()
 # ifdef ESP32
         WiFi.setScanMethod(WIFI_ALL_CHANNEL_SCAN);
         WiFi.setSortMethod(WIFI_CONNECT_AP_BY_SIGNAL);
-# endif
+# endif // ifdef ESP32
         WiFi.begin(candidate.ssid.c_str(), key.c_str());
       }
     }

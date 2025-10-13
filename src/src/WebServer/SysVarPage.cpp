@@ -162,6 +162,10 @@ void handle_sysvars() {
   {
     const SystemVariables::Enum vars[] = {
       SystemVariables::ISWIFI,
+      SystemVariables::ISWIFIAP,
+#ifdef USES_NW005
+      SystemVariables::ISPPP,
+#endif
       SystemVariables::ISNTP,
 # if FEATURE_MQTT
       SystemVariables::ISMQTT,

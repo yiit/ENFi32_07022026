@@ -11,6 +11,7 @@
 
 #include "../ESPEasyCore/ESPEasy_Log.h"
 #include "../../ESPEasy/net/ESPEasyNetwork.h"
+#include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 
 #include "../Globals/CRCValues.h"
 #include "../Globals/ESPEasy_time.h"
@@ -30,6 +31,11 @@
 #include "../Helpers/Numerical.h"
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringProvider.h"
+
+
+#ifdef USES_NW005
+# include <PPP.h>
+#endif
 
 
 #if defined(ESP8266)
@@ -192,7 +198,12 @@ String SystemVariables::getSystemVariable(SystemVariables::Enum enumval) {
         0; break;
 
     case ISNTP:             intvalue = statusNTPInitialized ? 1 : 0; break;
+    case ISWIFIAP:          intvalue = ESPEasy::net::wifi::WifiIsAP(WiFi.getMode()) ? 1 : 0; break;
     case ISWIFI:            intvalue = WIFI_CONNECTED ? 1 : 0; break;
+#ifdef USES_NW005
+    case ISPPP:             intvalue = PPP.connected() ? 1 : 0; break;
+#endif
+
       // WiFiEventData.wifiStatus; break; // 0=disconnected, 1=connected, 2=got ip, 4=services
     // initialized
     case LCLTIME_AM:        return node_time.getDateTimeString_ampm('-', ':', ' ');
@@ -609,6 +620,10 @@ const __FlashStringHelper * SystemVariables::toFlashString(SystemVariables::Enum
     case Enum::ISMQTT:             return F("ismqtt");
     case Enum::ISMQTTIMP:          return F("ismqttimp");
     case Enum::ISNTP:              return F("isntp");
+    case Enum::ISWIFIAP:           return F("iswifiap");
+#ifdef USES_NW005
+    case Enum::ISPPP:              return F("isppp");
+#endif
     case Enum::ISWIFI:             return F("iswifi");
     case Enum::LCLTIME:            return F("lcltime");
     case Enum::LCLTIME_AM:         return F("lcltime_am");
