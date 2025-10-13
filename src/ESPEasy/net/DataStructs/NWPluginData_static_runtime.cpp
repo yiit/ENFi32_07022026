@@ -76,7 +76,7 @@ void NWPluginData_static_runtime::enable_txrx_events()
 
 bool NWPluginData_static_runtime::getTrafficCount(TX_RX_traffic_count& traffic) const
 {
-  if (_netif == nullptr) return false;
+  if (_netif == nullptr) { return false; }
   const int key = _netif->impl_index();
   auto it       = interfaceTrafficCount.find(key);
 
@@ -142,8 +142,10 @@ bool NWPluginData_static_runtime::operational() const
 void NWPluginData_static_runtime::processEvents()
 {
 #ifdef ESP32
-  if (_netif == nullptr) return;
-#endif
+
+  if (_netif == nullptr) { return; }
+#endif // ifdef ESP32
+
   // TD-er: Just set these just to be sure we didn't miss any events.
   _connectedStats.set(connected());
 
@@ -194,7 +196,8 @@ void NWPluginData_static_runtime::processEvents()
       ip_event_got_ip6_t ip6Event;
       memcpy(&ip6Event, &_gotIP6Events[i], sizeof(ip_event_got_ip6_t));
       memset(&_gotIP6Events[i], 0, sizeof(ip_event_got_ip6_t));
-      if (loglevelActiveFor(LOG_LEVEL_INFO) && ip6Event.esp_netif != nullptr) {
+
+      if (loglevelActiveFor(LOG_LEVEL_INFO) && (ip6Event.esp_netif != nullptr)) {
         esp_ip6_addr_type_t addr_type    = esp_netif_ip6_get_addr_type(&ip6Event.ip6_info.ip);
         static const char  *addr_types[] = { "UNKNOWN", "GLOBAL", "LINK_LOCAL", "SITE_LOCAL", "UNIQUE_LOCAL", "IPV4_MAPPED_IPV6" };
 
@@ -238,13 +241,19 @@ void NWPluginData_static_runtime::processEvents()
     if (Settings.UseRules && _eventInterfaceName.length())
     {
       if (_operationalStats.isOn()) {
-        eventQueue.add(concat(
-                         _eventInterfaceName,
-                         F("#Connected")));
+        if (_isAP) {
+          eventQueue.add(F("WiFi#APmodeConnected"));
+        }
+        else {
+          eventQueue.add(concat(_eventInterfaceName, F("#Connected")));
+        }
       } else if (_operationalStats.isOff()) {
-        eventQueue.add(concat(
-                         _eventInterfaceName,
-                         F("#Disconnected")));
+        if (_isAP) {
+          eventQueue.add(F("WiFi#APmodeDisconnected"));
+        }
+        else {
+          eventQueue.add(concat(_eventInterfaceName, F("#Disconnected")));
+        }
       }
     }
     statusLED(true);
@@ -252,13 +261,19 @@ void NWPluginData_static_runtime::processEvents()
 
   if (_startStopStats.changedSinceLastCheck_and_clear() && Settings.UseRules) {
     if (_startStopStats.isOn()) {
-        eventQueue.add(concat(
-                         _eventInterfaceName,
-                         _isAP ? F("#APmodeEnabled") : F("#Enabled")));
+      if (_isAP) {
+        eventQueue.add(F("WiFi#APmodeEnabled"));
+      }
+      else {
+        eventQueue.add(concat(_eventInterfaceName, F("#Enabled")));
+      }
     } else if (_startStopStats.isOff()) {
-        eventQueue.add(concat(
-                         _eventInterfaceName,
-                         _isAP ? F("#APmodeDisabled") : F("#Disabled")));
+      if (_isAP) {
+        eventQueue.add(F("WiFi#APmodeDisabled"));
+      }
+      else {
+        eventQueue.add(concat(_eventInterfaceName, F("#Disabled")));
+      }
     }
   }
 }
