@@ -7,7 +7,8 @@
 
 void show_SecurityStruct_deviceSpecific_WebFormItem(
   SecurityStruct_deviceSpecific::KeyType keytype,
-  uint16_t                               index);
+  uint16_t                               index,
+  bool                                   suppressIndex_displayString = false);
 
 void store_SecurityStruct_deviceSpecific_WebFormItem(
   SecurityStruct_deviceSpecific::KeyType keytype,

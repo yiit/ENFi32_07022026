@@ -67,7 +67,18 @@ void handle_setup() {
 
   {
     if (clearWiFiCredentials) {
+# if FEATURE_STORE_CREDENTIALS_SEPARATE_FILE
+
+      if (SecuritySettings.Password[0] == 0) {
+        // No password set, so also clear the regular credentials
+        // SecuritySettings.clearWiFiCredentials();
+      }
+      SecuritySettings_deviceSpecific.clearWiFiCredentials();
+
+# else // if FEATURE_STORE_CREDENTIALS_SEPARATE_FILE
       SecuritySettings.clearWiFiCredentials();
+# endif // if FEATURE_STORE_CREDENTIALS_SEPARATE_FILE
+
       addHtmlError(SaveSecuritySettings());
 
       html_add_form();
@@ -110,10 +121,13 @@ void handle_setup() {
               addHtmlError(F("No password entered"));
             } else {
 // TODO TD-er: Must store in separate file when system password is set
-
-
+#if FEATURE_STORE_CREDENTIALS_SEPARATE_FILE
+// TODO TD-er: Must check whether password is set: SecuritySettings.Password
+              SecuritySettings_deviceSpecific.setWiFiCredentials(0, ssid, password);
+#else
               safe_strncpy(SecuritySettings.WifiKey,  password.c_str(), sizeof(SecuritySettings.WifiKey));
               safe_strncpy(SecuritySettings.WifiSSID, ssid.c_str(),     sizeof(SecuritySettings.WifiSSID));
+#endif
               // Hidden SSID
               Settings.IncludeHiddenSSID(isFormItemChecked(LabelType::CONNECT_HIDDEN_SSID));
               Settings.HiddenSSID_SlowConnectPerBSSID(isFormItemChecked(LabelType::HIDDEN_SSID_SLOW_CONNECT));

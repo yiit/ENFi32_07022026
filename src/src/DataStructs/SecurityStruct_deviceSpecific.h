@@ -45,6 +45,14 @@ public:
 
   void clear();
 
+  void clearWiFiCredentials();
+
+  bool hasWiFiCredentials(uint8_t index) const;
+
+  // Move all set WiFi credentials to free up first entry
+  // Typically used for setup page.
+//  void freeUpFirstWiFiCredentials(uint8_t index = 0);
+
   bool getWiFiCredentials(uint8_t index,
                           String& ssid,
                           String& passwd) const

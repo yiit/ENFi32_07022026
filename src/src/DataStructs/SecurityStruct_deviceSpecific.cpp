@@ -61,11 +61,36 @@ bool SecurityStruct_deviceSpecific::save()
     0);
 }
 
-void SecurityStruct_deviceSpecific::clear()
+void SecurityStruct_deviceSpecific::clear() { _kvs.clear(); }
+
+void SecurityStruct_deviceSpecific::clearWiFiCredentials()
 {
-    _kvs.clear();
+  for (uint8_t i = 0; i < MAX_EXTRA_WIFI_CREDENTIALS_SEPARATE_FILE; ++i)
+  {
+    setWiFiCredentials(i, EMPTY_STRING, EMPTY_STRING);
+  }
 }
 
+bool SecurityStruct_deviceSpecific::hasWiFiCredentials(uint8_t index) const
+{
+  return
+    (index < MAX_EXTRA_WIFI_CREDENTIALS_SEPARATE_FILE) &&
+    _kvs.hasKey(ESPEasy_key_value_store::StorageType::string_type,
+                createKey(KeyType::WiFi_SSID,     index)) &&
+    _kvs.hasKey(ESPEasy_key_value_store::StorageType::string_type,
+                createKey(KeyType::WiFi_Password, index));
+}
+
+/*
+   void SecurityStruct_deviceSpecific::freeUpFirstWiFiCredentials(uint8_t index)
+   {
+
+   if (hasWiFiCredentials(index)) freeUpFirstWiFiCredentials(index + 1);
+   else {
+
+   }
+   }
+ */
 bool SecurityStruct_deviceSpecific::getValue(
   KeyType keytype, uint8_t index, String& value) const
 {
