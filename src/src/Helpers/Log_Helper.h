@@ -19,13 +19,26 @@ public:
                String  & message,
                uint8_t & loglevel);
 
-  uint32_t getNrMessages(uint8_t   logDestination) const;
+  uint32_t getNrMessages(uint8_t logDestination) const;
 
-  void loop();
+  void     loop();
 
-  bool webLogActiveRead();
+  bool     webLogActiveRead();
+
+
+  // Append to internal buffer, which will only be flushed on consolePrintln
+  void consolePrint(const __FlashStringHelper *text);
+  void consolePrint(const String& text);
+
+  void consolePrintln(const __FlashStringHelper *text);
+  void consolePrintln(const String& text);
+  void consolePrintln(String&& text);
+
+  void consolePrintln();
 
 private:
+
+  String _tmpConsoleOutput;
 
   LogBuffer _logBuffer{};
 }; // class LogHelper

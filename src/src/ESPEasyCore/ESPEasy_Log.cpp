@@ -201,16 +201,20 @@ bool loglevelActiveFor(uint8_t destination, uint8_t logLevel) {
     }
     case LOG_TO_SYSLOG:
     {
+      if (logLevel == LOG_LEVEL_NONE) { return false; }
       logLevelSettings = Settings.SyslogLevel;
       break;
     }
     case LOG_TO_WEBLOG:
     {
       logLevelSettings = getWebLogLevel();
+
+      if (logLevel == LOG_LEVEL_NONE) { return logLevelSettings != LOG_LEVEL_NONE; }
       break;
     }
     case LOG_TO_SDCARD:
     {
+      if (logLevel == LOG_LEVEL_NONE) { return false; }
       #if FEATURE_SD
       logLevelSettings = Settings.SDLogLevel;
       #endif
@@ -299,7 +303,6 @@ void addLog(uint8_t logLevel, String&& str) { addToLogMove(logLevel, std::move(s
 #ifndef LIMIT_BUILD_SIZE
 # include "../Helpers/Memory.h"
 #endif
-
 
 void addLog(uint8_t logLevel, const String& str)
 {

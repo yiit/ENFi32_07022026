@@ -12,6 +12,7 @@
 #include "../Globals/Settings.h"
 
 #include "../Helpers/Memory.h"
+#include "../Helpers/StringConverter.h"
 
 #include <ESPEasySerialPort.h>
 
@@ -160,10 +161,10 @@ bool EspEasy_Console_Port::process_consoleInput(uint8_t SerialInByte)
     // Ignore empty command
     if (SerialInByteCounter != 0) {
       InputBuffer_Serial[SerialInByteCounter] = 0; // serial data completed
-      addToSerialBuffer('>');
+
       String cmd(InputBuffer_Serial);
-      addToSerialBuffer(cmd);
-      addToSerialBuffer('\n');
+      Logging.consolePrintln(concat('>', cmd));
+
       ExecuteCommand_all({EventValueSource::Enum::VALUE_SOURCE_SERIAL, std::move(cmd)}, true);
       SerialInByteCounter   = 0;
       InputBuffer_Serial[0] = 0; // serial data processed, clear buffer

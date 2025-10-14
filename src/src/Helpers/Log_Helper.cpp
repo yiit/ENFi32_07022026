@@ -17,18 +17,23 @@ void addToSerialLog(uint32_t timestamp, const String& message, uint8_t loglevel)
 {
   if (loglevelActiveFor(LOG_TO_SERIAL, loglevel)) {
     ESPEasy_Console.addToSerialBuffer(format_msec_duration(timestamp));
-    #ifndef LIMIT_BUILD_SIZE
-    ESPEasy_Console.addToSerialBuffer(strformat(F(" : (%d) "), FreeMem()));
-    #endif
-    {
-      String loglevelDisplayString = getLogLevelDisplayString(loglevel);
 
-      while (loglevelDisplayString.length() < 6) {
-        loglevelDisplayString += ' ';
+    if (loglevel == LOG_LEVEL_NONE) {
+      ESPEasy_Console.addToSerialBuffer(F(" :>  "));
+    } else {
+      #ifndef LIMIT_BUILD_SIZE
+      ESPEasy_Console.addToSerialBuffer(strformat(F(" : (%d) "), FreeMem()));
+      #endif
+      {
+        String loglevelDisplayString = getLogLevelDisplayString(loglevel);
+
+        while (loglevelDisplayString.length() < 6) {
+          loglevelDisplayString += ' ';
+        }
+        ESPEasy_Console.addToSerialBuffer(loglevelDisplayString);
       }
-      ESPEasy_Console.addToSerialBuffer(loglevelDisplayString);
+      ESPEasy_Console.addToSerialBuffer(F(" : "));
     }
-    ESPEasy_Console.addToSerialBuffer(F(" : "));
     ESPEasy_Console.addToSerialBuffer(message);
     ESPEasy_Console.addNewlineToSerialBuffer();
   }
@@ -128,4 +133,48 @@ void LogHelper::loop()
   _logBuffer.clearExpiredEntries();
 }
 
-bool LogHelper::webLogActiveRead() { return _logBuffer.logActiveRead(); }
+bool LogHelper::webLogActiveRead()                            { return _logBuffer.logActiveRead(); }
+
+void LogHelper::consolePrint(const __FlashStringHelper *text) { _tmpConsoleOutput += text; }
+
+void LogHelper::consolePrint(const String& text)              { _tmpConsoleOutput += text; }
+
+void LogHelper::consolePrintln(const __FlashStringHelper *text)
+{
+  if (_tmpConsoleOutput.isEmpty()) {
+    // A complete console line, thus send directly to _logBuffer
+    addLogEntry({ LOG_LEVEL_NONE, text });
+  } else {
+    _tmpConsoleOutput += text;
+    consolePrintln();
+  }
+}
+
+void LogHelper::consolePrintln(const String& text)
+{
+  if (_tmpConsoleOutput.isEmpty()) {
+    // A complete console line, thus send directly to _logBuffer
+    addLogEntry({ LOG_LEVEL_NONE, text });
+  } else {
+    _tmpConsoleOutput += text;
+    consolePrintln();
+  }
+}
+
+void LogHelper::consolePrintln(String&& text)
+{
+  if (_tmpConsoleOutput.isEmpty()) {
+    // A complete console line, thus send directly to _logBuffer
+    addLogEntry({ LOG_LEVEL_NONE, std::move(text) });
+  } else {
+    _tmpConsoleOutput += text;
+    consolePrintln();
+  }
+}
+
+void LogHelper::consolePrintln()
+{
+  if (!_tmpConsoleOutput.isEmpty()) {
+    addLogEntry({ LOG_LEVEL_NONE, std::move(_tmpConsoleOutput) });
+  }
+}

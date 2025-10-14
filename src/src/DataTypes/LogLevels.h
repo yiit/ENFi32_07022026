@@ -2,7 +2,7 @@
 
 #include "../../ESPEasy_common.h"
 
-#define LOG_LEVEL_NONE                      0
+#define LOG_LEVEL_NONE                      0  // console output is also loglevel none, only shown on those 'log destinations' subscribing to get console output.
 #define LOG_LEVEL_ERROR                     1
 #define LOG_LEVEL_INFO                      2
 #ifndef BUILD_NO_DEBUG
