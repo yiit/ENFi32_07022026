@@ -9,7 +9,6 @@
 
 #include "../ESPEasyCore/ESPEasy_backgroundtasks.h"
 #include "../ESPEasyCore/ESPEasy_Log.h"
-#include "../ESPEasyCore/Controller.h"  // For SourceNeedsStatusUpdate, should be moved to some more generic location
 #include "../ESPEasyCore/Serial.h"
 
 #include "../Globals/Device.h"
@@ -168,13 +167,13 @@ String Command_logentry(struct EventStruct *event, const char *Line)
     ) { level = event->Par2; }
   String res = tolerantParseStringKeepCase(Line, 2);
 #if FEATURE_COLORIZE_CONSOLE_LOGS
-  if (!SourceNeedsStatusUpdate(event->Source)) {
+  if (!EventValueSource::isExternalSource(event->Source)) {
     addLog(LOG_LEVEL_NONE, Line);
   }
 #endif
   addLog(level, res);
 #if FEATURE_COLORIZE_CONSOLE_LOGS
-  if (!SourceNeedsStatusUpdate(event->Source)) {
+  if (!EventValueSource::isExternalSource(event->Source)) {
     addLog(LOG_LEVEL_NONE, res);
   }
 #endif

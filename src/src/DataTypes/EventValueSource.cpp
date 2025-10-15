@@ -40,3 +40,40 @@ bool EventValueSource::partOfGroup(EventValueSource::Enum source, EventValueSour
   }
   return false;
 }
+
+bool EventValueSource::SourceNeedsStatusUpdate(EventValueSource::Enum eventSource)
+{
+  switch (eventSource)
+  {
+    case EventValueSource::Enum::VALUE_SOURCE_HTTP:
+    case EventValueSource::Enum::VALUE_SOURCE_SERIAL:
+    case EventValueSource::Enum::VALUE_SOURCE_MQTT:
+    case EventValueSource::Enum::VALUE_SOURCE_WEB_FRONTEND:
+      return true;
+
+    default:
+      break;
+  }
+  return false;
+}
+
+bool EventValueSource::isExternalSource(EventValueSource::Enum eventSource)
+{
+  switch (eventSource)
+  {
+    case EventValueSource::Enum::VALUE_SOURCE_NOT_SET:
+    case EventValueSource::Enum::VALUE_SOURCE_NR_VALUES:
+    case EventValueSource::Enum::VALUE_SOURCE_SYSTEM:
+    case EventValueSource::Enum::VALUE_SOURCE_RULES:
+    case EventValueSource::Enum::VALUE_SOURCE_RULES_RESTRICTED:
+    break;
+
+    case EventValueSource::Enum::VALUE_SOURCE_SERIAL:
+    case EventValueSource::Enum::VALUE_SOURCE_UDP:
+    case EventValueSource::Enum::VALUE_SOURCE_WEB_FRONTEND:
+    case EventValueSource::Enum::VALUE_SOURCE_HTTP:
+    case EventValueSource::Enum::VALUE_SOURCE_MQTT:
+      return true;
+}
+      return false;
+}

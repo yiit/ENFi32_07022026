@@ -30,6 +30,10 @@ struct EventValueSource {
 
   };
 
+  static bool SourceNeedsStatusUpdate(EventValueSource::Enum eventSource);
+
+  static bool isExternalSource(EventValueSource::Enum eventSource);
+
   static const __FlashStringHelper* toString(Enum);
 
   static bool                       partOfGroup(EventValueSource::Enum      source,

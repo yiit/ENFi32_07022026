@@ -182,6 +182,16 @@ bool do_command_case_check(command_case_data         & data,
     return false;
   }
 
+#if FEATURE_COLORIZE_CONSOLE_LOGS
+  if (EventValueSource::isExternalSource(data.event->Source)) {
+    addLog(LOG_LEVEL_NONE, 
+      strformat(
+        F("Cmd (%s) : %s"), 
+        FsP(EventValueSource::toString(data.event->Source)),
+        data.line.c_str()));
+  }  
+#endif
+
   // FIXME TD-er: Do not check nr arguments from MQTT source.
   // See https://github.com/letscontrolit/ESPEasy/issues/3344
   // C005 does recreate command partly from topic and published message
@@ -197,16 +207,6 @@ bool do_command_case_check(command_case_data         & data,
       return true;    // Command is handled
     }
   }
-
-#if FEATURE_COLORIZE_CONSOLE_LOGS
-  if (SourceNeedsStatusUpdate(data.event->Source)) {
-    addLog(LOG_LEVEL_NONE, 
-      strformat(
-        F("Cmd (%s) : %s"), 
-        FsP(EventValueSource::toString(data.event->Source)),
-        data.line.c_str()));
-  }  
-#endif
   data.retval = true; // Mark the command should be executed.
   return true;        // Command is handled
 }

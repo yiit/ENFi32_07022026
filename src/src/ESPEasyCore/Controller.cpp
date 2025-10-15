@@ -997,26 +997,10 @@ String getLWT_messageDisconnect(const ControllerSettingsStruct& ControllerSettin
 * Send status info to request source
 \*********************************************************************************************/
 void SendStatusOnlyIfNeeded(struct EventStruct *event, bool param1, uint32_t key, const String& param2, int16_t param3) {
-  if (SourceNeedsStatusUpdate(event->Source)) {
+  if (EventValueSource::SourceNeedsStatusUpdate(event->Source)) {
     SendStatus(event, getPinStateJSON(param1, key, param2, param3));
     printToWeb = false; // SP: 2020-06-12: to avoid to add more info to a JSON structure
   }
-}
-
-bool SourceNeedsStatusUpdate(EventValueSource::Enum eventSource)
-{
-  switch (eventSource)
-  {
-    case EventValueSource::Enum::VALUE_SOURCE_HTTP:
-    case EventValueSource::Enum::VALUE_SOURCE_SERIAL:
-    case EventValueSource::Enum::VALUE_SOURCE_MQTT:
-    case EventValueSource::Enum::VALUE_SOURCE_WEB_FRONTEND:
-      return true;
-
-    default:
-      break;
-  }
-  return false;
 }
 
 void SendStatus(struct EventStruct *event, const __FlashStringHelper *status) { SendStatus(event, String(status)); }
@@ -1026,7 +1010,7 @@ void SendStatus(struct EventStruct *event, const String& status)
   if (status.isEmpty()) { return; }
 
 #if FEATURE_COLORIZE_CONSOLE_LOGS
-  if (SourceNeedsStatusUpdate(event->Source)) {
+  if (EventValueSource::isExternalSource(event->Source)) {
     addLog(LOG_LEVEL_NONE, status);
   }  
 #endif
