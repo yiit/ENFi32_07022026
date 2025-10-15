@@ -294,7 +294,7 @@ bool ExecuteCommand(ExecuteCommandArgs&& args, bool addToQueue)
   }
   String errorUnknown = concat(F("Command unknown: "), args._Line);
   SendStatus(&TempEvent, errorUnknown);
-  addLogMove(LOG_LEVEL_INFO, errorUnknown);
+  addLogMove(LOG_LEVEL_ERROR, errorUnknown);
   delay(0);
   return false;
 }

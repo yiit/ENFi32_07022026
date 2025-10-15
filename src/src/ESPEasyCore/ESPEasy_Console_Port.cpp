@@ -136,7 +136,9 @@ bool EspEasy_Console_Port::process_consoleInput(uint8_t SerialInByte)
       InputBuffer_Serial[SerialInByteCounter] = 0; // serial data completed
 
       String cmd(InputBuffer_Serial);
+#if !FEATURE_COLORIZE_CONSOLE_LOGS
       Logging.consolePrintln(concat('>', cmd));
+#endif
 
       ExecuteCommand_all({EventValueSource::Enum::VALUE_SOURCE_SERIAL, std::move(cmd)}, true);
       SerialInByteCounter   = 0;

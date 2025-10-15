@@ -4209,4 +4209,12 @@ To create/register a plugin, you have to :
 #endif
 #endif
 
+#ifndef FEATURE_COLORIZE_CONSOLE_LOGS
+#ifdef LIMIT_BUILD_SIZE
+#define FEATURE_COLORIZE_CONSOLE_LOGS 0
+#else
+#define FEATURE_COLORIZE_CONSOLE_LOGS 1
+#endif
+#endif
+
 #endif // CUSTOMBUILD_DEFINE_PLUGIN_SETS_H

@@ -197,6 +197,16 @@ bool do_command_case_check(command_case_data         & data,
       return true;    // Command is handled
     }
   }
+
+#if FEATURE_COLORIZE_CONSOLE_LOGS
+  if (SourceNeedsStatusUpdate(data.event->Source)) {
+    addLog(LOG_LEVEL_NONE, 
+      strformat(
+        F("Cmd (%s) : %s"), 
+        FsP(EventValueSource::toString(data.event->Source)),
+        data.line.c_str()));
+  }  
+#endif
   data.retval = true; // Mark the command should be executed.
   return true;        // Command is handled
 }

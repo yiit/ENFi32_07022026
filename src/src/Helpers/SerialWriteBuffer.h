@@ -25,6 +25,7 @@ public:
                size_t  nrBytesToWrite);
 
 private:
+  String colorize(const String& str) const;
 
   String _prefix;
   String _message;

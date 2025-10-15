@@ -1025,6 +1025,13 @@ void SendStatus(struct EventStruct *event, const String& status)
 {
   if (status.isEmpty()) { return; }
 
+#if FEATURE_COLORIZE_CONSOLE_LOGS
+  if (SourceNeedsStatusUpdate(event->Source)) {
+    addLog(LOG_LEVEL_NONE, status);
+  }  
+#endif
+
+
   switch (event->Source)
   {
     case EventValueSource::Enum::VALUE_SOURCE_HTTP:
@@ -1040,7 +1047,9 @@ void SendStatus(struct EventStruct *event, const String& status)
       break;
 #endif // if FEATURE_MQTT
     case EventValueSource::Enum::VALUE_SOURCE_SERIAL:
+#if !FEATURE_COLORIZE_CONSOLE_LOGS
       serialPrintln(status);
+#endif
       break;
 
     default:
