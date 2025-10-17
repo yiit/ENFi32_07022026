@@ -2,6 +2,7 @@
 #include "../WebServer/Markup.h"
 
 #include "../WebServer/HTML_wrappers.h"
+#include "../WebServer/KeyValueWriter_WebForm.h"
 #include "../WebServer/Markup_Forms.h"
 
 #include "../CustomBuild/ESPEasyLimits.h"
@@ -588,18 +589,9 @@ void addRowLabelValue(LabelType::Enum label) {
 }
 
 void addRowLabelValues(const LabelType::Enum labels[]) {
-  size_t i = 0;
-  LabelType::Enum cur  = static_cast<const LabelType::Enum>(pgm_read_byte(labels + i));
 
-  while (true) {
-    const LabelType::Enum next = static_cast<const LabelType::Enum>(pgm_read_byte(labels + i + 1));
-    addRowLabelValue(cur);
-    if (next == LabelType::MAX_LABEL) {
-      return;
-    }
-    ++i;
-    cur = next;
-  }
+  KeyValueWriter_WebForm writer(true);
+  writer.writeLabels(labels, true);
 }
 
 void addRowLabelValue_copy(LabelType::Enum label) {

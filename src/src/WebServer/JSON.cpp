@@ -166,8 +166,15 @@ void handle_json()
 
           if (wdcounter > 0)
           {
-            writer->write(LabelType::LOAD_PCT);
-            writer->write(LabelType::LOOP_COUNT);
+            static const LabelType::Enum wdlabels[] PROGMEM =
+            {
+              LabelType::LOAD_PCT, 
+              LabelType::LOOP_COUNT,
+
+              LabelType::MAX_LABEL
+            };
+            writer->writeLabels(wdlabels);
+
           }
 
 

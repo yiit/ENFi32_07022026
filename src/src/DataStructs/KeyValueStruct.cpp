@@ -1,5 +1,6 @@
 #include "../DataStructs/KeyValueStruct.h"
 
+#include "../Helpers/StringConverter.h"
 #include "../Helpers/StringConverter_Numerical.h"
 
 
@@ -130,14 +131,13 @@ KeyValueStruct::KeyValueStruct(const String         & key,
   _values.emplace_back(ValueStruct_Factory::create(std::move(val)));
 }
 
-KeyValueStruct::KeyValueStruct(LabelType::Enum label, Format format)
-  : _key(getLabel(label)), _unit(getFormUnit(label)), _format(format) {
-  _values.emplace_back(ValueStruct_Factory::create(label));
-}
-
 void KeyValueStruct::setUnit(const String& unit)              { _unit = unit; }
 
 void KeyValueStruct::setUnit(const __FlashStringHelper *unit) { _unit = unit; }
+
+void KeyValueStruct::setID(const String& id) { __id = id; }
+void KeyValueStruct::setID(const __FlashStringHelper *id) { __id = id; }
+
 
 void KeyValueStruct::appendValue(Up_ValueStruct value)
 {
@@ -155,4 +155,10 @@ void KeyValueStruct::appendValue(String&& value)
 {
   _values.emplace_back(ValueStruct_Factory::create(std::move(value)));
   _isArray = true;
+}
+
+String KeyValueStruct::getID() const
+{
+  if (__id.isEmpty()) return to_internal_string(_key, '_');
+  return __id;
 }

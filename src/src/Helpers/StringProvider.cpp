@@ -13,7 +13,7 @@
 #include "../../ESPEasy/net/wifi/ESPEasyWifi.h"
 
 #if FEATURE_ETHERNET
-#include "../../ESPEasy/net/eth/ESPEasyEth.h"
+# include "../../ESPEasy/net/eth/ESPEasyEth.h"
 #endif
 
 #include "../Globals/Device.h"
@@ -23,6 +23,7 @@
 #include "../../ESPEasy/net/Globals/ESPEasyWiFiEvent.h"
 
 #include "../../ESPEasy/net/Globals/NetworkState.h"
+#include "../Globals/RTC.h"
 #include "../Globals/SecuritySettings.h"
 #include "../Globals/Settings.h"
 #include "../../ESPEasy/net/Globals/WiFi_AP_Candidates.h"
@@ -43,616 +44,1105 @@
 #include "../WebServer/AccessControl.h"
 
 #ifdef ESP32
-#include <soc/rtc.h>
+# include <soc/rtc.h>
 #endif
 
-String getInternalLabel(LabelType::Enum label, char replaceSpace) {
-  return to_internal_string(getLabel(label), replaceSpace);
-}
-
-const __FlashStringHelper * getLabel(LabelType::Enum label) {
+KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
+{
   switch (label)
   {
-    case LabelType::UNIT_NR:                return F("Unit Number");
+    case LabelType::UNIT_NR:
+    {
+      KeyValueStruct kv(F("Unit Number"), Settings.Unit);
+      return kv;
+    }
     #if FEATURE_ZEROFILLED_UNITNUMBER
-    case LabelType::UNIT_NR_0:              return F("Unit Number 0-filled");
-    #endif // FEATURE_ZEROFILLED_UNITNUMBER
-    case LabelType::UNIT_NAME:              return F("Unit Name");
-    case LabelType::HOST_NAME:              return F("Hostname");
-
-    case LabelType::LOCAL_TIME:             return F("Local Time");
-    case LabelType::TIME_SOURCE:            return F("Time Source");
-    case LabelType::TIME_WANDER:            return F("Time Wander");
-    #if FEATURE_EXT_RTC
-    case LabelType::EXT_RTC_UTC_TIME:       return F("UTC time stored in RTC chip");
-    #endif
-    case LabelType::UPTIME:                 return F("Uptime");
-    case LabelType::LOAD_PCT:               return F("Load");
-    case LabelType::LOOP_COUNT:             return F("Load LC");
-    case LabelType::CPU_ECO_MODE:           return F("CPU Eco Mode");
-#if FEATURE_SET_WIFI_TX_PWR
-    case LabelType::WIFI_TX_MAX_PWR:        return F("Max WiFi TX Power");
-    case LabelType::WIFI_CUR_TX_PWR:        return F("Current WiFi TX Power");
-    case LabelType::WIFI_SENS_MARGIN:       return F("WiFi Sensitivity Margin");
-    case LabelType::WIFI_SEND_AT_MAX_TX_PWR:return F("Send With Max TX Power");
-#endif
-    case LabelType::WIFI_NR_EXTRA_SCANS:    return F("Extra WiFi scan loops");
-    case LabelType::WIFI_USE_LAST_CONN_FROM_RTC: return F("Use Last Connected AP from RTC");
-
-    case LabelType::FREE_MEM:               return F("Free RAM");
-    case LabelType::FREE_STACK:             return F("Free Stack");
-#ifdef USE_SECOND_HEAP
-    case LabelType::FREE_HEAP_IRAM:         return F("Free 2nd Heap");
-#endif
-
-#if defined(CORE_POST_2_5_0) || defined(ESP32)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_MAX_FREE_BLOCK:    return F("Heap Max Free Block");
-  #endif
-#endif // if defined(CORE_POST_2_5_0) || defined(ESP32)
-#if defined(CORE_POST_2_5_0)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_FRAGMENTATION:     return F("Heap Fragmentation");
-  #endif
-#endif // if defined(CORE_POST_2_5_0)
-
-#ifdef ESP32
-    case LabelType::HEAP_SIZE:              return F("Heap Size");
-    case LabelType::HEAP_MIN_FREE:          return F("Heap Min Free");
-    #ifdef BOARD_HAS_PSRAM
-    case LabelType::PSRAM_SIZE:             return F("PSRAM Size");
-    case LabelType::PSRAM_FREE:             return F("PSRAM Free");
-    case LabelType::PSRAM_MIN_FREE:         return F("PSRAM Min Free");
-    case LabelType::PSRAM_MAX_FREE_BLOCK:   return F("PSRAM Max Free Block");
-    #endif // BOARD_HAS_PSRAM
-#endif // ifdef ESP32
-
-    case LabelType::JSON_BOOL_QUOTES:           return F("JSON bool output without quotes");
-#if FEATURE_TIMING_STATS
-    case LabelType::ENABLE_TIMING_STATISTICS:   return F("Collect Timing Statistics");
-#endif
-    case LabelType::ENABLE_RULES_CACHING:       return F("Enable Rules Cache");
-    case LabelType::ENABLE_SERIAL_PORT_CONSOLE: return F("Enable Serial Port Console");
-    case LabelType::CONSOLE_SERIAL_PORT:        return F("Console Serial Port");
-#if USES_ESPEASY_CONSOLE_FALLBACK_PORT
-    case LabelType::CONSOLE_FALLBACK_TO_SERIAL0: return F("Fallback to Serial 0");
-    case LabelType::CONSOLE_FALLBACK_PORT:       return F("Console Fallback Port");
-#endif
-
-//    case LabelType::ENABLE_RULES_EVENT_REORDER: return F("Optimize Rules Cache Event Order"); // TD-er: Disabled for now
-    case LabelType::TASKVALUESET_ALL_PLUGINS:   return F("Allow TaskValueSet on all plugins");
-    case LabelType::ALLOW_OTA_UNLIMITED:        return F("Allow OTA without size-check");
-#if FEATURE_CLEAR_I2C_STUCK
-    case LabelType::ENABLE_CLEAR_HUNG_I2C_BUS:  return F("Try clear I2C bus when stuck");
-#endif
-    #if FEATURE_I2C_DEVICE_CHECK
-    case LabelType::ENABLE_I2C_DEVICE_CHECK:    return F("Check I2C devices when enabled");
-    #endif // if FEATURE_I2C_DEVICE_CHECK
-#ifndef BUILD_NO_RAM_TRACKER
-    case LabelType::ENABLE_RAM_TRACKING:    return F("Enable RAM Tracker");
-#endif
-#if FEATURE_AUTO_DARK_MODE
-    case LabelType::ENABLE_AUTO_DARK_MODE:  return F("Web light/dark mode");
-#endif // FEATURE_AUTO_DARK_MODE
-#if FEATURE_RULES_EASY_COLOR_CODE
-    case LabelType::DISABLE_RULES_AUTOCOMPLETE:  return F("Disable Rules auto-completion");
-#endif // if FEATURE_RULES_EASY_COLOR_CODE
-#if FEATURE_TARSTREAM_SUPPORT
-    case LabelType::DISABLE_SAVE_CONFIG_AS_TAR:  return F("Disable Save Config as .tar");
-#endif // if FEATURE_TARSTREAM_SUPPORT
-#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    case LabelType::SHOW_UOM_ON_DEVICES_PAGE: return F("Show Unit of Measure");
-    #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    #if FEATURE_MQTT_CONNECT_BACKGROUND
-    case LabelType::MQTT_CONNECT_IN_BACKGROUND: return F("MQTT Connect in background");
-    #endif // if FEATURE_MQTT_CONNECT_BACKGROUND
-
-#if CONFIG_SOC_WIFI_SUPPORT_5G
-    case LabelType::WIFI_BAND_MODE: return F("WiFi Band Mode");
-#endif
-
-    case LabelType::BOOT_TYPE:              return F("Last Boot Cause");
-    case LabelType::BOOT_COUNT:             return F("Boot Count");
-    case LabelType::DEEP_SLEEP_ALTERNATIVE_CALL: return F("Deep Sleep Alternative");
-    case LabelType::RESET_REASON:           return F("Reset Reason");
-    case LabelType::LAST_TASK_BEFORE_REBOOT: return F("Last Action before Reboot");
-    case LabelType::SW_WD_COUNT:            return F("SW WD count");
-
-
-    case LabelType::WIFI_CONNECTION:        return F("WiFi Connection");
-    case LabelType::WIFI_RSSI:              return F("RSSI");
-    case LabelType::IP_CONFIG:              return F("IP Config");
-#if FEATURE_USE_IPV6
-    case LabelType::IP6_LOCAL:              return F("IPv6 link local");
-    case LabelType::IP6_GLOBAL:             return F("IPv6 global");
-//    case LabelType::IP6_ALL_ADDRESSES:      return F("IPv6 all addresses");
-#endif
-    case LabelType::IP_CONFIG_STATIC:       return F("Static");
-    case LabelType::IP_CONFIG_DYNAMIC:      return F("DHCP");
-    case LabelType::IP_ADDRESS:             return F("IP Address");
-    case LabelType::IP_SUBNET:              return F("IP Subnet");
-    case LabelType::IP_ADDRESS_SUBNET:      return F("IP / Subnet");
-    case LabelType::GATEWAY:                return F("Gateway");
-    case LabelType::CLIENT_IP:              return F("Client IP");
-    #if FEATURE_MDNS
-    case LabelType::M_DNS:                  return F("mDNS");
-    #endif // if FEATURE_MDNS
-    case LabelType::DNS:                    return F("DNS");
-    case LabelType::DNS_1:                  return F("DNS 1");
-    case LabelType::DNS_2:                  return F("DNS 2");
-    case LabelType::ALLOWED_IP_RANGE:       return F("Allowed IP Range");
-    case LabelType::STA_MAC:                return F("STA MAC");
-    case LabelType::AP_MAC:                 return F("AP MAC");
-    case LabelType::SSID:                   return F("SSID");
-    case LabelType::BSSID:                  return F("BSSID");
-    case LabelType::CHANNEL:                return F("Channel");
-    case LabelType::ENCRYPTION_TYPE_STA:    return F("Encryption Type");
-    case LabelType::CONNECTED:              return F("Connected");
-    case LabelType::CONNECTED_MSEC:         return F("Connected msec");
-    case LabelType::LAST_DISCONNECT_REASON: return F("Last Disconnect Reason");
-    case LabelType::LAST_DISC_REASON_STR:   return F("Last Disconnect Reason str");
-    case LabelType::NUMBER_RECONNECTS:      return F("Number Reconnects");
-    case LabelType::WIFI_STORED_SSID1:      return F("Configured SSID1");
-    case LabelType::WIFI_STORED_SSID2:      return F("Configured SSID2");
-
-
-    case LabelType::FORCE_WIFI_BG:          return F("Force WiFi B/G");
-    case LabelType::RESTART_WIFI_LOST_CONN: return F("Restart WiFi Lost Conn");
-    case LabelType::FORCE_WIFI_NOSLEEP:     return F("Force WiFi No Sleep");
-    case LabelType::PERIODICAL_GRAT_ARP:    return F("Periodical send Gratuitous ARP");
-    case LabelType::CONNECTION_FAIL_THRESH: return F("Connection Failure Threshold");
-#ifndef ESP32
-    case LabelType::WAIT_WIFI_CONNECT:      return F("Extra Wait WiFi Connect");
-#endif
-    case LabelType::CONNECT_HIDDEN_SSID:    return F("Include Hidden SSID");
-#ifdef ESP32
-    case LabelType::WIFI_PASSIVE_SCAN:      return F("Passive WiFi Scan");
-#endif
-    case LabelType::HIDDEN_SSID_SLOW_CONNECT: return F("Hidden SSID Slow Connect");
-    case LabelType::SDK_WIFI_AUTORECONNECT: return F("Enable SDK WiFi Auto Reconnect");
-#if FEATURE_USE_IPV6
-    case LabelType::ENABLE_IPV6:            return F("Enable IPv6");
-#endif
-
-
-    case LabelType::BUILD_DESC:             return F("Build");
-    case LabelType::GIT_BUILD:              return F("Git Build");
-    case LabelType::SYSTEM_LIBRARIES:       return F("System Libraries");
-#ifdef ESP32
-    case LabelType::ESP_IDF_SDK_VERSION:    return F("ESP-IDF Version");
-#endif
-    case LabelType::PLUGIN_COUNT:           return F("Plugin Count");
-    case LabelType::PLUGIN_DESCRIPTION:     return F("Plugin Description");
-    case LabelType::BUILD_TIME:             return F("Build Time");
-    case LabelType::BINARY_FILENAME:        return F("Binary Filename");
-    case LabelType::BUILD_PLATFORM:         return F("Build Platform");
-    case LabelType::GIT_HEAD:               return F("Git HEAD");
-    #ifdef CONFIGURATION_CODE
-    case LabelType::CONFIGURATION_CODE_LBL: return F("Configuration code");
-    #endif // ifdef CONFIGURATION_CODE
-
-    case LabelType::I2C_BUS_STATE:          return F("I2C Bus State");
-    case LabelType::I2C_BUS_CLEARED_COUNT:  return F("I2C bus cleared count");
-
-    case LabelType::SYSLOG_LOG_LEVEL:       return F("Syslog Log Level");
-    case LabelType::SERIAL_LOG_LEVEL:       return F("Serial Log Level");
-    case LabelType::WEB_LOG_LEVEL:          return F("Web Log Level");
-  #if FEATURE_SD
-    case LabelType::SD_LOG_LEVEL:           return F("SD Log Level");
-  #endif // if FEATURE_SD
-
-    case LabelType::ESP_CHIP_ID:            return F("ESP Chip ID");
-    case LabelType::ESP_CHIP_FREQ:          return F("ESP Chip Frequency");
-#ifdef ESP32
-    case LabelType::ESP_CHIP_XTAL_FREQ:     return F("ESP Crystal Frequency");
-    case LabelType::ESP_CHIP_APB_FREQ:      return F("ESP APB Frequency");
-#endif
-    case LabelType::ESP_CHIP_MODEL:         return F("ESP Chip Model");
-    case LabelType::ESP_CHIP_REVISION:      return F("ESP Chip Revision");
-    case LabelType::ESP_CHIP_CORES:         return F("ESP Chip Cores");
-
-    case LabelType::BOARD_NAME:         return F("ESP Board Name");
-
-    case LabelType::FLASH_CHIP_ID:          return F("Flash Chip ID");
-    case LabelType::FLASH_CHIP_VENDOR:      return F("Flash Chip Vendor");
-    case LabelType::FLASH_CHIP_MODEL:       return F("Flash Chip Model");
-    case LabelType::FLASH_CHIP_REAL_SIZE:   return F("Flash Chip Real Size");
-    case LabelType::FLASH_CHIP_SPEED:       return F("Flash Chip Speed");
-    case LabelType::FLASH_IDE_SIZE:         return F("Flash IDE Size");
-    case LabelType::FLASH_IDE_SPEED:        return F("Flash IDE Speed");
-    case LabelType::FLASH_IDE_MODE:         return F("Flash IDE Mode");
-    case LabelType::FLASH_WRITE_COUNT:      return F("Flash Writes");
-    case LabelType::SKETCH_SIZE:            return F("Sketch Size");
-    case LabelType::SKETCH_FREE:            return F("Sketch Free");
-    #ifdef USE_LITTLEFS
-    case LabelType::FS_SIZE:                return F("Little FS Size");
-    case LabelType::FS_FREE:                return F("Little FS Free");
-    #else // ifdef USE_LITTLEFS
-    case LabelType::FS_SIZE:                return F("SPIFFS Size");
-    case LabelType::FS_FREE:                return F("SPIFFS Free");
-    #endif // ifdef USE_LITTLEFS
-    case LabelType::MAX_OTA_SKETCH_SIZE:    return F("Max. OTA Sketch Size");
-    case LabelType::OTA_2STEP:              return F("OTA 2-step Needed");
-    case LabelType::OTA_POSSIBLE:           return F("OTA possible");
-    #if FEATURE_INTERNAL_TEMPERATURE
-    case LabelType::INTERNAL_TEMPERATURE:   return F("Internal Temperature");
-    #endif // if FEATURE_INTERNAL_TEMPERATURE
-#if FEATURE_ETHERNET
-    case LabelType::ETH_IP_ADDRESS:         return F("Eth IP Address");
-    case LabelType::ETH_IP_SUBNET:          return F("Eth IP Subnet");
-    case LabelType::ETH_IP_ADDRESS_SUBNET:  return F("Eth IP / Subnet");
-    case LabelType::ETH_IP_GATEWAY:         return F("Eth Gateway");
-    case LabelType::ETH_IP_DNS:             return F("Eth DNS");
-#if FEATURE_USE_IPV6
-    case LabelType::ETH_IP6_LOCAL:          return F("Eth IPv6 link local");
-#endif
-    case LabelType::ETH_MAC:                return F("Eth MAC");
-    case LabelType::ETH_DUPLEX:             return F("Eth Mode");
-    case LabelType::ETH_SPEED:              return F("Eth Speed");
-    case LabelType::ETH_STATE:              return F("Eth State");
-    case LabelType::ETH_SPEED_STATE:        return F("Eth Speed State");
-    case LabelType::ETH_CONNECTED:          return F("Eth connected");
-    case LabelType::ETH_CHIP:               return F("Eth chip");
-#endif // if FEATURE_ETHERNET
-# if FEATURE_ETHERNET || defined(USES_ESPEASY_NOW)
-    case LabelType::ETH_WIFI_MODE:          return F("Network Type");
-#endif
-    case LabelType::SUNRISE:                return F("Sunrise");
-    case LabelType::SUNSET:                 return F("Sunset");
-    case LabelType::SUNRISE_S:              return F("Sunrise sec.");
-    case LabelType::SUNSET_S:               return F("Sunset sec.");
-    case LabelType::SUNRISE_M:              return F("Sunrise min.");
-    case LabelType::SUNSET_M:               return F("Sunset min.");
-    case LabelType::ISNTP:                  return F("Use NTP");
-    case LabelType::UPTIME_MS:              return F("Uptime (ms)");
-    case LabelType::TIMEZONE_OFFSET:        return F("Timezone Offset");
-    case LabelType::LATITUDE:               return F("Latitude");
-    case LabelType::LONGITUDE:              return F("Longitude");
-
-    case LabelType::MAX_LABEL:
-      break;
-
-  }
-  return F("MissingString");
-}
-
-String getValue(LabelType::Enum label) {
-  int retval = INT_MAX;
-  switch (label)
-  {
-    case LabelType::UNIT_NR:                retval = Settings.Unit; break;
-    #if FEATURE_ZEROFILLED_UNITNUMBER
-    case LabelType::UNIT_NR_0: 
+    case LabelType::UNIT_NR_0:
     {
       // Fixed 3-digit unitnumber
-      return formatIntLeadingZeroes(Settings.Unit, 3);
+      KeyValueStruct kv(F("Unit Number 0-filled"), formatIntLeadingZeroes(Settings.Unit, 3));
+      return kv;
     }
     #endif // FEATURE_ZEROFILLED_UNITNUMBER
-    case LabelType::UNIT_NAME:              return Settings.getName(); // Only return the set name, no appended unit.
-    case LabelType::HOST_NAME:              return ESPEasy::net::NetworkGetHostname();
-
-
-    case LabelType::LOCAL_TIME:             return node_time.getDateTimeString('-', ':', ' ');
-    case LabelType::TIME_SOURCE:
+    case LabelType::UNIT_NAME:
     {
-      String timeSource_str = toString(node_time.getTimeSource());
-      if (((node_time.getTimeSource() == timeSource_t::ESPEASY_p2p_UDP) ||
-           (node_time.getTimeSource() == timeSource_t::ESP_now_peer)) &&
-          (node_time.timeSource_p2p_unit != 0))
-      {
-        return strformat(F("%s (%u)"), timeSource_str.c_str(), node_time.timeSource_p2p_unit);
-      }
-      return timeSource_str;
+      // Only return the set name, no appended unit.
+      KeyValueStruct kv(F("Unit Name"), Settings.getName());
+      return kv;
     }
-    case LabelType::TIME_WANDER:            return String(node_time.timeWander, 3);
+    case LabelType::HOST_NAME:
+    {
+      KeyValueStruct kv(F("Hostname"), ESPEasy::net::NetworkGetHostname());
+      return kv;
+    }
+
+    case LabelType::LOCAL_TIME:
+
+      if (node_time.systemTimePresent())
+      {
+        KeyValueStruct kv(F("Local Time"), node_time.getDateTimeString('-', ':', ' '));
+        return kv;
+      } else if (extendedValue) {
+        KeyValueStruct kv(F("Local Time"), F("<font color='red'>No system time source</font>"));
+        return kv;
+      }
+      break;
+    case LabelType::TIME_SOURCE:
+
+      if (node_time.systemTimePresent())
+      {
+        String timeSource_str = toString(node_time.getTimeSource());
+
+        if (((node_time.getTimeSource() == timeSource_t::ESPEASY_p2p_UDP) ||
+             (node_time.getTimeSource() == timeSource_t::ESP_now_peer)) &&
+            (node_time.timeSource_p2p_unit != 0))
+        {
+          timeSource_str = strformat(F("%s (%u)"), timeSource_str.c_str(), node_time.timeSource_p2p_unit);
+        }
+
+        KeyValueStruct kv(F("Time Source"), timeSource_str);
+        return kv;
+      }
+      break;
+    case LabelType::TIME_WANDER:
+
+      if (node_time.systemTimePresent())
+      {
+        KeyValueStruct kv(F("Time Wander"), node_time.timeWander, 3);
+        kv.setUnit(F("ppm"));
+        return kv;
+      }
+      break;
     #if FEATURE_EXT_RTC
     case LabelType::EXT_RTC_UTC_TIME:
     {
       if (Settings.ExtTimeSource() != ExtTimeSource_e::None) {
+        String rtcTime = F("Not Set");
+
         // Try to read the stored time in the ext. time source to allow to check if it is working properly.
         uint32_t unixtime;
+
         if (node_time.ExtRTC_get(unixtime)) {
           struct tm RTC_time;
           breakTime(unixtime, RTC_time);
-          return formatDateTimeString(RTC_time);
-        } else {
-          return F("Not Set");
+          rtcTime = formatDateTimeString(RTC_time);
         }
+        KeyValueStruct kv(F("UTC time stored in RTC chip"), rtcTime);
+        return kv;
       }
-      return String('-');
+      break;
     }
-    #endif
-    case LabelType::UPTIME:                 retval = getUptimeMinutes(); break;
-    case LabelType::LOAD_PCT:               return toString(getCPUload(), 2);
-    case LabelType::LOOP_COUNT:             retval = getLoopCountPerSec(); break;
-    case LabelType::CPU_ECO_MODE:           return jsonBool(Settings.EcoPowerMode());
+    #endif // if FEATURE_EXT_RTC
+    case LabelType::UPTIME:
+    {
+      if (extendedValue) {
+        KeyValueStruct kv(F("Uptime"), minutesToDayHourMinute(getUptimeMinutes()));
+        return kv;
+      } else {
+        KeyValueStruct kv(F("Uptime"), getUptimeMinutes());
+        return kv;
+      }
+    }
+    case LabelType::LOAD_PCT:
+
+      if (wdcounter > 0)
+      {
+        if (extendedValue) {
+          KeyValueStruct kv(F("Load"), strformat(
+                              F("%.2f [%%] (LC=%d)"),
+                              getCPUload(),
+                              getLoopCountPerSec()));
+          return kv;
+        }
+        KeyValueStruct kv(F("Load"), getCPUload(), 2);
+        kv.setUnit(F("%"));
+        return kv;
+      }
+      break;
+    case LabelType::LOOP_COUNT:
+    {
+      if (extendedValue) { break; }
+      KeyValueStruct kv(F("Load LC"), getLoopCountPerSec());
+      return kv;
+    }
+    case LabelType::CPU_ECO_MODE:
+    {
+      KeyValueStruct kv(F("CPU Eco Mode"), Settings.EcoPowerMode());
+      return kv;
+    }
 #if FEATURE_SET_WIFI_TX_PWR
-    case LabelType::WIFI_TX_MAX_PWR:        return toString(Settings.getWiFi_TX_power(), 2);
-    case LabelType::WIFI_CUR_TX_PWR:        return toString(ESPEasy::net::wifi::GetWiFiTXpower(), 2);
-    case LabelType::WIFI_SENS_MARGIN:       retval = Settings.WiFi_sensitivity_margin; break;
-    case LabelType::WIFI_SEND_AT_MAX_TX_PWR:return jsonBool(Settings.UseMaxTXpowerForSending());
-#endif
-    case LabelType::WIFI_NR_EXTRA_SCANS:    retval = Settings.NumberExtraWiFiScans; break;
-    case LabelType::WIFI_USE_LAST_CONN_FROM_RTC: return jsonBool(Settings.UseLastWiFiFromRTC());
+    case LabelType::WIFI_TX_MAX_PWR:
+    {
+      KeyValueStruct kv(F("Max WiFi TX Power"), Settings.getWiFi_TX_power(), 2);
+      kv.setUnit(F("dBm"));
+      return kv;
+    }
+    case LabelType::WIFI_CUR_TX_PWR:
+    {
+      KeyValueStruct kv(F("Current WiFi TX Power"), ESPEasy::net::wifi::GetWiFiTXpower(), 2);
+      kv.setUnit(F("dBm"));
+      return kv;
+    }
+    case LabelType::WIFI_SENS_MARGIN:
+    {
+      KeyValueStruct kv(F("WiFi Sensitivity Margin"), Settings.WiFi_sensitivity_margin);
+      kv.setUnit(F("dB"));
+      return kv;
+    }
+    case LabelType::WIFI_SEND_AT_MAX_TX_PWR:
+    {
+      KeyValueStruct kv(F("Send With Max TX Power"), Settings.UseMaxTXpowerForSending());
+      return kv;
+    }
+#endif // if FEATURE_SET_WIFI_TX_PWR
+    case LabelType::WIFI_NR_EXTRA_SCANS:
+    {
+      KeyValueStruct kv(F("Extra WiFi scan loops"), Settings.NumberExtraWiFiScans);
+      return kv;
+    }
+    case LabelType::WIFI_USE_LAST_CONN_FROM_RTC:
+    {
+      KeyValueStruct kv(F("Use Last Connected AP from RTC"), Settings.UseLastWiFiFromRTC());
+      return kv;
+    }
 
-    case LabelType::FREE_MEM:               retval = FreeMem(); break;
-    case LabelType::FREE_STACK:             retval = getCurrentFreeStack(); break;
+    case LabelType::FREE_MEM:
+    {
+#ifndef BUILD_NO_RAM_TRACKER
 
+      if (extendedValue) {
+        KeyValueStruct kv(F("Free RAM"),
+                          strformat(
+                            F("%d [byte] (%d - %s)"),
+                            FreeMem(),
+                            lowestRAM,
+                            lowestRAMfunction.c_str()));
+        return kv;
+      }
+#endif // ifndef BUILD_NO_RAM_TRACKER
+
+      KeyValueStruct kv(F("Free RAM"), FreeMem());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    case LabelType::FREE_STACK:
+    {
+#ifndef BUILD_NO_RAM_TRACKER
+
+      if (extendedValue) {
+        KeyValueStruct kv(F("Free Stack"),
+                          strformat(
+                            F("%d [byte] (%d - %s)"),
+                            getCurrentFreeStack(),
+                            lowestFreeStack,
+                            lowestFreeStackfunction.c_str()));
+
+        return kv;
+      }
+#endif // ifndef BUILD_NO_RAM_TRACKER
+      KeyValueStruct kv(F("Free Stack"), getCurrentFreeStack());
+      kv.setUnit(F("byte"));
+
+      return kv;
+    }
 #ifdef USE_SECOND_HEAP
-    case LabelType::FREE_HEAP_IRAM:         retval = FreeMem2ndHeap(); break;
-#endif
+    case LabelType::FREE_HEAP_IRAM:
+    {
+      KeyValueStruct kv(F("Free 2nd Heap"), FreeMem2ndHeap());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+#endif // ifdef USE_SECOND_HEAP
 
+#if defined(CORE_POST_2_5_0) || defined(ESP32)
+  # ifndef LIMIT_BUILD_SIZE
+    case LabelType::HEAP_MAX_FREE_BLOCK:
+    {
+      KeyValueStruct kv(F("Heap Max Free Block"),
+#  ifdef ESP32
+                        ESP.getMaxAllocHeap()
+#  else
+                        ESP.getMaxFreeBlockSize()
+#  endif // ifdef ESP32
+                        );
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+  # endif // ifndef LIMIT_BUILD_SIZE
+#endif // if defined(CORE_POST_2_5_0) || defined(ESP32)
 #if defined(CORE_POST_2_5_0)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_MAX_FREE_BLOCK:    retval = ESP.getMaxFreeBlockSize(); break;
-  #endif
+  # ifndef LIMIT_BUILD_SIZE
+    case LabelType::HEAP_FRAGMENTATION:
+    {
+      KeyValueStruct kv(F("Heap Fragmentation"), ESP.getHeapFragmentation());
+      kv.setUnit(F("%"));
+      return kv;
+    }
+  # endif // ifndef LIMIT_BUILD_SIZE
 #endif // if defined(CORE_POST_2_5_0)
-#if  defined(ESP32)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_MAX_FREE_BLOCK:    retval = ESP.getMaxAllocHeap(); break;
-  #endif
-#endif // if  defined(ESP32)
-#if defined(CORE_POST_2_5_0)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_FRAGMENTATION:     retval = ESP.getHeapFragmentation(); break;
-  #endif
-#endif // if defined(CORE_POST_2_5_0)
+
 #ifdef ESP32
-    case LabelType::HEAP_SIZE:              retval = ESP.getHeapSize(); break;
-    case LabelType::HEAP_MIN_FREE:          retval = ESP.getMinFreeHeap(); break;
-    #ifdef BOARD_HAS_PSRAM
-    case LabelType::PSRAM_SIZE:             retval = UsePSRAM() ? ESP.getPsramSize() : 0; break;
-    case LabelType::PSRAM_FREE:             retval = UsePSRAM() ? ESP.getFreePsram() : 0; break;
-    case LabelType::PSRAM_MIN_FREE:         retval = UsePSRAM() ? ESP.getMinFreePsram() : 0; break;
-    case LabelType::PSRAM_MAX_FREE_BLOCK:   retval = UsePSRAM() ? ESP.getMaxAllocPsram() : 0; break;
-    #endif // BOARD_HAS_PSRAM
+    case LabelType::HEAP_SIZE:
+    {
+      KeyValueStruct kv(F("Heap Size"), ESP.getHeapSize());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    case LabelType::HEAP_MIN_FREE:
+    {
+      KeyValueStruct kv(F("Heap Min Free"), ESP.getMinFreeHeap());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    # ifdef BOARD_HAS_PSRAM
+    case LabelType::PSRAM_SIZE:
+    {
+      if (!UsePSRAM()) { break; }
+      KeyValueStruct kv(F("PSRAM Size"), ESP.getPsramSize());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    case LabelType::PSRAM_FREE:
+    {
+      if (!UsePSRAM()) { break; }
+      KeyValueStruct kv(F("PSRAM Free"), ESP.getFreePsram());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    case LabelType::PSRAM_MIN_FREE:
+    {
+      if (!UsePSRAM()) { break; }
+      KeyValueStruct kv(F("PSRAM Min Free"), ESP.getMinFreePsram());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    case LabelType::PSRAM_MAX_FREE_BLOCK:
+    {
+      if (!UsePSRAM()) { break; }
+      KeyValueStruct kv(F("PSRAM Max Free Block"), ESP.getMaxAllocPsram());
+      kv.setUnit(F("byte"));
+      return kv;
+    }
+    # endif // BOARD_HAS_PSRAM
 #endif // ifdef ESP32
 
-
-    case LabelType::JSON_BOOL_QUOTES:           return jsonBool(Settings.JSONBoolWithoutQuotes());
+    case LabelType::JSON_BOOL_QUOTES:
+    {
+      KeyValueStruct kv(F("JSON bool output without quotes"), Settings.JSONBoolWithoutQuotes());
+      return kv;
+    }
 #if FEATURE_TIMING_STATS
-    case LabelType::ENABLE_TIMING_STATISTICS:   return jsonBool(Settings.EnableTimingStats());
-#endif
-    case LabelType::ENABLE_RULES_CACHING:       return jsonBool(Settings.EnableRulesCaching());
-    case LabelType::ENABLE_SERIAL_PORT_CONSOLE: return jsonBool(Settings.UseSerial);
-    case LabelType::CONSOLE_SERIAL_PORT:        return ESPEasy_Console.getPortDescription();
-
+    case LabelType::ENABLE_TIMING_STATISTICS:
+    {
+      KeyValueStruct kv(F("Collect Timing Statistics"), Settings.EnableTimingStats());
+      return kv;
+    }
+#endif // if FEATURE_TIMING_STATS
+    case LabelType::ENABLE_RULES_CACHING:
+    {
+      KeyValueStruct kv(F("Enable Rules Cache"), Settings.EnableRulesCaching());
+      return kv;
+    }
+    case LabelType::ENABLE_SERIAL_PORT_CONSOLE:
+    {
+      KeyValueStruct kv(F("Enable Serial Port Console"), !!Settings.UseSerial);
+      return kv;
+    }
+    case LabelType::CONSOLE_SERIAL_PORT:
+    {
+      KeyValueStruct kv(F("Console Serial Port"), ESPEasy_Console.getPortDescription());
+      return kv;
+    }
 #if USES_ESPEASY_CONSOLE_FALLBACK_PORT
-    case LabelType::CONSOLE_FALLBACK_TO_SERIAL0: return jsonBool(Settings.console_serial0_fallback);
-    case LabelType::CONSOLE_FALLBACK_PORT:       return ESPEasy_Console.getFallbackPortDescription();
-#endif
+    case LabelType::CONSOLE_FALLBACK_TO_SERIAL0:
+    {
+      KeyValueStruct kv(F("Fallback to Serial 0"), Settings.console_serial0_fallback);
+      return kv;
+    }
+    case LabelType::CONSOLE_FALLBACK_PORT:
+    {
+      KeyValueStruct kv(F("Console Fallback Port"), ESPEasy_Console.getFallbackPortDescription());
+      return kv;
+    }
+#endif // if USES_ESPEASY_CONSOLE_FALLBACK_PORT
 
-//    case LabelType::ENABLE_RULES_EVENT_REORDER: return jsonBool(Settings.EnableRulesEventReorder()); // TD-er: Disabled for now
-    case LabelType::TASKVALUESET_ALL_PLUGINS:   return jsonBool(Settings.AllowTaskValueSetAllPlugins());
-    case LabelType::ALLOW_OTA_UNLIMITED:        return jsonBool(Settings.AllowOTAUnlimited());
+    //    case LabelType::ENABLE_RULES_EVENT_REORDER: {
+    // KeyValueStruct kv(F("Optimize Rules Cache Event Order"), Settings.EnableRulesEventReorder());
+    // return kv;
+    // } // TD-er: Disabled for now
+    case LabelType::TASKVALUESET_ALL_PLUGINS:
+    {
+      KeyValueStruct kv(F("Allow TaskValueSet on all plugins"), Settings.AllowTaskValueSetAllPlugins());
+      return kv;
+    }
+    case LabelType::ALLOW_OTA_UNLIMITED:
+    {
+      KeyValueStruct kv(F("Allow OTA without size-check"), Settings.AllowOTAUnlimited());
+      return kv;
+    }
 #if FEATURE_CLEAR_I2C_STUCK
-    case LabelType::ENABLE_CLEAR_HUNG_I2C_BUS:  return jsonBool(Settings.EnableClearHangingI2Cbus());
-#endif
-#if FEATURE_I2C_DEVICE_CHECK
-    case LabelType::ENABLE_I2C_DEVICE_CHECK:    return jsonBool(Settings.CheckI2Cdevice());
-#endif // if FEATURE_I2C_DEVICE_CHECK
+    case LabelType::ENABLE_CLEAR_HUNG_I2C_BUS:
+    {
+      KeyValueStruct kv(F("Try clear I2C bus when stuck"), Settings.EnableClearHangingI2Cbus());
+      return kv;
+    }
+#endif // if FEATURE_CLEAR_I2C_STUCK
+    #if FEATURE_I2C_DEVICE_CHECK
+    case LabelType::ENABLE_I2C_DEVICE_CHECK:
+    {
+      KeyValueStruct kv(F("Check I2C devices when enabled"), Settings.CheckI2Cdevice());
+      return kv;
+    }
+    #endif // if FEATURE_I2C_DEVICE_CHECK
 #ifndef BUILD_NO_RAM_TRACKER
-    case LabelType::ENABLE_RAM_TRACKING:        return jsonBool(Settings.EnableRAMTracking());
-#endif
+    case LabelType::ENABLE_RAM_TRACKING:
+    {
+      KeyValueStruct kv(F("Enable RAM Tracker"), Settings.EnableRAMTracking());
+      return kv;
+    }
+#endif // ifndef BUILD_NO_RAM_TRACKER
 #if FEATURE_AUTO_DARK_MODE
-    case LabelType::ENABLE_AUTO_DARK_MODE:      return toString(Settings.getCssMode());
+    case LabelType::ENABLE_AUTO_DARK_MODE:
+    {
+      KeyValueStruct kv(F("Web light/dark mode"), Settings.getCssMode());
+      return kv;
+    }
 #endif // FEATURE_AUTO_DARK_MODE
 #if FEATURE_RULES_EASY_COLOR_CODE
-    case LabelType::DISABLE_RULES_AUTOCOMPLETE: return jsonBool(Settings.DisableRulesCodeCompletion());
+    case LabelType::DISABLE_RULES_AUTOCOMPLETE:
+    {
+      KeyValueStruct kv(F("Disable Rules auto-completion"), Settings.DisableRulesCodeCompletion());
+      return kv;
+    }
 #endif // if FEATURE_RULES_EASY_COLOR_CODE
 #if FEATURE_TARSTREAM_SUPPORT
-    case LabelType::DISABLE_SAVE_CONFIG_AS_TAR: return jsonBool(Settings.DisableSaveConfigAsTar());
+    case LabelType::DISABLE_SAVE_CONFIG_AS_TAR:
+    {
+      KeyValueStruct kv(F("Disable Save Config as .tar"), Settings.DisableSaveConfigAsTar());
+      return kv;
+    }
 #endif // if FEATURE_TARSTREAM_SUPPORT
-    #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-    case LabelType::SHOW_UOM_ON_DEVICES_PAGE:   return jsonBool(Settings.ShowUnitOfMeasureOnDevicesPage());
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    case LabelType::SHOW_UOM_ON_DEVICES_PAGE:
+    {
+      KeyValueStruct kv(F("Show Unit of Measure"), Settings.ShowUnitOfMeasureOnDevicesPage());
+      return kv;
+    }
     #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
     #if FEATURE_MQTT_CONNECT_BACKGROUND
-    case LabelType::MQTT_CONNECT_IN_BACKGROUND: return jsonBool(Settings.MQTTConnectInBackground());
+    case LabelType::MQTT_CONNECT_IN_BACKGROUND:
+    {
+      KeyValueStruct kv(F("MQTT Connect in background"), Settings.MQTTConnectInBackground());
+      return kv;
+    }
     #endif // if FEATURE_MQTT_CONNECT_BACKGROUND
 
 #if CONFIG_SOC_WIFI_SUPPORT_5G
-    case LabelType::WIFI_BAND_MODE:        return ESPEasy::net::wifi::getWifiBandModeString(Settings.WiFi_band_mode());
-#endif
-
-    case LabelType::BOOT_TYPE:              return getLastBootCauseString();
-    case LabelType::BOOT_COUNT:             break;
-    case LabelType::DEEP_SLEEP_ALTERNATIVE_CALL: return jsonBool(Settings.UseAlternativeDeepSleep());
-    case LabelType::RESET_REASON:           return getResetReasonString();
-    case LabelType::LAST_TASK_BEFORE_REBOOT: return ESPEasy_Scheduler::decodeSchedulerId(lastMixedSchedulerId_beforereboot);
-    case LabelType::SW_WD_COUNT:            retval = sw_watchdog_callback_count; break;
-
-    case LabelType::WIFI_CONNECTION:        break;
-    case LabelType::WIFI_RSSI:              retval = WiFi.RSSI(); break;
-    case LabelType::IP_CONFIG:              return useStaticIP() 
-                                                     ? getLabel(LabelType::IP_CONFIG_STATIC) 
-                                                     : getLabel(LabelType::IP_CONFIG_DYNAMIC);
-    case LabelType::IP_CONFIG_STATIC:       break;
-    case LabelType::IP_CONFIG_DYNAMIC:      break;
-    case LabelType::IP_ADDRESS:             return formatIP(ESPEasy::net::NetworkLocalIP());
-    case LabelType::IP_SUBNET:              return formatIP(ESPEasy::net::NetworkSubnetMask());
-    case LabelType::IP_ADDRESS_SUBNET:      return strformat(F("%s / %s"), getValue(LabelType::IP_ADDRESS).c_str(), getValue(LabelType::IP_SUBNET).c_str());
-    case LabelType::GATEWAY:                return formatIP(ESPEasy::net::NetworkGatewayIP());
-#if FEATURE_USE_IPV6
-    case LabelType::IP6_LOCAL:              return formatIP(ESPEasy::net::NetworkLocalIP6(), true);
-    case LabelType::IP6_GLOBAL:             return formatIP(ESPEasy::net::NetworkGlobalIP6());
-#if FEATURE_ETHERNET
-    case LabelType::ETH_IP6_LOCAL:          return formatIP(ESPEasy::net::NetworkLocalIP6(), true);
-#endif
-/*
-    case LabelType::IP6_ALL_ADDRESSES:
+    case LabelType::WIFI_BAND_MODE:
     {
-      IP6Addresses_t addresses = NetworkAllIPv6();
-      String res;
-      for (auto it = addresses.begin(); it != addresses.end(); ++it)
-      {
-        if (!res.isEmpty()) {
-          res += F("<br>");
-        }
-        res += it->toString();
-      }
-      return res;
+      KeyValueStruct kv(F("WiFi Band Mode"), ESPEasy::net::wifi::getWifiBandModeString(Settings.WiFi_band_mode()));
+      return kv;
     }
-*/
-#endif
-    case LabelType::CLIENT_IP:              return formatIP(web_server.client().remoteIP(), true);
-    #if FEATURE_INTERNAL_TEMPERATURE
-    case LabelType::INTERNAL_TEMPERATURE:   return toString(getInternalTemperature());
-    #endif // if FEATURE_INTERNAL_TEMPERATURE
+#endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 
-    #if FEATURE_MDNS
-    case LabelType::M_DNS:                  return NetworkGetHostname() + F(".local");
-    #endif // if FEATURE_MDNS
-    case LabelType::DNS:                    return strformat(F("%s / %s"), getValue(LabelType::DNS_1).c_str(), getValue(LabelType::DNS_2).c_str());
-    case LabelType::DNS_1:                  return formatIP(ESPEasy::net::NetworkDnsIP(0));
-    case LabelType::DNS_2:                  return formatIP(ESPEasy::net::NetworkDnsIP(1));
-    case LabelType::ALLOWED_IP_RANGE:       return ESPEasy::net::describeAllowedIPrange();
-#if FEATURE_WIFI
-    case LabelType::STA_MAC:                return ESPEasy::net::WifiSTAmacAddress().toString();
-    case LabelType::AP_MAC:                 return ESPEasy::net::WifiSoftAPmacAddress().toString();
-    case LabelType::SSID:                   return WiFi.SSID();
-    case LabelType::BSSID:                  return WiFi.BSSIDstr();
-    case LabelType::CHANNEL:                retval = WiFi.channel(); break;
-    case LabelType::ENCRYPTION_TYPE_STA:    return getWiFi_encryptionType();
-#endif
-    case LabelType::CONNECTED:
-        return format_msec_duration(ESPEasy::net::NetworkConnectDuration_ms());
+    case LabelType::BOOT_TYPE:
+    {
+      KeyValueStruct kv(F("Last Boot Cause"), getLastBootCauseString());
+      return kv;
+    }
+    case LabelType::BOOT_COUNT:
+    {
+      KeyValueStruct kv(F("Boot Count") /*, value*/);
+      return kv;
+    }
+    case LabelType::DEEP_SLEEP_ALTERNATIVE_CALL:
+    {
+      KeyValueStruct kv(F("Deep Sleep Alternative"), Settings.UseAlternativeDeepSleep());
+      return kv;
+    }
+    case LabelType::RESET_REASON:
+    {
+      KeyValueStruct kv(F("Reset Reason"), getResetReasonString());
+      return kv;
+    }
+    case LabelType::LAST_TASK_BEFORE_REBOOT:
+    {
+      KeyValueStruct kv(F("Last Action before Reboot"), ESPEasy_Scheduler::decodeSchedulerId(lastMixedSchedulerId_beforereboot));
+      return kv;
+    }
+    case LabelType::SW_WD_COUNT:
+    {
+      KeyValueStruct kv(F("SW WD count"), sw_watchdog_callback_count);
+      return kv;
+    }
 
-    // Use only the nr of seconds to fit it in an int32, plus append '000' to have msec format again.
-    case LabelType::CONNECTED_MSEC:         
-      return String(static_cast<int32_t>(ESPEasy::net::NetworkConnectDuration_ms() / 1000ll)) + F("000");
-    case LabelType::LAST_DISCONNECT_REASON: retval = getWiFi_disconnectReason(); break;
-    case LabelType::LAST_DISC_REASON_STR:   return getWiFi_disconnectReason_str();
-    case LabelType::NUMBER_RECONNECTS:      retval = ESPEasy::net::NetworkConnectCount(); break;
-    case LabelType::WIFI_STORED_SSID1:      return String(SecuritySettings.WifiSSID);
-    case LabelType::WIFI_STORED_SSID2:      return String(SecuritySettings.WifiSSID2);
-
-
-    case LabelType::FORCE_WIFI_BG:          return jsonBool(Settings.ForceWiFi_bg_mode());
-    case LabelType::RESTART_WIFI_LOST_CONN: return jsonBool(Settings.WiFiRestart_connection_lost());
-    case LabelType::FORCE_WIFI_NOSLEEP:     return jsonBool(Settings.WifiNoneSleep());
-    case LabelType::PERIODICAL_GRAT_ARP:    return jsonBool(Settings.gratuitousARP());
-    case LabelType::CONNECTION_FAIL_THRESH: retval = Settings.ConnectionFailuresThreshold; break;
-#ifndef ESP32
-    case LabelType::WAIT_WIFI_CONNECT:      return jsonBool(Settings.WaitWiFiConnect());
-#endif
-    case LabelType::CONNECT_HIDDEN_SSID:    return jsonBool(Settings.IncludeHiddenSSID());
-#ifdef ESP32
-    case LabelType::WIFI_PASSIVE_SCAN:      return jsonBool(Settings.PassiveWiFiScan());
-#endif
-    case LabelType::HIDDEN_SSID_SLOW_CONNECT: return jsonBool(Settings.HiddenSSID_SlowConnectPerBSSID());
-    case LabelType::SDK_WIFI_AUTORECONNECT: return jsonBool(Settings.SDK_WiFi_autoreconnect());
+    case LabelType::WIFI_CONNECTION:
+    {
+      KeyValueStruct kv(F("WiFi Connection") /*, value*/);
+      return kv;
+    }
+    case LabelType::WIFI_RSSI:
+    {
+      if (extendedValue) {
+        KeyValueStruct kv(F("RSSI"), strformat(
+                            F("%d [dBm] (%s)"),
+                            WiFi.RSSI(),
+                            WiFi.SSID().c_str()));
+        return kv;
+      }
+      KeyValueStruct kv(F("RSSI"), WiFi.RSSI());
+      kv.setUnit(F("dBm"));
+      return kv;
+    }
+    case LabelType::IP_CONFIG:
+    {
+      KeyValueStruct kv(F("IP Config"), useStaticIP() ? F("static") : F("DHCP"));
+      kv.setID(F("dhcp"));
+      return kv;
+    }
 #if FEATURE_USE_IPV6
-    case LabelType::ENABLE_IPV6:            return jsonBool(Settings.EnableIPv6());
-#endif
+    case LabelType::IP6_LOCAL:
+
+      if (Settings.EnableIPv6()) {
+        KeyValueStruct kv(F("IPv6 link local"), formatIP(ESPEasy::net::NetworkLocalIP6(), true));
+        return kv;
+      }
+      break;
+    case LabelType::IP6_GLOBAL:
+
+      if (Settings.EnableIPv6()) {
+        KeyValueStruct kv(F("IPv6 global"), formatIP(ESPEasy::net::NetworkGlobalIP6()));
+        return kv;
+      }
+      break;
+
+      // case LabelType::IP6_ALL_ADDRESSES:      {
+      // KeyValueStruct kv(F("IPv6 all addresses"));
+      // IP6Addresses_t addresses = NetworkAllIPv6();
+      // for (auto it = addresses.begin(); it != addresses.end(); ++it)
+      // {
+      //   kv.appendValue(it->toString());
+      // }
+      // return kv;
+      // }
+#endif // if FEATURE_USE_IPV6
+    case LabelType::IP_ADDRESS:
+    {
+      KeyValueStruct kv(F("IP Address"), formatIP(ESPEasy::net::NetworkLocalIP()));
+      kv.setID(F("ip"));
+      return kv;
+    }
+    case LabelType::IP_SUBNET:
+    {
+      KeyValueStruct kv(F("IP Subnet"), formatIP(ESPEasy::net::NetworkSubnetMask()));
+      kv.setID(F("subnet"));
+      return kv;
+    }
+    case LabelType::IP_ADDRESS_SUBNET:
+    {
+      KeyValueStruct kv(F("IP / Subnet"), strformat(
+                          F("%s / %s"),
+                          getValue(LabelType::IP_ADDRESS).c_str(),
+                          getValue(LabelType::IP_SUBNET).c_str()));
+      return kv;
+    }
+    case LabelType::GATEWAY:
+    {
+      KeyValueStruct kv(F("Gateway"), formatIP(ESPEasy::net::NetworkGatewayIP()));
+      kv.setID(F("gw"));
+      return kv;
+    }
+    case LabelType::CLIENT_IP:
+    {
+      KeyValueStruct kv(F("Client IP"), formatIP(web_server.client().remoteIP(), true));
+      return kv;
+    }
+    #if FEATURE_MDNS
+    case LabelType::M_DNS:
+    {
+      const String url = NetworkGetHostname() + F(".local");
+
+      if (extendedValue) {
+        KeyValueStruct kv(F("mDNS"),
+                          strformat(
+                            F("<a href='http://%s'>%s</a>"),
+                            url.c_str(),
+                            url.c_str()));
+        return kv;
+      }
+      KeyValueStruct kv(F("mDNS"), url);
+      return kv;
+    }
+    #endif // if FEATURE_MDNS
+    case LabelType::DNS:
+    {
+      if (!extendedValue) { break; }
+      KeyValueStruct kv(F("DNS"), strformat(F("%s / %s"),
+                                            getValue(LabelType::DNS_1).c_str(),
+                                            getValue(LabelType::DNS_2).c_str()));
+      return kv;
+    }
+    case LabelType::DNS_1:
+    {
+      if (extendedValue) { break; }
+      KeyValueStruct kv(F("DNS 1"), formatIP(ESPEasy::net::NetworkDnsIP(0)));
+      kv.setID(F("dns1"));
+      return kv;
+    }
+    case LabelType::DNS_2:
+    {
+      if (extendedValue) { break; }
+      KeyValueStruct kv(F("DNS 2"), formatIP(ESPEasy::net::NetworkDnsIP(1)));
+      kv.setID(F("dns2"));
+      return kv;
+    }
+    case LabelType::ALLOWED_IP_RANGE:
+    {
+      KeyValueStruct kv(F("Allowed IP Range"), ESPEasy::net::describeAllowedIPrange());
+      kv.setID(F("allowed_range"));
+      return kv;
+    }
+    case LabelType::STA_MAC:
+    {
+      KeyValueStruct kv(F("STA MAC"), ESPEasy::net::WifiSTAmacAddress().toString());
+      return kv;
+    }
+    case LabelType::AP_MAC:
+    {
+      KeyValueStruct kv(F("AP MAC"), ESPEasy::net::WifiSoftAPmacAddress().toString());
+      return kv;
+    }
+    case LabelType::SSID:
+    {
+      KeyValueStruct kv(F("SSID"), WiFi.SSID());
+      return kv;
+    }
+    case LabelType::BSSID:
+    {
+      KeyValueStruct kv(F("BSSID"), WiFi.BSSIDstr());
+      return kv;
+    }
+    case LabelType::CHANNEL:
+    {
+      KeyValueStruct kv(F("Channel"), WiFi.channel());
+      return kv;
+    }
+    case LabelType::ENCRYPTION_TYPE_STA:
+    {
+      KeyValueStruct kv(F("Encryption Type"), getWiFi_encryptionType());
+      kv.setID(F("encryption"));
+      return kv;
+    }
+    case LabelType::CONNECTED:
+    {
+      KeyValueStruct kv(F("Connected"), format_msec_duration(ESPEasy::net::NetworkConnectDuration_ms()));
+      return kv;
+    }
+    case LabelType::CONNECTED_MSEC:
+    {
+      KeyValueStruct kv(F("Connected msec"), ESPEasy::net::NetworkConnectDuration_ms());
+      return kv;
+    }
+    case LabelType::LAST_DISCONNECT_REASON:
+    {
+      KeyValueStruct kv(F("Last Disconnect Reason"), getWiFi_disconnectReason());
+      return kv;
+    }
+    case LabelType::LAST_DISC_REASON_STR:
+    {
+      KeyValueStruct kv(F("Last Disconnect Reason str"), getWiFi_disconnectReason_str());
+      return kv;
+    }
+    case LabelType::NUMBER_RECONNECTS:
+    {
+      KeyValueStruct kv(F("Number Reconnects"), ESPEasy::net::NetworkConnectCount());
+      return kv;
+    }
+    case LabelType::WIFI_STORED_SSID1:
+    {
+      KeyValueStruct kv(F("Configured SSID1"), SecuritySettings.WifiSSID);
+      return kv;
+    }
+    case LabelType::WIFI_STORED_SSID2:
+    {
+      KeyValueStruct kv(F("Configured SSID2"), SecuritySettings.WifiSSID2);
+      return kv;
+    }
 
 
-    case LabelType::BUILD_DESC:             return getSystemBuildString();
+    case LabelType::FORCE_WIFI_BG:
+    {
+      KeyValueStruct kv(F("Force WiFi B/G"), Settings.ForceWiFi_bg_mode());
+      return kv;
+    }
+    case LabelType::RESTART_WIFI_LOST_CONN:
+    {
+      KeyValueStruct kv(F("Restart WiFi Lost Conn"), Settings.WiFiRestart_connection_lost());
+      return kv;
+    }
+    case LabelType::FORCE_WIFI_NOSLEEP:
+    {
+      KeyValueStruct kv(F("Force WiFi No Sleep"), Settings.WifiNoneSleep());
+      return kv;
+    }
+    case LabelType::PERIODICAL_GRAT_ARP:
+    {
+      KeyValueStruct kv(F("Periodical send Gratuitous ARP"), Settings.gratuitousARP());
+      return kv;
+    }
+    case LabelType::CONNECTION_FAIL_THRESH:
+    {
+      KeyValueStruct kv(F("Connection Failure Threshold"), Settings.ConnectionFailuresThreshold);
+      return kv;
+    }
+#ifndef ESP32
+    case LabelType::WAIT_WIFI_CONNECT:
+    {
+      KeyValueStruct kv(F("Extra Wait WiFi Connect"), Settings.WaitWiFiConnect());
+      return kv;
+    }
+#endif // ifndef ESP32
+    case LabelType::CONNECT_HIDDEN_SSID:
+    {
+      KeyValueStruct kv(F("Include Hidden SSID"), Settings.IncludeHiddenSSID());
+      return kv;
+    }
+#ifdef ESP32
+    case LabelType::WIFI_PASSIVE_SCAN:
+    {
+      KeyValueStruct kv(F("Passive WiFi Scan"), Settings.PassiveWiFiScan());
+      return kv;
+    }
+#endif // ifdef ESP32
+    case LabelType::HIDDEN_SSID_SLOW_CONNECT:
+    {
+      KeyValueStruct kv(F("Hidden SSID Slow Connect"), Settings.HiddenSSID_SlowConnectPerBSSID());
+      return kv;
+    }
+    case LabelType::SDK_WIFI_AUTORECONNECT:
+    {
+      KeyValueStruct kv(F("Enable SDK WiFi Auto Reconnect"), Settings.SDK_WiFi_autoreconnect());
+      return kv;
+    }
+#if FEATURE_USE_IPV6
+    case LabelType::ENABLE_IPV6:
+    {
+      KeyValueStruct kv(F("Enable IPv6"), Settings.EnableIPv6());
+      return kv;
+    }
+#endif // if FEATURE_USE_IPV6
+
+
+    case LabelType::BUILD_DESC:
+    {
+      KeyValueStruct kv(F("Build"), getSystemBuildString());
+      return kv;
+    }
     case LabelType::GIT_BUILD:
     {
-      const String res(F(BUILD_GIT));
+      String res(F(BUILD_GIT));
 
-      if (!res.isEmpty()) { return res; }
-      return get_git_head();
+      if (res.isEmpty()) { res = get_git_head(); }
+      KeyValueStruct kv(F("Git Build"), res);
+      return kv;
     }
-    case LabelType::SYSTEM_LIBRARIES:       return getSystemLibraryString();
+    case LabelType::SYSTEM_LIBRARIES:
+    {
+      KeyValueStruct kv(F("System Libraries"), getSystemLibraryString());
+      return kv;
+    }
 #ifdef ESP32
-    case LabelType::ESP_IDF_SDK_VERSION:    return strformat(
-      F("%d.%d.%d"), 
-      ESP_IDF_VERSION_MAJOR, 
-      ESP_IDF_VERSION_MINOR, 
-      ESP_IDF_VERSION_PATCH);
-#endif
-
-    case LabelType::PLUGIN_COUNT:           retval = getDeviceCount() + 1; break;
-    case LabelType::PLUGIN_DESCRIPTION:     return getPluginDescriptionString();
-    case LabelType::BUILD_TIME:             return String(get_build_date()) + ' ' + get_build_time();
-    case LabelType::BINARY_FILENAME:        return get_binary_filename();
-    case LabelType::BUILD_PLATFORM:         return get_build_platform();
-    case LabelType::GIT_HEAD:               return get_git_head();
+    case LabelType::ESP_IDF_SDK_VERSION:
+    {
+      KeyValueStruct kv(F("ESP-IDF Version"), strformat(
+                          F("%d.%d.%d"),
+                          ESP_IDF_VERSION_MAJOR,
+                          ESP_IDF_VERSION_MINOR,
+                          ESP_IDF_VERSION_PATCH));
+      return kv;
+    }
+#endif // ifdef ESP32
+    case LabelType::PLUGIN_COUNT:
+    {
+      KeyValueStruct kv(F("Plugin Count"), getDeviceCount() + 1);
+      return kv;
+    }
+    case LabelType::PLUGIN_DESCRIPTION:
+    {
+      KeyValueStruct kv(F("Plugin Description"), getPluginDescriptionString());
+      return kv;
+    }
+    case LabelType::BUILD_TIME:
+    {
+      KeyValueStruct kv(F("Build Time"), String(get_build_date()) + ' ' + get_build_time());
+      return kv;
+    }
+    case LabelType::BINARY_FILENAME:
+    {
+      KeyValueStruct kv(F("Binary Filename"), get_binary_filename());
+      return kv;
+    }
+    case LabelType::BUILD_PLATFORM:
+    {
+      KeyValueStruct kv(F("Build Platform"), get_build_platform());
+      return kv;
+    }
+    case LabelType::GIT_HEAD:
+    {
+      KeyValueStruct kv(F("Git HEAD"), get_git_head());
+      return kv;
+    }
     #ifdef CONFIGURATION_CODE
-    case LabelType::CONFIGURATION_CODE_LBL: return getConfigurationCode();
+    case LabelType::CONFIGURATION_CODE_LBL:
+    {
+      KeyValueStruct kv(F("Configuration code"), getConfigurationCode());
+      return kv;
+    }
     #endif // ifdef CONFIGURATION_CODE
-    case LabelType::I2C_BUS_STATE:          return toString(I2C_state);
-    case LabelType::I2C_BUS_CLEARED_COUNT:  retval = I2C_bus_cleared_count; break;
-    case LabelType::SYSLOG_LOG_LEVEL:       return getLogLevelDisplayString(Settings.SyslogLevel);
-    case LabelType::SERIAL_LOG_LEVEL:       return getLogLevelDisplayString(getSerialLogLevel());
-    case LabelType::WEB_LOG_LEVEL:          return getLogLevelDisplayString(getWebLogLevel());
+
+    case LabelType::I2C_BUS_STATE:
+    {
+      KeyValueStruct kv(F("I2C Bus State"), toString(I2C_state));
+      return kv;
+    }
+    case LabelType::I2C_BUS_CLEARED_COUNT:
+    {
+      KeyValueStruct kv(F("I2C bus cleared count"), I2C_bus_cleared_count);
+      return kv;
+    }
+
+    case LabelType::SYSLOG_LOG_LEVEL:
+    {
+      KeyValueStruct kv(F("Syslog Log Level"), getLogLevelDisplayString(Settings.SyslogLevel));
+      return kv;
+    }
+    case LabelType::SERIAL_LOG_LEVEL:
+    {
+      KeyValueStruct kv(F("Serial Log Level"), getLogLevelDisplayString(getSerialLogLevel()));
+      return kv;
+    }
+    case LabelType::WEB_LOG_LEVEL:
+    {
+      KeyValueStruct kv(F("Web Log Level"), getLogLevelDisplayString(getWebLogLevel()));
+      return kv;
+    }
   #if FEATURE_SD
-    case LabelType::SD_LOG_LEVEL:           return getLogLevelDisplayString(Settings.SDLogLevel);
+    case LabelType::SD_LOG_LEVEL:
+    {
+      KeyValueStruct kv(F("SD Log Level"), getLogLevelDisplayString(Settings.SDLogLevel));
+      return kv;
+    }
   #endif // if FEATURE_SD
 
-    case LabelType::ESP_CHIP_ID:            return formatToHex(getChipId(), 6);
-    case LabelType::ESP_CHIP_FREQ:          retval = ESP.getCpuFreqMHz(); break;
+    case LabelType::ESP_CHIP_ID:
+    {
+      KeyValueStruct kv(F("ESP Chip ID"), formatToHex(getChipId(), 6));
+      return kv;
+    }
+    case LabelType::ESP_CHIP_FREQ:
+    {
+      KeyValueStruct kv(F("ESP Chip Frequency"), ESP.getCpuFreqMHz());
+      kv.setUnit(F("MHz"));
+      return kv;
+    }
 #ifdef ESP32
-    case LabelType::ESP_CHIP_XTAL_FREQ:     retval = getXtalFrequencyMHz(); break;
-    case LabelType::ESP_CHIP_APB_FREQ:      retval = rtc_clk_apb_freq_get() / 1000000; break;
-    //getApbFrequency() / 1000000; break;
-#endif
-    case LabelType::ESP_CHIP_MODEL:         return getChipModel();
-    case LabelType::ESP_CHIP_REVISION:      return getChipRevision();
-    case LabelType::ESP_CHIP_CORES:         retval = getChipCores(); break;
-    case LabelType::BOARD_NAME:             return get_board_name();
-    case LabelType::FLASH_CHIP_ID:          return formatToHex(getFlashChipId(), 6);
-    case LabelType::FLASH_CHIP_VENDOR:      return formatToHex(getFlashChipId() & 0xFF, 2);
+    case LabelType::ESP_CHIP_XTAL_FREQ:
+    {
+      KeyValueStruct kv(F("ESP Crystal Frequency"), getXtalFrequencyMHz());
+      kv.setUnit(F("MHz"));
+      return kv;
+    }
+    case LabelType::ESP_CHIP_APB_FREQ:
+    {
+      KeyValueStruct kv(F("ESP APB Frequency"), rtc_clk_apb_freq_get() / 1000000);
+      kv.setUnit(F("MHz"));
+      return kv;
+    }
+#endif // ifdef ESP32
+    case LabelType::ESP_CHIP_MODEL:
+    {
+      KeyValueStruct kv(F("ESP Chip Model"), getChipModel());
+      return kv;
+    }
+    case LabelType::ESP_CHIP_REVISION:
+    {
+      KeyValueStruct kv(F("ESP Chip Revision"), getChipRevision());
+      return kv;
+    }
+    case LabelType::ESP_CHIP_CORES:
+    {
+      KeyValueStruct kv(F("ESP Chip Cores"), getChipCores());
+      return kv;
+    }
+
+    case LabelType::BOARD_NAME:
+    {
+      KeyValueStruct kv(F("ESP Board Name"), get_board_name());
+      return kv;
+    }
+
+    case LabelType::FLASH_CHIP_ID:
+    {
+      KeyValueStruct kv(F("Flash Chip ID"), formatToHex(getFlashChipId(), 6));
+      return kv;
+    }
+    case LabelType::FLASH_CHIP_VENDOR:
+    {
+      KeyValueStruct kv(F("Flash Chip Vendor"), formatToHex(getFlashChipId() & 0xFF, 2));
+      return kv;
+    }
     case LabelType::FLASH_CHIP_MODEL:
     {
       const uint32_t flashChipId = getFlashChipId();
       const uint32_t flashDevice = (flashChipId & 0xFF00) | ((flashChipId >> 16) & 0xFF);
-      return formatToHex(flashDevice, 4);
+
+      KeyValueStruct kv(F("Flash Chip Model"), formatToHex(flashDevice, 4));
+      return kv;
     }
-    case LabelType::FLASH_CHIP_REAL_SIZE:   retval = getFlashRealSizeInBytes(); break;
-    case LabelType::FLASH_CHIP_SPEED:       retval = getFlashChipSpeed() / 1000000; break;
-    case LabelType::FLASH_IDE_SIZE:         break;
-    case LabelType::FLASH_IDE_SPEED:        break;
-    case LabelType::FLASH_IDE_MODE:         return getFlashChipMode();
-    case LabelType::FLASH_WRITE_COUNT:      break;
-    case LabelType::SKETCH_SIZE:            break;
-    case LabelType::SKETCH_FREE:            break;
-    case LabelType::FS_SIZE:                retval = SpiffsTotalBytes(); break;
-    case LabelType::FS_FREE:                retval = SpiffsFreeSpace(); break;
-    case LabelType::MAX_OTA_SKETCH_SIZE:    break;
-    case LabelType::OTA_2STEP:              break;
-    case LabelType::OTA_POSSIBLE:           break;
+    case LabelType::FLASH_CHIP_REAL_SIZE:
+    {
+      KeyValueStruct kv(F("Flash Chip Real Size"), getFlashRealSizeInBytes() >> 10);
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    case LabelType::FLASH_CHIP_SPEED:
+    {
+      KeyValueStruct kv(F("Flash Chip Speed"), getFlashChipSpeed() / 1000000);
+      kv.setUnit(F("MHz"));
+      return kv;
+    }
+    case LabelType::FLASH_IDE_SIZE:
+    {
+      KeyValueStruct kv(F("Flash IDE Size"), ESP.getFlashChipSize() >> 10);
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    case LabelType::FLASH_IDE_SPEED:
+    {
+      KeyValueStruct kv(F("Flash IDE Speed"), getFlashChipSpeed() / 1000000);
+      kv.setUnit(F("MHz"));
+      return kv;
+    }
+    case LabelType::FLASH_IDE_MODE:
+    {
+      KeyValueStruct kv(F("Flash IDE Mode"), getFlashChipMode());
+      kv.setID(F("mode"));
+      return kv;
+    }
+    case LabelType::FLASH_WRITE_COUNT:
+    {
+      KeyValueStruct kv(F("Flash Writes"), RTC.flashCounter);
+      return kv;
+    }
+    case LabelType::SKETCH_SIZE:
+    {
+      KeyValueStruct kv(F("Sketch Size"), getSketchSize() >> 10);
+      kv.setID(F("sketch_size"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    case LabelType::SKETCH_FREE:
+    {
+      KeyValueStruct kv(F("Sketch Free"), getFreeSketchSpace() >> 10);
+      kv.setID(F("sketch_free"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    #ifdef USE_LITTLEFS
+    case LabelType::FS_SIZE:
+    {
+      KeyValueStruct kv(F("Little FS Size"), SpiffsTotalBytes() >> 10);
+      kv.setID(F("fs_size"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    case LabelType::FS_FREE:
+    {
+      KeyValueStruct kv(F("Little FS Free"), SpiffsFreeSpace() >> 10);
+      kv.setID(F("fs_free"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    #else // ifdef USE_LITTLEFS
+    case LabelType::FS_SIZE:
+    {
+      KeyValueStruct kv(F("SPIFFS Size"), SpiffsTotalBytes() >> 10);
+      kv.setID(F("fs_size"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    case LabelType::FS_FREE:
+    {
+      KeyValueStruct kv(F("SPIFFS Free"), SpiffsFreeSpace() >> 10);
+      kv.setID(F("fs_free"));
+      kv.setUnit(F("kB"));
+      return kv;
+    }
+    #endif // ifdef USE_LITTLEFS
+    case LabelType::MAX_OTA_SKETCH_SIZE:
+    {
+      KeyValueStruct kv(F("Max. OTA Sketch Size") /*, value*/);
+      return kv;
+    }
+    case LabelType::OTA_2STEP:
+    {
+      KeyValueStruct kv(F("OTA 2-step Needed") /*, value*/);
+      return kv;
+    }
+    case LabelType::OTA_POSSIBLE:
+    {
+      KeyValueStruct kv(F("OTA possible") /*, value*/);
+      return kv;
+    }
+    #if FEATURE_INTERNAL_TEMPERATURE
+    case LabelType::INTERNAL_TEMPERATURE:
+    {
+      KeyValueStruct kv(F("Internal Temperature"), getInternalTemperature(), 1);
+      kv.setUnit(F("&deg;C"));
+      return kv;
+    }
+    #endif // if FEATURE_INTERNAL_TEMPERATURE
 #if FEATURE_ETHERNET
-    case LabelType::ETH_IP_ADDRESS:         return formatIP(ESPEasy::net::NetworkLocalIP());
-    case LabelType::ETH_IP_SUBNET:          return formatIP(ESPEasy::net::NetworkSubnetMask());
-    case LabelType::ETH_IP_ADDRESS_SUBNET:  return strformat(
-                                                          F("%s / %s"),
-                                                          getValue(LabelType::ETH_IP_ADDRESS).c_str(),
-                                                          getValue(LabelType::ETH_IP_SUBNET).c_str());
-    case LabelType::ETH_IP_GATEWAY:         return formatIP(ESPEasy::net::NetworkGatewayIP());
-    case LabelType::ETH_IP_DNS:             return formatIP(ESPEasy::net::NetworkDnsIP(0));
-    case LabelType::ETH_MAC:                return ESPEasy::net::NetworkMacAddress().toString();
-    case LabelType::ETH_DUPLEX:             return ESPEasy::net::EthLinkUp() ? (ESPEasy::net::EthFullDuplex() ? F("Full Duplex") : F("Half Duplex")) : F("Link Down");
-    case LabelType::ETH_SPEED:              return getEthSpeed();
-    case LabelType::ETH_STATE:              return ESPEasy::net::EthLinkUp() ? F("Link Up") : F("Link Down");
-    case LabelType::ETH_SPEED_STATE:        return getEthLinkSpeedState();
-    case LabelType::ETH_CONNECTED:          return ESPEasy::net::eth::ETHConnected() ? F("CONNECTED") : F("DISCONNECTED"); // 0=disconnected, 1=connected
-    case LabelType::ETH_CHIP:               return toString(Settings.ETH_Phy_Type);
+    case LabelType::ETH_MAC:
+    {
+      KeyValueStruct kv(F("Eth MAC"), ESPEasy::net::NetworkMacAddress().toString());
+      return kv;
+    }
+    case LabelType::ETH_DUPLEX:
+    {
+      KeyValueStruct kv(F("Eth Mode"), ESPEasy::net::EthLinkUp() ?
+                        (ESPEasy::net::EthFullDuplex() ? F("Full Duplex") : F("Half Duplex")) : F("Link Down"));
+      kv.setID(F("ethduplex"));
+      return kv;
+    }
+    case LabelType::ETH_SPEED:
+    {
+      KeyValueStruct kv(F("Eth Speed"), getEthSpeed());
+      kv.setID(F("ethspeed"));
+      kv.setUnit(F("Mbps"));
+      return kv;
+    }
+    case LabelType::ETH_STATE:
+    {
+      KeyValueStruct kv(F("Eth State"), ESPEasy::net::EthLinkUp() ? F("Link Up") : F("Link Down"));
+      kv.setID(F("ethstate"));
+      return kv;
+    }
+    case LabelType::ETH_SPEED_STATE:
+    {
+      if (active_network_medium != ESPEasy::net::NetworkMedium_t::Ethernet) { break; }
+      KeyValueStruct kv(F("Eth Speed State"), getEthLinkSpeedState());
+      kv.setID(F("ethspeedstate"));
+      return kv;
+    }
+    case LabelType::ETH_CONNECTED:
+    {
+      KeyValueStruct kv(F("Eth connected"), ESPEasy::net::eth::ETHConnected() ? F("CONNECTED") : F("DISCONNECTED"));
+      kv.setID(F("ethconnected"));
+      return kv;
+    }
+    case LabelType::ETH_CHIP:
+    {
+      KeyValueStruct kv(F("Eth chip"), toString(Settings.ETH_Phy_Type));
+      kv.setID(F("ethchip"));
+      return kv;
+    }
 #endif // if FEATURE_ETHERNET
-# if FEATURE_ETHERNET || defined(USES_ESPEASY_NOW)
-    case LabelType::ETH_WIFI_MODE:          return toString(active_network_medium);
-#endif
-    case LabelType::SUNRISE:                return node_time.getSunriseTimeString(':');
-    case LabelType::SUNSET:                 return node_time.getSunsetTimeString(':');
-    case LabelType::SUNRISE_S:              retval = node_time.sunRise.tm_hour * 3600 + node_time.sunRise.tm_min * 60 + node_time.sunRise.tm_sec; break;
-    case LabelType::SUNSET_S:               retval = node_time.sunSet.tm_hour * 3600 + node_time.sunSet.tm_min * 60 + node_time.sunSet.tm_sec; break;
-    case LabelType::SUNRISE_M:              retval = node_time.sunRise.tm_hour * 60 + node_time.sunRise.tm_min; break;
-    case LabelType::SUNSET_M:               retval = node_time.sunSet.tm_hour * 60 + node_time.sunSet.tm_min; break;
-    case LabelType::ISNTP:                  return jsonBool(Settings.UseNTP());
-    case LabelType::UPTIME_MS:              return ull2String(getMicros64() / 1000);
-    case LabelType::TIMEZONE_OFFSET:        retval = Settings.TimeZone; break;
-    case LabelType::LATITUDE:               return toString(Settings.Latitude, 6);
-    case LabelType::LONGITUDE:              return toString(Settings.Longitude, 6);
+#if FEATURE_ETHERNET || defined(USES_ESPEASY_NOW)
+    case LabelType::ETH_WIFI_MODE:
+    {
+      KeyValueStruct kv(F("Network Type"), toString(active_network_medium));
+      kv.setID(F("ethwifimode"));
+      return kv;
+    }
+#endif // if FEATURE_ETHERNET || defined(USES_ESPEASY_NOW)
+    case LabelType::SUNRISE:
+    {
+      KeyValueStruct kv(F("Sunrise"), node_time.getSunriseTimeString(':'));
+      return kv;
+    }
+    case LabelType::SUNSET:
+    {
+      KeyValueStruct kv(F("Sunset"), node_time.getSunsetTimeString(':'));
+      return kv;
+    }
+    case LabelType::SUNRISE_S:
+    {
+      KeyValueStruct kv(F("Sunrise sec."), node_time.sunRise.tm_hour * 3600 + node_time.sunRise.tm_min * 60 +
+                        node_time.sunRise.tm_sec);
+      return kv;
+    }
+    case LabelType::SUNSET_S:
+    {
+      KeyValueStruct kv(F("Sunset sec."), node_time.sunSet.tm_hour * 3600 + node_time.sunSet.tm_min * 60 + node_time.sunSet.tm_sec);
+      return kv;
+    }
+    case LabelType::SUNRISE_M:
+    {
+      KeyValueStruct kv(F("Sunrise min."), node_time.sunRise.tm_hour * 60 + node_time.sunRise.tm_min);
+      return kv;
+    }
+    case LabelType::SUNSET_M:
+    {
+      KeyValueStruct kv(F("Sunset min."), node_time.sunSet.tm_hour * 60 + node_time.sunSet.tm_min);
+      return kv;
+    }
+    case LabelType::ISNTP:
+    {
+      KeyValueStruct kv(F("Use NTP"), Settings.UseNTP());
+      return kv;
+    }
+    case LabelType::UPTIME_MS:
+    {
+      KeyValueStruct kv(F("Uptime (ms)"), getMicros64() / 1000);
+      return kv;
+    }
+    case LabelType::TIMEZONE_OFFSET:
+    {
+      KeyValueStruct kv(F("Timezone Offset"), Settings.TimeZone);
+      return kv;
+    }
+    case LabelType::LATITUDE:
+    {
+      KeyValueStruct kv(F("Latitude"), Settings.Latitude, 6);
+      return kv;
+    }
+    case LabelType::LONGITUDE:
+    {
+      KeyValueStruct kv(F("Longitude"), Settings.Longitude, 6);
+      return kv;
+    }
 
     case LabelType::MAX_LABEL:
       break;
   }
-  if (retval != INT_MAX) return String(retval);
-  return F("MissingString");
+  return KeyValueStruct();
+}
+
+String getInternalLabel(LabelType::Enum label, char replaceSpace) {
+  auto kv = getKeyValue(label);
+
+  return kv.getID();
+}
+
+String getLabel(LabelType::Enum label) {
+  auto kv = getKeyValue(label);
+
+  if (kv._key.isEmpty()) {
+    return F("MissingString");
+  }
+  return kv._key;
+}
+
+String getValue(LabelType::Enum label) {
+  auto kv = getKeyValue(label);
+
+  if (kv._values.size() && kv._values[0]) { return kv._values[0]->toString(); }
+  return EMPTY_STRING;
 }
 
 #if FEATURE_ETHERNET
+
 String getEthSpeed() {
   if (ESPEasy::net::EthLinkUp()) {
     return strformat(F("%d [Mbps]"), ESPEasy::net::EthLinkSpeed());
@@ -662,10 +1152,10 @@ String getEthSpeed() {
 
 String getEthLinkSpeedState() {
   if (ESPEasy::net::EthLinkUp()) {
-    return strformat(F("%s %s %s"), 
-    getValue(LabelType::ETH_STATE).c_str(), 
-    getValue(LabelType::ETH_DUPLEX).c_str(), 
-    getEthSpeed().c_str());
+    return strformat(F("%s %s %s"),
+                     getValue(LabelType::ETH_STATE).c_str(),
+                     getValue(LabelType::ETH_DUPLEX).c_str(),
+                     getEthSpeed().c_str());
   }
   return getValue(LabelType::ETH_STATE);
 }
@@ -692,34 +1182,35 @@ String getFormNote(LabelType::Enum label)
   // Otherwise lots of calls to String() constructor are included.
   const __FlashStringHelper *flash_str = F("");
 
-  switch (label) {
+  switch (label)
+  {
 #ifndef MINIMAL_OTA
     case LabelType::CONNECT_HIDDEN_SSID:
       flash_str = F("Must be checked to connect to a hidden SSID");
       break;
-#ifdef ESP32
+# ifdef ESP32
     case LabelType::WIFI_PASSIVE_SCAN:
       flash_str = F("Passive scan listens for WiFi beacons, Active scan probes for AP. Passive scan is typically faster.");
       break;
-#endif // ifdef ESP32
+# endif // ifdef ESP32
     case LabelType::HIDDEN_SSID_SLOW_CONNECT:
       flash_str = F("Required for some AP brands like Mikrotik to connect to hidden SSID");
       break;
-#if FEATURE_USE_IPV6
+# if FEATURE_USE_IPV6
     case LabelType::ENABLE_IPV6:
       flash_str = F("Toggling IPv6 requires reboot");
       break;
-#endif // if FEATURE_USE_IPV6
-#ifndef NO_HTTP_UPDATER
+# endif // if FEATURE_USE_IPV6
+# ifndef NO_HTTP_UPDATER
     case LabelType::ALLOW_OTA_UNLIMITED:
       flash_str = F("When enabled, OTA updating can overwrite the filesystem and settings!<br>Requires reboot to activate");
       break;
-#endif // ifndef NO_HTTP_UPDATER
-#if FEATURE_RULES_EASY_COLOR_CODE
+# endif // ifndef NO_HTTP_UPDATER
+# if FEATURE_RULES_EASY_COLOR_CODE
     case LabelType::DISABLE_RULES_AUTOCOMPLETE:
       flash_str = F("Also disables Rules syntax highlighting!");
       break;
-#endif // if FEATURE_RULES_EASY_COLOR_CODE
+# endif // if FEATURE_RULES_EASY_COLOR_CODE
 
     case LabelType::FORCE_WIFI_NOSLEEP:
       flash_str = F("Change WiFi sleep settings requires reboot to activate");
@@ -732,13 +1223,13 @@ String getFormNote(LabelType::Enum label)
     case LabelType::WIFI_NR_EXTRA_SCANS:
       flash_str = F("Number of extra times to scan all channels to have higher chance of finding the desired AP");
       break;
-#ifndef ESP32
+# ifndef ESP32
     case LabelType::WAIT_WIFI_CONNECT:
       flash_str = F("Wait for 1000 msec right after connecting to WiFi.<BR>May improve success on some APs like Fritz!Box");
       break;
-#endif
+# endif // ifndef ESP32
 
-#endif
+#endif // ifndef MINIMAL_OTA
 
 #if FEATURE_SET_WIFI_TX_PWR
     case LabelType::WIFI_TX_MAX_PWR:
@@ -746,6 +1237,7 @@ String getFormNote(LabelType::Enum label)
     {
       float maxTXpwr;
       float sensitivity = ESPEasy::net::wifi::GetRSSIthreshold(maxTXpwr);
+
       if (LabelType::WIFI_TX_MAX_PWR == label) {
         return strformat(
           F("Current max: %.2f dBm"), maxTXpwr);
@@ -763,87 +1255,9 @@ String getFormNote(LabelType::Enum label)
   return flash_str;
 }
 
-
 String getFormUnit(LabelType::Enum label)
 {
-    const __FlashStringHelper *flash_str = F("");
+  auto kv = getKeyValue(label);
 
-  switch (label) {
-#if FEATURE_SET_WIFI_TX_PWR
-    case LabelType::WIFI_TX_MAX_PWR:
-    case LabelType::WIFI_CUR_TX_PWR:
-    case LabelType::WIFI_RSSI:
-      flash_str = F("dBm");
-      break;
-    case LabelType::WIFI_SENS_MARGIN:
-      flash_str = F("dB");
-      break;
-#endif
-    case LabelType::TIME_WANDER:
-      flash_str = F("ppm");
-      break;
-#ifdef ESP32
-    case LabelType::HEAP_SIZE:
-    case LabelType::HEAP_MIN_FREE:
-    #ifdef BOARD_HAS_PSRAM
-    case LabelType::PSRAM_SIZE:
-    case LabelType::PSRAM_FREE:
-    case LabelType::PSRAM_MIN_FREE:
-    case LabelType::PSRAM_MAX_FREE_BLOCK:
-    #endif // BOARD_HAS_PSRAM
-#endif // ifdef ESP32
-    case LabelType::FREE_MEM:
-    case LabelType::FREE_STACK:
-#ifdef USE_SECOND_HEAP
-    case LabelType::FREE_HEAP_IRAM:
-#endif
-#if defined(CORE_POST_2_5_0) || defined(ESP32)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_MAX_FREE_BLOCK:
-  #endif
-#endif // if defined(CORE_POST_2_5_0) || defined(ESP32)
-
-      flash_str = F("byte");
-      break;
-    case LabelType::FLASH_CHIP_REAL_SIZE:
-    case LabelType::FLASH_IDE_SIZE:
-      flash_str = F("kB");
-      break;
-/*
-    case LabelType::UPTIME:
-      flash_str = F("min");
-      break;
-*/
-    case LabelType::LOAD_PCT:
-#if defined(CORE_POST_2_5_0)
-  #ifndef LIMIT_BUILD_SIZE
-    case LabelType::HEAP_FRAGMENTATION:
-  #endif
-#endif // if defined(CORE_POST_2_5_0)
-
-      flash_str = F("%");
-      break;
-
-    case LabelType::ESP_CHIP_FREQ:
-#ifdef ESP32
-    case LabelType::ESP_CHIP_XTAL_FREQ:
-    case LabelType::ESP_CHIP_APB_FREQ:
-#endif
-    case LabelType::FLASH_CHIP_SPEED:
-    case LabelType::FLASH_IDE_SPEED:
-      flash_str = F("MHz");
-      break;
-#if FEATURE_INTERNAL_TEMPERATURE
-    case LabelType::INTERNAL_TEMPERATURE:
-      flash_str = F("&deg;C");
-      break;
-#endif // if FEATURE_INTERNAL_TEMPERATURE
-
-
-
-    default:
-      return EMPTY_STRING;
-  }
-
-  return flash_str;
+  return kv._unit;
 }

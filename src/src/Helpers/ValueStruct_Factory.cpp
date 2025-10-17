@@ -97,16 +97,6 @@ Up_ValueStruct ValueStruct_Factory::create(
 }
 
 Up_ValueStruct ValueStruct_Factory::create(
-  LabelType::Enum label)
-{
-  std::unique_ptr<ValueStruct_String> child(new (std::nothrow) ValueStruct_String(getValue(label)));
-
-  return std::move(child);
-
-  // return std::make_unique<ValueStruct_String>(getValue(label));
-}
-
-Up_ValueStruct ValueStruct_Factory::create(
   const String& val)
 {
   std::unique_ptr<ValueStruct_String> child(new (std::nothrow) ValueStruct_String(val));

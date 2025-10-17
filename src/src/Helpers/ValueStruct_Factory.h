@@ -31,9 +31,6 @@ public:
                                bool          trimTrailingZeros = false);
 
   static Up_ValueStruct create(
-    LabelType::Enum label);
-
-  static Up_ValueStruct create(
     const String         & val);
 
   static Up_ValueStruct create(

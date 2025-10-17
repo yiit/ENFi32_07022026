@@ -53,7 +53,7 @@ public:
 
   virtual void write(const KeyValueStruct& kv) = 0;
 
-  void         writeLabels(const LabelType::Enum labels[]);
+  void         writeLabels(const LabelType::Enum labels[], bool extendedValues = false);
 
   virtual void writeNote(const String& note);
   virtual void writeNote(const __FlashStringHelper *note);

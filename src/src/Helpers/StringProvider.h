@@ -3,6 +3,10 @@
 
 #include "../../ESPEasy_common.h"
 
+#include "../DataStructs/KeyValueStruct.h"
+
+struct KeyValueStruct;
+
 struct LabelType {
   enum Enum : uint8_t {
     UNIT_NR,
@@ -110,8 +114,6 @@ struct LabelType {
     WIFI_CONNECTION,         // 802.11G
     WIFI_RSSI,               // -67
     IP_CONFIG,               // DHCP
-    IP_CONFIG_STATIC,
-    IP_CONFIG_DYNAMIC,
     IP_ADDRESS,              // 192.168.1.123
     IP_SUBNET,               // 255.255.255.0
     IP_ADDRESS_SUBNET,       // 192.168.1.123 / 255.255.255.0
@@ -221,14 +223,6 @@ struct LabelType {
     INTERNAL_TEMPERATURE,
     #endif // if FEATURE_INTERNAL_TEMPERATURE
 #if FEATURE_ETHERNET
-    ETH_IP_ADDRESS,
-    ETH_IP_SUBNET,
-    ETH_IP_ADDRESS_SUBNET,
-    ETH_IP_GATEWAY,
-    ETH_IP_DNS,
-#if FEATURE_USE_IPV6
-    ETH_IP6_LOCAL,
-#endif
     ETH_MAC,
     ETH_DUPLEX,
     ETH_SPEED,
@@ -266,12 +260,14 @@ String getEthLinkSpeedState();
 
 String getInternalLabel(LabelType::Enum label,
                         char            replaceSpace = '_');
-const __FlashStringHelper * getLabel(LabelType::Enum label);
+String getLabel(LabelType::Enum label);
 String getValue(LabelType::Enum label);
 String getExtendedValue(LabelType::Enum label);
 
 String getFormNote(LabelType::Enum label);
 String getFormUnit(LabelType::Enum label);
+
+KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue = false);
 
 
 #endif // STRING_PROVIDER_TYPES_H

@@ -79,7 +79,7 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
   if (!summary_value_only) {
     if (format_note) { addRowLabel_tr_id(EMPTY_STRING, EMPTY_STRING); }
     else {
-      addRowLabel(kv._key, kv._id);
+      addRowLabel(kv._key, kv.__id);
     }
   }
 

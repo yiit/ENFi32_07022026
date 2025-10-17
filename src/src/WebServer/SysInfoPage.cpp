@@ -117,7 +117,7 @@ void handle_sysinfo_json() {
       if (writer) {
         writer->write({ F("type"), toString(ESPEasy::net::wifi::getConnectionProtocol()) });
         writer->write({ F("rssi"), WiFi.RSSI() });
-        writer->write({ F("dhcp"), useStaticIP() ? LabelType::IP_CONFIG_STATIC : LabelType::IP_CONFIG_DYNAMIC });
+        writer->write({ F("dhcp"), useStaticIP() ? F("static") : F("DHCP") });
         writer->write({ F("ip"),   LabelType::IP_ADDRESS });
 #  if FEATURE_USE_IPV6
 
@@ -158,12 +158,6 @@ void handle_sysinfo_json() {
         writer->write({ F("ethspeed"),      LabelType::ETH_SPEED });
         writer->write({ F("ethstate"),      LabelType::ETH_STATE });
         writer->write({ F("ethspeedstate"), LabelType::ETH_SPEED_STATE });
-#   if FEATURE_USE_IPV6
-
-        if (Settings.EnableIPv6()) {
-          writer->write({ F("ethipv6local"), LabelType::ETH_IP6_LOCAL });
-        }
-#   endif // if FEATURE_USE_IPV6
       }
 #  endif // if FEATURE_ETHERNET
     }
@@ -454,9 +448,6 @@ void handle_sysinfo_Ethernet() {
       LabelType::ETH_DUPLEX,
       LabelType::ETH_MAC,
 
-      //    LabelType::ETH_IP_ADDRESS_SUBNET,
-      //    LabelType::ETH_IP_GATEWAY,
-      //    LabelType::ETH_IP_DNS,
 
       LabelType::MAX_LABEL
     };

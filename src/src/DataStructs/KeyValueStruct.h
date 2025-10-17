@@ -109,19 +109,22 @@ struct KeyValueStruct
       _values.emplace_back(String(val), vType);
      }
    */
-  KeyValueStruct(LabelType::Enum label,
-                 Format          format = Format::Default);
 
   void setUnit(const String& unit);
   void setUnit(const __FlashStringHelper *unit);
+
+  void setID(const String& id);
+  void setID(const __FlashStringHelper *id);
 
   void appendValue(Up_ValueStruct value);
   void appendValue(const String& value);
   void appendValue(String&& value);
 
+  String getID() const;
+
 
   String _key;
-  String _id;
+  String __id;
   String _unit;
 
   std::vector<Up_ValueStruct>_values;

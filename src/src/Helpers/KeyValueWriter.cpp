@@ -15,13 +15,15 @@ void KeyValueWriter::clear() {
   }
 }
 
-void KeyValueWriter::writeLabels(const LabelType::Enum labels[])
+void KeyValueWriter::writeLabels(const LabelType::Enum labels[], bool extendedValues)
 {
   size_t i            = 0;
   LabelType::Enum cur = static_cast<const LabelType::Enum>(pgm_read_byte(labels + i));
 
   while (cur != LabelType::MAX_LABEL) {
-    write(cur);
+    auto kv = getKeyValue(cur, extendedValues);
+    if (!kv._key.isEmpty())
+      write(kv);
     cur = static_cast<const LabelType::Enum>(pgm_read_byte(labels + i + 1));
     ++i;
   }
