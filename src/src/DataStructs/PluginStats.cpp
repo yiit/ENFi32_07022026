@@ -587,21 +587,26 @@ void PluginStats::webformLoad_show_val(
 
 # if FEATURE_CHART_JS
 
-void PluginStats::plot_ChartJS_dataset() const
+void PluginStats::plot_ChartJS_dataset(KeyValueWriter& dataset) const
 {
-  add_ChartJS_dataset_header(_ChartJS_dataset_config);
+  auto data = add_ChartJS_dataset_header(dataset, _ChartJS_dataset_config);
 
-  PluginStatsBuffer_t::index_t i = 0;
-  const size_t nrSamples         = getNrSamples();
+  if (data) {
+    PluginStatsBuffer_t::index_t i = 0;
+    const size_t nrSamples         = getNrSamples();
 
-  for (; i < nrSamples; ++i) {
-    if (i != 0) {
-      addHtml(',');
+    for (; i < nrSamples; ++i) {
+      const float value = (*_samples)[i];
+
+      if (isnanf(value)) { 
+        data->write({ EMPTY_STRING, F("null") }); 
+      } else {
+        data->write({ EMPTY_STRING, value, _nrDecimals });
+      }
+
+      //     addHtmlFloat_NaN_toNull((*_samples)[i], _nrDecimals);
     }
-
-    addHtmlFloat_NaN_toNull((*_samples)[i], _nrDecimals);
   }
-  add_ChartJS_dataset_footer();
 }
 
 # endif // if FEATURE_CHART_JS

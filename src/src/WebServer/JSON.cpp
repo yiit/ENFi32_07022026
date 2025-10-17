@@ -353,11 +353,9 @@ void handle_json()
 #if FEATURE_ESPEASY_P2P
 
       if (showNodes) {
-        auto nodesWriter = mainLevelWriter.createChild(F("nodes"));
+        auto nodesWriter = mainLevelWriter.createChildArray(F("nodes"));
 
         if (nodesWriter) {
-          nodesWriter->setIsArray();
-
           for (auto it = Nodes.begin(); it != Nodes.end(); ++it)
           {
             if (it->second.ip[0] != 0)
@@ -430,14 +428,9 @@ void handle_json()
     {
       auto sensorsWriter = showSpecificTask
         ? mainLevelWriter.createNew()
-        : mainLevelWriter.createChild(F("Sensors"));
+        : mainLevelWriter.createChildArray(F("Sensors"));
 
       if (sensorsWriter) {
-
-        if (!showSpecificTask) {
-          sensorsWriter->setIsArray();
-        }
-
         for (taskIndex_t TaskIndex = firstTaskIndex; TaskIndex <= lastActiveTaskIndex && validTaskIndex(TaskIndex); TaskIndex++)
         {
           const deviceIndex_t DeviceIndex = getDeviceIndex_from_TaskIndex(TaskIndex);
@@ -469,11 +462,9 @@ void handle_json()
                     lowest_ttl_json = ttl_json;
                   }
                 }
-                auto taskValueWriter = taskWriter->createChild(F("TaskValues"));
+                auto taskValueWriter = taskWriter->createChildArray(F("TaskValues"));
 
                 if (taskValueWriter) {
-                  taskValueWriter->setIsArray();
-
                   struct EventStruct TempEvent(TaskIndex);
 
                   for (uint8_t x = 0; x < valueCount; x++)
@@ -582,11 +573,9 @@ void handle_json()
 
 
               if (showDataAcquisition) {
-                auto dataAquisitionWriter = taskWriter->createChild(F("DataAcquisition"));
+                auto dataAquisitionWriter = taskWriter->createChildArray(F("DataAcquisition"));
 
                 if (dataAquisitionWriter) {
-                  dataAquisitionWriter->setIsArray();
-
                   for (controllerIndex_t x = 0; x < CONTROLLER_MAX; x++)
                   {
                     auto controllerWriter = dataAquisitionWriter->createChild();

@@ -50,6 +50,11 @@ KeyValueWriter_JSON::~KeyValueWriter_JSON()
       getPrint().write(_isArray ? ']' : '}');
     }
   }
+
+  if (!_footer.isEmpty())
+  {
+    getPrint().print(_footer);
+  }
 }
 
 void KeyValueWriter_JSON::write()
@@ -138,22 +143,29 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
   if (val == nullptr) { return; }
   auto& pr = getPrint();
 
-  ValueStruct::ValueType valueType(ValueStruct::ValueType::Auto);
-  String str = val->toString(valueType);
+  ValueStruct::ValueType valueType = val->getValueType();
+  String str                       = val->toString();
 
   switch (valueType)
   {
     case ValueStruct::ValueType::Float:
     case ValueStruct::ValueType::Double:
+
+      // TODO TD-er: Should we use addHtmlFloat_NaN_toNull here?
+      if (!_allowFormatOverrides && str.equalsIgnoreCase(F("nan"))) {
+        pr.print(F("null"));
+        break;
+      }
+
     case ValueStruct::ValueType::Int:
       pr.print(str);
       return;
     case ValueStruct::ValueType::Bool:
 
-      if (!Settings.JSONBoolWithoutQuotes()) { pr.write('"'); }
+      if (_allowFormatOverrides && !Settings.JSONBoolWithoutQuotes()) { pr.write('"'); }
       pr.print(str.equals("0") ? F("false") : F("true"));
 
-      if (!Settings.JSONBoolWithoutQuotes()) { pr.write('"'); }
+      if (_allowFormatOverrides && !Settings.JSONBoolWithoutQuotes()) { pr.write('"'); }
       return;
 
     case ValueStruct::ValueType::Auto:
@@ -168,6 +180,8 @@ Sp_KeyValueWriter KeyValueWriter_JSON::createChild()
 {
   std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(this, _toString));
 
+  child->_allowFormatOverrides = _allowFormatOverrides;
+
   return std::move(child);
 
   // return std::make_unique<KeyValueWriter_JSON>(this, _toString);
@@ -177,14 +191,28 @@ Sp_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
 {
   std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, this, _toString));
 
+  child->_allowFormatOverrides = _allowFormatOverrides;
+
   return std::move(child);
 
   // return std::make_unique<KeyValueWriter_JSON>(header, this, _toString);
 }
 
+Sp_KeyValueWriter KeyValueWriter_JSON::createChildArray(const String& header)
+{
+  auto child = createChild(header);
+
+  if (child) {
+    child->setIsArray();
+  }
+  return std::move(child);
+}
+
 Sp_KeyValueWriter KeyValueWriter_JSON::createNew()
 {
   std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(false, _toString));
+
+  child->_allowFormatOverrides = _allowFormatOverrides;
 
   return std::move(child);
 
@@ -194,6 +222,8 @@ Sp_KeyValueWriter KeyValueWriter_JSON::createNew()
 Sp_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header)
 {
   std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, _toString));
+
+  child->_allowFormatOverrides = _allowFormatOverrides;
 
   return std::move(child);
 

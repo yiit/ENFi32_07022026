@@ -20,7 +20,7 @@ P169_data_struct::P169_data_struct(struct EventStruct *event) :
   _irqPin(P169_IRQ_PIN)
 {
   // Do not try to construct the sensor if not needed as it will set the pinmode of the pin
-  if (_irqPin >= 0 && Settings.TaskDeviceDataFeed[event->TaskIndex] == 0) {
+  if ((_irqPin >= 0) && (Settings.TaskDeviceDataFeed[event->TaskIndex] == 0)) {
     _sensor = new (std::nothrow) AS3935I2C(P169_I2C_ADDRESS, P169_IRQ_PIN);
   }
 }
@@ -61,7 +61,8 @@ bool P169_data_struct::loop(struct EventStruct *event)
       }
 
       // query the interrupt source from the AS3935
-      switch (_sensor->readInterruptSource()) {
+      switch (_sensor->readInterruptSource())
+      {
         case AS3935MI::AS3935_INT_NH:
 
           // Noise floor too high
@@ -248,7 +249,8 @@ bool P169_data_struct::plugin_init(struct EventStruct *event)
   calibrate(event);
 
 # ifdef ESP32
-#ifndef BUILD_NO_DEBUG
+#  ifndef BUILD_NO_DEBUG
+
   if (loglevelActiveFor(LOG_LEVEL_DEBUG))
   {
     // Short test checking effect of nr samples during calibration
@@ -284,7 +286,7 @@ bool P169_data_struct::plugin_init(struct EventStruct *event)
       addLogMove(LOG_LEVEL_DEBUG, log);
     }
   }
-#endif
+#  endif // ifndef BUILD_NO_DEBUG
 # endif // ifdef ESP32
 
 
@@ -318,6 +320,7 @@ enum class P169_subcmd_e : int8_t {
   setnf,  // Set noise floor
   setwd,  // Set Watchdog Threshold
   setsrej // Set Spike Rejection
+
 };
 
 /*****************************************************
@@ -343,7 +346,8 @@ bool P169_data_struct::plugin_write(struct EventStruct *event,
     uint32_t   value{};
     const bool hasValue = validUIntFromString(parseString(string, 3), value);
 
-    switch (subcmd) {
+    switch (subcmd)
+    {
       case P169_subcmd_e::invalid:
         break;
       case P169_subcmd_e::clearstats:
@@ -401,8 +405,8 @@ enum class P169_get_config_e : int8_t {
   watchdog,       // [<taskname>#watchdog]
   srej,           // [<taskname>#srej] = current spike rejection
   gain            // [<taskname>#gain]
-};
 
+};
 
 /*****************************************************
 * plugin_get_config_value
@@ -439,10 +443,7 @@ bool P169_data_struct::plugin_get_config_value(struct EventStruct *event,
   return true;
 }
 
-float P169_data_struct::getDistance()
-{
-  return computeDistanceFromEnergy(getEnergy(), -1.0f);
-}
+float    P169_data_struct::getDistance() { return computeDistanceFromEnergy(getEnergy(), -1.0f); }
 
 uint32_t P169_data_struct::getEnergy()
 {
@@ -493,10 +494,7 @@ void P169_data_struct::clearStatistics()
   }
 }
 
-float P169_data_struct::computeDeviationPct(uint32_t LCO_freq)
-{
-  return (LCO_freq / 5000.0f) - 100.0f;
-}
+float P169_data_struct::computeDeviationPct(uint32_t LCO_freq) { return (LCO_freq / 5000.0f) - 100.0f; }
 
 float P169_data_struct::computeDistanceFromEnergy(uint32_t energy, float errorValue)
 {
@@ -792,15 +790,24 @@ float P169_data_struct::regValue_AFE_gain_toFloat(uint8_t gain)
 
   switch (gain)
   {
-    case 10: afeGain = 0.30f; break;
-    case 11: afeGain = 0.40f; break;
-    case 12: afeGain = 0.55f; break;
-    case 13: afeGain = 0.74f; break;
-    case 14: afeGain = 1.00f; break; // Datasheet: "Outdoor"
-    case 15: afeGain = 1.35f; break;
-    case 16: afeGain = 1.83f; break;
-    case 17: afeGain = 2.47f; break;
-    case 18: afeGain = 3.34f; break; // Datasheet: "Indoor"
+    case 10: afeGain = 0.30f;
+      break;
+    case 11: afeGain = 0.40f;
+      break;
+    case 12: afeGain = 0.55f;
+      break;
+    case 13: afeGain = 0.74f;
+      break;
+    case 14: afeGain = 1.00f;
+      break; // Datasheet: "Outdoor"
+    case 15: afeGain = 1.35f;
+      break;
+    case 16: afeGain = 1.83f;
+      break;
+    case 17: afeGain = 2.47f;
+      break;
+    case 18: afeGain = 3.34f;
+      break; // Datasheet: "Indoor"
   }
   return afeGain;
 }
@@ -880,6 +887,7 @@ void P169_data_struct::sendChangeEvent(struct EventStruct *event)
 }
 
 # if FEATURE_CHART_JS
+
 void P169_data_struct::addCalibrationChart(struct EventStruct *event)
 {
   if (_sensor == nullptr) {
@@ -902,40 +910,46 @@ void P169_data_struct::addCalibrationChart(struct EventStruct *event)
     }
   }
 
-  String axisOptions;
 
   {
     ChartJS_options_scales scales;
     scales.add({ F("x"), F("Antenna capacitor") });
     scales.add({ F("y"), F("Error (%)") });
-    axisOptions = scales.toString();
+    auto chart =
+      add_ChartJS_chart_header(
+        F("line"),
+        F("lcoCapErrorCurve"),
+        { F("LCO Resonance Frequency") },
+        500,
+        500,
+        scales);
+
+    if (chart) {
+      auto data = chart->createChild(F("data"));
+
+      if (data) {
+        add_ChartJS_chart_labels(
+          *data,
+          actualValueCount,
+          xAxisValues);
+
+        auto datasets = data->createChildArray(F("datasets"));
+
+        if (datasets) {
+          const ChartJS_dataset_config config(
+            F("Error %"),
+            F("rgb(255, 99, 132)"));
+
+          add_ChartJS_dataset(
+            *datasets,
+            config,
+            values,
+            actualValueCount,
+            2);
+        }
+      }
+    }
   }
-
-  add_ChartJS_chart_header(
-    F("line"),
-    F("lcoCapErrorCurve"),
-    { F("LCO Resonance Frequency") },
-    500,
-    500,
-    axisOptions);
-
-  add_ChartJS_chart_labels(
-    actualValueCount,
-    xAxisValues);
-
-  {
-    const ChartJS_dataset_config config(
-      F("Error %"),
-      F("rgb(255, 99, 132)"));
-
-
-    add_ChartJS_dataset(
-      config,
-      values,
-      actualValueCount,
-      2);
-  }
-  add_ChartJS_chart_footer();
 }
 
 # endif // if FEATURE_CHART_JS

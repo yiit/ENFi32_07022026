@@ -9,9 +9,6 @@
 #include <memory>
 
 
-
-
-
 class KeyValueWriter;
 typedef std::unique_ptr<KeyValueWriter> Sp_KeyValueWriter;
 
@@ -45,6 +42,10 @@ public:
     _hasHeader = true;
   }
 
+  virtual void setFooter(const String& footer) { _footer = footer; }
+
+  virtual void setIsArray() { _isArray = true; }
+
   virtual void clear();
 
   // Mark a write, typically called from a child calling its parent it is about to write
@@ -55,13 +56,11 @@ public:
   void         writeLabels(const LabelType::Enum labels[]);
 
   virtual void writeNote(const String& note);
-  virtual void writeNote(const __FlashStringHelper * note);
+  virtual void writeNote(const __FlashStringHelper *note);
 
   //  virtual void setParent(KeyValueWriter*parent) { _parent = parent; }
 
   virtual int  getLevel() const;
-
-  virtual void setIsArray() { _isArray = true; }
 
   // When set to 'plainText', the writer will not try to insert writer specific
   // markings, like <pre> or <br> for example for HTML output
@@ -86,6 +85,7 @@ public:
   // Create writer of the same derived type, with this set as parent
   virtual Sp_KeyValueWriter createChild()                     = 0;
   virtual Sp_KeyValueWriter createChild(const String& header) = 0;
+  virtual Sp_KeyValueWriter createChildArray(const String& header) = 0;
 
   // Create new writer of the same derived type, without parent
   virtual Sp_KeyValueWriter createNew()                     = 0;
@@ -105,9 +105,11 @@ public:
     return std::move(_toString->getMove());
   }
 
-  bool         reserve(unsigned int size) { return _toString && _toString->reserve(size); }
+  bool         reserve(unsigned int size)       { return _toString && _toString->reserve(size); }
 
-  virtual void indent()                   {}
+  virtual void indent()                         {}
+
+  virtual void allowFormatOverrides(bool allow) { _allowFormatOverrides = allow; }
 
 protected:
 
@@ -127,6 +129,9 @@ protected:
 
   String _header;
 
+  // To be written from destructor
+  String _footer;
+
   KeyValueWriter *_parent = nullptr;
 
   bool _hasHeader = true;
@@ -140,6 +145,8 @@ protected:
   bool _plainText = false;
 
   bool _summaryValueOnly = false;
+
+  bool _allowFormatOverrides = true;
 
 
 }; // class KeyValueWriter

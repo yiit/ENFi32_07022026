@@ -41,6 +41,7 @@ public:
   // Create writer of the same derived type, with this set as parent
   virtual Sp_KeyValueWriter createChild();
   virtual Sp_KeyValueWriter createChild(const String& header);
+  virtual Sp_KeyValueWriter createChildArray(const String& header);
 
   // Create new writer of the same derived type, without parent
   virtual Sp_KeyValueWriter createNew();

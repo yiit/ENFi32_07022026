@@ -96,12 +96,9 @@ void handle_cache_json() {
   {
     KeyValueWriter_JSON mainLevelWriter(true);
     {
-      auto writer = mainLevelWriter.createChild(F("columns"));
+      auto writer = mainLevelWriter.createChildArray(F("columns"));
 
       if (writer) {
-
-        writer->setIsArray();
-
         //     addHtml(F("UNIX timestamp;contr. idx;sensortype;taskindex;value count"));
         writer->write({ EMPTY_STRING, F("UNIX timestamp") });
         writer->write({ EMPTY_STRING, F("UTC timestamp") });
@@ -123,10 +120,9 @@ void handle_cache_json() {
     }
     int fileCount = 0;
     {
-      auto writer = mainLevelWriter.createChild(F("files"));
+      auto writer = mainLevelWriter.createChildArray(F("files"));
 
       if (writer) {
-        writer->setIsArray();
         bool islast = false;
         int  filenr = 0;
 
@@ -142,11 +138,9 @@ void handle_cache_json() {
       }
     }
     {
-      auto writer = mainLevelWriter.createChild(F("pluginID"));
+      auto writer = mainLevelWriter.createChildArray(F("pluginID"));
 
       if (writer) {
-        writer->setIsArray();
-
         for (taskIndex_t taskIndex = 0; validTaskIndex(taskIndex); ++taskIndex) {
           writer->write({ EMPTY_STRING, getPluginID_from_TaskIndex(taskIndex).value });
         }

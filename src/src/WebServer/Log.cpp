@@ -63,11 +63,9 @@ void handle_log_JSON() {
 
         if (equals(webrequest, F("legend"))) {
 
-          auto legendWriter = mainWriter->createChild(F("Legend"));
+          auto legendWriter = mainWriter->createChildArray(F("Legend"));
 
           if (legendWriter) {
-            legendWriter->setIsArray();
-
             for (uint8_t i = LOG_LEVEL_ERROR; i < LOG_LEVEL_NRELEMENTS(); ++i) {
               auto loglevelWriter = legendWriter->createChild();
 
@@ -85,11 +83,9 @@ void handle_log_JSON() {
 
         bool logLinesAvailable = true;
         {
-          auto entriesWriter = mainWriter->createChild(F("Entries"));
+          auto entriesWriter = mainWriter->createChildArray(F("Entries"));
 
           if (entriesWriter) {
-            entriesWriter->setIsArray();
-
             uint32_t startTime = millis();
 
             while (logLinesAvailable && timePassedSince(startTime) < 200) {

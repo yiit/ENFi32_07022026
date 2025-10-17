@@ -12,6 +12,7 @@
 
 
 # if FEATURE_CHART_JS
+#  include "../Helpers/KeyValueWriter.h"
 #  include "../WebServer/Chart_JS_title.h"
 # endif // if FEATURE_CHART_JS
 
@@ -159,7 +160,7 @@ public:
   }
 
 # if FEATURE_CHART_JS
-  void plot_ChartJS_dataset() const;
+  void plot_ChartJS_dataset(KeyValueWriter & parent) const;
 # endif // if FEATURE_CHART_JS
 
 # if FEATURE_CHART_JS

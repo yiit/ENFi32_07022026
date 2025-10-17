@@ -148,6 +148,16 @@ Sp_KeyValueWriter KeyValueWriter_WebForm::createChild(const String& header)
   // return std::make_unique<KeyValueWriter_WebForm>(header, this);
 }
 
+Sp_KeyValueWriter KeyValueWriter_WebForm::createChildArray(const String& header)
+{
+  auto child = createChild(header);
+
+  if (child) {
+    child->setIsArray();
+  }
+  return std::move(child);
+}
+
 Sp_KeyValueWriter KeyValueWriter_WebForm::createNew()
 {
   std::unique_ptr<KeyValueWriter_WebForm> child(new (std::nothrow) KeyValueWriter_WebForm());
