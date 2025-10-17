@@ -35,6 +35,7 @@
 #include "../Helpers/Memory.h"
 #include "../Helpers/Misc.h"
 #include "../Helpers/Networking.h"
+#include "../Helpers/OTA.h"
 #include "../Helpers/Scheduler.h"
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringGenerator_System.h"
@@ -116,21 +117,19 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
     #if FEATURE_EXT_RTC
     case LabelType::EXT_RTC_UTC_TIME:
     {
-      if (Settings.ExtTimeSource() != ExtTimeSource_e::None) {
-        String rtcTime = F("Not Set");
+      if (Settings.ExtTimeSource() == ExtTimeSource_e::None) { break; }
+      String rtcTime = F("Not Set");
 
-        // Try to read the stored time in the ext. time source to allow to check if it is working properly.
-        uint32_t unixtime;
+      // Try to read the stored time in the ext. time source to allow to check if it is working properly.
+      uint32_t unixtime;
 
-        if (node_time.ExtRTC_get(unixtime)) {
-          struct tm RTC_time;
-          breakTime(unixtime, RTC_time);
-          rtcTime = formatDateTimeString(RTC_time);
-        }
-        KeyValueStruct kv(F("UTC time stored in RTC chip"), rtcTime);
-        return kv;
+      if (node_time.ExtRTC_get(unixtime)) {
+        struct tm RTC_time;
+        breakTime(unixtime, RTC_time);
+        rtcTime = formatDateTimeString(RTC_time);
       }
-      break;
+      KeyValueStruct kv(F("UTC time stored in RTC chip"), rtcTime);
+      return kv;
     }
     #endif // if FEATURE_EXT_RTC
     case LabelType::UPTIME:
@@ -447,12 +446,20 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
 
     case LabelType::BOOT_TYPE:
     {
+      if (extendedValue) {
+        KeyValueStruct kv(
+          F("Boot"),
+          concat(
+            getLastBootCauseString(),
+            strformat(F(" (%d)"), RTC.bootCounter)));
+        return kv;
+      }
       KeyValueStruct kv(F("Last Boot Cause"), getLastBootCauseString());
       return kv;
     }
     case LabelType::BOOT_COUNT:
     {
-      KeyValueStruct kv(F("Boot Count") /*, value*/);
+      KeyValueStruct kv(F("Boot Count"), RTC.bootCounter);
       return kv;
     }
     case LabelType::DEEP_SLEEP_ALTERNATIVE_CALL:
@@ -735,7 +742,18 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
 
     case LabelType::BUILD_DESC:
     {
-      KeyValueStruct kv(F("Build"), getSystemBuildString());
+      String descr = getSystemBuildString();
+
+      if (extendedValue) {
+        descr += ' ';
+        descr += F(BUILD_NOTES);
+      }
+      KeyValueStruct kv(F("Build"), descr);
+      return kv;
+    }
+    case LabelType::BUILD_ORIGIN:
+    {
+      KeyValueStruct kv(F("Build Origin"), get_build_origin());
       return kv;
     }
     case LabelType::GIT_BUILD:
@@ -883,12 +901,24 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
 
     case LabelType::FLASH_CHIP_ID:
     {
-      KeyValueStruct kv(F("Flash Chip ID"), formatToHex(getFlashChipId(), 6));
+      auto flashChipId = getFlashChipId();
+
+      if (flashChipId == 0) { break; }
+      KeyValueStruct kv(F("Flash Chip ID"), formatToHex(flashChipId, 6));
       return kv;
     }
     case LabelType::FLASH_CHIP_VENDOR:
     {
-      KeyValueStruct kv(F("Flash Chip Vendor"), formatToHex(getFlashChipId() & 0xFF, 2));
+      const uint32_t flashChipId = getFlashChipId();
+
+      if (flashChipId == 0) { break; }
+      String id = formatToHex(flashChipId & 0xFF, 2);
+
+      if (extendedValue && flashChipVendorPuya()) {
+        id += concat(F(" (PUYA"), puyaSupport() ? F(", supported") : F(HTML_SYMBOL_WARNING)) + ')';
+      }
+
+      KeyValueStruct kv(F("Flash Chip Vendor"), id);
       return kv;
     }
     case LabelType::FLASH_CHIP_MODEL:
@@ -896,7 +926,14 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
       const uint32_t flashChipId = getFlashChipId();
       const uint32_t flashDevice = (flashChipId & 0xFF00) | ((flashChipId >> 16) & 0xFF);
 
-      KeyValueStruct kv(F("Flash Chip Model"), formatToHex(flashDevice, 4));
+      String model(formatToHex(flashDevice, 4));
+          #ifdef ESP32
+
+      if (extendedValue && getChipFeatures().embeddedFlash) {
+        model += F(" (Embedded)");
+      }
+    #endif // ifdef ESP32
+      KeyValueStruct kv(F("Flash Chip Model"), model);
       return kv;
     }
     case LabelType::FLASH_CHIP_REAL_SIZE:
@@ -931,14 +968,40 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
     }
     case LabelType::FLASH_WRITE_COUNT:
     {
+      if (extendedValue) {
+        KeyValueStruct kv(
+          F("Flash Writes"),
+          strformat(
+            F("%d daily / %d cold boot"),
+            RTC.flashDayCounter,
+            static_cast<int>(RTC.flashCounter)));
+        return kv;
+      }
       KeyValueStruct kv(F("Flash Writes"), RTC.flashCounter);
       return kv;
     }
     case LabelType::SKETCH_SIZE:
     {
-      KeyValueStruct kv(F("Sketch Size"), getSketchSize() >> 10);
+      String str;
+
+      if (extendedValue) {
+        uint32_t maxSketchSize;
+        bool     use2step;
+        OTA_possible(maxSketchSize, use2step);
+        str += strformat(
+          F("%d [kB] (%d kB not used)"),
+          (getSketchSize() >> 10),
+          (maxSketchSize - getSketchSize()) >> 10);
+      } else {
+        str = (getSketchSize() >> 10);
+      }
+
+      KeyValueStruct kv(F("Sketch Size"), str);
       kv.setID(F("sketch_size"));
-      kv.setUnit(F("kB"));
+
+      if (!extendedValue) {
+        kv.setUnit(F("kB"));
+      }
       return kv;
     }
     case LabelType::SKETCH_FREE:
@@ -948,52 +1011,81 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
       kv.setUnit(F("kB"));
       return kv;
     }
-    #ifdef USE_LITTLEFS
     case LabelType::FS_SIZE:
     {
-      KeyValueStruct kv(F("Little FS Size"), SpiffsTotalBytes() >> 10);
+      String size;
+
+      if (extendedValue) {
+        size = strformat(
+          F("%d [kB] (%d kB free)"),
+          SpiffsTotalBytes() / 1024,
+          SpiffsFreeSpace() / 1024);
+      }
+      else {
+        size = (SpiffsTotalBytes() >> 10);
+      }
+
+      KeyValueStruct kv(
+        #ifdef USE_LITTLEFS
+        F("Little FS Size"),
+        #else
+        F("SPIFFS Size"),
+        #endif // ifdef USE_LITTLEFS
+        SpiffsTotalBytes() >> 10);
       kv.setID(F("fs_size"));
-      kv.setUnit(F("kB"));
+
+      if (!extendedValue) {
+        kv.setUnit(F("kB"));
+      }
       return kv;
     }
     case LabelType::FS_FREE:
     {
-      KeyValueStruct kv(F("Little FS Free"), SpiffsFreeSpace() >> 10);
+      KeyValueStruct kv(
+        #ifdef USE_LITTLEFS
+        F("Little FS Free"),
+        #else
+        F("SPIFFS Free"),
+        #endif // ifdef USE_LITTLEFS
+        SpiffsFreeSpace() >> 10);
       kv.setID(F("fs_free"));
       kv.setUnit(F("kB"));
       return kv;
     }
-    #else // ifdef USE_LITTLEFS
-    case LabelType::FS_SIZE:
-    {
-      KeyValueStruct kv(F("SPIFFS Size"), SpiffsTotalBytes() >> 10);
-      kv.setID(F("fs_size"));
-      kv.setUnit(F("kB"));
-      return kv;
-    }
-    case LabelType::FS_FREE:
-    {
-      KeyValueStruct kv(F("SPIFFS Free"), SpiffsFreeSpace() >> 10);
-      kv.setID(F("fs_free"));
-      kv.setUnit(F("kB"));
-      return kv;
-    }
-    #endif // ifdef USE_LITTLEFS
     case LabelType::MAX_OTA_SKETCH_SIZE:
     {
-      KeyValueStruct kv(F("Max. OTA Sketch Size") /*, value*/);
+      uint32_t maxSketchSize;
+      bool     use2step;
+      OTA_possible(maxSketchSize, use2step);
+
+      KeyValueStruct kv(F("Max. OTA Sketch Size"), strformat(
+                          F("%d [kB] (%d bytes)"),
+                          maxSketchSize / 1024,
+                          maxSketchSize));
       return kv;
     }
+#ifdef ESP8266
     case LabelType::OTA_2STEP:
     {
-      KeyValueStruct kv(F("OTA 2-step Needed") /*, value*/);
+      uint32_t maxSketchSize;
+      bool     use2step;
+      OTA_possible(maxSketchSize, use2step);
+
+      KeyValueStruct kv(F("OTA 2-step Needed"), use2step);
       return kv;
     }
     case LabelType::OTA_POSSIBLE:
     {
-      KeyValueStruct kv(F("OTA possible") /*, value*/);
+      uint32_t maxSketchSize;
+      bool     use2step;
+    # if defined(ESP8266)
+      bool otaEnabled =
+    # endif // if defined(ESP8266)
+      OTA_possible(maxSketchSize, use2step);
+      KeyValueStruct kv(F("OTA possible"), otaEnabled);
       return kv;
     }
+#endif // ifdef ESP8266
     #if FEATURE_INTERNAL_TEMPERATURE
     case LabelType::INTERNAL_TEMPERATURE:
     {

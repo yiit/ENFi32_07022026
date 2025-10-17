@@ -132,7 +132,7 @@ void handle_json()
 #if FEATURE_ESPEASY_P2P
   bool showNodes = true;
 #endif
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
   bool showPluginStats = getFormItemInt(F("showpluginstats"), 0) != 0;
 #endif
 
@@ -147,7 +147,7 @@ void handle_json()
 #if FEATURE_ESPEASY_P2P
     showNodes = false;
 #endif
-#if FEATURE_PLUGIN_STATS
+#if FEATURE_PLUGIN_STATS && FEATURE_CHART_JS
     showPluginStats = hasArg(F("showpluginstats"));
 #endif
   }

@@ -309,38 +309,20 @@ void handle_sysinfo() {
 }
 
 void handle_sysinfo_basicInfo() {
-  addRowLabelValue(LabelType::UNIT_NR);
-
-  if (node_time.systemTimePresent())
-  {
-    addRowLabelValue(LabelType::LOCAL_TIME);
-    #  if FEATURE_EXT_RTC
-
-    if (Settings.ExtTimeSource() != ExtTimeSource_e::None) {
-      addRowLabelValue(LabelType::EXT_RTC_UTC_TIME);
-    }
-    #  endif // if FEATURE_EXT_RTC
-    addRowLabelValue(LabelType::TIME_SOURCE);
-    addRowLabelValue(LabelType::TIME_WANDER);
-  }
-
-  addRowLabel(LabelType::UPTIME);
-  {
-    addHtml(getExtendedValue(LabelType::UPTIME));
-  }
-
-  addRowLabel(LabelType::LOAD_PCT);
-
-  if (wdcounter > 0)
-  {
-    addHtml(strformat(
-              F("%.2f [%%] (LC=%d)"),
-              getCPUload(),
-              getLoopCountPerSec()));
-  }
-
   static const LabelType::Enum labels[] PROGMEM =
   {
+    LabelType::UNIT_NR,
+
+    LabelType::LOCAL_TIME,
+    #  if FEATURE_EXT_RTC
+
+    LabelType::EXT_RTC_UTC_TIME,
+    #  endif // if FEATURE_EXT_RTC
+    LabelType::TIME_SOURCE,
+    LabelType::TIME_WANDER,
+    LabelType::UPTIME,
+    LabelType::UPTIME,
+    LabelType::LOAD_PCT,
 #  if FEATURE_INTERNAL_TEMPERATURE
     LabelType::INTERNAL_TEMPERATURE,
 #  endif
@@ -350,16 +332,12 @@ void handle_sysinfo_basicInfo() {
     LabelType::RESET_REASON,
     LabelType::LAST_TASK_BEFORE_REBOOT,
     LabelType::SW_WD_COUNT,
+    LabelType::BOOT_TYPE,
+
     LabelType::MAX_LABEL
   };
-  addRowLabelValues(labels);
 
-  addRowLabel(F("Boot"));
-  {
-    addHtml(getLastBootCauseString());
-    addHtml(strformat(
-              F(" (%d)"), static_cast<uint32_t>(RTC.bootCounter)));
-  }
+  addRowLabelValues(labels);
 }
 
 #  ifndef WEBSERVER_SYSINFO_MINIMAL
@@ -367,69 +345,42 @@ void handle_sysinfo_basicInfo() {
 void handle_sysinfo_memory() {
   addTableSeparator(F("Memory"), 2, 3);
 
+  static const LabelType::Enum labels[] PROGMEM =
+  {
 #   ifdef ESP32
-  addRowLabelValue(LabelType::HEAP_SIZE);
-  addRowLabelValue(LabelType::HEAP_MIN_FREE);
+    LabelType::HEAP_SIZE,
+    LabelType::HEAP_MIN_FREE,
 #   endif // ifdef ESP32
 
-  int freeMem = ESP.getFreeHeap();
-  addRowLabel(LabelType::FREE_MEM);
-  {
-    addHtmlInt(freeMem);
-    addUnit(getFormUnit(LabelType::FREE_MEM));
-#   ifndef BUILD_NO_RAM_TRACKER
-    addHtml(F(" ("));
-    addHtmlInt(lowestRAM);
-    addHtml(F(" - "));
-    addHtml(lowestRAMfunction);
-    addHtml(')');
-#   endif // ifndef BUILD_NO_RAM_TRACKER
-  }
+    LabelType::FREE_MEM,
 #   if defined(CORE_POST_2_5_0) || defined(ESP32)
- #    ifndef LIMIT_BUILD_SIZE
-  addRowLabelValue(LabelType::HEAP_MAX_FREE_BLOCK);
- #    endif // ifndef LIMIT_BUILD_SIZE
+#    ifndef LIMIT_BUILD_SIZE
+    LabelType::HEAP_MAX_FREE_BLOCK,
+#    endif // ifndef LIMIT_BUILD_SIZE
 #   endif   // if defined(CORE_POST_2_5_0) || defined(ESP32)
 #   if defined(CORE_POST_2_5_0)
-  #    ifndef LIMIT_BUILD_SIZE
-  addRowLabelValue(LabelType::HEAP_FRAGMENTATION);
-  #    endif // ifndef LIMIT_BUILD_SIZE
-  {
-    #    ifdef USE_SECOND_HEAP
-    addRowLabelValue(LabelType::FREE_HEAP_IRAM);
-    #    endif
-  }
+#    ifndef LIMIT_BUILD_SIZE
+    LabelType::HEAP_FRAGMENTATION,
+#    endif // ifndef LIMIT_BUILD_SIZE
+
+#    ifdef USE_SECOND_HEAP
+    LabelType::FREE_HEAP_IRAM,
+#    endif
+
 #   endif // if defined(CORE_POST_2_5_0)
-
-
-  addRowLabel(LabelType::FREE_STACK);
-  {
-    addHtmlInt(getCurrentFreeStack());
-    addUnit(getFormUnit(LabelType::FREE_STACK));
-#   ifndef BUILD_NO_RAM_TRACKER
-    addHtml(F(" ("));
-    addHtmlInt(lowestFreeStack);
-    addHtml(F(" - "));
-    addHtml(lowestFreeStackfunction);
-    addHtml(')');
-#   endif // ifndef BUILD_NO_RAM_TRACKER
-  }
+    LabelType::FREE_STACK,
 
 #   if defined(ESP32) && defined(BOARD_HAS_PSRAM)
 
-  addRowLabelValue(LabelType::PSRAM_SIZE);
+    LabelType::PSRAM_SIZE,
 
-  if (UsePSRAM()) {
-    static const LabelType::Enum labels[] PROGMEM =
-    {
-      LabelType::PSRAM_FREE,
-      LabelType::PSRAM_MIN_FREE,
-      LabelType::PSRAM_MAX_FREE_BLOCK,
-      LabelType::MAX_LABEL
-    };
-    addRowLabelValues(labels);
-  }
+    LabelType::PSRAM_FREE,
+    LabelType::PSRAM_MIN_FREE,
+    LabelType::PSRAM_MAX_FREE_BLOCK,
 #   endif // if defined(ESP32) && defined(BOARD_HAS_PSRAM)
+    LabelType::MAX_LABEL
+  };
+  addRowLabelValues(labels);
 }
 
 #  endif // ifndef WEBSERVER_SYSINFO_MINIMAL
@@ -448,20 +399,16 @@ void handle_sysinfo_Ethernet() {
       LabelType::ETH_DUPLEX,
       LabelType::ETH_MAC,
 
-
       LabelType::MAX_LABEL
     };
 
     addRowLabelValues(labels);
-
   }
 }
 
 #  endif // if FEATURE_ETHERNET
 
 void handle_sysinfo_Network() {
-
-
   addTableSeparator(F("Network"), 2, 3);
 
   {
@@ -565,28 +512,29 @@ void handle_sysinfo_WiFiSettings() {
 void handle_sysinfo_Firmware() {
   addTableSeparator(F("Firmware"), 2, 3);
 
-  addRowLabelValue_copy(LabelType::BUILD_DESC);
-  addHtml(' ');
-  addHtml(F(BUILD_NOTES));
-
-  addRowLabelValue_copy(LabelType::SYSTEM_LIBRARIES);
+  static const LabelType::Enum labels[] PROGMEM =
+  {
+    LabelType::BUILD_DESC,
+    LabelType::SYSTEM_LIBRARIES,
 #  ifdef ESP32
-  addRowLabelValue_copy(LabelType::ESP_IDF_SDK_VERSION);
+    LabelType::ESP_IDF_SDK_VERSION,
 #  endif
-  addRowLabelValue_copy(LabelType::GIT_BUILD);
-  addRowLabelValue_copy(LabelType::PLUGIN_COUNT);
-  addHtml(' ');
-  addHtml(getPluginDescriptionString());
-
-  addRowLabel(F("Build Origin"));
-  addHtml(get_build_origin());
-  addRowLabelValue_copy(LabelType::BUILD_TIME);
-  addRowLabelValue_copy(LabelType::BINARY_FILENAME);
-  addRowLabelValue_copy(LabelType::BUILD_PLATFORM);
-  addRowLabelValue_copy(LabelType::GIT_HEAD);
+    LabelType::GIT_BUILD,
+    LabelType::PLUGIN_COUNT,
+    LabelType::PLUGIN_DESCRIPTION,
+    LabelType::BUILD_ORIGIN,
+    LabelType::BUILD_TIME,
+    LabelType::BINARY_FILENAME,
+    LabelType::BUILD_PLATFORM,
+    LabelType::GIT_HEAD,
   #  ifdef CONFIGURATION_CODE
-  addRowLabelValue_copy(LabelType::CONFIGURATION_CODE_LBL);
+    LabelType::CONFIGURATION_CODE_LBL,
   #  endif  // ifdef CONFIGURATION_CODE
+
+    LabelType::MAX_LABEL
+  };
+
+  addRowLabelValues(labels);
 }
 
 #  ifndef WEBSERVER_SYSINFO_MINIMAL
@@ -610,17 +558,15 @@ void handle_sysinfo_SystemStatus() {
     LabelType::CONSOLE_FALLBACK_TO_SERIAL0,
     LabelType::CONSOLE_FALLBACK_PORT,
 #   endif // if USES_ESPEASY_CONSOLE_FALLBACK_PORT
+#   if FEATURE_CLEAR_I2C_STUCK
+    LabelType::I2C_BUS_STATE,
+    LabelType::I2C_BUS_CLEARED_COUNT,
+#   endif // if FEATURE_CLEAR_I2C_STUCK
+
     LabelType::MAX_LABEL
   };
 
   addRowLabelValues(labels);
-#   if FEATURE_CLEAR_I2C_STUCK
-
-  if (Settings.EnableClearHangingI2Cbus()) {
-    addRowLabelValue(LabelType::I2C_BUS_STATE);
-    addRowLabelValue(LabelType::I2C_BUS_CLEARED_COUNT);
-  }
-#   endif // if FEATURE_CLEAR_I2C_STUCK
 }
 
 #  endif // ifndef WEBSERVER_SYSINFO_MINIMAL
@@ -652,17 +598,9 @@ void handle_sysinfo_NetworkServices() {
 void handle_sysinfo_ESP_Board() {
   addTableSeparator(F("ESP Board"), 2, 3);
 
-
-  addRowLabel(LabelType::ESP_CHIP_ID);
-
-  const uint32_t chipID = getChipId();
-  addHtml(strformat(
-            F("%d (%s)"),
-            chipID,
-            formatToHex(chipID, 6).c_str()));
-
   static const LabelType::Enum labels[] PROGMEM =
   {
+    LabelType::ESP_CHIP_ID,
     LabelType::ESP_CHIP_FREQ,
 #   ifdef ESP32
     LabelType::ESP_CHIP_XTAL_FREQ,
@@ -675,11 +613,11 @@ void handle_sysinfo_ESP_Board() {
 #   endif // if defined(ESP32)
     LabelType::ESP_CHIP_CORES,
     LabelType::BOARD_NAME,
+
     LabelType::MAX_LABEL
   };
 
   addRowLabelValues(labels);
-
 
 #   if defined(ESP32)
   addRowLabel(F("ESP Chip Features"));
@@ -694,97 +632,29 @@ void handle_sysinfo_ESP_Board() {
 void handle_sysinfo_Storage() {
   addTableSeparator(F("Storage"), 2, 3);
 
-  if (getFlashChipId() != 0) {
-    addRowLabel(LabelType::FLASH_CHIP_ID);
-
-
-    // Set to HEX may be something like 0x1640E0.
-    // Where manufacturer is 0xE0 and device is 0x4016.
-    addHtml(F("Vendor: "));
-    addHtml(getValue(LabelType::FLASH_CHIP_VENDOR));
-
-    if (flashChipVendorPuya())
-    {
-      addHtml(F(" (PUYA"));
-
-      if (puyaSupport()) {
-        addHtml(F(", supported"));
-      } else {
-        addHtml(F(HTML_SYMBOL_WARNING));
-      }
-      addHtml(')');
-    }
-    addHtml(F(" Device: "));
-    addHtml(getValue(LabelType::FLASH_CHIP_MODEL));
-    #   ifdef ESP32
-
-    if (getChipFeatures().embeddedFlash) {
-      addHtml(F(" (Embedded)"));
-    }
-    #   endif // ifdef ESP32
-  }
-  const uint32_t realSize = getFlashRealSizeInBytes();
-  const uint32_t ideSize  = ESP.getFlashChipSize();
-
-  addRowLabel(LabelType::FLASH_CHIP_REAL_SIZE);
-  addHtmlInt(realSize / 1024);
-  addHtml(F(" [kB]"));
-
-  addRowLabel(LabelType::FLASH_IDE_SIZE);
-  addHtmlInt(ideSize / 1024);
-  addHtml(F(" [kB]"));
-
-  addRowLabel(LabelType::FLASH_CHIP_SPEED);
-  addHtmlInt(getFlashChipSpeed() / 1000000);
-  addHtml(F(" [MHz]"));
-
-  // Please check what is supported for the ESP32
-  addRowLabel(LabelType::FLASH_IDE_SPEED);
-  addHtmlInt(ESP.getFlashChipSpeed() / 1000000);
-  addHtml(F(" [MHz]"));
-
-  addRowLabelValue(LabelType::FLASH_IDE_MODE);
-
-  addRowLabel(LabelType::FLASH_WRITE_COUNT);
-  addHtml(strformat(
-    F("%d daily / %d cold boot"),
-    RTC.flashDayCounter,
-    static_cast<int>(RTC.flashCounter)));
-
+  static const LabelType::Enum labels[] PROGMEM =
   {
-    uint32_t maxSketchSize;
-    bool     use2step;
-    #   if defined(ESP8266)
-    bool otaEnabled =
-    #   endif // if defined(ESP8266)
-    OTA_possible(maxSketchSize, use2step);
+    LabelType::FLASH_CHIP_ID,
+    LabelType::FLASH_CHIP_VENDOR,
+    LabelType::FLASH_CHIP_MODEL,
+    LabelType::FLASH_CHIP_REAL_SIZE,
+    LabelType::FLASH_IDE_SIZE,
+    LabelType::FLASH_CHIP_SPEED,
+    LabelType::FLASH_IDE_SPEED,
+    LabelType::FLASH_IDE_MODE,
+    LabelType::FLASH_WRITE_COUNT,
+    LabelType::SKETCH_SIZE,
+    LabelType::MAX_OTA_SKETCH_SIZE,
+#   ifdef ESP8266
+    LabelType::OTA_POSSIBLE,
+    LabelType::OTA_2STEP,
+#   endif // ifdef ESP8266
+    LabelType::FS_SIZE,
 
-    addRowLabel(LabelType::SKETCH_SIZE);
-    addHtml(strformat(
-              F("%d [kB] (%d kB not used)"),
-              getSketchSize() / 1024,
-              (maxSketchSize - getSketchSize()) / 1024));
+    LabelType::MAX_LABEL
+  };
 
-    addRowLabel(LabelType::MAX_OTA_SKETCH_SIZE);
-    addHtml(strformat(
-              F("%d [kB] (%d bytes)"),
-              maxSketchSize / 1024,
-              maxSketchSize));
-
-    #   if defined(ESP8266)
-    addRowLabel(LabelType::OTA_POSSIBLE);
-    addHtml(boolToString(otaEnabled));
-
-    addRowLabel(LabelType::OTA_2STEP);
-    addHtml(boolToString(use2step));
-    #   endif // if defined(ESP8266)
-  }
-
-  addRowLabel(LabelType::FS_SIZE);
-  addHtml(strformat(
-            F("%d [kB] (%d kB free)"),
-            SpiffsTotalBytes() / 1024,
-            SpiffsFreeSpace() / 1024));
+  addRowLabelValues(labels);
 
   #   ifndef LIMIT_BUILD_SIZE
   addRowLabel(F("Page size"));

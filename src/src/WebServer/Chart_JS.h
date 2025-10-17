@@ -95,7 +95,7 @@ void add_ChartJS_scatter_data_point(
   KeyValueWriter& parent,
   float           x,
   float           y,
-  int             nrDecimals);
+  uint8_t             nrDecimals);
 
 void add_ChartJS_dataset(
   KeyValueWriter              & datasets,

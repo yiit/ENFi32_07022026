@@ -443,12 +443,12 @@ void addHtmlInt(uint64_t int_val) {
   addHtml(ull2String(int_val));
 }
 
-void addHtmlFloat(const float& value, unsigned int nrDecimals) {
+void addHtmlFloat(const float& value, uint8_t nrDecimals) {
   addHtml(toString(value, nrDecimals));
 }
 
 /*
-void addHtmlFloat_NaN_toNull(const float& value, unsigned int nrDecimals) {
+void addHtmlFloat_NaN_toNull(const float& value, uint8_t nrDecimals) {
   String res;
   if (toValidString(res, value, nrDecimals)) {
     addHtml(res);
@@ -459,12 +459,12 @@ void addHtmlFloat_NaN_toNull(const float& value, unsigned int nrDecimals) {
 */
 
 #if FEATURE_USE_DOUBLE_AS_ESPEASY_RULES_FLOAT_TYPE
-void addHtmlFloat(const double& value, unsigned int nrDecimals) {
+void addHtmlFloat(const double& value, uint8_t nrDecimals) {
   addHtml(doubleToString(value, nrDecimals));
 }
 
 /*
-void addHtmlFloat_NaN_toNull(const double& value, unsigned int nrDecimals) {
+void addHtmlFloat_NaN_toNull(const double& value, uint8_t nrDecimals) {
   String res;
   if (doubleToValidString(res, value, nrDecimals)) {
     addHtml(res);

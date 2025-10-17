@@ -166,6 +166,7 @@ struct LabelType {
 #endif
 
     BUILD_DESC,
+    BUILD_ORIGIN,
     GIT_BUILD,
     SYSTEM_LIBRARIES,
 #ifdef ESP32
@@ -217,8 +218,10 @@ struct LabelType {
     FS_SIZE,
     FS_FREE,
     MAX_OTA_SKETCH_SIZE,
+#ifdef ESP8266
     OTA_2STEP,
     OTA_POSSIBLE,
+#endif
     #if FEATURE_INTERNAL_TEMPERATURE
     INTERNAL_TEMPERATURE,
     #endif // if FEATURE_INTERNAL_TEMPERATURE

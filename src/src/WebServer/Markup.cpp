@@ -776,7 +776,7 @@ void addNumericBox(const String& id, int value, int min, int max, bool disabled)
 
 #endif // if FEATURE_TOOLTIPS
 
-void addFloatNumberBox(const String& id, float value, float min, float max, unsigned int nrDecimals, float stepsize
+void addFloatNumberBox(const String& id, float value, float min, float max, uint8_t nrDecimals, float stepsize
                        #if FEATURE_TOOLTIPS
                        , const String& tooltip
                        #endif // if FEATURE_TOOLTIPS

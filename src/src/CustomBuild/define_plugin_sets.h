@@ -408,7 +408,12 @@ To create/register a plugin, you have to :
         #define FEATURE_PLUGIN_STATS  1
     #endif
     #ifndef FEATURE_CHART_JS
+    #ifdef ESP8266
+        #define FEATURE_CHART_JS  0
+    #endif
+    #ifdef ESP32
         #define FEATURE_CHART_JS  1
+    #endif
     #endif
     #ifndef FEATURE_RULES_EASY_COLOR_CODE
         #define FEATURE_RULES_EASY_COLOR_CODE 1
@@ -1184,6 +1189,9 @@ To create/register a plugin, you have to :
     #endif
     #ifndef FEATURE_NETWORK_TRAFFIC_COUNT
         #define FEATURE_NETWORK_TRAFFIC_COUNT 1
+    #endif
+    #if defined(FEATURE_CHART_JS) && !FEATURE_CHART_JS
+    #undef FEATURE_CHART_JS
     #endif
     #ifndef FEATURE_CHART_JS
         #define FEATURE_CHART_JS  1

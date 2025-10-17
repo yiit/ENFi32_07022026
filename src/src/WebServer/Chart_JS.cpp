@@ -192,7 +192,7 @@ void add_ChartJS_chart_labels(
 
 void add_ChartJS_scatter_data_point(
   KeyValueWriter& parent,
-  float x, float y, int nrDecimals)
+  float x, float y, uint8_t nrDecimals)
 {
   auto element = parent.createChild();
 
@@ -207,7 +207,7 @@ void add_ChartJS_dataset(
   const ChartJS_dataset_config& config,
   const float                   values[],
   int                           valueCount,
-  unsigned int                  nrDecimals,
+  uint8_t                       nrDecimals,
   const String                & options)
 {
   auto dataset = datasets.createChild();

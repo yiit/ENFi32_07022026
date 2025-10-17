@@ -939,13 +939,15 @@ void P169_data_struct::addCalibrationChart(struct EventStruct *event)
           const ChartJS_dataset_config config(
             F("Error %"),
             F("rgb(255, 99, 132)"));
+          String options;
 
           add_ChartJS_dataset(
             *datasets,
             config,
             values,
             actualValueCount,
-            2);
+            2,
+          options);
         }
       }
     }

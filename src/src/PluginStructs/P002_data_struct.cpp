@@ -541,13 +541,13 @@ void P002_data_struct::webformLoad_2pt_calibrationCurve(struct EventStruct *even
             values[i] = P002_data_struct::applyCalibration(event, xAxisValues[i]);
           }
 
-          const ChartJS_dataset_config config(
-            F("2 Point Calibration"),
-            F("rgb(255, 99, 132)"));
-
           auto datasets = data->createChildArray(F("datasets"));
 
           if (datasets) {
+                      const ChartJS_dataset_config config(
+            F("2 Point Calibration"),
+            F("rgb(255, 99, 132)"));
+
             add_ChartJS_dataset(
               *datasets,
               config,
