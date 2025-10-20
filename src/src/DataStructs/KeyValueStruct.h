@@ -3,7 +3,6 @@
 #include "../DataStructs/ValueStruct.h"
 
 #include "../Helpers/StringProvider.h"
-#include "../Helpers/ValueStruct_Factory.h"
 
 #include <vector>
 
@@ -116,7 +115,7 @@ struct KeyValueStruct
   void setID(const String& id);
   void setID(const __FlashStringHelper *id);
 
-  void appendValue(Up_ValueStruct value);
+  void appendValue(ValueStruct value);
   void appendValue(const String& value);
   void appendValue(String&& value);
 
@@ -127,7 +126,7 @@ struct KeyValueStruct
   String __id;
   String _unit;
 
-  std::vector<Up_ValueStruct>_values;
+  std::vector<ValueStruct>_values;
 
   Format _format = Format::Default;
 

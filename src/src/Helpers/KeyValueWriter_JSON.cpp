@@ -125,7 +125,7 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
       pr.write('"');
     }
     else {
-      writeValue(kv._values[0].get());
+      writeValue(kv._values[0]);
     }
   } else {
     // Multiple values, so we must wrap it in []
@@ -149,7 +149,7 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
       pr.write('\t');
 #endif // ifdef USE_KWH_JSON_PRETTY_PRINT
 
-      writeValue(kv._values[i].get());
+      writeValue(kv._values[i]);
     }
     getPrint().write(']');
 #ifndef USE_KWH_JSON_PRETTY_PRINT
@@ -158,14 +158,14 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
   }
 }
 
-void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
+void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
 {
-  if (val == nullptr) { return; }
+  if (!val.isSet()) { return; }
   auto& pr = getPrint();
 
-  ValueStruct::ValueType valueType = val->getValueType();
+  ValueStruct::ValueType valueType = val.getValueType();
   ValueStruct::ValueType valueType_afterPrint;
-  String str                       = val->toString(valueType_afterPrint);
+  String str                       = val.toString(valueType_afterPrint);
 
   switch (valueType)
   {
@@ -178,6 +178,7 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
       }
 
     case ValueStruct::ValueType::Int:
+    case ValueStruct::ValueType::UInt:
       pr.print(str);
       return;
     case ValueStruct::ValueType::Bool:
@@ -188,7 +189,7 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct*val)
       if (_allowFormatOverrides && !Settings.JSONBoolWithoutQuotes()) { pr.write('"'); }
       return;
 
-    case ValueStruct::ValueType::Auto:
+    case ValueStruct::ValueType::Unset:
     case ValueStruct::ValueType::String:
     case ValueStruct::ValueType::FlashString:
       break;

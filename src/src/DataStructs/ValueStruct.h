@@ -8,157 +8,112 @@
 // ********************************************************************************
 // ValueStruct
 // ********************************************************************************
+
+
 class ValueStruct
 {
 public:
 
-  enum class ValueType {
-    Auto,
+  enum class ValueType : uint8_t {
+    Unset = 0,
     String,
     FlashString,
     Float,
     Double,
     Int,
+    UInt,
     Bool
 
   };
 
-  ValueStruct(ValueType valueType = ValueType::Auto) : _valueType(valueType) {}
+  ValueStruct() :
+    valueType((uint64_t)ValueStruct::ValueType::Unset),
+    str_val(nullptr)
+  {}
 
-  virtual ~ValueStruct() {}
+  ~ValueStruct();
 
-  virtual size_t    print(Print& out) const = 0;
+  ValueStruct(const ValueStruct& rhs) = delete;
+  ValueStruct(ValueStruct&& rhs);
 
-  virtual String    toString() const;
+  ValueStruct(const bool& val);
 
-  virtual String    toString(ValueType& valueType) const;
+  ValueStruct(int val);
+#if defined(ESP32) && !defined(__riscv)
+  ValueStruct(int32_t val);
+#endif
+  ValueStruct(uint32_t val);
+#if defined(ESP32) && !defined(__riscv)
+  ValueStruct(size_t val);
+#endif
+  ValueStruct(const uint64_t& val);
 
-  virtual ValueType getValueType() const { return _valueType; }
-
-protected:
-
-  const ValueType _valueType;
-
-}; // class ValueStruct
-
-typedef std::unique_ptr<ValueStruct> Up_ValueStruct;
-
-
-// ********************************************************************************
-// Derived types from ValueStruct
-// ********************************************************************************
-
-class ValueStruct_String : public ValueStruct
-{
-public:
-
-  virtual ~ValueStruct_String();
-
-  ValueStruct_String(const String& val);
-  ValueStruct_String(String&& val);
-
-  virtual size_t print(Print& out) const;
-
-  String _val;
-}; // class ValueStruct_String
+  ValueStruct(const int64_t& val);
 
 
-class ValueStruct_FlashString : public ValueStruct
-{
-public:
+  ValueStruct(const float& val,
+               uint8_t      nrDecimals        = 4,
+               bool         trimTrailingZeros = false);
 
-  virtual ~ValueStruct_FlashString();
-
-  ValueStruct_FlashString(const __FlashStringHelper *val);
-
-  virtual size_t print(Print& out) const;
-
-  const __FlashStringHelper *_val;
-}; // class ValueStruct_FlashString
-
-class ValueStruct_Double : public ValueStruct
-{
-public:
-
-  virtual ~ValueStruct_Double();
-
-  ValueStruct_Double(double  val,
-                     uint8_t nrDecimals        = 2,
-                     bool    trimTrailingZeros = false);
-
-  virtual size_t print(Print& out) const;
-
-  virtual String toString(ValueType& valueType) const override;
-
-  const double _val;
-  const uint8_t _nrDecimals;
-  const bool _trimTrailingZeros;
-}; // class ValueStruct_Double
-
-class ValueStruct_Float : public ValueStruct
-{
-public:
-
-  virtual ~ValueStruct_Float();
-
-  ValueStruct_Float(float   val,
-                    uint8_t nrDecimals        = 2,
-                    bool    trimTrailingZeros = false);
-
-  virtual size_t print(Print& out) const;
-
-  virtual String toString(ValueType& valueType) const override;
-
-  const float _val;
-  const uint8_t _nrDecimals;
-  const bool _trimTrailingZeros;
-}; // class ValueStruct_Float
-
-class ValueStruct_uint64_t : public ValueStruct
-{
-public:
-
-  virtual ~ValueStruct_uint64_t();
-
-  ValueStruct_uint64_t(uint64_t  val,
-                       ValueType vType);
-
-  virtual size_t print(Print& out) const;
-
-  const uint64_t _val;
-}; // class ValueStruct_uint64_t
+  ValueStruct(const double& val,
+               uint8_t       nrDecimals        = 4,
+               bool          trimTrailingZeros = false);
 
 
-class ValueStruct_int64_t : public ValueStruct
-{
-public:
+  ValueStruct(const char*val);
 
-  virtual ~ValueStruct_int64_t();
+  ValueStruct(const String& val);
 
-  ValueStruct_int64_t(int64_t   val,
-                      ValueType vType);
+  ValueStruct(String&& val);
 
-  virtual size_t print(Print& out) const;
+  ValueStruct(const __FlashStringHelper *val);
 
-  const int64_t _val;
-}; // class ValueStruct_int64_t
-
-
-template<class T>
-class ValueStruct_T : public ValueStruct
-{
-public:
-
-  virtual ~ValueStruct_T() {}
-
-  ValueStruct_T(T         val,
-                ValueType vType)
-    : ValueStruct(vType), _val(val) {}
-
-  virtual size_t print(Print& out) const
+  ValueStruct::ValueType getValueType() const
   {
-    return out.print(_val);
+    return static_cast<ValueStruct::ValueType>(valueType);
   }
 
-  const T _val;
-}; // class ValueStruct_T
+  ValueStruct& operator=(ValueStruct&& rhs) = delete;
+  ValueStruct& operator=(const ValueStruct& rhs) = delete;
+
+  String toString() const;
+
+  String toString(ValueType& valueType) const;
+
+  size_t print(Print& out) const;
+
+  bool   isEmpty() const;
+
+  bool   isSet() const { return getValueType() != ValueStruct::ValueType::Unset; }
+
+private:
+
+  size_t print(Print    & out,
+               ValueType& valueType) const;
+
+  union {
+    struct {
+      uint64_t nrDecimals        : 8;
+      uint64_t trimTrailingZeros : 1;
+      uint64_t valueType         : 7;
+      uint64_t size              : 16;
+
+      uint64_t unused : 32; // TODO TD-er: Store UoM enum
+
+    };
+
+    uint8_t bytes_metadata[8] = {};
+
+  };
+
+  union {
+    void    *str_val;
+    float    f_val;
+    double   d_val;
+    int64_t  i64_val;
+    uint64_t u64_val;
+    uint8_t  bytes_val[8] = {};
+
+  };
+
+}; // class ValueStruct

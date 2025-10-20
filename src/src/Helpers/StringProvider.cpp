@@ -1126,7 +1126,7 @@ String getLabel(LabelType::Enum label) {
 String getValue(LabelType::Enum label) {
   auto kv = getKeyValue(label);
 
-  if (kv._values.size() && kv._values[0]) { return kv._values[0]->toString(); }
+  if (kv._values.size() && kv._values[0].isSet()) { return kv._values[0].toString(); }
   return EMPTY_STRING;
 }
 

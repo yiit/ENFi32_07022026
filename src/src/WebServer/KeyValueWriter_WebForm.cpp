@@ -97,9 +97,9 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
       }
     }
 
-    if (kv._values[i]) {
+    if (kv._values[i].isSet()) {
 
-      String str(kv._values[i]->toString());
+      String str(kv._values[i].toString());
 
       if (!plain_text && (str.indexOf('\n') != -1))
       {

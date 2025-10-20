@@ -61,10 +61,11 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
   _logLevel(logLevel),
   _subscriberPendingRead(0)
 {
+  // We can't move the allocated memory from 'message'.
+  // Just use move so we make sure the memory is de-allocated after this call.
+  String str = std::move(message);
+
   if (_strLength) {
-    // We can't move the allocated memory from 'message'.
-    // Just use move so we make sure the memory is de-allocated after this call.
-    String str        = std::move(message);
     const size_t size = str.length();
     _message = special_calloc(1, size + 1);
 
