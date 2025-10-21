@@ -102,9 +102,21 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
 
       String str(kv._values[i].toString());
 
-      if (!plain_text && (str.indexOf('\n') != -1))
-      {
-        str.replace(F("\n"), F("<br>"));
+      if (!plain_text) {
+
+        const auto vtype = kv._values[i].getValueType();
+
+        if (vtype == ValueStruct::ValueType::Bool) {
+          str = concat(F("<span class='enabled "), str.equals("0")
+          ? F("off'>&#10060;")
+          : F("on'>&#10004;"));
+          str += F("</span>");
+        } else {
+          if (str.indexOf('\n') != -1)
+          {
+            str.replace(F("\n"), F("<br>"));
+          }
+        }
       }
       getPrint().print(str);
     }
@@ -156,6 +168,7 @@ Up_KeyValueWriter KeyValueWriter_WebForm::createChildArray(const String& header)
   if (child) {
     child->setIsArray();
   }
+
   // return std::move(child);
   return child;
 }
