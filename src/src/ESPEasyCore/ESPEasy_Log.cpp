@@ -26,10 +26,10 @@ void initLog()
   #ifdef ESP32
   setLogLevelFor(LOG_TO_SYSLOG, 2);
   setLogLevelFor(LOG_TO_WEBLOG, 2);
-  #else
+  #else // ifdef ESP32
   setLogLevelFor(LOG_TO_SYSLOG, 0);
   setLogLevelFor(LOG_TO_WEBLOG, 0);
-  #endif
+  #endif // ifdef ESP32
 
 
   setLogLevelFor(LOG_TO_SERIAL, 2); // logging during initialisation
@@ -206,71 +206,24 @@ void addLog(uint8_t logLevel, const __FlashStringHelper *str)
     return;
   }
   #endif // ifdef ESP32
-  //  Up_LogEntry entry(new (std::nothrow) LogEntry_t(logLevel, str));
-  //  Logging.addLogEntry(std::move(entry));
   Logging.addLogEntry(LogEntry_t(logLevel, str));
 }
 
-void addLog(uint8_t logLevel, const char *line)
-{
-  // Please note all functions called from here handling line must be PROGMEM aware.
-  if (loglevelActiveFor(logLevel)) {
+void addLog(uint8_t logLevel, const char *line) {
+  #ifdef ESP32
 
-    String copy;
-    #ifdef USE_SECOND_HEAP
-    {
-      // Allow to store the logs in 2nd heap if present.
-      if (mmu_is_iram(line)) {
-        size_t length       = 0;
-        const char*cur_char = line;
-        bool copying        = false;
-        bool done           = false;
-
-        while (!done) {
-          const uint8_t ch = mmu_get_uint8(cur_char++);
-
-          if (ch == 0) {
-            if (copying) {
-              done = true;
-            } else {
-              if (!reserve_special(copy, length)) {
-                return;
-              }
-              copying  = true;
-              cur_char = line;
-            }
-          } else {
-            if (copying) {
-              copy +=  (char)ch;
-            } else {
-              ++length;
-            }
-          }
-        }
-      } else {
-        if (!reserve_special(copy, strlen_P((PGM_P)line))) {
-          return;
-        }
-        copy = line;
-      }
-    }
-    #else // ifdef USE_SECOND_HEAP
-
-    if (!reserve_special(copy, strlen_P((PGM_P)line))) {
-      return;
-    }
-    copy = line;
-    #endif // ifdef USE_SECOND_HEAP
-    addToLogMove(logLevel, std::move(copy));
+  if (xPortInIsrContext()) {
+    // When called from an ISR, you should not send out logs.
+    // Allocating memory from within an ISR is a big no-no.
+    // Also long-time blocking like sending logs (especially to a syslog server)
+    // is also really not a good idea from an ISR call.
+    return;
   }
+  #endif // ifdef ESP32
+  Logging.addLogEntry(LogEntry_t(logLevel, line));
 }
 
 void addLog(uint8_t logLevel, String&& str) { addToLogMove(logLevel, std::move(str)); }
-
-
-#ifndef LIMIT_BUILD_SIZE
-# include "../Helpers/Memory.h"
-#endif
 
 void addLog(uint8_t logLevel, const String& str)
 {
@@ -284,8 +237,6 @@ void addLog(uint8_t logLevel, const String& str)
     return;
   }
   #endif // ifdef ESP32
-  //  Up_LogEntry entry(new (std::nothrow) LogEntry_t(logLevel, str));
-  //  Logging.addLogEntry(std::move(entry));
   Logging.addLogEntry(LogEntry_t(logLevel, str));
 }
 
@@ -301,7 +252,5 @@ void addToLogMove(uint8_t logLevel, String&& str)
     return;
   }
   #endif // ifdef ESP32
-  //  Up_LogEntry entry(new (std::nothrow) LogEntry_t(logLevel, str));
-  //  Logging.addLogEntry(std::move(entry));
-  Logging.addLogEntry(LogEntry_t(logLevel, str));
+  Logging.addLogEntry(LogEntry_t(logLevel, std::move(str)));
 }

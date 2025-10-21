@@ -8,8 +8,8 @@
 LogEntry_t::LogEntry_t(const uint8_t              logLevel,
                        const __FlashStringHelper *message) :
   _message((void *)(message)),
-  _strLength(message ? strlen_P((const char *)(message)) : 0),
   _timestamp(millis()),
+  _strLength(message ? strlen_P((const char *)(message)) : 0),
   _isFlashString(true),
   _logLevel(logLevel),
   _subscriberPendingRead(0)
@@ -18,13 +18,13 @@ LogEntry_t::LogEntry_t(const uint8_t              logLevel,
 LogEntry_t::LogEntry_t(const uint8_t logLevel,
                        const char   *message) :
   _message(nullptr),
-  _strLength(message ? strlen_P((const char *)(message)) : 0),
   _timestamp(millis()),
+  _strLength(message ? strlen_P((const char *)(message)) : 0),
   _isFlashString(false),
   _logLevel(logLevel),
   _subscriberPendingRead(0)
 {
-  if (_strLength) {
+  if (_strLength && loglevelActiveFor(logLevel)) {
     _message = special_calloc(1, _strLength + 1);
 
     if (_message) {
@@ -36,13 +36,13 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
 LogEntry_t::LogEntry_t(const uint8_t logLevel,
                        const String& message) :
   _message(nullptr),
-  _strLength(message.length()),
   _timestamp(millis()),
+  _strLength(message.length()),
   _isFlashString(false),
   _logLevel(logLevel),
   _subscriberPendingRead(0)
 {
-  if (_strLength) {
+  if (_strLength && loglevelActiveFor(logLevel)) {
 
     _message = special_calloc(1, _strLength + 1);
 
@@ -55,8 +55,8 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
 LogEntry_t::LogEntry_t(const uint8_t logLevel,
                        String     && message) :
   _message(nullptr),
-  _strLength(message.length()),
   _timestamp(millis()),
+  _strLength(message.length()),
   _isFlashString(false),
   _logLevel(logLevel),
   _subscriberPendingRead(0)
@@ -65,12 +65,11 @@ LogEntry_t::LogEntry_t(const uint8_t logLevel,
   // Just use move so we make sure the memory is de-allocated after this call.
   String str = std::move(message);
 
-  if (_strLength) {
-    const size_t size = str.length();
-    _message = special_calloc(1, size + 1);
+  if (_strLength && loglevelActiveFor(logLevel)) {
+    _message = special_calloc(1, _strLength + 1);
 
     if (_message) {
-      memcpy_P(_message, str.begin(), size);
+      memcpy_P(_message, str.begin(), _strLength);
     }
   }
 }
@@ -84,12 +83,10 @@ LogEntry_t::~LogEntry_t()
 
 LogEntry_t::LogEntry_t(LogEntry_t&& rhs) :
   _message(rhs._message),
-  _strLength(rhs._strLength),
   _timestamp(rhs._timestamp),
   _flags(rhs._flags)
 {
   rhs._message   = nullptr;
-  rhs._strLength = 0;
   rhs._timestamp = 0;
   rhs._flags     = 0;
 }
@@ -97,12 +94,10 @@ LogEntry_t::LogEntry_t(LogEntry_t&& rhs) :
 LogEntry_t& LogEntry_t::operator=(LogEntry_t&& rhs)
 {
   _message   = rhs._message;
-  _strLength = rhs._strLength;
   _timestamp = rhs._timestamp;
   _flags     = rhs._flags;
 
   rhs._message   = nullptr;
-  rhs._strLength = 0;
   rhs._timestamp = 0;
   rhs._flags     = 0;
   return *this;

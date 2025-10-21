@@ -4,8 +4,6 @@
 
 #include "../DataTypes/LogLevels.h"
 
-#include <memory>
-
 
 #ifdef ESP32
   # define LOG_BUFFER_EXPIRE         30000 // Time after which a buffered log item is considered expired.
@@ -68,23 +66,18 @@ struct LogEntry_t {
 private:
 
   void    *_message{};
-  size_t   _strLength;
   uint32_t _timestamp;
   union {
     uint32_t _flags;
 
     struct {
+      uint32_t _strLength             : 19;
       uint32_t _isFlashString         : 1;
       uint32_t _logLevel              : 4;
-      uint32_t _subscriberPendingRead : 8;
-
-      uint32_t unused : 19;
+      uint32_t _subscriberPendingRead : 8; // See NR_LOG_TO_DESTINATIONS
 
     };
+
   };
 
 };
-
-
-typedef std::unique_ptr<LogEntry_t>Up_LogEntry;
-typedef std::shared_ptr<LogEntry_t>Sp_LogEntry;
