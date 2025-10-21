@@ -16,6 +16,7 @@ public:
 
   enum class ValueType : uint8_t {
     Unset = 0,
+    SSO_string,
     String,
     FlashString,
     Float,
@@ -27,7 +28,8 @@ public:
   };
 
   ValueStruct() :
-    valueType((uint64_t)ValueStruct::ValueType::Unset),
+    _isSSO(0),
+    _valueType((uint64_t)ValueStruct::ValueType::Unset),
     str_val(nullptr)
   {}
 
@@ -52,12 +54,12 @@ public:
 
 
   ValueStruct(const float& val,
-               uint8_t      nrDecimals        = 4,
-               bool         trimTrailingZeros = false);
+              uint8_t      nrDecimals        = 4,
+              bool         trimTrailingZeros = false);
 
   ValueStruct(const double& val,
-               uint8_t       nrDecimals        = 4,
-               bool          trimTrailingZeros = false);
+              uint8_t       nrDecimals        = 4,
+              bool          trimTrailingZeros = false);
 
 
   ValueStruct(const char*val);
@@ -70,21 +72,22 @@ public:
 
   ValueStruct::ValueType getValueType() const
   {
-    return static_cast<ValueStruct::ValueType>(valueType);
+    if (_isSSO) { return ValueStruct::ValueType::String; }
+    return static_cast<ValueStruct::ValueType>(_valueType);
   }
 
-  ValueStruct& operator=(ValueStruct&& rhs) = delete;
+  ValueStruct& operator=(ValueStruct&& rhs);
   ValueStruct& operator=(const ValueStruct& rhs) = delete;
 
-  String toString() const;
+  String       toString() const;
 
-  String toString(ValueType& valueType) const;
+  String       toString(ValueType& valueType) const;
 
-  size_t print(Print& out) const;
+  size_t       print(Print& out) const;
 
-  bool   isEmpty() const;
+  bool         isEmpty() const;
 
-  bool   isSet() const { return getValueType() != ValueStruct::ValueType::Unset; }
+  bool         isSet() const { return getValueType() != ValueStruct::ValueType::Unset; }
 
 private:
 
@@ -93,27 +96,31 @@ private:
 
   union {
     struct {
-      uint64_t nrDecimals        : 8;
-      uint64_t trimTrailingZeros : 1;
-      uint64_t valueType         : 7;
-      uint64_t size              : 16;
+      uint64_t _unitOfMeasure     : 8;
+      uint64_t _isSSO             : 1;
+      uint64_t _trimTrailingZeros : 1;
+      uint64_t _valueType         : 6;
+      uint64_t _nrDecimals        : 8;
+      uint64_t _size              : 16;
 
-      uint64_t unused : 32; // TODO TD-er: Store UoM enum
+      uint64_t unused : 24;
+
+      union {
+        void    *str_val;
+        float    f_val;
+        double   d_val;
+        int64_t  i64_val;
+        uint64_t u64_val;
+
+      };
 
     };
 
-    uint8_t bytes_metadata[8] = {};
+    // When _isSSO, the short string will be stored in bytes 2 ... 15
+    // The short string will be zero-terminated.
+    uint8_t bytes_all[16] = {};
 
   };
 
-  union {
-    void    *str_val;
-    float    f_val;
-    double   d_val;
-    int64_t  i64_val;
-    uint64_t u64_val;
-    uint8_t  bytes_val[8] = {};
-
-  };
 
 }; // class ValueStruct

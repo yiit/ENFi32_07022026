@@ -115,16 +115,16 @@ struct KeyValueStruct
   void setID(const String& id);
   void setID(const __FlashStringHelper *id);
 
-  void appendValue(ValueStruct value);
+  void appendValue(ValueStruct&& value);
   void appendValue(const String& value);
   void appendValue(String&& value);
 
   String getID() const;
 
 
-  String _key;
-  String __id;
-  String _unit;
+  ValueStruct _key;
+  ValueStruct __id;
+  ValueStruct _unit;
 
   std::vector<ValueStruct>_values;
 

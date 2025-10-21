@@ -1120,7 +1120,7 @@ String getLabel(LabelType::Enum label) {
   if (kv._key.isEmpty()) {
     return F("MissingString");
   }
-  return kv._key;
+  return kv._key.toString();
 }
 
 String getValue(LabelType::Enum label) {
@@ -1248,5 +1248,5 @@ String getFormUnit(LabelType::Enum label)
 {
   auto kv = getKeyValue(label);
 
-  return kv._unit;
+  return kv._unit.toString();
 }

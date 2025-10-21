@@ -107,10 +107,10 @@ void KeyValueWriter_JSON::write(const KeyValueStruct& kv)
   getPrint().write('\t');
 #endif // ifdef USE_KWH_JSON_PRETTY_PRINT
 
-  if (kv._key.length()) {
+  if (!kv._key.isEmpty()) {
     auto& pr = getPrint();
     pr.write('"');
-    pr.print(kv._key);
+    kv._key.print(pr);
     pr.write('"');
     pr.write(':');
   }

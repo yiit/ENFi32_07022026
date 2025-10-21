@@ -139,7 +139,7 @@ void KeyValueStruct::setID(const String& id)                  { __id = id; }
 
 void KeyValueStruct::setID(const __FlashStringHelper *id)     { __id = id; }
 
-void KeyValueStruct::appendValue(ValueStruct value)
+void KeyValueStruct::appendValue(ValueStruct&& value)
 {
   _values.emplace_back(std::move(value));
   _isArray = true;
@@ -159,6 +159,6 @@ void KeyValueStruct::appendValue(String&& value)
 
 String KeyValueStruct::getID() const
 {
-  if (__id.isEmpty()) { return to_internal_string(_key, '_'); }
-  return __id;
+  if (__id.isEmpty()) { return to_internal_string(_key.toString(), '_'); }
+  return __id.toString();
 }

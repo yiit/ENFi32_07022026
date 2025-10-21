@@ -79,7 +79,8 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
   if (!summary_value_only) {
     if (format_note) { addRowLabel_tr_id(EMPTY_STRING, EMPTY_STRING); }
     else {
-      addRowLabel(kv._key, kv.__id);
+      // Use the __id value, not the getID function, so we only output the set value, not a generated value based on the key.
+      addRowLabel(kv._key.toString(), kv.__id.toString());
     }
   }
 
@@ -112,7 +113,7 @@ void KeyValueWriter_WebForm::write(const KeyValueStruct& kv)
   // May need to include the unit before ending </pre>
   // or else it will be shown on the next line
   if (!plain_text && (nrValues == 1) && !summary_value_only) {
-    addUnit(kv._unit);
+    addUnit(kv._unit.toString());
   }
 
   if (format_pre) { getPrint().print(F("</pre>")); }
