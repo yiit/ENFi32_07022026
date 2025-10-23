@@ -5,8 +5,6 @@
 
 #include "../WebServer/HTML_wrappers.h"
 
-#include <memory>
-
 
 KeyValueWriter_JSON::KeyValueWriter_JSON(bool emptyHeader, PrintToString *toStr)
   : KeyValueWriter(emptyHeader, toStr)
@@ -197,9 +195,9 @@ void KeyValueWriter_JSON::writeValue(const ValueStruct& val)
   pr.print(to_json_value(str));
 }
 
-Up_KeyValueWriter KeyValueWriter_JSON::createChild()
+UP_KeyValueWriter KeyValueWriter_JSON::createChild()
 {
-  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(this, _toString));
+  UP_KeyValueWriter_JSON child(new (std::nothrow) KeyValueWriter_JSON(this, _toString));
 
   child->_allowFormatOverrides = _allowFormatOverrides;
 
@@ -208,9 +206,9 @@ Up_KeyValueWriter KeyValueWriter_JSON::createChild()
   // return std::make_unique<KeyValueWriter_JSON>(this, _toString);
 }
 
-Up_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
+UP_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
 {
-  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, this, _toString));
+  UP_KeyValueWriter_JSON child(new (std::nothrow) KeyValueWriter_JSON(header, this, _toString));
 
   child->_allowFormatOverrides = _allowFormatOverrides;
 
@@ -219,7 +217,7 @@ Up_KeyValueWriter KeyValueWriter_JSON::createChild(const String& header)
   // return std::make_unique<KeyValueWriter_JSON>(header, this, _toString);
 }
 
-Up_KeyValueWriter KeyValueWriter_JSON::createChildArray(const String& header)
+UP_KeyValueWriter KeyValueWriter_JSON::createChildArray(const String& header)
 {
   auto child = createChild(header);
 
@@ -230,9 +228,9 @@ Up_KeyValueWriter KeyValueWriter_JSON::createChildArray(const String& header)
   return child;
 }
 
-Up_KeyValueWriter KeyValueWriter_JSON::createNew()
+UP_KeyValueWriter KeyValueWriter_JSON::createNew()
 {
-  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(false, _toString));
+  UP_KeyValueWriter_JSON child(new (std::nothrow) KeyValueWriter_JSON(false, _toString));
 
   child->_allowFormatOverrides = _allowFormatOverrides;
 
@@ -241,9 +239,9 @@ Up_KeyValueWriter KeyValueWriter_JSON::createNew()
   // return std::make_unique<KeyValueWriter_JSON>(false, _toString);
 }
 
-Up_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header)
+UP_KeyValueWriter KeyValueWriter_JSON::createNew(const String& header)
 {
-  std::unique_ptr<KeyValueWriter_JSON> child(new (std::nothrow) KeyValueWriter_JSON(header, _toString));
+  UP_KeyValueWriter_JSON child(new (std::nothrow) KeyValueWriter_JSON(header, _toString));
 
   child->_allowFormatOverrides = _allowFormatOverrides;
 

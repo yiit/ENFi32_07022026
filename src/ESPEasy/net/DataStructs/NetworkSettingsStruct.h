@@ -49,18 +49,9 @@ private:
 
 };
 
-
-typedef std::unique_ptr<NetworkSettingsStruct> NetworkSettingsStruct_ptr_type;
-
-/*
- # ifdef USE_SECOND_HEAP
- #define MakeNetworkSettings(T) HeapSelectIram ephemeral; NetworkSettingsStruct_ptr_type T(new (std::nothrow)  NetworkSettingsStruct());
- #else
- */
+DEF_UP(NetworkSettingsStruct);
 #define MakeNetworkSettings(T) void *calloc_ptr = special_calloc(1, sizeof(NetworkSettingsStruct)); \
-        NetworkSettingsStruct_ptr_type T(new (calloc_ptr)  NetworkSettingsStruct());
-
-// #endif
+        UP_NetworkSettingsStruct T(new (calloc_ptr)  NetworkSettingsStruct());
 
 // Check to see if MakeNetworkSettings was successful
 #define AllocatedNetworkSettings() (NetworkSettings.get() != nullptr)

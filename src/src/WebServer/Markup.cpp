@@ -606,7 +606,7 @@ void addRowLabelValue_copy(LabelType::Enum label) {
 
 void addRowColspan(int colspan) {
   addHtml(strformat(
-    F("<TR><TD colspan=%d>"),
+    F("<TR><TD colspan=\"%d\">"),
     colspan));
 }
 

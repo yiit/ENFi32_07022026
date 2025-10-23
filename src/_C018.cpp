@@ -134,7 +134,7 @@ bool CPlugin_018(CPlugin::Function function, struct EventStruct *event, String& 
         if (ptr == nullptr) {
           break;
         }
-        std::unique_ptr<C018_ConfigStruct> customConfig(new (ptr) C018_ConfigStruct);
+        UP_C018_ConfigStruct  customConfig(new (ptr) C018_ConfigStruct);
 
         if (!customConfig) {
           break;
@@ -153,7 +153,7 @@ bool CPlugin_018(CPlugin::Function function, struct EventStruct *event, String& 
       if (ptr == nullptr) {
         break;
       }
-      std::unique_ptr<C018_ConfigStruct> customConfig(new (ptr) C018_ConfigStruct);
+      UP_C018_ConfigStruct  customConfig(new (ptr) C018_ConfigStruct);
 
       if (customConfig) {
         customConfig->webform_save();
@@ -206,7 +206,7 @@ bool CPlugin_018(CPlugin::Function function, struct EventStruct *event, String& 
             break;
           }
     
-          std::unique_ptr<C018_queue_element> element(new (ptr) C018_queue_element(event, C018_data->getSampleSetCount(event->TaskIndex)));
+          UP_C018_queue_element  element(new (ptr) C018_queue_element(event, C018_data->getSampleSetCount(event->TaskIndex)));
           success = C018_DelayHandler->addToQueue(std::move(element));
           Scheduler.scheduleNextDelayQueue(SchedulerIntervalTimer_e::TIMER_C018_DELAY_QUEUE,
                                            C018_DelayHandler->getNextScheduleTime());
@@ -329,7 +329,7 @@ bool C018_init(struct EventStruct *event) {
   if (ptr == nullptr) {
     return false;
   }
-  std::unique_ptr<C018_ConfigStruct> customConfig(new (ptr) C018_ConfigStruct);
+  UP_C018_ConfigStruct  customConfig(new (ptr) C018_ConfigStruct);
 
   if (!customConfig) {
     return false;

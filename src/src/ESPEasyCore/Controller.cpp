@@ -1101,7 +1101,7 @@ bool MQTTpublish(controllerIndex_t controller_idx,
   if (ptr != nullptr) {
     success =
       MQTTDelayHandler->addToQueue(
-        std::unique_ptr<MQTT_queue_element>(
+        UP_MQTT_queue_element (
           new (ptr) MQTT_queue_element(
             controller_idx, taskIndex,
             std::move(topic_str),
@@ -1135,7 +1135,7 @@ bool MQTTpublish(controllerIndex_t controller_idx,
   if (ptr != nullptr) {
     success =
       MQTTDelayHandler->addToQueue(
-        std::unique_ptr<MQTT_queue_element>(
+        UP_MQTT_queue_element (
           new (ptr) MQTT_queue_element(
             controller_idx, taskIndex,
             std::move(topic),

@@ -146,7 +146,7 @@ bool ControllerDelayHandlerStruct::isDuplicate(const Queue_element_base& element
 
 // Try to add to the queue, if permitted by "delete_oldest"
 // Return true when item was added, or skipped as it was considered a duplicate
-bool ControllerDelayHandlerStruct::addToQueue(std::unique_ptr<Queue_element_base>element) {
+bool ControllerDelayHandlerStruct::addToQueue(UP_Queue_element_base element) {
   if (!element) { 
     return false;
   }

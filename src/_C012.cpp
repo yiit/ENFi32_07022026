@@ -67,7 +67,7 @@ bool CPlugin_012(CPlugin::Function function, struct EventStruct *event, String& 
         break;
       }
     
-      std::unique_ptr<C012_queue_element> element(new (ptr) C012_queue_element(event, valueCount));
+      UP_C012_queue_element  element(new (ptr) C012_queue_element(event, valueCount));
 
       for (uint8_t x = 0; x < valueCount; x++)
       {

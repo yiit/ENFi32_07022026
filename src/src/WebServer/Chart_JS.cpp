@@ -35,7 +35,7 @@ void add_ChartJS_array(KeyValueWriter& parent,
   }
 }
 
-Up_KeyValueWriter add_ChartJS_chart_header(
+UP_KeyValueWriter add_ChartJS_chart_header(
   const __FlashStringHelper *chartType,
   const __FlashStringHelper *id,
   const ChartJS_title      & chartTitle,
@@ -54,7 +54,7 @@ Up_KeyValueWriter add_ChartJS_chart_header(
     onlyJSON);
 }
 
-Up_KeyValueWriter add_ChartJS_chart_header(
+UP_KeyValueWriter add_ChartJS_chart_header(
   const __FlashStringHelper *chartType,
   const String             & id,
   const ChartJS_title      & chartTitle,
@@ -79,7 +79,7 @@ Up_KeyValueWriter add_ChartJS_chart_header(
               id_c_str,
               id_c_str));
   }
-  std::unique_ptr<KeyValueWriter_JSON> chartJSON(new (std::nothrow) KeyValueWriter_JSON(true));
+  UP_KeyValueWriter_JSON chartJSON(new (std::nothrow) KeyValueWriter_JSON(true));
 
   if (chartJSON) {
     chartJSON->allowFormatOverrides(false);
@@ -216,7 +216,7 @@ void add_ChartJS_dataset(
   }
 }
 
-Up_KeyValueWriter add_ChartJS_dataset_header(KeyValueWriter& dataset, const ChartJS_dataset_config& config)
+UP_KeyValueWriter add_ChartJS_dataset_header(KeyValueWriter& dataset, const ChartJS_dataset_config& config)
 {
   if (!config.label.isEmpty()) {
     dataset.write({ F("label"), config.label });

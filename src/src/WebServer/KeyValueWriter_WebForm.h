@@ -39,13 +39,16 @@ public:
   virtual void              write(const KeyValueStruct& kv);
 
   // Create writer of the same derived type, with this set as parent
-  virtual Up_KeyValueWriter createChild();
-  virtual Up_KeyValueWriter createChild(const String& header);
-  virtual Up_KeyValueWriter createChildArray(const String& header);
+  virtual UP_KeyValueWriter createChild();
+  virtual UP_KeyValueWriter createChild(const String& header);
+  virtual UP_KeyValueWriter createChildArray(const String& header);
 
   // Create new writer of the same derived type, without parent
-  virtual Up_KeyValueWriter createNew();
-  virtual Up_KeyValueWriter createNew(const String& header);
+  virtual UP_KeyValueWriter createNew();
+  virtual UP_KeyValueWriter createNew(const String& header);
 
 
 }; // class KeyValueWriter_WebForm
+
+
+DEF_UP(KeyValueWriter_WebForm);

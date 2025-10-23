@@ -10,7 +10,7 @@
 
 
 class KeyValueWriter;
-typedef std::unique_ptr<KeyValueWriter> Up_KeyValueWriter;
+DEF_UP(KeyValueWriter);
 
 // ********************************************************************************
 // KeyValueWriter
@@ -44,7 +44,7 @@ public:
 
   virtual void setFooter(const String& footer) { _footer = footer; }
 
-  virtual void setIsArray() { _isArray = true; }
+  virtual void setIsArray()                    { _isArray = true; }
 
   virtual void clear();
 
@@ -53,14 +53,15 @@ public:
 
   virtual void write(const KeyValueStruct& kv) = 0;
 
-  void         writeLabels(const LabelType::Enum labels[], bool extendedValues = false);
+  void         writeLabels(const LabelType::Enum labels[],
+                           bool                  extendedValues = false);
 
   virtual void writeNote(const String& note);
   virtual void writeNote(const __FlashStringHelper *note);
 
   //  virtual void setParent(KeyValueWriter*parent) { _parent = parent; }
 
-  virtual int  getLevel() const;
+  virtual int getLevel() const;
 
   // When set to 'plainText', the writer will not try to insert writer specific
   // markings, like <pre> or <br> for example for HTML output
@@ -83,13 +84,13 @@ public:
   virtual void              setOutputToString(PrintToString*printToStr) { _toString = printToStr; }
 
   // Create writer of the same derived type, with this set as parent
-  virtual Up_KeyValueWriter createChild()                     = 0;
-  virtual Up_KeyValueWriter createChild(const String& header) = 0;
-  virtual Up_KeyValueWriter createChildArray(const String& header) = 0;
+  virtual UP_KeyValueWriter createChild()                          = 0;
+  virtual UP_KeyValueWriter createChild(const String& header)      = 0;
+  virtual UP_KeyValueWriter createChildArray(const String& header) = 0;
 
   // Create new writer of the same derived type, without parent
-  virtual Up_KeyValueWriter createNew()                     = 0;
-  virtual Up_KeyValueWriter createNew(const String& header) = 0;
+  virtual UP_KeyValueWriter createNew()                     = 0;
+  virtual UP_KeyValueWriter createNew(const String& header) = 0;
 
   const String&             get() const {
     if (_toString == nullptr) { return EMPTY_STRING; }

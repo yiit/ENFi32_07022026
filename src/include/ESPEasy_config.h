@@ -86,6 +86,9 @@
 #define NR_ELEMENTS(ARR)   (sizeof (ARR) / sizeof *(ARR))
 //#define NR_ELEMENTS(ARR) sizeof(ARR) / sizeof(ARR[0])
 
+// Shortcut to typedef an unique pointer of a given type
+#define DEF_UP(T)  typedef std::unique_ptr<T> UP_##T
+
 
 constexpr unsigned FLOOR_LOG2(unsigned x)
 {

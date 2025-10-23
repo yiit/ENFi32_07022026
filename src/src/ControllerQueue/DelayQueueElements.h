@@ -9,6 +9,9 @@
 #include "../ControllerQueue/Queue_element_base.h"
 #include "../DataStructs/ControllerSettingsStruct.h"
 
+#include <memory> // For std::unique_ptr
+#include <new>    // for std::nothrow
+
 
 // The most logical place to have these queue element handlers defined would be in their
 // respective _Cxxx.ino file.
@@ -56,6 +59,7 @@
   void process_c##NNN####M##_delay_queue();                                                                            \
   bool init_c##NNN####M##_delay_queue(controllerIndex_t ControllerIndex);                                              \
   void exit_c##NNN####M##_delay_queue();                                                                               \
+  typedef std::unique_ptr<C##NNN####M##_queue_element> UP_C##NNN####M##_queue_element;
 
 
 # ifdef USE_SECOND_HEAP

@@ -3,8 +3,9 @@
 #include "../Helpers/KeyValueWriter.h"
 
 #ifndef BUILD_NO_DEBUG
+
 // # define USE_KWH_JSON_PRETTY_PRINT
-#endif
+#endif // ifndef BUILD_NO_DEBUG
 
 class KeyValueWriter_JSON : public KeyValueWriter
 {
@@ -47,13 +48,13 @@ public:
   virtual void              write(const KeyValueStruct& kv);
 
   // Create writer of the same derived type, with this set as parent
-  virtual Up_KeyValueWriter createChild();
-  virtual Up_KeyValueWriter createChild(const String& header);
-  virtual Up_KeyValueWriter createChildArray(const String& header);
+  virtual UP_KeyValueWriter createChild();
+  virtual UP_KeyValueWriter createChild(const String& header);
+  virtual UP_KeyValueWriter createChildArray(const String& header);
 
   // Create new writer of the same derived type, without parent
-  virtual Up_KeyValueWriter createNew();
-  virtual Up_KeyValueWriter createNew(const String& header);
+  virtual UP_KeyValueWriter createNew();
+  virtual UP_KeyValueWriter createNew(const String& header);
 
   virtual bool              dataOnlyOutput() const override {
     // JSON is not intended to be human readable
@@ -83,3 +84,5 @@ protected:
 
 
 }; // class KeyValueWriter_JSON
+
+DEF_UP(KeyValueWriter_JSON);

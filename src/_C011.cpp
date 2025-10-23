@@ -34,6 +34,8 @@ struct C011_ConfigStruct
 
 };
 
+DEF_UP(C011_ConfigStruct);
+
 
 // Forward declarations
 bool load_C011_ConfigStruct(controllerIndex_t ControllerIndex,
@@ -153,7 +155,7 @@ bool CPlugin_011(CPlugin::Function function, struct EventStruct *event, String& 
       void *ptr               = special_calloc(1, size);
 
       if (ptr != nullptr) {
-        std::unique_ptr<C011_ConfigStruct> customConfig(new (ptr) C011_ConfigStruct);
+        UP_C011_ConfigStruct  customConfig(new (ptr) C011_ConfigStruct);
 
         if (customConfig) {
           uint8_t choice    = 0;
@@ -245,7 +247,7 @@ bool load_C011_ConfigStruct(controllerIndex_t ControllerIndex, String& HttpMetho
     return false;
   }
 
-  std::unique_ptr<C011_ConfigStruct>customConfig(new (ptr) C011_ConfigStruct);
+  UP_C011_ConfigStruct customConfig(new (ptr) C011_ConfigStruct);
 
   if (!customConfig) {
     return false;
@@ -280,7 +282,7 @@ boolean Create_schedule_HTTP_C011(struct EventStruct *event)
 
 
   // Add a new element to the queue with the minimal payload
-  std::unique_ptr<C011_queue_element>element(new (ptr) C011_queue_element(event));
+  UP_C011_queue_element element(new (ptr) C011_queue_element(event));
   bool success = C011_DelayHandler->addToQueue(std::move(element));
 
   if (success) {

@@ -50,7 +50,7 @@ struct ControllerDelayHandlerStruct {
 
   // Try to add to the queue, if permitted by "delete_oldest"
   // Return true when item was added, or skipped as it was considered a duplicate
-  bool addToQueue(std::unique_ptr<Queue_element_base>element);
+  bool addToQueue(UP_Queue_element_base element);
 
   // Get the next element.
   // Remove front element when max_retries is reached.
@@ -76,7 +76,7 @@ struct ControllerDelayHandlerStruct {
     TimingStatsElements                timerstats_id,
     SchedulerIntervalTimer_e timerID);
 
-  std::list<std::unique_ptr<Queue_element_base> >sendQueue;
+  std::list<UP_Queue_element_base  >sendQueue;
   mutable UnitLastMessageCount_map               unitLastMessageCount;
   unsigned long                                  lastSend               = 0;
   unsigned int                                   minTimeBetweenMessages = CONTROLLER_DELAY_QUEUE_DELAY_DFLT;

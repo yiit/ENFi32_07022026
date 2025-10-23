@@ -55,9 +55,9 @@ struct ProvisioningStruct
   };
 };
 
-typedef std::unique_ptr<ProvisioningStruct> ProvisioningStruct_ptr_type;
+DEF_UP(ProvisioningStruct);
 
-#define MakeProvisioningSettings(T) void * calloc_ptr = special_calloc(1,sizeof(ProvisioningStruct)); ProvisioningStruct_ptr_type T(new (calloc_ptr)  ProvisioningStruct());
+#define MakeProvisioningSettings(T) void * calloc_ptr = special_calloc(1,sizeof(ProvisioningStruct)); UP_ProvisioningStruct T(new (calloc_ptr)  ProvisioningStruct());
 
 
 

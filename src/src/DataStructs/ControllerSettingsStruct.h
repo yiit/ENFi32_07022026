@@ -270,14 +270,8 @@ private:
 
 #include "../Helpers/Memory.h"
 
-typedef std::unique_ptr<ControllerSettingsStruct> ControllerSettingsStruct_ptr_type;
-/*
-# ifdef USE_SECOND_HEAP
-#define MakeControllerSettings(T) HeapSelectIram ephemeral; ControllerSettingsStruct_ptr_type T(new (std::nothrow)  ControllerSettingsStruct());
-#else
-*/
-#define MakeControllerSettings(T) void * calloc_ptr = special_calloc(1,sizeof(ControllerSettingsStruct)); ControllerSettingsStruct_ptr_type T(new (calloc_ptr)  ControllerSettingsStruct());
-//#endif
+DEF_UP(ControllerSettingsStruct);
+#define MakeControllerSettings(T) void * calloc_ptr = special_calloc(1,sizeof(ControllerSettingsStruct)); UP_ControllerSettingsStruct T(new (calloc_ptr)  ControllerSettingsStruct());
 
 // Check to see if MakeControllerSettings was successful
 #define AllocatedControllerSettings() (ControllerSettings.get() != nullptr)

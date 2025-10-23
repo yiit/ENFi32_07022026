@@ -35,9 +35,9 @@ struct NotificationSettingsStruct
   //its safe to extend this struct, up to 4096 bytes, default values in config are 0
 };
 
-typedef std::unique_ptr<NotificationSettingsStruct> NotificationSettingsStruct_ptr_type;
+DEF_UP(NotificationSettingsStruct);
 
-#define MakeNotificationSettings(T) void * calloc_ptr = special_calloc(1,sizeof(NotificationSettingsStruct)); NotificationSettingsStruct_ptr_type T(new (calloc_ptr)  NotificationSettingsStruct());
+#define MakeNotificationSettings(T) void * calloc_ptr = special_calloc(1,sizeof(NotificationSettingsStruct)); UP_NotificationSettingsStruct T(new (calloc_ptr)  NotificationSettingsStruct());
 
 // Check to see if MakeNotificationSettings was successful
 #define AllocatedNotificationSettings() (NotificationSettings.get() != nullptr)
