@@ -70,6 +70,7 @@ void                          NW004_data_struct_ETH_SPI::onEvent(arduino_event_i
   switch (event)
   {
     case ARDUINO_EVENT_ETH_START:
+      ETH.setHostname(NetworkCreateRFCCompliantHostname().c_str());
       stats_and_cache.mark_start();
       break;
     case ARDUINO_EVENT_ETH_STOP:

@@ -69,6 +69,7 @@ void                          NW003_data_struct_ETH_RMII::onEvent(arduino_event_
   switch (event)
   {
     case ARDUINO_EVENT_ETH_START:
+      ETH.setHostname(NetworkCreateRFCCompliantHostname().c_str());
       stats_and_cache.mark_start();
       break;
     case ARDUINO_EVENT_ETH_STOP:
