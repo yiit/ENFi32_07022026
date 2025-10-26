@@ -114,6 +114,9 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
     }
   }
 #endif // ifdef ESP32
+# if FEATURE_USE_IPV6
+  _enableIPv6 = Settings.EnableIPv6() && Settings.getNetworkEnabled_IPv6(_networkIndex);
+#endif
 
   _connectionFailures = 0;
 

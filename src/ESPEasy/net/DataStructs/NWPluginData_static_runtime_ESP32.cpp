@@ -2,6 +2,8 @@
 
 #ifdef ESP32
 
+#include "../ESPEasyNetwork.h"
+
 # include "../../../src/Helpers/StringConverter.h"
 
 # include "../Globals/NetworkState.h"
@@ -79,6 +81,12 @@ void NWPluginData_static_runtime::mark_start()
   _startStopStats.setOn();
 
   if (!_netif) { return; }
+
+  _netif->setHostname(NetworkCreateRFCCompliantHostname().c_str());
+#if FEATURE_USE_IPV6
+  _netif->enableIPv6(_enableIPv6);
+#endif
+
 # if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
 
   if (_route_prio > 0) {

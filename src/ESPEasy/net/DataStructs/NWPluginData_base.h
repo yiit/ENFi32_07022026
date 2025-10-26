@@ -134,7 +134,7 @@ protected:
 protected:
 
 #ifdef ESP32
-  bool _restore_DNS_cache();
+//  bool _restore_DNS_cache();
 #endif
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS

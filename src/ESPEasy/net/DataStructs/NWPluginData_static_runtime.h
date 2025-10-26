@@ -151,6 +151,10 @@ struct NWPluginData_static_runtime {
   int       _route_prio = -1;
 #endif // ifdef ESP32
 
+# if FEATURE_USE_IPV6
+  bool _enableIPv6{};
+#endif
+
 private:
 
 #ifdef ESP32

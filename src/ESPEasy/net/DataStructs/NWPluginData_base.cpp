@@ -313,11 +313,13 @@ bool NWPluginData_base::handle_priority_route_changed()
   bool res{};
 
   if ((_netif != nullptr) && _netif->isDefault()) {
-    if (NWPlugin::forceDHCP_request(_netif)) { return true; }
-
     auto cache = getNWPluginData_static_runtime();
 
-    if (!cache) { return res; }
+    if (!cache) { 
+      if (NWPlugin::forceDHCP_request(_netif)) { 
+        return true; 
+      }
+    }
 
     // Check to see if we may need to restore any cached DNS server
     for (size_t i = 0; i < NR_ELEMENTS(cache->_dns_cache); ++i) {
@@ -383,7 +385,7 @@ PluginStats * NWPluginData_base::getPluginStats(networkStatsVarIndex_t networkSt
 #endif // if FEATURE_NETWORK_STATS
 
 #ifdef ESP32
-
+/*
 bool NWPluginData_base::_restore_DNS_cache()
 {
   bool res{};
@@ -415,6 +417,7 @@ bool NWPluginData_base::_restore_DNS_cache()
   }
   return res;
 }
+  */
 
 #endif // ifdef ESP32
 

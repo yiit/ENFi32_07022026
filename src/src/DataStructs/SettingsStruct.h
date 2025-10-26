@@ -419,28 +419,19 @@ public:
     memcpy(&VariousBits_2, &value, sizeof(VariousBits_2));
   }
 
-  bool getNetworkEnabled(ESPEasy::net::networkIndex_t index) const {
-    //if (index == 1) return true;
-    if (validNetworkIndex(index)) return bitRead(NetworkEnabled_bits, index);
-    return false;
-  }
+  bool getNetworkEnabled(ESPEasy::net::networkIndex_t index) const;
 
-  void setNetworkEnabled(ESPEasy::net::networkIndex_t index, bool enabled) {
-    if (validNetworkIndex(index)) {
-      bitWrite(NetworkEnabled_bits, index, enabled);
-    }
-  }
+  void setNetworkEnabled(ESPEasy::net::networkIndex_t index, bool enabled);
 
-  bool getNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index) const {
-    if (validNetworkIndex(index)) return bitRead(NetworkInterfaceSubnetBlockClientIP_bits, index);
-    return false;
-  }
+  bool getNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index) const;
 
-  void setNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index, bool enabled) {
-    if (validNetworkIndex(index)) {
-      bitWrite(NetworkInterfaceSubnetBlockClientIP_bits, index, enabled);
-    }
-  }
+  void setNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index, bool enabled);
+
+#if FEATURE_USE_IPV6
+  bool getNetworkEnabled_IPv6(ESPEasy::net::networkIndex_t index) const;
+
+  void setNetworkEnabled_IPv6(ESPEasy::net::networkIndex_t index, bool enabled);
+#endif
 
   ESPEasy::net::nwpluginID_t getNWPluginID_for_network(ESPEasy::net::networkIndex_t index) const;
 
@@ -700,7 +691,7 @@ public:
   uint8_t       NWPluginID[NETWORK_MAX] = {0};
   uint8_t       NetworkEnabled_bits{};
   uint8_t       NetworkInterfaceSubnetBlockClientIP_bits{}; // Client IP Block Level. Allow from subnet of this interface
-  uint8_t       NetworkUnused_2{};
+  uint8_t       NetworkEnabled_ipv6_bits{};                 // Whether or not to use IPv6 for the given interface  (Settings.EnableIPv6() is the global on/off for IPv6)
   uint8_t       NetworkUnused_3{};
 #ifdef ESP32
   uint8_t       NetworkRoutePrio[NETWORK_MAX] = {0};

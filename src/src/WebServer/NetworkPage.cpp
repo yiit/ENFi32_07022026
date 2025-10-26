@@ -162,6 +162,9 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(ESPEasy::net::networkInd
     Settings.setRoutePrio_for_network(networkindex, getFormItemInt(F("routeprio"), 0));
     Settings.setNetworkInterfaceSubnetBlockClientIP(networkindex, isFormItemChecked(F("block_web_access")));
 # endif // ifdef ESP32
+# if FEATURE_USE_IPV6
+    Settings.setNetworkEnabled_IPv6(networkindex, isFormItemChecked(F("en_ipv6")));
+#endif
     Settings.setNetworkInterfaceStartupDelayAtBoot(networkindex, getFormItemInt(F("delay_start")));
     String dummy;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
@@ -347,6 +350,13 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     addFormNote(F("When checked, any host from a subnet on this network interface will be blocked"));
     addFormNumericBox(F("Delay Startup At Boot"), F("delay_start"), Settings.getNetworkInterfaceStartupDelayAtBoot(networkindex), 0, 60000);
     addUnit(F("ms"));
+
+#if FEATURE_USE_IPV6
+    addFormCheckBox(F("Enable IPv6"), F("en_ipv6"), Settings.getNetworkEnabled_IPv6(networkindex));
+    if (!Settings.EnableIPv6()) {
+      addFormNote(F("IPv6 is disabled on tools->Advanced page"));
+    }
+#endif
 
     String str;
     NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);

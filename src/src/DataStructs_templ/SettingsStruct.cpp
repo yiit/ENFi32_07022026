@@ -1368,6 +1368,48 @@ void SettingsStruct_tmpl<N_TASKS>::setNWPluginID_for_network(ESPEasy::net::netwo
   }
 }
 
+template<uint32_t N_TASKS>
+bool SettingsStruct_tmpl<N_TASKS>::getNetworkEnabled(ESPEasy::net::networkIndex_t index) const {
+  //if (index == 1) return true;
+  if (validNetworkIndex(index)) return bitRead(NetworkEnabled_bits, index);
+  return false;
+}
+
+template<uint32_t N_TASKS>
+void SettingsStruct_tmpl<N_TASKS>::setNetworkEnabled(ESPEasy::net::networkIndex_t index, bool enabled) {
+  if (validNetworkIndex(index)) {
+    bitWrite(NetworkEnabled_bits, index, enabled);
+  }
+}
+
+template<uint32_t N_TASKS>
+bool SettingsStruct_tmpl<N_TASKS>::getNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index) const {
+  if (validNetworkIndex(index)) return bitRead(NetworkInterfaceSubnetBlockClientIP_bits, index);
+  return false;
+}
+
+template<uint32_t N_TASKS>
+void SettingsStruct_tmpl<N_TASKS>::setNetworkInterfaceSubnetBlockClientIP(ESPEasy::net::networkIndex_t index, bool enabled) {
+  if (validNetworkIndex(index)) {
+    bitWrite(NetworkInterfaceSubnetBlockClientIP_bits, index, enabled);
+  }
+}
+
+#if FEATURE_USE_IPV6
+template<uint32_t N_TASKS>
+bool SettingsStruct_tmpl<N_TASKS>::getNetworkEnabled_IPv6(ESPEasy::net::networkIndex_t index) const {
+  //if (index == 1) return true;
+  if (validNetworkIndex(index)) return bitRead(NetworkEnabled_ipv6_bits, index);
+  return false;
+}
+
+template<uint32_t N_TASKS>
+void SettingsStruct_tmpl<N_TASKS>::setNetworkEnabled_IPv6(ESPEasy::net::networkIndex_t index, bool enabled) {
+  if (validNetworkIndex(index)) {
+    bitWrite(NetworkEnabled_ipv6_bits, index, enabled);
+  }
+}
+#endif
 
 
 #ifdef ESP32
