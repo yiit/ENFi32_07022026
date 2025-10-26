@@ -3,8 +3,8 @@
 #include "../../../src/DataStructs/ESPEasy_EventStruct.h"
 #include "../../../src/DataTypes/ESPEasy_plugin_functions.h"
 #include "../../../src/Globals/Settings.h"
+#include "../../../src/Helpers/ESPEasy_UnitOfMeasure.h"
 #include "../../../src/Helpers/StringConverter.h"
-
 
 #include "../Globals/NWPlugins.h"
 
@@ -67,7 +67,7 @@ bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyVal
 }
 
 bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
-                               KeyValueWriter              *writer)
+                              KeyValueWriter              *writer)
 {
   if (writer == nullptr) { return false; }
   struct EventStruct TempEvent;
@@ -79,7 +79,6 @@ bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
   NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT, &TempEvent, str);
   return true;
 }
-
 
 bool write_IP_config(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter*writer)
 {
@@ -142,6 +141,89 @@ bool write_NetworkConnectionInfo(ESPEasy::net::networkIndex_t networkindex, KeyV
 #endif // if FEATURE_NETWORK_TRAFFIC_COUNT
   }
   return res;
+}
+
+#if defined(USES_NW003) || defined(USES_NW004)
+
+bool write_Eth_Show_Connected(const ETHClass& eth, KeyValueWriter *writer)
+{
+  if ((writer == nullptr) || !eth.connected() || !eth.linkUp()) { return false; }
+
+  if (writer->summaryValueOnly()) {
+    String s = concat(
+      String(eth.linkSpeed()),
+      eth.fullDuplex() ? F("Mbps FD") : F("Mbps HD"));
+
+    if (!eth.autoNegotiation()) { s += F("(manual)"); }
+    writer->write({ EMPTY_STRING, s });
+  } else {
+    KeyValueStruct kv(F("Link Speed"), eth.linkSpeed());
+# if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    kv.setUnit(UOM_Mbps);
+# endif
+    writer->write(kv);
+    writer->write({ F("Duplex Mode"), eth.fullDuplex() ? F("Full Duplex") : F("Half Duplex") });
+    writer->write({ F("Negotiation Mode"), eth.autoNegotiation() ? F("Auto") : F("Manual") });
+  }
+
+  return true;
+}
+
+bool write_Eth_HW_Address(const ETHClass& eth, KeyValueWriter *writer)
+{
+  if (writer == nullptr) { return false; }
+
+  if (writer->summaryValueOnly()) {
+    KeyValueStruct kv(EMPTY_STRING);
+    kv.appendValue(toString(Settings.ETH_Phy_Type));
+    kv.appendValue(concat(F("MAC: "), eth.macAddress()));
+
+    writer->write(kv);
+  } else {
+    writer->write({
+          F("Adapter"),
+          toString(Settings.ETH_Phy_Type) });
+    writer->write({
+          F("MAC"),
+          eth.macAddress(),
+          KeyValueStruct::Format::PreFormatted });
+  }
+  return true;
+}
+
+#endif // if defined(USES_NW003) || defined(USES_NW004)
+
+bool write_NetworkPort(const __FlashStringHelper*labels[], const int pins[], size_t nrElements, KeyValueWriter *writer)
+{
+  if (writer == nullptr) { return false; }
+  bool success = false;
+
+  if (writer->summaryValueOnly()) {
+    KeyValueStruct kv(EMPTY_STRING);
+
+    for (size_t i = 0; i < nrElements; ++i) {
+      if (pins[i] >= 0) {
+        kv.appendValue(concat(labels[i], F(":&nbsp;")) + formatGpioLabel(pins[i], false));
+      }
+    }
+
+    if (kv._values.size()) {
+      success = true;
+      writer->write(kv);
+    }
+  } else {
+    for (size_t i = 0; i < nrElements; ++i) {
+      if (pins[i] >= 0) {
+        success = true;
+        writer->write({
+              concat(labels[i], F(" GPIO")),
+              pins[i],
+              KeyValueStruct::Format::PreFormatted });
+      }
+    }
+  }
+
+  return success;
 }
 
 } // namespace net

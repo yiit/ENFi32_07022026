@@ -6,6 +6,10 @@
 
 #include "../DataTypes/NetworkIndex.h"
 
+#if defined(USES_NW003) || defined(USES_NW004)
+#include <ETH.h>
+#endif
+
 namespace ESPEasy {
 namespace net {
 
@@ -14,7 +18,7 @@ bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex,
                                KeyValueWriter              *writer);
 
 bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
-                               KeyValueWriter              *writer);
+                              KeyValueWriter              *writer);
 
 bool write_IP_config(ESPEasy::net::networkIndex_t networkindex,
                      KeyValueWriter              *writer);
@@ -22,6 +26,18 @@ bool write_IP_config(ESPEasy::net::networkIndex_t networkindex,
 
 bool write_NetworkConnectionInfo(ESPEasy::net::networkIndex_t networkindex,
                                  KeyValueWriter              *writer);
+
+#if defined(USES_NW003) || defined(USES_NW004)
+
+bool write_Eth_Show_Connected(const ETHClass& eth,
+                              KeyValueWriter *writer);
+
+bool write_Eth_HW_Address(const ETHClass& eth,
+                          KeyValueWriter *writer);
+
+#endif // if defined(USES_NW003) || defined(USES_NW004)
+
+bool write_NetworkPort(const __FlashStringHelper*labels[], const int pins[], size_t nrElements, KeyValueWriter *writer);
 
 } // namespace net
 } // namespace ESPEasy

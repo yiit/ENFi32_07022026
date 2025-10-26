@@ -26,6 +26,7 @@
 # include "../net/Globals/NWPlugins.h"
 # include "../net/Helpers/_NWPlugin_Helper_webform.h"
 # include "../net/Helpers/_NWPlugin_init.h"
+# include "../net/Helpers/NW_info_writer.h"
 
 # include "../net/NWPluginStructs/NW004_data_struct_ETH_SPI.h"
 
@@ -94,53 +95,14 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
-      if (event->kvWriter) {
-        success = ETH.connected();
-
-        if (ETH.linkUp()) {
-          if (event->kvWriter->summaryValueOnly()) {
-            String s = concat(
-              String(ETH.linkSpeed()),
-              ETH.fullDuplex() ? F("Mbps FD") : F("Mbps HD"));
-
-            if (!ETH.autoNegotiation()) { s += F("(manual)"); }
-            event->kvWriter->write({ EMPTY_STRING, s });
-          } else {
-            KeyValueStruct kv(F("Link Speed"), ETH.linkSpeed());
-# if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-            kv.setUnit(UOM_Mbps);
-# endif
-            event->kvWriter->write(kv);
-            event->kvWriter->write({ F("Duplex Mode"), ETH.fullDuplex() ? F("Full Duplex") : F("Half Duplex") });
-            event->kvWriter->write({ F("Negotiation Mode"), ETH.autoNegotiation() ? F("Auto") : F("Manual") });
-          }
-        }
-      }
+      success = write_Eth_Show_Connected(ETH, event->kvWriter);
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
-      if (event->kvWriter) {
-        if (isValid(Settings.ETH_Phy_Type) && isSPI_EthernetType(Settings.ETH_Phy_Type)) {
-          success = true;
-
-          if (event->kvWriter->summaryValueOnly()) {
-            KeyValueStruct kv(EMPTY_STRING);
-            kv.appendValue(toString(Settings.ETH_Phy_Type));
-            kv.appendValue(concat(F("MAC: "), ETH.macAddress()));
-
-            event->kvWriter->write(kv);
-          } else {
-            event->kvWriter->write({
-                  F("Adapter"),
-                  toString(Settings.ETH_Phy_Type) });
-            event->kvWriter->write({
-                  F("MAC"),
-                  ETH.macAddress(),
-                  KeyValueStruct::Format::PreFormatted });
-          }
-        }
+      if (isValid(Settings.ETH_Phy_Type) && isSPI_EthernetType(Settings.ETH_Phy_Type)) {
+        success = ESPEasy::net::write_Eth_HW_Address(ETH, event->kvWriter);
       }
       break;
     }
@@ -163,30 +125,7 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
               Settings.ETH_Pin_power_rst
             };
 
-            if (event->kvWriter->summaryValueOnly()) {
-              KeyValueStruct kv(EMPTY_STRING);
-
-              for (size_t i = 0; i < NR_ELEMENTS(labels); ++i) {
-                if (pins[i] >= 0) {
-                  kv.appendValue(concat(labels[i], F(":&nbsp;")) + formatGpioLabel(pins[i], false));
-                }
-              }
-
-              if (kv._values.size()) {
-                success = true;
-                event->kvWriter->write(kv);
-              }
-            } else {
-              for (size_t i = 0; i < NR_ELEMENTS(labels); ++i) {
-                if (pins[i] >= 0) {
-                  success = true;
-                  event->kvWriter->write({
-                      concat(labels[i], F(" GPIO")),
-                      pins[i],
-                      KeyValueStruct::Format::PreFormatted });
-                }
-              }
-            }
+            success = write_NetworkPort(labels, pins, NR_ELEMENTS(labels), event->kvWriter);
           }
         }
       }
@@ -425,11 +364,11 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
       break;
 
   }
+
   return success;
 }
 
 } // namespace net
-
 } // namespace ESPEasy
 
 #endif // ifdef USES_NW004
