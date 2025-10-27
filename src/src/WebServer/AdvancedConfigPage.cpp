@@ -25,7 +25,7 @@
 #include "../Helpers/I2C_access.h"
 #endif
 
-void setLogLevelFor(uint8_t destination, LabelType::Enum label) {
+void setLogLevelFor(LogDestination destination, LabelType::Enum label) {
   setLogLevelFor(destination, getFormItemInt(getInternalLabel(label)));
 }
 

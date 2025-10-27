@@ -23,7 +23,7 @@
  #endif // if FEATURE_DEFINE_SERIAL_CONSOLE_PORT
  */
 
-EspEasy_Console_Port::EspEasy_Console_Port(uint8_t log_destination)
+EspEasy_Console_Port::EspEasy_Console_Port(LogDestination log_destination)
 : _serialWriteBuffer(log_destination) {}
 
 EspEasy_Console_Port::~EspEasy_Console_Port()

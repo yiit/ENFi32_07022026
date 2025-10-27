@@ -19,8 +19,8 @@ void    initLog();
 
 void    disableSerialLog();
 
-void    setLogLevelFor(uint8_t destination,
-                       uint8_t logLevel);
+void    setLogLevelFor(LogDestination destination,
+                       uint8_t        logLevel);
 
 void    updateLogLevelCache();
 
@@ -30,8 +30,8 @@ uint8_t getSerialLogLevel();
 
 uint8_t getWebLogLevel();
 
-bool    loglevelActiveFor(uint8_t destination,
-                          uint8_t logLevel);
+bool    loglevelActiveFor(LogDestination destination,
+                          uint8_t        logLevel);
 
 void    addLog(uint8_t                    logLevel,
                const __FlashStringHelper *str);

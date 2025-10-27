@@ -11,7 +11,7 @@ void LogBuffer::add(LogEntry_t&& logEntry) {
   }
 }
 
-bool LogBuffer::getNext(uint8_t logDestination, uint32_t& timestamp, String& message, uint8_t& loglevel)
+bool LogBuffer::getNext(LogDestination logDestination, uint32_t& timestamp, String& message, uint8_t& loglevel)
 {
   if (logDestination >= NR_LOG_TO_DESTINATIONS) { return false; }
 
@@ -34,7 +34,7 @@ bool LogBuffer::getNext(uint8_t logDestination, uint32_t& timestamp, String& mes
   return false;
 }
 
-uint32_t LogBuffer::getNrMessages(uint8_t logDestination) const
+uint32_t LogBuffer::getNrMessages(LogDestination logDestination) const
 {
   uint32_t res{};
 
@@ -50,7 +50,7 @@ uint32_t LogBuffer::getNrMessages(uint8_t logDestination) const
   return res;
 }
 
-bool LogBuffer::logActiveRead(uint8_t logDestination) {
+bool LogBuffer::logActiveRead(LogDestination logDestination) {
   if (logDestination >= NR_LOG_TO_DESTINATIONS) { return false; }
   return timePassedSince(lastReadTimeStamp[logDestination]) < LOG_BUFFER_ACTIVE_READ_TIMEOUT;
 }

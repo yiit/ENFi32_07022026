@@ -33,7 +33,9 @@ void initLog()
 
 
   setLogLevelFor(LOG_TO_SERIAL, 2); // logging during initialisation
+#if FEATURE_SD
   setLogLevelFor(LOG_TO_SDCARD, 0);
+#endif
 }
 
 /********************************************************************************************\
@@ -44,10 +46,13 @@ void disableSerialLog() {
   setLogLevelFor(LOG_TO_SERIAL, 0);
 }
 
-void setLogLevelFor(uint8_t destination, uint8_t logLevel) {
+void setLogLevelFor(LogDestination destination, uint8_t logLevel) {
   switch (destination)
   {
     case LOG_TO_SERIAL:
+#if USES_ESPEASY_CONSOLE_FALLBACK_PORT
+    case LOG_TO_SERIAL_EXTRA:
+#endif
 
       if (!log_to_serial_disabled || (logLevel == 0)) {
         Settings.SerialLogLevel = logLevel;
@@ -57,8 +62,10 @@ void setLogLevelFor(uint8_t destination, uint8_t logLevel) {
       break;
     case LOG_TO_WEBLOG: Settings.WebLogLevel = logLevel;
       break;
+#if FEATURE_SD
     case LOG_TO_SDCARD: Settings.SDLogLevel = logLevel;
       break;
+#endif // if FEATURE_SD
     default:
       break;
   }
@@ -146,7 +153,7 @@ uint8_t getWebLogLevel() {
   return LOG_LEVEL_NONE;
 }
 
-bool loglevelActiveFor(uint8_t destination, uint8_t logLevel) {
+bool loglevelActiveFor(LogDestination destination, uint8_t logLevel) {
   #ifdef ESP32
 
   if (xPortInIsrContext()) {
@@ -165,7 +172,9 @@ bool loglevelActiveFor(uint8_t destination, uint8_t logLevel) {
   switch (destination)
   {
     case LOG_TO_SERIAL:
+#if USES_ESPEASY_CONSOLE_FALLBACK_PORT
     case LOG_TO_SERIAL_EXTRA:
+#endif
     {
       logLevelSettings = getSerialLogLevel();
       break;
@@ -183,14 +192,14 @@ bool loglevelActiveFor(uint8_t destination, uint8_t logLevel) {
       if (logLevel == LOG_LEVEL_NONE) { return logLevelSettings != LOG_LEVEL_NONE; }
       break;
     }
+#if FEATURE_SD
     case LOG_TO_SDCARD:
     {
       if (logLevel == LOG_LEVEL_NONE) { return false; }
-      #if FEATURE_SD
       logLevelSettings = Settings.SDLogLevel;
-      #endif
       break;
     }
+#endif // if FEATURE_SD
     default:
       return false;
   }

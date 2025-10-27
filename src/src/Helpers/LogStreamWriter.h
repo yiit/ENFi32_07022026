@@ -7,7 +7,7 @@ class LogStreamWriter
 
 public:
 
-  LogStreamWriter(uint8_t log_destination) : _log_destination(log_destination) {}
+  LogStreamWriter(LogDestination log_destination) : _log_destination(log_destination) {}
 
   virtual ~LogStreamWriter() {}
 
@@ -48,7 +48,7 @@ protected:
   uint32_t _readpos{};
   uint8_t _loglevel{};
 
-  const uint8_t _log_destination;
+  const LogDestination _log_destination;
 
 
 }; // class LogStreamWriter

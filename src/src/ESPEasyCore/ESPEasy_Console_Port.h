@@ -21,7 +21,7 @@
 
 struct EspEasy_Console_Port {
 
-  EspEasy_Console_Port(uint8_t log_destination);
+  EspEasy_Console_Port(LogDestination log_destination);
   ~EspEasy_Console_Port();
 
   operator bool() const;

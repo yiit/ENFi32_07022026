@@ -583,6 +583,7 @@ void SettingsStruct_tmpl<N_TASKS>::validate() {
         }
       }
     } else {
+      
 
     }
   }

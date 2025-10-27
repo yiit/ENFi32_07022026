@@ -236,7 +236,9 @@ void ResetFactory(bool formatFS)
     setLogLevelFor(LOG_TO_SYSLOG, DEFAULT_SYSLOG_LEVEL);
     setLogLevelFor(LOG_TO_SERIAL, DEFAULT_SERIAL_LOG_LEVEL);
     setLogLevelFor(LOG_TO_WEBLOG, DEFAULT_WEB_LOG_LEVEL);
+#if FEATURE_SD
     setLogLevelFor(LOG_TO_SDCARD, DEFAULT_SD_LOG_LEVEL);
+#endif
     Settings.SyslogFacility = DEFAULT_SYSLOG_FACILITY;
     Settings.SyslogPort     = DEFAULT_SYSLOG_PORT;
     Settings.UseValueLogger = DEFAULT_USE_SD_LOG;

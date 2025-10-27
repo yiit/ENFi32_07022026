@@ -8,7 +8,7 @@
 class SerialWriteBuffer_t : public LogStreamWriter {
 public:
 
-  SerialWriteBuffer_t(uint8_t log_destination) : LogStreamWriter(log_destination) {}
+  SerialWriteBuffer_t(LogDestination log_destination) : LogStreamWriter(log_destination) {}
 
   
 

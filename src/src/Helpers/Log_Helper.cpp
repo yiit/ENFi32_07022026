@@ -13,10 +13,9 @@
 # include "../Helpers/ESPEasy_Storage.h"
 #endif // if FEATURE_SD
 
+#if FEATURE_SD
 void addToSDLog(uint8_t logLevel, const String& str)
 {
-#if FEATURE_SD
-
   if (!str.isEmpty() && loglevelActiveFor(LOG_TO_SDCARD, logLevel)) {
     String   logName = patch_fname(F("log.txt"));
     fs::File logFile = SD.open(logName, "a+");
@@ -31,8 +30,8 @@ void addToSDLog(uint8_t logLevel, const String& str)
     }
     logFile.close();
   }
-#endif // if FEATURE_SD
 }
+#endif // if FEATURE_SD
 
 void LogHelper::addLogEntry(LogEntry_t&& logEntry)
 {
@@ -56,42 +55,32 @@ void LogHelper::addLogEntry(LogEntry_t&& logEntry)
   loop();
 }
 
-bool LogHelper::getNext(uint8_t logDestination, uint32_t& timestamp, String& message, uint8_t& loglevel)
+bool LogHelper::getNext(LogDestination logDestination, uint32_t& timestamp, String& message, uint8_t& loglevel)
 {
   return _logBuffer.getNext(logDestination, timestamp, message, loglevel);
 }
 
-uint32_t LogHelper::getNrMessages(uint8_t logDestination) const
+uint32_t LogHelper::getNrMessages(LogDestination logDestination) const
 {
   return _logBuffer.getNrMessages(logDestination);
 }
 
 void LogHelper::loop()
 {
-  const uint8_t destinations[] = {
-    LOG_TO_SDCARD
-  };
-
-  for (uint8_t i = 0; i < NR_ELEMENTS(destinations); ++i) {
+#if FEATURE_SD
     String   message;
     uint32_t timestamp{};
     uint8_t  loglevel{};
 
-    if (_logBuffer.getNext(destinations[i], timestamp, message, loglevel))
+    if (_logBuffer.getNext(LOG_TO_SDCARD, timestamp, message, loglevel))
     {
-      switch (destinations[i])
-      {
-        case LOG_TO_SDCARD:
-          addToSDLog(loglevel, message);
-          break;
-      }
+      addToSDLog(loglevel, message);
     }
-  }
-
+#endif
   _logBuffer.clearExpiredEntries();
 }
 
-bool LogHelper::logActiveRead(uint8_t logDestination)
+bool LogHelper::logActiveRead(LogDestination logDestination)
 { 
   return _logBuffer.logActiveRead(logDestination); 
 }

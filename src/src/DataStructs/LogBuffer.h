@@ -47,15 +47,15 @@ struct LogBuffer {
   }
 
   // Returns whether a line was retrieved.
-  bool getNext(uint8_t   logDestination,
+  bool getNext(LogDestination   logDestination,
                uint32_t& timestamp,
                String  & message,
                uint8_t & loglevel);
 
   // Return the number of messages left for given log destination.
-  uint32_t getNrMessages(uint8_t logDestination) const;
+  uint32_t getNrMessages(LogDestination logDestination) const;
 
-  bool logActiveRead(uint8_t logDestination);
+  bool logActiveRead(LogDestination logDestination);
 
   void clearExpiredEntries();
 

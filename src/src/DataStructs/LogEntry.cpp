@@ -118,7 +118,7 @@ void LogEntry_t::setSubscribers()
   if (isValid()) {
     for (uint32_t i = 0; i < NR_LOG_TO_DESTINATIONS; ++i) {
       bitWrite(_subscriberPendingRead, i,
-               loglevelActiveFor(i, _logLevel));
+               loglevelActiveFor(static_cast<LogDestination>(i), _logLevel));
     }
   }
 
@@ -132,7 +132,7 @@ void LogEntry_t::updateSubscribers()
   if (isValid()) {
     for (uint32_t i = 0; i < NR_LOG_TO_DESTINATIONS; ++i) {
       if (bitRead(_subscriberPendingRead, i)) {
-        if (!loglevelActiveFor(i, _logLevel)) {
+        if (!loglevelActiveFor(static_cast<LogDestination>(i), _logLevel)) {
           bitClear(_subscriberPendingRead, i);
         }
       }

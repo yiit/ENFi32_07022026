@@ -12,7 +12,7 @@
 class SyslogWriter : public LogStreamWriter {
 public:
 
-  SyslogWriter(uint8_t log_destination) : LogStreamWriter(log_destination) {}
+  SyslogWriter(LogDestination log_destination) : LogStreamWriter(log_destination) {}
 
   virtual bool process() override;
 

@@ -13,14 +13,20 @@
 # define LOG_LEVEL_DEBUG_DEV                 9 // use for testing/debugging only, not for regular use
 #endif // ifndef BUILD_NO_DEBUG
 
-#define LOG_TO_SERIAL         0
-#define LOG_TO_SYSLOG         1
-#define LOG_TO_WEBLOG         2
-#define LOG_TO_SDCARD         3
-#define LOG_TO_SERIAL_EXTRA   4
+enum LogDestination {
 
-#define NR_LOG_TO_DESTINATIONS  5 // Update this when adding extra log output streams
+ LOG_TO_SERIAL         ,
+ LOG_TO_SYSLOG         ,
+ LOG_TO_WEBLOG         ,
+#if FEATURE_SD
+ LOG_TO_SDCARD         ,
+#endif
+#if USES_ESPEASY_CONSOLE_FALLBACK_PORT
+ LOG_TO_SERIAL_EXTRA   ,
+#endif
 
+ NR_LOG_TO_DESTINATIONS
+};
 
 #ifdef BUILD_NO_DEBUG
 # define LOG_LEVEL_MAX_STRING_LENGTH  6
