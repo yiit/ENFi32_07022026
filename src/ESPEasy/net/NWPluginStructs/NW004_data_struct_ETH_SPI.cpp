@@ -64,6 +64,12 @@ bool NW004_data_struct_ETH_SPI::exit(EventStruct *event)
 
 NWPluginData_static_runtime * NW004_data_struct_ETH_SPI::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+ bool NW004_data_struct_ETH_SPI::_export(KeyValueWriter* writer) const { return false; }
+ bool NW004_data_struct_ETH_SPI::_import(const String& json) { return false; }
+#endif
+
+
 void                          NW004_data_struct_ETH_SPI::onEvent(arduino_event_id_t   event,
                                                                  arduino_event_info_t info)
 {

@@ -61,6 +61,12 @@ bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
   return true;
 }
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+ bool NW003_data_struct_ETH_RMII::_export(KeyValueWriter* writer) const { return false; }
+ bool NW003_data_struct_ETH_RMII::_import(const String& json) { return false; }
+#endif
+
+
 NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
 void                          NW003_data_struct_ETH_RMII::onEvent(arduino_event_id_t   event,

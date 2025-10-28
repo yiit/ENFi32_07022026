@@ -45,6 +45,11 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
 
   WiFiDisconnectReason getWiFi_disconnectReason() const;
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+  virtual bool _export(KeyValueWriter* writer) const;
+  virtual bool _import(const String& json);
+#endif
+
 private:
 
   ESPEasyWiFi_STA_EventHandler _WiFiEventHandler;

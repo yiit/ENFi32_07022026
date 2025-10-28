@@ -10,6 +10,7 @@
 
 #if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 # include "../../../src/Helpers/_ESPEasy_key_value_store.h"
+# include "../../../src/Helpers/ESPEasy_key_value_store_import_export.h"
 #endif
 
 namespace ESPEasy {
@@ -130,6 +131,11 @@ protected:
   // Array of pointers to PluginStats. One per task value.
   PluginStats_array *_plugin_stats_array = nullptr;
 #endif // if FEATURE_NETWORK_STATS
+
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+  virtual bool _export(KeyValueWriter* writer) const = 0;
+  virtual bool _import(const String& json) = 0;
+#endif
 
 protected:
 

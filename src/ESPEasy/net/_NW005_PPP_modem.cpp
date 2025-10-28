@@ -137,7 +137,7 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
-
+#ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       if (event->kvWriter) {
@@ -155,7 +155,7 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-
+#endif
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {

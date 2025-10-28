@@ -112,6 +112,11 @@ NWPluginData_static_runtime * NW001_data_struct_WiFi_STA::getNWPluginData_static
   return _WiFiEventHandler.getNWPluginData_static_runtime();
 }
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+ bool NW001_data_struct_WiFi_STA::_export(KeyValueWriter* writer) const { return false; }
+ bool NW001_data_struct_WiFi_STA::_import(const String& json) { return false; }
+#endif
+
 const __FlashStringHelper * NW001_data_struct_WiFi_STA::getWiFi_encryptionType() const
 {
   return _WiFiEventHandler.getWiFi_encryptionType();

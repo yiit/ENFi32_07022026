@@ -179,7 +179,12 @@ void handle_networks_ShowAllNetworksTable()
   html_table_header(F(""),           70);
   html_table_header(F("Nr"),         50);
   html_table_header(F("Enabled"),    100);
+#ifndef LIMIT_BUILD_SIZE
   html_table_header(F("Network Adapter"));
+#else
+  html_table_header(F(""));
+#endif
+  html_table_header(F("Name"),       50);
   # ifdef ESP32
   html_table_header(F("Route Prio"), 50);
   # endif
@@ -187,7 +192,9 @@ void handle_networks_ShowAllNetworksTable()
   html_table_header(F("Hostname/SSID"));
   html_table_header(F("HW Address"));
   html_table_header(F("IP"));
+#ifndef LIMIT_BUILD_SIZE
   html_table_header(F("Port"));
+#endif
 
   for (ESPEasy::net::networkIndex_t x = 0; x < MAX_NR_NETWORKS_IN_TABLE; x++)
   {
@@ -207,14 +214,17 @@ void handle_networks_ShowAllNetworksTable()
       addHtml(getNWPluginNameFromNWPluginID(Settings.getNWPluginID_for_network(x)));
 
       const NWPlugin::Function functions[] {
+        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME,
 # ifdef ESP32
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO,
 # endif
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS,
-        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP,
-        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
+        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP
+#ifndef LIMIT_BUILD_SIZE
+        ,NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
+#endif
       };
 
       //      const networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(x);
@@ -263,7 +273,11 @@ void handle_networks_ShowAllNetworksTable()
 
     }
     else {
+#ifndef LIMIT_BUILD_SIZE
+      html_TD(8);
+#else
       html_TD(7);
+#endif
     }
   }
 
@@ -402,7 +416,9 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
       KeyValueWriter_WebForm writer(true);
       
       ESPEasy::net::write_NetworkAdapterFlags(networkindex, writer.createChild(F("Network Interface")).get());
+#ifndef LIMIT_BUILD_SIZE
       ESPEasy::net::write_NetworkAdapterPort(networkindex, writer.createChild(F("Port")).get());
+#endif
       ESPEasy::net::write_IP_config(networkindex, writer.createChild(F("IP Config")).get());
       ESPEasy::net::write_NetworkConnectionInfo(networkindex, writer.createChild(F("Connection Information")).get());
     }

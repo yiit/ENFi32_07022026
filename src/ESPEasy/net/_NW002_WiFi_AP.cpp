@@ -156,6 +156,15 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
+    {
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("Name"), F("ap") });
+        success = true;
+      }
+      break;
+    }
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
       if (event->kvWriter) {
@@ -211,12 +220,6 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 # endif // ifdef ESP8266
-
-    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
-    {
-      break;
-    }
-
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {

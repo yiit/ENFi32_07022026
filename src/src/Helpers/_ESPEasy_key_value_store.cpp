@@ -2,57 +2,12 @@
 
 #if FEATURE_ESPEASY_KEY_VALUE_STORE
 
-# include "../Helpers/StringConverter_Numerical.h"
 # include "../Helpers/ESPEasy_Storage.h"
 # include "../Helpers/ESPEasy_time_calc.h"
+# include "../Helpers/KeyValueWriter.h"
 # include "../Helpers/StringConverter.h"
+# include "../Helpers/StringConverter_Numerical.h"
 
-uint32_t ESPEasy_key_value_store::combine_StorageType_and_key(
-  ESPEasy_key_value_store::StorageType storageType,
-  uint32_t                             key)
-{
-  uint32_t res = key & ((1 << 24) - 1);
-  res |= (static_cast<uint32_t>(storageType) << 24);
-  return res;
-}
-
-ESPEasy_key_value_store::StorageType ESPEasy_key_value_store::get_StorageType_from_combined_key(uint32_t combined_key)
-{
-  return static_cast<ESPEasy_key_value_store::StorageType>(combined_key >> 24);
-}
-
-uint32_t ESPEasy_key_value_store::getKey_from_combined_key(uint32_t combined_key)
-{
-  const uint32_t res = combined_key & ((1 << 24) - 1);
-
-  return res;
-}
-
-size_t getStorageSizePerType(ESPEasy_key_value_store::StorageType storageType)
-{
-  switch (storageType)
-  {
-    case ESPEasy_key_value_store::StorageType::not_set:      break;
-    case ESPEasy_key_value_store::StorageType::string_type:  break;
-    case ESPEasy_key_value_store::StorageType::int8_type:    return 4 + 1;
-    case ESPEasy_key_value_store::StorageType::uint8_type:   return 4 + 1;
-    case ESPEasy_key_value_store::StorageType::int16_type:   return 4 + 2;
-    case ESPEasy_key_value_store::StorageType::uint16_type:  return 4 + 2;
-    case ESPEasy_key_value_store::StorageType::int32_type:   return 4 + 4;
-    case ESPEasy_key_value_store::StorageType::uint32_type:  return 4 + 4;
-    case ESPEasy_key_value_store::StorageType::int64_type:   return 4 + 8;
-    case ESPEasy_key_value_store::StorageType::uint64_type:  return 4 + 8;
-    case ESPEasy_key_value_store::StorageType::float_type:   return 4 + 4;
-    case ESPEasy_key_value_store::StorageType::double_type:  return 4 + 8;
-    case ESPEasy_key_value_store::StorageType::bool_type:    return 4 + 0;
-    case ESPEasy_key_value_store::StorageType::MAX_Type:     break;
-    case ESPEasy_key_value_store::StorageType::bool_true:
-    case ESPEasy_key_value_store::StorageType::bool_false:   return 4 + 0;
-
-    case ESPEasy_key_value_store::StorageType::binary: break;
-  }
-  return 0;
-}
 
 bool ESPEasy_key_value_store::isEmpty() const
 {
@@ -141,7 +96,7 @@ bool ESPEasy_key_value_store::load(
 
   size_t bytesLeftPartialString{};
   String partialString;
-  ESPEasy_key_value_store::StorageType storageType{};
+  KVS_StorageType::Enum storageType{};
   size_t   sizePerType{};
   uint32_t key{};
 
@@ -172,18 +127,18 @@ bool ESPEasy_key_value_store::load(
       const uint32_t bufPos_start_loop = bufPos;
 
       if (!bytesLeftPartialString) {
-        // Parse StorageType + key
+        // Parse KVS_StorageType::Enum + key
         if ((readSize - bufPos) < 4) {
           // Read next block
           loadNextFromFile = true;
 
         } else {
           const ESPEasy_key_value_store_4byte_data_t combined_key(buf_start + bufPos);
-          storageType = get_StorageType_from_combined_key(combined_key.getUint32());
-          sizePerType = getStorageSizePerType(storageType);
-          key         = getKey_from_combined_key(combined_key.getUint32());
+          storageType = KVS_StorageType::get_StorageType_from_combined_key(combined_key.getUint32());
+          sizePerType = KVS_StorageType::getStorageSizePerType(storageType);
+          key         = KVS_StorageType::getKey_from_combined_key(combined_key.getUint32());
 
-          if ((sizePerType < 4) && (storageType != ESPEasy_key_value_store::StorageType::string_type)) {
+          if ((sizePerType < 4) && (storageType != KVS_StorageType::Enum::string_type)) {
             // Should not happen as those should not be stored in the file
             _state = State::ErrorOnLoad;
             # ifndef BUILD_NO_DEBUG
@@ -198,18 +153,18 @@ bool ESPEasy_key_value_store::load(
       if (!loadNextFromFile) {
         switch (storageType)
         {
-          case ESPEasy_key_value_store::StorageType::bool_false:
-          case ESPEasy_key_value_store::StorageType::bool_type:
-          case ESPEasy_key_value_store::StorageType::bool_true:
+          case KVS_StorageType::Enum::bool_false:
+          case KVS_StorageType::Enum::bool_type:
+          case KVS_StorageType::Enum::bool_true:
           {
             // Store bool type
-            const bool res = storageType != ESPEasy_key_value_store::StorageType::bool_false;
+            const bool res = storageType != KVS_StorageType::Enum::bool_false;
             setValue(key, res);
             bufPos += 4;
             break;
           }
 
-          case ESPEasy_key_value_store::StorageType::string_type:
+          case KVS_StorageType::Enum::string_type:
           {
             if (bytesLeftPartialString == 0) {
               // Found new string type
@@ -301,7 +256,7 @@ bool ESPEasy_key_value_store::load(
       if ((bufPos_start_loop == bufPos) && !loadNextFromFile) {
         _state = State::ErrorOnLoad;
         # ifndef BUILD_NO_DEBUG
-        _lastError = strformat(F("KVS: BUG! Did not increment bufPos while processing StorageType %d at readPos %d"),
+        _lastError = strformat(F("KVS: BUG! Did not increment bufPos while processing KVS_StorageType::Enum %d at readPos %d"),
                                static_cast<int>(storageType), LOG_READPOS_OFFSET);
         addLog(LOG_LEVEL_ERROR, _lastError);
         # endif // ifndef BUILD_NO_DEBUG
@@ -316,7 +271,7 @@ bool ESPEasy_key_value_store::load(
     _state = State::ErrorOnLoad;
 # ifndef BUILD_NO_DEBUG
     _lastError = strformat(
-      F("KVS: Timeout! bufPos while processing StorageType %d at readPos %d, startChecksumPos: %d"),
+      F("KVS: Timeout! bufPos while processing KVS_StorageType::Enum %d at readPos %d, startChecksumPos: %d"),
       static_cast<int>(storageType), readPos, startChecksumPos);
     addLog(LOG_LEVEL_ERROR, _lastError);
     dump();
@@ -473,9 +428,9 @@ bool ESPEasy_key_value_store::store(
     } else if (it_4byte != _4byte_data.end()) {
       // Write 4-byte data
       uint32_t combined_key                            = it_4byte->first;
-      ESPEasy_key_value_store::StorageType storageType = get_StorageType_from_combined_key(combined_key);
-      const uint32_t key                               = getKey_from_combined_key(combined_key);
-      const size_t   sizePerType                       = getStorageSizePerType(storageType);
+      KVS_StorageType::Enum storageType = KVS_StorageType::get_StorageType_from_combined_key(combined_key);
+      const uint32_t key                               = KVS_StorageType::getKey_from_combined_key(combined_key);
+      const size_t   sizePerType                       = KVS_StorageType::getStorageSizePerType(storageType);
 
       if (sizePerType >= 4) {
         if ((buffer.size() - bufPos) < sizePerType) {
@@ -484,16 +439,16 @@ bool ESPEasy_key_value_store::store(
 
           switch (storageType)
           {
-            case ESPEasy_key_value_store::StorageType::bool_false:
-            case ESPEasy_key_value_store::StorageType::bool_true:
-            case ESPEasy_key_value_store::StorageType::bool_type:
+            case KVS_StorageType::Enum::bool_false:
+            case KVS_StorageType::Enum::bool_true:
+            case KVS_StorageType::Enum::bool_type:
             {
               bool value{};
               getValue(key, value);
-              combined_key = combine_StorageType_and_key(
+              combined_key = KVS_StorageType::combine_StorageType_and_key(
                 value
-                      ? ESPEasy_key_value_store::StorageType::bool_true
-                      : ESPEasy_key_value_store::StorageType::bool_false
+                      ? KVS_StorageType::Enum::bool_true
+                      : KVS_StorageType::Enum::bool_false
                 , key);
               break;
             }
@@ -579,29 +534,29 @@ size_t ESPEasy_key_value_store::getPayloadStorageSize() const
 
   for (auto it = _4byte_data.begin(); it != _4byte_data.end(); ++it)
   {
-    res += getStorageSizePerType(
-      get_StorageType_from_combined_key(it->first));
+    res += KVS_StorageType::getStorageSizePerType(
+      KVS_StorageType::get_StorageType_from_combined_key(it->first));
   }
 
   for (auto it = _8byte_data.begin(); it != _8byte_data.end(); ++it)
   {
-    res += getStorageSizePerType(
-      get_StorageType_from_combined_key(it->first));
+    res += KVS_StorageType::getStorageSizePerType(
+      KVS_StorageType::get_StorageType_from_combined_key(it->first));
   }
   return res;
 }
 
-bool ESPEasy_key_value_store::hasKey(StorageType storageType, uint32_t key) const
+bool ESPEasy_key_value_store::hasKey(KVS_StorageType::Enum storageType, uint32_t key) const
 {
   if (!hasStorageType(storageType)) { return false; }
 
-  const uint32_t combined_key = combine_StorageType_and_key(storageType, key);
+  const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(storageType, key);
 
-  if (storageType == ESPEasy_key_value_store::StorageType::string_type)
+  if (storageType == KVS_StorageType::Enum::string_type)
   {
     return _string_data.find(combined_key) != _string_data.end();
   }
-  const size_t size = getStorageSizePerType(storageType);
+  const size_t size = KVS_StorageType::getStorageSizePerType(storageType);
 
   if (size == 12)
   {
@@ -614,22 +569,22 @@ bool ESPEasy_key_value_store::hasKey(StorageType storageType, uint32_t key) cons
   return false;
 }
 
-ESPEasy_key_value_store::StorageType ESPEasy_key_value_store::getStorageType(uint32_t key) const
+KVS_StorageType::Enum ESPEasy_key_value_store::getStorageType(uint32_t key) const
 {
   uint32_t cached_bitmap = _storage_type_present_cache;
 
   // Search all storage types, skipping the 'not_set'
   for (size_t i = 0;
        cached_bitmap &&
-       i < static_cast<size_t>(ESPEasy_key_value_store::StorageType::MAX_Type);
+       i < static_cast<size_t>(KVS_StorageType::Enum::MAX_Type);
        ++i)
   {
-    const ESPEasy_key_value_store::StorageType res = static_cast<ESPEasy_key_value_store::StorageType>(i);
+    const KVS_StorageType::Enum res = static_cast<KVS_StorageType::Enum>(i);
 
     if (hasKey(res, key)) { return res; }
     cached_bitmap >>= 1;
   }
-  return ESPEasy_key_value_store::StorageType::not_set;
+  return KVS_StorageType::Enum::not_set;
 }
 #define KVS_STRINGPAIR_SEPARATOR ((char)1)
 bool ESPEasy_key_value_store::getValue(uint32_t key, StringPair& stringPair) const
@@ -658,8 +613,8 @@ void ESPEasy_key_value_store::setValue(uint32_t key, const StringPair& stringPai
 
 bool ESPEasy_key_value_store::getValue(uint32_t key, String& value) const
 {
-  const uint32_t combined_key = combine_StorageType_and_key(
-    ESPEasy_key_value_store::StorageType::string_type,
+  const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(
+    KVS_StorageType::Enum::string_type,
     key);
 
   auto it = _string_data.find(combined_key);
@@ -676,8 +631,8 @@ void ESPEasy_key_value_store::setValue(uint32_t                  key,
 
 void ESPEasy_key_value_store::setValue(uint32_t key, String&& value)
 {
-  const uint32_t combined_key = combine_StorageType_and_key(
-    ESPEasy_key_value_store::StorageType::string_type,
+  const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(
+    KVS_StorageType::Enum::string_type,
     key);
   auto it = _string_data.find(combined_key);
 
@@ -691,52 +646,52 @@ void ESPEasy_key_value_store::setValue(uint32_t key, String&& value)
       _state     = State::Changed;
     }
   }
-  setHasStorageType(ESPEasy_key_value_store::StorageType::string_type);
+  setHasStorageType(KVS_StorageType::Enum::string_type);
 }
 
 ESPEasy_key_value_store::map_4byte_data::const_iterator ESPEasy_key_value_store::get4byteIterator(
-  ESPEasy_key_value_store::StorageType storageType,
+  KVS_StorageType::Enum storageType,
   uint32_t                             key) const
 {
   if (!hasStorageType(storageType)) { return _4byte_data.end(); }
-  const uint32_t combined_key = combine_StorageType_and_key(storageType, key);
+  const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(storageType, key);
   return _4byte_data.find(combined_key);
 }
 
 ESPEasy_key_value_store::map_8byte_data::const_iterator ESPEasy_key_value_store::get8byteIterator(
-  ESPEasy_key_value_store::StorageType storageType,
+  KVS_StorageType::Enum storageType,
   uint32_t                             key) const
 {
   if (!hasStorageType(storageType)) { return _8byte_data.end(); }
-  const uint32_t combined_key = combine_StorageType_and_key(storageType, key);
+  const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(storageType, key);
   return _8byte_data.find(combined_key);
 }
 
 # define GET_4BYTE_TYPE(T, GF)                                                    \
-        auto it = get4byteIterator(ESPEasy_key_value_store::StorageType::T, key); \
+        auto it = get4byteIterator(KVS_StorageType::Enum::T, key); \
         if (it == _4byte_data.end()) return false;                                \
         value = it->second.GF();                                                  \
         return true;                                                              \
 
 # define GET_8BYTE_TYPE(T, GF)                                                    \
-        auto it = get8byteIterator(ESPEasy_key_value_store::StorageType::T, key); \
+        auto it = get8byteIterator(KVS_StorageType::Enum::T, key); \
         if (it == _8byte_data.end()) return false;                                \
         value = it->second.GF();                                                  \
         return true;                                                              \
 
 
 # define SET_4BYTE_TYPE(T, SF)                                            \
-        const uint32_t combined_key = combine_StorageType_and_key(        \
-          ESPEasy_key_value_store::StorageType::T, key);                  \
+        const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(        \
+          KVS_StorageType::Enum::T, key);                  \
         if (_4byte_data[combined_key].SF(value)) _state = State::Changed; \
-        setHasStorageType(ESPEasy_key_value_store::StorageType::T);
+        setHasStorageType(KVS_StorageType::Enum::T);
 
 
 # define SET_8BYTE_TYPE(T, SF)                                            \
-        const uint32_t combined_key = combine_StorageType_and_key(        \
-          ESPEasy_key_value_store::StorageType::T, key);                  \
+        const uint32_t combined_key = KVS_StorageType::combine_StorageType_and_key(        \
+          KVS_StorageType::Enum::T, key);                  \
         if (_8byte_data[combined_key].SF(value)) _state = State::Changed; \
-        setHasStorageType(ESPEasy_key_value_store::StorageType::T);
+        setHasStorageType(KVS_StorageType::Enum::T);
 
 bool ESPEasy_key_value_store::getValue(uint32_t key, int8_t& value) const
 {
@@ -813,7 +768,7 @@ bool ESPEasy_key_value_store::getValue(uint32_t key, bool& boolValue) const
 {
   boolValue = false;
   uint32_t value{};
-  auto     it = get4byteIterator(ESPEasy_key_value_store::StorageType::bool_type, key);
+  auto     it = get4byteIterator(KVS_StorageType::Enum::bool_type, key);
 
   if (it == _4byte_data.end()) { return false; }
   value     = it->second.getUint32();
@@ -826,23 +781,23 @@ void ESPEasy_key_value_store::setValue(uint32_t key, const bool& boolValue) {
   SET_4BYTE_TYPE(bool_type, setUint32);
 }
 
-bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, uint32_t key, String& value) const
+bool ESPEasy_key_value_store::getValueAsString(const KVS_StorageType::Enum& storageType, uint32_t key, String& value) const
 {
   if (!hasKey(storageType, key)) { return false; }
 
   switch (storageType)
   {
-    case ESPEasy_key_value_store::StorageType::string_type:
+    case KVS_StorageType::Enum::string_type:
       return getValue(key, value);
 
-    case ESPEasy_key_value_store::StorageType::bool_type:
-    case ESPEasy_key_value_store::StorageType::int8_type:
-    case ESPEasy_key_value_store::StorageType::uint8_type:
-    case ESPEasy_key_value_store::StorageType::int16_type:
-    case ESPEasy_key_value_store::StorageType::uint16_type:
-    case ESPEasy_key_value_store::StorageType::int32_type:
-    case ESPEasy_key_value_store::StorageType::uint32_type:
-    case ESPEasy_key_value_store::StorageType::int64_type:
+    case KVS_StorageType::Enum::bool_type:
+    case KVS_StorageType::Enum::int8_type:
+    case KVS_StorageType::Enum::uint8_type:
+    case KVS_StorageType::Enum::int16_type:
+    case KVS_StorageType::Enum::uint16_type:
+    case KVS_StorageType::Enum::int32_type:
+    case KVS_StorageType::Enum::uint32_type:
+    case KVS_StorageType::Enum::int64_type:
     {
       int64_t int64_value{};
 
@@ -853,7 +808,7 @@ bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, u
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::float_type:
+    case KVS_StorageType::Enum::float_type:
     {
       float v{};
 
@@ -864,7 +819,7 @@ bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, u
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::uint64_type:
+    case KVS_StorageType::Enum::uint64_type:
     {
       uint64_t v{};
 
@@ -875,7 +830,7 @@ bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, u
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::double_type:
+    case KVS_StorageType::Enum::double_type:
     {
       double v{};
 
@@ -886,11 +841,11 @@ bool ESPEasy_key_value_store::getValueAsString(const StorageType& storageType, u
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::not_set:
-    case ESPEasy_key_value_store::StorageType::bool_true:
-    case ESPEasy_key_value_store::StorageType::bool_false:
-    case ESPEasy_key_value_store::StorageType::binary:
-    case ESPEasy_key_value_store::StorageType::MAX_Type:
+    case KVS_StorageType::Enum::not_set:
+    case KVS_StorageType::Enum::bool_true:
+    case KVS_StorageType::Enum::bool_false:
+    case KVS_StorageType::Enum::binary:
+    case KVS_StorageType::Enum::MAX_Type:
       break;
   }
   return false;
@@ -902,7 +857,7 @@ bool ESPEasy_key_value_store::getValueAsString(uint32_t key, String& value) cons
 }
 
 # define GET_TYPE_AS_INT64(T, CT)                       \
-          case ESPEasy_key_value_store::StorageType::T: \
+          case KVS_StorageType::Enum::T: \
             {                                           \
               CT v{};                                   \
               if (getValue(key, v)) {                   \
@@ -922,9 +877,9 @@ bool ESPEasy_key_value_store::getValueAsInt(
 
   switch (storageType)
   {
-    case ESPEasy_key_value_store::StorageType::bool_type:
-    case ESPEasy_key_value_store::StorageType::bool_true:
-    case ESPEasy_key_value_store::StorageType::bool_false:
+    case KVS_StorageType::Enum::bool_type:
+    case KVS_StorageType::Enum::bool_true:
+    case KVS_StorageType::Enum::bool_false:
     {
       bool v{};
 
@@ -945,7 +900,7 @@ bool ESPEasy_key_value_store::getValueAsInt(
       GET_TYPE_AS_INT64(uint64_type, uint64_t)
       GET_TYPE_AS_INT64(double_type, double)
 
-    case ESPEasy_key_value_store::StorageType::int64_type:
+    case KVS_StorageType::Enum::int64_type:
       return getValue(key, value);
     default: break;
   }
@@ -966,18 +921,18 @@ int64_t ESPEasy_key_value_store::getValueAsInt(uint32_t key) const
 }
 
 # define GET_4BYTE_INT_TYPE_FROM_STRING(T, CT)          \
-          case ESPEasy_key_value_store::StorageType::T: \
+          case KVS_StorageType::Enum::T: \
             {                                           \
               CT v(value.toInt());                      \
               setValue(key, v);                         \
               break;                                    \
             }
 
-void ESPEasy_key_value_store::setValue(const StorageType& storageType, uint32_t key, const String& value)
+void ESPEasy_key_value_store::setValue(const KVS_StorageType::Enum& storageType, uint32_t key, const String& value)
 {
   switch (storageType)
   {
-    case ESPEasy_key_value_store::StorageType::string_type:
+    case KVS_StorageType::Enum::string_type:
       setValue(key, value);
       break;
       GET_4BYTE_INT_TYPE_FROM_STRING(int8_type,   int8_t)
@@ -986,26 +941,26 @@ void ESPEasy_key_value_store::setValue(const StorageType& storageType, uint32_t 
       GET_4BYTE_INT_TYPE_FROM_STRING(uint16_type, uint16_t)
       GET_4BYTE_INT_TYPE_FROM_STRING(int32_type,  int32_t)
       GET_4BYTE_INT_TYPE_FROM_STRING(uint32_type, uint32_t)
-    case ESPEasy_key_value_store::StorageType::double_type:
+    case KVS_StorageType::Enum::double_type:
       setValue(key, value.toDouble());
       break;
-    case ESPEasy_key_value_store::StorageType::float_type:
+    case KVS_StorageType::Enum::float_type:
       setValue(key, value.toFloat());
       break;
-    case ESPEasy_key_value_store::StorageType::int64_type:
+    case KVS_StorageType::Enum::int64_type:
     {
       // TODO TD-er: Implement
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::uint64_type:
+    case KVS_StorageType::Enum::uint64_type:
     {
       // TODO TD-er: Implement
       break;
     }
-    case ESPEasy_key_value_store::StorageType::bool_type:
-    case ESPEasy_key_value_store::StorageType::bool_true:
-    case ESPEasy_key_value_store::StorageType::bool_false:
+    case KVS_StorageType::Enum::bool_type:
+    case KVS_StorageType::Enum::bool_true:
+    case KVS_StorageType::Enum::bool_false:
       setValue(key, static_cast<bool>(value.toInt()));
       break;
     default: return;
@@ -1014,11 +969,11 @@ void ESPEasy_key_value_store::setValue(const StorageType& storageType, uint32_t 
 }
 
 bool ESPEasy_key_value_store::getValue(
-  StorageType                         & storageType,
+  KVS_StorageType::Enum                         & storageType,
   uint32_t                              key,
   ESPEasy_key_value_store_4byte_data_t& value) const
 {
-  auto it = _4byte_data.find(combine_StorageType_and_key(storageType, key));
+  auto it = _4byte_data.find(KVS_StorageType::combine_StorageType_and_key(storageType, key));
 
   if (it == _4byte_data.end()) { return false; }
   memcpy(value.getBinary(), it->second.getBinary(), 4);
@@ -1026,11 +981,11 @@ bool ESPEasy_key_value_store::getValue(
 }
 
 void ESPEasy_key_value_store::setValue(
-  StorageType                               & storageType,
+  KVS_StorageType::Enum                               & storageType,
   uint32_t                                    key,
   const ESPEasy_key_value_store_4byte_data_t& value)
 {
-  auto combined_key = combine_StorageType_and_key(storageType, key);
+  auto combined_key = KVS_StorageType::combine_StorageType_and_key(storageType, key);
   auto it           = _4byte_data.find(combined_key);
 
   if (it == _4byte_data.end()) {
@@ -1044,11 +999,11 @@ void ESPEasy_key_value_store::setValue(
 }
 
 bool ESPEasy_key_value_store::getValue(
-  StorageType                         & storageType,
+  KVS_StorageType::Enum                         & storageType,
   uint32_t                              key,
   ESPEasy_key_value_store_8byte_data_t& value) const
 {
-  auto it = _8byte_data.find(combine_StorageType_and_key(storageType, key));
+  auto it = _8byte_data.find(KVS_StorageType::combine_StorageType_and_key(storageType, key));
 
   if (it == _8byte_data.end()) { return false; }
   memcpy(value.getBinary(), it->second.getBinary(), 8);
@@ -1056,11 +1011,11 @@ bool ESPEasy_key_value_store::getValue(
 }
 
 void ESPEasy_key_value_store::setValue(
-  StorageType                               & storageType,
+  KVS_StorageType::Enum                               & storageType,
   uint32_t                                    key,
   const ESPEasy_key_value_store_8byte_data_t& value)
 {
-  auto combined_key = combine_StorageType_and_key(storageType, key);
+  auto combined_key = KVS_StorageType::combine_StorageType_and_key(storageType, key);
   auto it           = _8byte_data.find(combined_key);
 
   if (it == _8byte_data.end()) {
@@ -1073,29 +1028,29 @@ void ESPEasy_key_value_store::setValue(
   setHasStorageType(storageType);
 }
 
-bool ESPEasy_key_value_store::hasStorageType(StorageType storageType) const
+bool ESPEasy_key_value_store::hasStorageType(KVS_StorageType::Enum storageType) const
 {
   //    return true;
-  if ((storageType == ESPEasy_key_value_store::StorageType::bool_true) ||
-      (storageType == ESPEasy_key_value_store::StorageType::bool_false)) {
-    storageType = ESPEasy_key_value_store::StorageType::bool_type;
+  if ((storageType == KVS_StorageType::Enum::bool_true) ||
+      (storageType == KVS_StorageType::Enum::bool_false)) {
+    storageType = KVS_StorageType::Enum::bool_type;
   }
 
   const uint32_t bitnr         = static_cast<uint32_t>(storageType);
-  constexpr uint32_t max_bitnr = static_cast<uint32_t>(StorageType::MAX_Type);
+  constexpr uint32_t max_bitnr = static_cast<uint32_t>(KVS_StorageType::Enum::MAX_Type);
 
   if (bitnr >= max_bitnr) { return false; }
   return bitRead(_storage_type_present_cache, bitnr);
 }
 
-void ESPEasy_key_value_store::setHasStorageType(StorageType storageType)
+void ESPEasy_key_value_store::setHasStorageType(KVS_StorageType::Enum storageType)
 {
-  if ((storageType == ESPEasy_key_value_store::StorageType::bool_true) ||
-      (storageType == ESPEasy_key_value_store::StorageType::bool_false)) {
-    storageType = ESPEasy_key_value_store::StorageType::bool_type;
+  if ((storageType == KVS_StorageType::Enum::bool_true) ||
+      (storageType == KVS_StorageType::Enum::bool_false)) {
+    storageType = KVS_StorageType::Enum::bool_type;
   }
   const uint32_t bitnr         = static_cast<uint32_t>(storageType);
-  constexpr uint32_t max_bitnr = static_cast<uint32_t>(StorageType::MAX_Type);
+  constexpr uint32_t max_bitnr = static_cast<uint32_t>(KVS_StorageType::Enum::MAX_Type);
 
   if (bitnr < max_bitnr) {
     if (!bitRead(_storage_type_present_cache, bitnr)) {
@@ -1117,16 +1072,16 @@ void ESPEasy_key_value_store::dump() const
     String val;
 
     if (!getValueAsString(
-          get_StorageType_from_combined_key(it->first),
-          getKey_from_combined_key(it->first),
+          KVS_StorageType::get_StorageType_from_combined_key(it->first),
+          KVS_StorageType::getKey_from_combined_key(it->first),
           val)) {
       val = '-';
     }
 
     addLog(LOG_LEVEL_INFO, strformat(
              F("KVS: type: %d, combined-key: %x, key: %d, value: '%s' '%s'"),
-             get_StorageType_from_combined_key(it->first),
-             it->first, getKey_from_combined_key(it->first),
+             KVS_StorageType::get_StorageType_from_combined_key(it->first),
+             it->first, KVS_StorageType::getKey_from_combined_key(it->first),
              it->second.c_str(),
              val.c_str()));
 
@@ -1137,16 +1092,16 @@ void ESPEasy_key_value_store::dump() const
     String val;
 
     if (!getValueAsString(
-          get_StorageType_from_combined_key(it->first),
-          getKey_from_combined_key(it->first),
+          KVS_StorageType::get_StorageType_from_combined_key(it->first),
+          KVS_StorageType::getKey_from_combined_key(it->first),
           val)) {
       val = '-';
     }
 
     addLog(LOG_LEVEL_INFO, strformat(
              F("KVS: type: %d, comb: %x, key: %d, val: '%x %x %x %x' strval: '%s'"),
-             get_StorageType_from_combined_key(it->first),
-             it->first, getKey_from_combined_key(it->first),
+             KVS_StorageType::get_StorageType_from_combined_key(it->first),
+             it->first, KVS_StorageType::getKey_from_combined_key(it->first),
              it->second.getBinary()[0],
              it->second.getBinary()[1],
              it->second.getBinary()[2],
@@ -1161,16 +1116,16 @@ void ESPEasy_key_value_store::dump() const
     String val;
 
     if (!getValueAsString(
-          get_StorageType_from_combined_key(it->first),
-          getKey_from_combined_key(it->first),
+          KVS_StorageType::get_StorageType_from_combined_key(it->first),
+          KVS_StorageType::getKey_from_combined_key(it->first),
           val)) {
       val = '-';
     }
 
     addLog(LOG_LEVEL_INFO, strformat(
              F("KVS: type: %d, comb: %x, key: %d, val: '%x %x %x %x  %x %x %x %x' strval: '%s'"),
-             get_StorageType_from_combined_key(it->first),
-             it->first, getKey_from_combined_key(it->first),
+             KVS_StorageType::get_StorageType_from_combined_key(it->first),
+             it->first, KVS_StorageType::getKey_from_combined_key(it->first),
              it->second.getBinary()[0],
              it->second.getBinary()[1],
              it->second.getBinary()[2],
@@ -1185,5 +1140,16 @@ void ESPEasy_key_value_store::dump() const
   }
 
 }
+
+bool ESPEasy_key_value_store::_export(KeyValueWriter* writer) const
+{
+  return false;
+}
+
+bool ESPEasy_key_value_store::_import(const String& json)
+{
+  return false;
+}
+
 
 #endif // if FEATURE_ESPEASY_KEY_VALUE_STORE

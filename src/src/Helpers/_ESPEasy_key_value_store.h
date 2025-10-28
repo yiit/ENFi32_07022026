@@ -6,9 +6,13 @@
 #if FEATURE_ESPEASY_KEY_VALUE_STORE
 
 # include "../DataTypes/ESPEasy_key_value_store_data.h"
+# include "../DataTypes/ESPEasy_key_value_store_StorageType.h"
+
 # include "../DataTypes/SettingsType.h"
 
 # include <map>
+
+class KeyValueWriter;
 
 // Generic storage layer, which on a low level will store everything as a string.
 // Low level storage structure:
@@ -27,33 +31,8 @@
 class ESPEasy_key_value_store
 {
 public:
+
   typedef std::pair<String, String> StringPair;
-
-
-  // Type is stored, so do not change the order/values
-  enum class StorageType {
-    not_set     = 0,
-    string_type = 1,
-    int8_type   = 2,
-    uint8_type  = 3,
-    int16_type  = 4,
-    uint16_type = 5,
-    int32_type  = 6,
-    uint32_type = 7,
-    int64_type  = 8,
-    uint64_type = 9,
-    float_type  = 10,
-    double_type = 11,
-    bool_type   = 12,
-
-    MAX_Type,         // Leave this one after the generic type and before 'special' types
-
-
-    bool_true  = 126, // small optimization to store 'true' as extra type
-    bool_false = 127,  // small optimization to store 'false' as extra type
-    binary     = 255
-
-  };
 
   enum class State {
     Empty,
@@ -64,25 +43,17 @@ public:
 
   };
 
-  static uint32_t combine_StorageType_and_key(
-    ESPEasy_key_value_store::StorageType storageType,
-    uint32_t                             key);
+  State                               getState() const { return _state; }
 
-  static ESPEasy_key_value_store::StorageType get_StorageType_from_combined_key(uint32_t combined_key);
+  bool                                isEmpty() const;
 
-  static uint32_t                             getKey_from_combined_key(uint32_t combined_key);
-
-  State                                       getState() const { return _state; }
-
-  bool                                        isEmpty() const;
-
-  void                                        clear();
+  void                                clear();
 
 
-  bool                                        load(SettingsType::Enum settingsType,
-                                                   int                index,
-                                                   uint32_t           offset_in_block,
-                                                   uint16_t           id_to_match);
+  bool                                load(SettingsType::Enum settingsType,
+                                           int                index,
+                                           uint32_t           offset_in_block,
+                                           uint16_t           id_to_match);
   bool store(SettingsType::Enum settingsType,
              int                index,
              uint32_t           offset_in_block,
@@ -92,11 +63,11 @@ public:
   size_t getPayloadStorageSize() const;
 
   // Check to see if there is a key stored with given storage type
-  bool   hasKey(StorageType storageType,
-                uint32_t    key) const;
+  bool   hasKey(KVS_StorageType::Enum storageType,
+                uint32_t                     key) const;
 
   // Try to find a key and get its storage type or 'not_set' if the key is not present
-  StorageType getStorageType(uint32_t key) const;
+  KVS_StorageType::Enum getStorageType(uint32_t key) const;
 
 
   /*
@@ -105,8 +76,10 @@ public:
    ###############################################
    */
 
-  bool getValue(uint32_t key, StringPair& stringPair) const;
-  void setValue(uint32_t key, const StringPair& stringPair);
+  bool getValue(uint32_t    key,
+                StringPair& stringPair) const;
+  void setValue(uint32_t          key,
+                const StringPair& stringPair);
 
   bool getValue(uint32_t key,
                 String & value) const;
@@ -175,9 +148,9 @@ public:
 
   // Generic get function for any given storageType/key and represent its value as a string.
   // Return false when storageType/key is not present.
-  bool getValueAsString(const StorageType& storageType,
-                        uint32_t           key,
-                        String           & value) const;
+  bool getValueAsString(const KVS_StorageType::Enum& storageType,
+                        uint32_t                            key,
+                        String                            & value) const;
 
   bool    getValueAsString(uint32_t key,
                            String & value) const;
@@ -192,48 +165,51 @@ public:
   // Generic set function for any given storageType/key.
   // Given value is a string representation of that storage type.
   // TODO TD-er: Implement
-  void setValue(const StorageType& storageType,
-                uint32_t           key,
-                const String     & value);
+  void setValue(const KVS_StorageType::Enum& storageType,
+                uint32_t                            key,
+                const String                      & value);
 
   String getLastError() const { return _lastError; }
 
   void   dump() const;
 
+  bool   _export(KeyValueWriter*writer) const;
+  bool   _import(const String& json);
+
 private:
 
-  bool getValue(StorageType                         & storageType,
+  bool getValue(KVS_StorageType::Enum        & storageType,
                 uint32_t                              key,
                 ESPEasy_key_value_store_4byte_data_t& value) const;
 
-  void setValue(StorageType                               & storageType,
+  void setValue(KVS_StorageType::Enum              & storageType,
                 uint32_t                                    key,
                 const ESPEasy_key_value_store_4byte_data_t& value);
 
-  bool getValue(StorageType                         & storageType,
+  bool getValue(KVS_StorageType::Enum        & storageType,
                 uint32_t                              key,
                 ESPEasy_key_value_store_8byte_data_t& value) const;
 
-  void setValue(StorageType                               & storageType,
+  void setValue(KVS_StorageType::Enum              & storageType,
                 uint32_t                                    key,
                 const ESPEasy_key_value_store_8byte_data_t& value);
 
 
   // Query cache to see if we have any of the asked storage type
-  bool hasStorageType(StorageType storageType) const;
+  bool hasStorageType(KVS_StorageType::Enum storageType) const;
 
   // Update cache to indicate we have at least one of the given storage type
-  void setHasStorageType(StorageType storageType);
+  void setHasStorageType(KVS_StorageType::Enum storageType);
 
-  typedef std::map<uint32_t, ESPEasy_key_value_store_4byte_data_t>map_4byte_data;
-  typedef std::map<uint32_t, ESPEasy_key_value_store_8byte_data_t>map_8byte_data;
+  typedef std::map<uint32_t, ESPEasy_key_value_store_4byte_data_t> map_4byte_data;
+  typedef std::map<uint32_t, ESPEasy_key_value_store_8byte_data_t> map_8byte_data;
 
   map_4byte_data::const_iterator get4byteIterator(
-    ESPEasy_key_value_store::StorageType storageType,
-    uint32_t                             key) const;
+    KVS_StorageType::Enum storageType,
+    uint32_t                     key) const;
   map_8byte_data::const_iterator get8byteIterator(
-    ESPEasy_key_value_store::StorageType storageType,
-    uint32_t                             key) const;
+    KVS_StorageType::Enum storageType,
+    uint32_t                     key) const;
 
   String _lastError;
 

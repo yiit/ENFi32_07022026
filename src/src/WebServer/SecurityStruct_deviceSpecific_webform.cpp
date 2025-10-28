@@ -9,10 +9,10 @@
 String DevSpecific_Security_getLabelString(SecurityStruct_deviceSpecific::KeyType keytype,
                                            uint16_t                               index,
                                            bool                                   displayString,
-                                           ESPEasy_key_value_store::StorageType & storageType,
+                                           KVS_StorageType::Enum & storageType,
                                            bool                                   suppressIndex_displayString = false)
 {
-  storageType = ESPEasy_key_value_store::StorageType::string_type;
+  storageType = KVS_StorageType::Enum::string_type;
   String res = SecurityStruct_deviceSpecific::toString(keytype);
 
   if ((keytype == SecurityStruct_deviceSpecific::KeyType::WiFi_SSID) ||
@@ -40,7 +40,7 @@ WebFormItemParams make_DevSpecific_Security_WebFormItemParams(
   uint16_t                               index,
   bool                                   suppressIndex_displayString)
 {
-  ESPEasy_key_value_store::StorageType storageType;
+  KVS_StorageType::Enum storageType;
 
   auto res = WebFormItemParams(
     DevSpecific_Security_getLabelString(
@@ -69,7 +69,7 @@ void store_SecurityStruct_deviceSpecific_WebFormItem(
   SecurityStruct_deviceSpecific::KeyType keytype,
   uint16_t                               index)
 {
-  ESPEasy_key_value_store::StorageType storageType;
+  KVS_StorageType::Enum storageType;
 
   auto id =
     DevSpecific_Security_getLabelString(keytype, index, false, storageType);

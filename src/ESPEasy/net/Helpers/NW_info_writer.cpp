@@ -65,7 +65,7 @@ bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex, KeyVal
   }
   return true;
 }
-
+#ifndef LIMIT_BUILD_SIZE
 bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
                               KeyValueWriter              *writer)
 {
@@ -79,6 +79,7 @@ bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
   NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT, &TempEvent, str);
   return true;
 }
+#endif
 
 bool write_IP_config(ESPEasy::net::networkIndex_t networkindex, KeyValueWriter*writer)
 {

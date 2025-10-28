@@ -25,6 +25,12 @@ struct NW003_data_struct_ETH_RMII : public NWPluginData_base {
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+  virtual bool _export(KeyValueWriter* writer) const;
+  virtual bool _import(const String& json);
+#endif
+
+
 private:
 
   static void onEvent(arduino_event_id_t   event,

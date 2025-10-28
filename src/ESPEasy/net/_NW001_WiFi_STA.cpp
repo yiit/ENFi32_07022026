@@ -234,6 +234,15 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
     }
 
 # ifdef ESP8266
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
+    {
+      if (event->kvWriter) {
+        event->kvWriter->write({ F("Name"), F("sta") });
+        success = true;
+      }
+      break;
+    }
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
       if (event->kvWriter) {
@@ -242,7 +251,6 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
@@ -290,7 +298,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-
+#ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       if (event->kvWriter) {
@@ -298,7 +306,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-
+#endif
 # endif // ifdef BOARD_HAS_SDIO_ESP_HOSTED
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {

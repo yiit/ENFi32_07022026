@@ -244,8 +244,11 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_EXTENDED:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP:
+#ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
+#endif
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
     case NWPlugin::Function::NWPLUGIN_CLIENT_IP_WEB_ACCESS_ALLOWED:
 
 #ifdef ESP32
@@ -304,6 +307,13 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
 # endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
                     event->Par2 = event->networkInterface->isDefault();
                     success     = true;
+                    break;
+
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
+                    if (event->kvWriter) {
+                      event->kvWriter->write({ F("Name"), event->networkInterface->desc() });
+                      success = true;
+                    }
                     break;
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:

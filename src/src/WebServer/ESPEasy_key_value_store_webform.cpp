@@ -8,19 +8,19 @@
 WebFormItemParams::WebFormItemParams(
   const String                       & label,
   const String                       & id,
-  ESPEasy_key_value_store::StorageType storageType,
+  KVS_StorageType::Enum storageType,
   uint32_t                             key)
   : _label(label), _id(id), _storageType(storageType), _key(key) {}
 
 WebFormItemParams::WebFormItemParams(
   const __FlashStringHelper           *label,
   const __FlashStringHelper           *id,
-  ESPEasy_key_value_store::StorageType storageType,
+  KVS_StorageType::Enum storageType,
   uint32_t                             key)
   : _label(label), _id(id), _storageType(storageType), _key(key) {}
 
 # define CORRECT_RANGE(T, CT)                                                                 \
-          case ESPEasy_key_value_store::StorageType::T:                                       \
+          case KVS_StorageType::Enum::T:                                       \
             if (_max > std::numeric_limits<CT>::max()) _max = std::numeric_limits<CT>::max(); \
             if (_min < std::numeric_limits<CT>::min()) _min = std::numeric_limits<CT>::min(); \
             break;
@@ -52,7 +52,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
 
   switch (params._storageType)
   {
-    case ESPEasy_key_value_store::StorageType::string_type:
+    case KVS_StorageType::Enum::string_type:
     {
       String value;
 
@@ -87,12 +87,12 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
       }
       return true;
     }
-    case ESPEasy_key_value_store::StorageType::int8_type:
-    case ESPEasy_key_value_store::StorageType::uint8_type:
-    case ESPEasy_key_value_store::StorageType::int16_type:
-    case ESPEasy_key_value_store::StorageType::uint16_type:
-    case ESPEasy_key_value_store::StorageType::int32_type:
-    case ESPEasy_key_value_store::StorageType::uint32_type:
+    case KVS_StorageType::Enum::int8_type:
+    case KVS_StorageType::Enum::uint8_type:
+    case KVS_StorageType::Enum::int16_type:
+    case KVS_StorageType::Enum::uint16_type:
+    case KVS_StorageType::Enum::int32_type:
+    case KVS_StorageType::Enum::uint32_type:
     {
       int64_t value;
 
@@ -112,18 +112,18 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
       return true;
     }
 
-    case ESPEasy_key_value_store::StorageType::int64_type:
+    case KVS_StorageType::Enum::int64_type:
     {
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::uint64_type:
+    case KVS_StorageType::Enum::uint64_type:
     {
       break;
     }
 
-    case ESPEasy_key_value_store::StorageType::float_type:
-    case ESPEasy_key_value_store::StorageType::double_type:
+    case KVS_StorageType::Enum::float_type:
+    case KVS_StorageType::Enum::double_type:
     {
       float value{};
 
@@ -146,7 +146,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
       return true;
     }
 
-    case ESPEasy_key_value_store::StorageType::bool_type:
+    case KVS_StorageType::Enum::bool_type:
     {
       bool value{};
 
@@ -177,17 +177,17 @@ void showFormSelector(const ESPEasy_key_value_store& store,
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,
-                      ESPEasy_key_value_store::StorageType storageType,
+                      KVS_StorageType::Enum storageType,
                       const __FlashStringHelper           *id) { storeWebformItem(store, key, storageType, String(id)); }
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,
-                      ESPEasy_key_value_store::StorageType storageType,
+                      KVS_StorageType::Enum storageType,
                       const String                       & id)
 {
   String _id = id.isEmpty() ? concat(F("KVS_ID_"), key) : id;
 
-  if (storageType == ESPEasy_key_value_store::StorageType::bool_type) {
+  if (storageType == KVS_StorageType::Enum::bool_type) {
     store.setValue(key, isFormItemChecked(_id));
     return;
   }

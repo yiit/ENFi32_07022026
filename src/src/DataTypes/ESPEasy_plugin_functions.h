@@ -191,13 +191,15 @@ public:
     NWPLUGIN_RECORD_STATS,
     NWPLUGIN_WEBFORM_LOAD_SHOW_STATS,
 #endif
+    NWPLUGIN_WEBFORM_SHOW_NAME,       // Name like "ppp", "eth0", etc.
     NWPLUGIN_WEBFORM_SHOW_CONNECTED,  // Used for showing connected state/speed
     NWPLUGIN_WEBFORM_SHOW_EXTENDED,   // Used for showing all connection info
     NWPLUGIN_WEBFORM_SHOW_HOSTNAME,   // Used for showing hostname
     NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS, // Used for showing MAC
     NWPLUGIN_WEBFORM_SHOW_IP,         // Used for showing IP
+#ifndef LIMIT_BUILD_SIZE
     NWPLUGIN_WEBFORM_SHOW_PORT,        // Used for showing host information for the network adapter.
-
+#endif
 
     NWPLUGIN_MAX_FUNCTION  // Keep as last
 

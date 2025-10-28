@@ -11,12 +11,12 @@
 struct WebFormItemParams {
   WebFormItemParams(const String                       & label,
                     const String                       & id,
-                    ESPEasy_key_value_store::StorageType storageType,
+                    KVS_StorageType::Enum storageType,
                     uint32_t                             key = 0);
 
   WebFormItemParams(const __FlashStringHelper           *label,
                     const __FlashStringHelper           *id,
-                    ESPEasy_key_value_store::StorageType storageType,
+                    KVS_StorageType::Enum storageType,
                     uint32_t                             key = 0);
 
 
@@ -31,7 +31,7 @@ struct WebFormItemParams {
   float                                _max = INT_MAX;
   uint8_t                              _nrDecimals{};
   float                                _stepsize    = 1;
-  ESPEasy_key_value_store::StorageType _storageType = ESPEasy_key_value_store::StorageType::not_set;
+  KVS_StorageType::Enum _storageType = KVS_StorageType::Enum::not_set;
   uint32_t                             _key{};
   int                                  _maxLength{};
   bool                                 _disabled{};
@@ -56,12 +56,12 @@ void showFormSelector(const ESPEasy_key_value_store& store,
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,
-                      ESPEasy_key_value_store::StorageType storageType,
+                      KVS_StorageType::Enum storageType,
                       const __FlashStringHelper           *id);
 
 void storeWebformItem(ESPEasy_key_value_store            & store,
                       uint32_t                             key,
-                      ESPEasy_key_value_store::StorageType storageType,
+                      KVS_StorageType::Enum storageType,
                       const String                       & id = EMPTY_STRING);
 
 #endif // if FEATURE_ESPEASY_KEY_VALUE_STORE

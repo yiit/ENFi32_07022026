@@ -16,9 +16,10 @@ namespace net {
 #ifdef ESP32
 bool write_NetworkAdapterFlags(ESPEasy::net::networkIndex_t networkindex,
                                KeyValueWriter              *writer);
-
+#ifndef LIMIT_BUILD_SIZE
 bool write_NetworkAdapterPort(ESPEasy::net::networkIndex_t networkindex,
                               KeyValueWriter              *writer);
+#endif
 
 bool write_IP_config(ESPEasy::net::networkIndex_t networkindex,
                      KeyValueWriter              *writer);

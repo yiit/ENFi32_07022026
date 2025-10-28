@@ -75,9 +75,9 @@ bool SecurityStruct_deviceSpecific::hasWiFiCredentials(uint8_t index) const
 {
   return
     (index < MAX_EXTRA_WIFI_CREDENTIALS_SEPARATE_FILE) &&
-    _kvs.hasKey(ESPEasy_key_value_store::StorageType::string_type,
+    _kvs.hasKey(KVS_StorageType::Enum::string_type,
                 createKey(KeyType::WiFi_SSID,     index)) &&
-    _kvs.hasKey(ESPEasy_key_value_store::StorageType::string_type,
+    _kvs.hasKey(KVS_StorageType::Enum::string_type,
                 createKey(KeyType::WiFi_Password, index));
 }
 
