@@ -17,6 +17,7 @@
 #include "../Helpers/_Plugin_init.h"
 #include "../Helpers/ESPEasyStatistics.h"
 #include "../Helpers/ESPEasy_Storage.h"
+#include "../Helpers/ESPEasy_UnitOfMeasure.h"
 #include "../Helpers/Numerical.h"
 #include "../Helpers/StringConverter.h"
 #include "../Helpers/StringProvider.h"
@@ -507,7 +508,6 @@ void handle_json()
                 String value(it->second);
                 stripEscapeCharacters(value);
                 value = parseTemplate(value);
-                ESPEASY_RULES_FLOAT_TYPE floatvalue{};
                 uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
                 bool hasPresentation;
                 const String presentation = formatUserVarForPresentation(&TempEvent, INVALID_TASKVAR_INDEX, hasPresentation, value, DeviceIndex, valueName);
