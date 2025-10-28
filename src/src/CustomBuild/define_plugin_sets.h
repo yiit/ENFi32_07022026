@@ -1493,7 +1493,9 @@ To create/register a plugin, you have to :
     #define USES_P033   // Dummy
     #define USES_P034   // DHT12
 //    #define USES_P035   // IRTX
+#ifndef ESP8266_1M
     #define USES_P036   // FrameOLED
+#endif
     #define USES_P037   // MQTTImport
     #define USES_P038   // NeoPixel
     #define USES_P039   // Environment - Thermocouple
