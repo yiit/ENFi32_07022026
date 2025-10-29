@@ -48,7 +48,7 @@ void NW001_data_struct_WiFi_STA::webform_load(EventStruct *event)
 
 void NW001_data_struct_WiFi_STA::webform_save(EventStruct *event) {}
 
-bool NW001_data_struct_WiFi_STA::webform_getPort(String& str)     { return true; }
+bool NW001_data_struct_WiFi_STA::webform_getPort(KeyValueWriter *writer)     { return true; }
 
 bool NW001_data_struct_WiFi_STA::init(EventStruct *event)
 {
@@ -111,11 +111,6 @@ bool NW001_data_struct_WiFi_STA::exit(EventStruct *event) {
 NWPluginData_static_runtime * NW001_data_struct_WiFi_STA::getNWPluginData_static_runtime() {
   return _WiFiEventHandler.getNWPluginData_static_runtime();
 }
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
- bool NW001_data_struct_WiFi_STA::_export(KeyValueWriter* writer) const { return false; }
- bool NW001_data_struct_WiFi_STA::_import(const String& json) { return false; }
-#endif
 
 const __FlashStringHelper * NW001_data_struct_WiFi_STA::getWiFi_encryptionType() const
 {

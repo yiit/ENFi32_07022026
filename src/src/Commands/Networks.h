@@ -36,5 +36,9 @@ String Command_ETH_DNS (struct EventStruct *event, const char* Line);
 String Command_ETH_Wifi_Mode (struct EventStruct *event, const char* Line);
 String Command_ETH_Disconnect (struct EventStruct *event, const char* Line);
 #endif
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+String Command_Network_ExportConfig (struct EventStruct *event, const char* Line);
+String Command_Network_ImportConfig (struct EventStruct *event, const char* Line);
+#endif
 
 #endif // COMMAND_NETWORKS_H

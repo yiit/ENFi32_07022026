@@ -137,7 +137,7 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
-#ifndef LIMIT_BUILD_SIZE
+# ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       if (event->kvWriter) {
@@ -145,17 +145,12 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
           static_cast<ESPEasy::net::ppp::NW005_data_struct_PPP_modem *>(getNWPluginData(event->NetworkIndex));
 
         if (NW_data) {
-          String portStr;
-          success = NW_data->webform_getPort(portStr);
-
-          if (success) {
-            event->kvWriter->write({ F("Port"), portStr });
-          }
+          success = NW_data->webform_getPort(event->kvWriter);
         }
       }
       break;
     }
-#endif
+# endif // ifndef LIMIT_BUILD_SIZE
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {
@@ -262,6 +257,10 @@ bool NWPlugin_005(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+    case NWPlugin::Function::NWPLUGIN_EXPORT_CONFIG:
+    case NWPlugin::Function::NWPLUGIN_IMPORT_CONFIG:
+#endif
 
     default:
       break;

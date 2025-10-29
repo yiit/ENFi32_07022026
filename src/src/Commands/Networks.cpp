@@ -15,6 +15,10 @@
 #include <ETH.h>
 #endif
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+#include "../Helpers/KeyValueWriter_JSON.h"
+#include "../../ESPEasy/net/Helpers/NWPlugin_import_export.h"
+#endif
 
 //      networkIndex = (event->Par1 - 1);   Par1 is here for 1 ... NETWORK_MAX
 bool validNetworkVar(struct EventStruct *event, ESPEasy::net::networkIndex_t& networkIndex)
@@ -183,3 +187,31 @@ String Command_ETH_Disconnect (struct EventStruct *event, const char* Line)
 }
 
 #endif // if FEATURE_ETHERNET
+
+
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+String Command_Network_ExportConfig (struct EventStruct *event, const char* Line)
+{
+  ESPEasy::net::networkIndex_t networkIndex;
+  if (!validNetworkVar(event, networkIndex)) return return_command_failed();
+
+  PrintToString p2s;
+  KeyValueWriter_JSON writer(true, &p2s);
+
+  String res = ESPEasy::net::NWPlugin_import_export::exportConfig(networkIndex, &writer);
+  if (!res.isEmpty()) return res;
+  return p2s.getMove();
+}
+
+String Command_Network_ImportConfig (struct EventStruct *event, const char* Line)
+{
+  ESPEasy::net::networkIndex_t networkIndex;
+  if (!validNetworkVar(event, networkIndex)) return return_command_failed();
+  const String json = parseStringToEndKeepCase(Line, 3);
+
+  String res = ESPEasy::net::NWPlugin_import_export::importConfig(networkIndex, json);
+  if (!res.isEmpty()) return res;
+ 
+  return return_command_success();
+}
+#endif

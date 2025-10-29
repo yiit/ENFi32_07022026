@@ -376,6 +376,11 @@ bool InternalCommands::executeInternalCommand()
     case ESPEasy_cmd_e::name:                       COMMAND_CASE_R(Command_Settings_Name,    1);             // Settings.h
     case ESPEasy_cmd_e::networkdisable:             COMMAND_CASE_R(Command_Network_Disable,  1);             // Networks.h
     case ESPEasy_cmd_e::networkenable:              COMMAND_CASE_R(Command_Network_Enable,   1);             // Networks.h
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+    case ESPEasy_cmd_e::networkexportconfig:        COMMAND_CASE_R(Command_Network_ExportConfig,  1);        // Networks.h
+    case ESPEasy_cmd_e::networkimportconfig:        COMMAND_CASE_R(Command_Network_ImportConfig,  2);        // Networks.h
+#endif
+
 
     case ESPEasy_cmd_e::nosleep:                    COMMAND_CASE_R(Command_System_NoSleep,       1);         // System.h
 #if FEATURE_NOTIFIER

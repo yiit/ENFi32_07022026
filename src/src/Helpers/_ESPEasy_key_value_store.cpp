@@ -1141,15 +1141,5 @@ void ESPEasy_key_value_store::dump() const
 
 }
 
-bool ESPEasy_key_value_store::_export(KeyValueWriter* writer) const
-{
-  return false;
-}
-
-bool ESPEasy_key_value_store::_import(const String& json)
-{
-  return false;
-}
-
 
 #endif // if FEATURE_ESPEASY_KEY_VALUE_STORE

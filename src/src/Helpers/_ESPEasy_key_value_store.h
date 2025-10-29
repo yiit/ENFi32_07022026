@@ -173,9 +173,6 @@ public:
 
   void   dump() const;
 
-  bool   _export(KeyValueWriter*writer) const;
-  bool   _import(const String& json);
-
 private:
 
   bool getValue(KVS_StorageType::Enum        & storageType,

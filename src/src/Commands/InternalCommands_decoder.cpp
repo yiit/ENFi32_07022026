@@ -155,6 +155,10 @@ const char Internal_commands_no[] PROGMEM =
   "name|"
   "networkdisable|"
   "networkenable|"
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+  "networkexportconfig|"
+  "networkimportconfig|"
+#endif
   "nosleep|"
 #if FEATURE_NOTIFIER
   "notify|"

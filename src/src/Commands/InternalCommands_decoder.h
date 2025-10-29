@@ -122,6 +122,10 @@ enum class ESPEasy_cmd_e : uint8_t {
   name,
   networkdisable,
   networkenable,
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+  networkexportconfig,
+  networkimportconfig,
+#endif
   nosleep,
 #if FEATURE_NOTIFIER
   notify,

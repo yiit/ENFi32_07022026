@@ -49,7 +49,7 @@ static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE, F("PPP"
 # define NW005_KEY_SIM_PIN              13
 # define NW005_KEY_PIN_DTR              14
 
-const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString, KVS_StorageType::Enum& storageType)
+const __FlashStringHelper* NW005_data_struct_PPP_modem::getLabelString(uint32_t key, bool displayString, KVS_StorageType::Enum& storageType)
 {
   storageType = KVS_StorageType::Enum::int8_type;
 
@@ -86,6 +86,20 @@ const __FlashStringHelper* NW005_getLabelString(uint32_t key, bool displayString
   return F("");
 }
 
+int32_t NW005_data_struct_PPP_modem::getNextKey(int32_t key)
+{
+  if (key == -1) return NW005_KEY_SERIAL_PORT;
+  if (key < NW005_KEY_PIN_DTR) return key+1;
+  return -2;
+}
+
+int32_t NW005_data_struct_PPP_modem::getNextKey_noCredentials(int32_t key)
+{
+  if (key == -1) return NW005_KEY_SERIAL_PORT;
+  if (key < NW005_KEY_MODEM_MODEL) return key+1;
+  return -2;
+}
+
 NW005_data_struct_PPP_modem::NW005_data_struct_PPP_modem(networkIndex_t networkIndex)
   : NWPluginData_base(nwpluginID_t(NW_PLUGIN_ID), networkIndex, &NW_PLUGIN_INTERFACE)
 {
@@ -95,8 +109,8 @@ NW005_data_struct_PPP_modem::NW005_data_struct_PPP_modem(networkIndex_t networkI
 
 WebFormItemParams NW005_makeWebFormItemParams(uint32_t key) {
   KVS_StorageType::Enum storageType;
-  const __FlashStringHelper*label = NW005_getLabelString(key, true, storageType);
-  const __FlashStringHelper*id    = NW005_getLabelString(key, false, storageType);
+  const __FlashStringHelper*label = NW005_data_struct_PPP_modem::getLabelString(key, true, storageType);
+  const __FlashStringHelper*id    = NW005_data_struct_PPP_modem::getLabelString(key, false, storageType);
 
   return WebFormItemParams(label, id, storageType, key);
 }
@@ -506,7 +520,7 @@ void NW005_data_struct_PPP_modem::webform_load(EventStruct *event)
   {
     const int key = gpio_keys[i];
     KVS_StorageType::Enum storageType;
-    const __FlashStringHelper *id = NW005_getLabelString(key, false, storageType);
+    const __FlashStringHelper *id = getLabelString(key, false, storageType);
     PinSelectPurpose purpose      = PinSelectPurpose::Generic;
     String label                  = NW005_formatGpioLabel(key, purpose);
 
@@ -602,19 +616,17 @@ void NW005_data_struct_PPP_modem::webform_save(EventStruct *event)
   for (int i = 0; i < NR_ELEMENTS(keys); ++i)
   {
     KVS_StorageType::Enum storageType;
-    const __FlashStringHelper *id = NW005_getLabelString(keys[i], false, storageType);
+    const __FlashStringHelper *id = getLabelString(keys[i], false, storageType);
     storeWebformItem(*_kvs, keys[i], storageType, id);
   }
   _store();
 }
 
-bool NW005_data_struct_PPP_modem::webform_getPort(String& str)
+bool NW005_data_struct_PPP_modem::webform_getPort(KeyValueWriter *writer)
 {
-  str.clear();
-
-  if (_KVS_initialized() && _load()) {
-    int serialPort = _kvs->getValueAsInt_or_default(NW005_KEY_SERIAL_PORT, -1);
-    str = serialHelper_getSerialTypeLabel(static_cast<ESPEasySerialPort>(serialPort));
+  if (_KVS_initialized() && _load() && writer) {
+    int  serialPort      = _kvs->getValueAsInt_or_default(NW005_KEY_SERIAL_PORT, -1);
+    auto serialTypeLabel = serialHelper_getSerialTypeLabel(static_cast<ESPEasySerialPort>(serialPort));
 
     if (serialPort >= 0) {
       const uint32_t keys[] {
@@ -626,21 +638,42 @@ bool NW005_data_struct_PPP_modem::webform_getPort(String& str)
         NW005_KEY_PIN_RESET
       };
 
+      KeyValueStruct kv(EMPTY_STRING, serialTypeLabel);
+
+      if (!writer->summaryValueOnly()) {
+        writer->write({ F("Serial Type"), serialTypeLabel });
+      }
+
       for (int i = 0; i < NR_ELEMENTS(keys); ++i) {
         int pin = _kvs->getValueAsInt_or_default(keys[i], -1);
 
         if (pin >= 0) {
-          PinSelectPurpose purpose = PinSelectPurpose::Generic;
-          const bool shortNotation = true;
-          String     label         = NW005_formatGpioLabel(keys[i], purpose, shortNotation);
-          str += strformat(F("\n%s: %d"),
-                           label.c_str(),
-                           pin);
+          PinSelectPurpose purpose   = PinSelectPurpose::Generic;
+          const bool   shortNotation = true;
+          const String label         = NW005_formatGpioLabel(keys[i], purpose, shortNotation);
+
+          if (writer->summaryValueOnly()) {
+            kv.appendValue(strformat(F("%s: %d"),
+                                     label.c_str(),
+                                     pin));
+          } else {
+            if (writer->plainText()) {
+              KVS_StorageType::Enum storageType;
+              writer->write({ getLabelString(keys[i], false, storageType), pin });
+            } else {
+              writer->write({ label, pin });
+            }
+          }
         }
       }
+
+      if (writer->summaryValueOnly()) {
+        writer->write(kv);
+      }
     }
+    return true;
   }
-  return !str.isEmpty();
+  return false;
 }
 
 bool NW005_data_struct_PPP_modem::write_ModemState(KeyValueWriter*modemState)
@@ -1069,25 +1102,6 @@ bool NW005_data_struct_PPP_modem::record_stats()
 NWPluginData_static_runtime * NW005_data_struct_PPP_modem::getNWPluginData_static_runtime() { return &stats_and_cache; }
 
 
-# if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-
-bool NW005_data_struct_PPP_modem::_export(KeyValueWriter*writer) const {
-  if (writer == nullptr) return false;
-  auto child = writer->createChild();
-  
-
-  ESPEasy_key_value_store_import_export e(_kvs, NW005_getLabelString, NW005_KEY_PIN_DTR);
-
-  for (uint32_t i = NW005_KEY_SERIAL_PORT; i <= NW005_KEY_PIN_DTR; ++i) {
-    if (!e.write(i, writer)) { return false; } 
-  }
-  return true;
-}
-
-bool NW005_data_struct_PPP_modem::_import(const String& json) { return false; }
-
-# endif // if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-
 void NW005_data_struct_PPP_modem::onEvent(arduino_event_id_t event, arduino_event_info_t info) {
   // TODO TD-er: Must store flags from events in static (or global) object to act on it later.
   switch (event)
@@ -1137,7 +1151,7 @@ String NW005_data_struct_PPP_modem::NW005_formatGpioLabel(uint32_t key, PinSelec
   {
     KVS_StorageType::Enum storageType;
     purpose = PinSelectPurpose::Generic;
-    label   = NW005_getLabelString(key, true, storageType);
+    label   = getLabelString(key, true, storageType);
 
     const bool optional = !shortNotation;
 

@@ -17,18 +17,13 @@ struct NW004_data_struct_ETH_SPI : public NWPluginData_base {
   void                         webform_load(EventStruct *event);
   void                         webform_save(EventStruct *event);
 
-  bool                         webform_getPort(String& str);
+  bool                         webform_getPort(KeyValueWriter *writer);
 
   bool                         init(EventStruct *event);
 
   bool                         exit(EventStruct *event);
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-  virtual bool _export(KeyValueWriter* writer) const;
-  virtual bool _import(const String& json);
-#endif
 
 private:
 

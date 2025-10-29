@@ -17,7 +17,7 @@ struct NW002_data_struct_WiFi_AP : public NWPluginData_base {
   void webform_load(EventStruct *event);
   void webform_save(EventStruct *event);
 
-  bool webform_getPort(String& str);
+  bool webform_getPort(KeyValueWriter *writer);
 
   bool init(EventStruct *event);
 
@@ -34,11 +34,6 @@ struct NW002_data_struct_WiFi_AP : public NWPluginData_base {
 # endif // if FEATURE_NETWORK_STATS
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-  virtual bool _export(KeyValueWriter* writer) const;
-  virtual bool _import(const String& json);
-#endif
 
 private:
 

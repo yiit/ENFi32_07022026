@@ -42,7 +42,7 @@ void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event) {}
 
 void NW003_data_struct_ETH_RMII::webform_save(EventStruct *event) {}
 
-bool NW003_data_struct_ETH_RMII::webform_getPort(String& str)     { return true; }
+bool NW003_data_struct_ETH_RMII::webform_getPort(KeyValueWriter *writer)     { return true; }
 
 bool NW003_data_struct_ETH_RMII::init(EventStruct *event)
 {
@@ -60,11 +60,6 @@ bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
   stats_and_cache.processEvents();
   return true;
 }
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
- bool NW003_data_struct_ETH_RMII::_export(KeyValueWriter* writer) const { return false; }
- bool NW003_data_struct_ETH_RMII::_import(const String& json) { return false; }
-#endif
 
 
 NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }

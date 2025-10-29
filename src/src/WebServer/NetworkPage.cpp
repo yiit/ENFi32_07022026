@@ -179,11 +179,7 @@ void handle_networks_ShowAllNetworksTable()
   html_table_header(F(""),           70);
   html_table_header(F("Nr"),         50);
   html_table_header(F("Enabled"),    100);
-#ifndef LIMIT_BUILD_SIZE
   html_table_header(F("Network Adapter"));
-#else
-  html_table_header(F(""));
-#endif
   html_table_header(F("Name"),       50);
   # ifdef ESP32
   html_table_header(F("Route Prio"), 50);

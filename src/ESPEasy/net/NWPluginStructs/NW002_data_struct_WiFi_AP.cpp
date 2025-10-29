@@ -85,7 +85,7 @@ void NW002_data_struct_WiFi_AP::webform_load(EventStruct *event) {}
 
 void NW002_data_struct_WiFi_AP::webform_save(EventStruct *event) {}
 
-bool NW002_data_struct_WiFi_AP::webform_getPort(String& str)     { return true; }
+bool NW002_data_struct_WiFi_AP::webform_getPort(KeyValueWriter *writer)     { return true; }
 
 bool NW002_data_struct_WiFi_AP::init(EventStruct *event)
 {
@@ -122,11 +122,6 @@ NWPluginData_static_runtime * NW002_data_struct_WiFi_AP::getNWPluginData_static_
   }
   return nullptr;
 }
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
- bool NW002_data_struct_WiFi_AP::_export(KeyValueWriter* writer) const { return false; }
- bool NW002_data_struct_WiFi_AP::_import(const String& json) { return false; }
-#endif
 
 
 # ifdef ESP32

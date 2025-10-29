@@ -24,7 +24,7 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
   void webform_load(EventStruct *event);
   void webform_save(EventStruct *event);
 
-  bool webform_getPort(String& str);
+  bool webform_getPort(KeyValueWriter *writer);
 
   bool init(EventStruct *event);
 
@@ -44,11 +44,6 @@ struct NW001_data_struct_WiFi_STA : public NWPluginData_base {
   const __FlashStringHelper*   getWiFi_encryptionType() const;
 
   WiFiDisconnectReason getWiFi_disconnectReason() const;
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-  virtual bool _export(KeyValueWriter* writer) const;
-  virtual bool _import(const String& json);
-#endif
 
 private:
 

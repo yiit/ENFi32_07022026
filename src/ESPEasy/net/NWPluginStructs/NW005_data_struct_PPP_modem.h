@@ -30,6 +30,16 @@ struct NW005_modem_task_data {
 
 struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 
+// See: ESPEasy_key_value_store_import_export::LabelStringFunction
+static const __FlashStringHelper* getLabelString(uint32_t key, bool displayString, KVS_StorageType::Enum& storageType);
+
+// When queried with a key of -1, it will return the first key index
+// Return next key, or -2 when no next key exists.
+// See: ESPEasy_key_value_store_import_export::NextKeyFunction
+static int32_t getNextKey(int32_t key);
+static int32_t getNextKey_noCredentials(int32_t key);
+
+
   NW005_data_struct_PPP_modem(networkIndex_t networkIndex);
   ~NW005_data_struct_PPP_modem();
 
@@ -45,7 +55,7 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
   void   webform_load(EventStruct *event);
   void   webform_save(EventStruct *event);
 
-  bool   webform_getPort(String& str);
+  bool   webform_getPort(KeyValueWriter *writer);
 
   bool   write_ModemState(KeyValueWriter*writer);
 
@@ -66,11 +76,6 @@ struct NW005_data_struct_PPP_modem : public NWPluginData_base {
 
 
   NWPluginData_static_runtime* getNWPluginData_static_runtime();
-
-#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
-  virtual bool _export(KeyValueWriter* writer) const;
-  virtual bool _import(const String& json);
-#endif
 
 private:
 
