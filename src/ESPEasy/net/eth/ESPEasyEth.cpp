@@ -67,15 +67,6 @@ bool ethCheckSettings() {
              ); // Some boards have fixed power
 }
 
-bool ethPrepare() {
-  char hostname[40];
-
-  safe_strncpy(hostname, NetworkCreateRFCCompliantHostname().c_str(), sizeof(hostname));
-  ETH.setHostname(hostname);
-  ethSetupStaticIPconfig();
-  return true;
-}
-
 void ethPrintSettings() {
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     String log;
@@ -89,11 +80,12 @@ void ethPrintSettings() {
       log += Settings.ETH_Phy_Addr;
 
 # if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+
       if (!isSPI_EthernetType(Settings.ETH_Phy_Type)) {
         log += F(" Eth Clock mode: ");
         log += ESPEasy::net::toString(Settings.ETH_Clock_Mode);
       }
-#endif
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
       log += strformat(isSPI_EthernetType(Settings.ETH_Phy_Type)
         ? F(" CS: %d IRQ: %d RST: %d") : F(" MDC: %d MIO: %d PWR: %d"),
                        Settings.ETH_Pin_mdc_cs,
@@ -106,17 +98,18 @@ void ethPrintSettings() {
 
 MAC_address ETHMacAddress() {
   MAC_address mac;
-/*
-  if (!EthEventData.ethInitSuccess) {
-    addLog(LOG_LEVEL_ERROR, F("Call NetworkMacAddress() only on connected Ethernet!"));
-  } else {
-    ETH.macAddress(mac.mac);
-  }
-    */
+
+  /*
+     if (!EthEventData.ethInitSuccess) {
+      addLog(LOG_LEVEL_ERROR, F("Call NetworkMacAddress() only on connected Ethernet!"));
+     } else {
+      ETH.macAddress(mac.mac);
+     }
+   */
   return mac;
 }
 
-bool ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData) {
+bool ETHConnectRelaxed(ETHClass& iface, NWPluginData_static_runtime& runtimeData) {
   if (runtimeData.started() && runtimeData.connected()) {
     return EthLinkUp();
   }
@@ -130,24 +123,24 @@ bool ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData) {
   }
 
   ethPower(runtimeData, true);
-  runtimeData.mark_begin_establish_connection(); 
+  runtimeData.mark_begin_establish_connection();
 
   bool success = runtimeData.started();
 
   if (!success) {
-#  if FEATURE_USE_IPV6
+# if FEATURE_USE_IPV6
 
     if (Settings.EnableIPv6()) {
-      ETH.enableIPv6(true);
+      iface.enableIPv6(true);
     }
-#  endif // if FEATURE_USE_IPV6
+# endif // if FEATURE_USE_IPV6
 
     if (isSPI_EthernetType(Settings.ETH_Phy_Type)) {
       spi_host_device_t SPI_host = Settings.getSPI_host();
 
       if (SPI_host == spi_host_device_t::SPI_HOST_MAX) {
         addLog(LOG_LEVEL_ERROR, F("SPI not enabled"));
-        #  ifdef ESP32C3
+        # ifdef ESP32C3
 
         // FIXME TD-er: Fallback for ETH01-EVO board
         SPI_host              = spi_host_device_t::SPI2_HOST;
@@ -155,21 +148,21 @@ bool ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData) {
         Settings.SPI_SCLK_pin = 7;
         Settings.SPI_MISO_pin = 3;
         Settings.SPI_MOSI_pin = 10;
-        #  endif // ifdef ESP32C3
+        # endif // ifdef ESP32C3
       }
 
       // else
       {
-#  if ETH_SPI_SUPPORTS_CUSTOM
-        success = ETH.begin(
+# if ETH_SPI_SUPPORTS_CUSTOM
+        success = iface.begin(
           to_ESP_phy_type(Settings.ETH_Phy_Type),
           Settings.ETH_Phy_Addr,
           Settings.ETH_Pin_mdc_cs,
           Settings.ETH_Pin_mdio_irq,
           Settings.ETH_Pin_power_rst,
           SPI);
-#  else // if ETH_SPI_SUPPORTS_CUSTOM
-        success = ETH.begin(
+# else // if ETH_SPI_SUPPORTS_CUSTOM
+        success = iface.begin(
           to_ESP_phy_type(Settings.ETH_Phy_Type),
           Settings.ETH_Phy_Addr,
           Settings.ETH_Pin_mdc_cs,
@@ -179,21 +172,21 @@ bool ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData) {
           static_cast<int>(Settings.SPI_SCLK_pin),
           static_cast<int>(Settings.SPI_MISO_pin),
           static_cast<int>(Settings.SPI_MOSI_pin));
-#  endif // if ETH_SPI_SUPPORTS_CUSTOM
+# endif // if ETH_SPI_SUPPORTS_CUSTOM
       }
     } else {
-#  if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
-#   ifndef ESP32P4
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+#  ifndef ESP32P4
       ethResetGPIOpins();
-#   endif
-      success = ETH.begin(
+#  endif
+      success = iface.begin(
         to_ESP_phy_type(Settings.ETH_Phy_Type),
         Settings.ETH_Phy_Addr,
         Settings.ETH_Pin_mdc_cs,
         Settings.ETH_Pin_mdio_irq,
         Settings.ETH_Pin_power_rst,
         (eth_clock_mode_t)Settings.ETH_Clock_Mode);
-#  endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
     }
   }
 
@@ -205,20 +198,20 @@ bool ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData) {
 # if ESP_IDF_VERSION_MAJOR < 5
       addLog(LOG_LEVEL_INFO, strformat(
                F("ETH  : MAC: %s speed: %dM %s Link: %s"),
-               ETH.macAddress().c_str(),
-               ETH.linkSpeed(),
-               String(ETH.fullDuplex() ? F("Full Duplex") : F("Half Duplex")).c_str(),
-               String(ETH.linkUp() ? F("Up") : F("Down")).c_str()));
+               iface.macAddress().c_str(),
+               iface.linkSpeed(),
+               String(iface.fullDuplex() ? F("Full Duplex") : F("Half Duplex")).c_str(),
+               String(iface.linkUp() ? F("Up") : F("Down")).c_str()));
 # else // if ESP_IDF_VERSION_MAJOR < 5
       addLog(LOG_LEVEL_INFO, strformat(
                F("ETH  : MAC: %s phy addr: %d speed: %dM %s Link: %s"),
-               ETH.macAddress().c_str(),
-               ETH.phyAddr(),
-               ETH.linkSpeed(),
+               iface.macAddress().c_str(),
+               iface.phyAddr(),
+               iface.linkSpeed(),
                concat(
-                 ETH.fullDuplex() ? F("Full Duplex") : F("Half Duplex"),
-                 ETH.autoNegotiation() ? F("(auto)") : F("")).c_str(),
-               String(ETH.linkUp() ? F("Up") : F("Down")).c_str()));
+                 iface.fullDuplex() ? F("Full Duplex") : F("Half Duplex"),
+                 iface.autoNegotiation() ? F("(auto)") : F("")).c_str(),
+               String(iface.linkUp() ? F("Up") : F("Down")).c_str()));
 # endif // if ESP_IDF_VERSION_MAJOR < 5
     }
 
@@ -244,24 +237,24 @@ void ethPower(NWPluginData_static_runtime& runtimeData, bool enable) {
     }
     addLog(LOG_LEVEL_INFO, enable ? F("ETH power ON") : F("ETH power OFF"));
 
-/*
-    if (!enable) {
-      EthEventData.ethInitSuccess = false;
-      EthEventData.clearAll();
-      # ifdef ESP_IDF_VERSION_MAJOR
+    /*
+        if (!enable) {
+          EthEventData.ethInitSuccess = false;
+          EthEventData.clearAll();
+     # ifdef ESP_IDF_VERSION_MAJOR
 
-      // FIXME TD-er: See: https://github.com/espressif/arduino-esp32/issues/6105
-      // Need to store the last link state, as it will be cleared after destructing the object.
-      EthEventData.setEthDisconnected();
+          // FIXME TD-er: See: https://github.com/espressif/arduino-esp32/issues/6105
+          // Need to store the last link state, as it will be cleared after destructing the object.
+          EthEventData.setEthDisconnected();
 
-      if (ETH.linkUp()) {
-        EthEventData.setEthConnected();
-      }
-      # endif // ifdef ESP_IDF_VERSION_MAJOR
+          if (ETH.linkUp()) {
+            EthEventData.setEthConnected();
+          }
+     # endif // ifdef ESP_IDF_VERSION_MAJOR
 
-      //      ETH = ETHClass();
-    }
-*/
+          //      ETH = ETHClass();
+        }
+     */
 
     if (enable) {
       //      ethResetGPIOpins();
@@ -329,8 +322,9 @@ void ethResetGPIOpins() {
 }
 
 bool ETHConnected() {
-  auto data = getFirst_ETH_NWPluginData_static_runtime();
-  if (data) return data->connected();
+  auto data = getFirst_Enabled_ETH_interface();
+
+  if (data) { return data->connected(); }
   return false;
 }
 

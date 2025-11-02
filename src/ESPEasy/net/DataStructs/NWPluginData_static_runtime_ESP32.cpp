@@ -2,7 +2,7 @@
 
 #ifdef ESP32
 
-#include "../ESPEasyNetwork.h"
+# include "../ESPEasyNetwork.h"
 
 # include "../../../src/Helpers/StringConverter.h"
 
@@ -22,7 +22,12 @@ NWPluginData_static_runtime::NWPluginData_static_runtime(
   : _netif(netif),
   _isAP(false),
   _eventInterfaceName(eventInterfaceName)
-{}
+{
+  if (eventInterfaceName.isEmpty() && (_netif != nullptr)) {
+    _eventInterfaceName = _netif->desc();
+    _eventInterfaceName.toUpperCase();
+  }
+}
 
 NWPluginData_static_runtime::NWPluginData_static_runtime(
   bool              isAP,
@@ -31,7 +36,12 @@ NWPluginData_static_runtime::NWPluginData_static_runtime(
   : _netif(netif),
   _isAP(isAP),
   _eventInterfaceName(eventInterfaceName)
-{}
+{
+  if (eventInterfaceName.isEmpty() && (_netif != nullptr)) {
+    _eventInterfaceName = _netif->desc();
+    _eventInterfaceName.toUpperCase();
+  }
+}
 
 bool NWPluginData_static_runtime::started() const
 {
@@ -45,14 +55,15 @@ bool NWPluginData_static_runtime::connected() const
   return _netif->connected();
 }
 
-#if FEATURE_ETHERNET
+# if FEATURE_ETHERNET
+
 bool NWPluginData_static_runtime::linkUp() const
 {
   if (!_netif) { return false; }
   return _netif->linkUp();
 }
-#endif
 
+# endif // if FEATURE_ETHERNET
 
 bool NWPluginData_static_runtime::isDefaultRoute() const
 {
@@ -78,14 +89,15 @@ bool NWPluginData_static_runtime::hasIPv6() const
 
 void NWPluginData_static_runtime::mark_start()
 {
+  //  if (!_startStopStats.setOn()) { return; }
   _startStopStats.setOn();
 
   if (!_netif) { return; }
 
   _netif->setHostname(NetworkCreateRFCCompliantHostname().c_str());
-#if FEATURE_USE_IPV6
+# if FEATURE_USE_IPV6
   _netif->enableIPv6(_enableIPv6);
-#endif
+# endif
 
 # if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
 
@@ -98,7 +110,7 @@ void NWPluginData_static_runtime::mark_start()
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Started"),
-             _netif->desc()));
+             _eventInterfaceName.c_str()));
   }
 # endif // if NW_PLUGIN_LOG_EVENTS
 }
@@ -111,7 +123,7 @@ void NWPluginData_static_runtime::mark_stop()
   if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Stopped"),
-             _netif->desc()));
+             _eventInterfaceName.c_str()));
   }
 # endif // if NW_PLUGIN_LOG_EVENTS
 }
@@ -136,7 +148,7 @@ void NWPluginData_static_runtime::mark_got_IP()
     if ((tmp != INADDR_NONE) && loglevelActiveFor(LOG_LEVEL_INFO)) {
       addLog(LOG_LEVEL_INFO, strformat(
                F("%s: DNS Cache %d set to %s"),
-               _netif->desc(),
+               _eventInterfaceName.c_str(),
                i,
                tmp.toString(true).c_str()));
     }
@@ -147,7 +159,7 @@ void NWPluginData_static_runtime::mark_got_IP()
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Got IP: %s"),
-             _netif->desc(),
+             _eventInterfaceName.c_str(),
              _netif->localIP().toString().c_str()
              ));
   }
@@ -159,14 +171,16 @@ void NWPluginData_static_runtime::mark_got_IP()
 
 void NWPluginData_static_runtime::mark_got_IPv6(ip_event_got_ip6_t *event)
 {
+  if (!_netif || !event) { return; }
+
+  if (_netif->netif() != event->esp_netif) { return; }
   _gotIP6Stats.setOn();
 
-  if (!_netif) { return; }
 
   if (!_netif->isDefault()) {
     nonDefaultNetworkInterface_gotIP = true;
   }
-  
+
   if (event) {
     if (event->ip_index < NR_ELEMENTS(_gotIP6Events)) {
       memcpy(&_gotIP6Events[event->ip_index], event, sizeof(ip_event_got_ip6_t));
@@ -188,7 +202,7 @@ void NWPluginData_static_runtime::mark_lost_IP()
   if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Lost IP"),
-             _netif->desc()));
+             _eventInterfaceName.c_str()));
   }
 # endif // if NW_PLUGIN_LOG_EVENTS
 }
@@ -214,20 +228,20 @@ void NWPluginData_static_runtime::log_connected()
       // Log duration
       addLog(LOG_LEVEL_INFO, strformat(
                F("%s: Connected, took: %s in %d attempts"),
-               _netif->desc(),
+               _eventInterfaceName.c_str(),
                format_msec_duration_HMS(
                  _establishConnectStats.getLastOnDuration_ms()).c_str(),
                _establishConnectStats.getCycleCount()));
     } else if (_establishConnectStats.isOff()) {
       addLog(LOG_LEVEL_INFO, strformat(
                F("%s: Connected, took: %s"),
-               _netif->desc(),
+               _eventInterfaceName.c_str(),
                format_msec_duration_HMS(
                  _establishConnectStats.getLastOnDuration_ms()).c_str()));
     } else {
       addLog(LOG_LEVEL_INFO, strformat(
                F("%s: Connected"),
-               _netif->desc()));
+               _eventInterfaceName.c_str()));
     }
   }
 }
@@ -246,7 +260,7 @@ void NWPluginData_static_runtime::log_disconnected()
   if (_netif && loglevelActiveFor(LOG_LEVEL_INFO)) {
     addLog(LOG_LEVEL_INFO, strformat(
              F("%s: Disconnected. Connected for: %s"),
-             _netif->desc(),
+             _eventInterfaceName.c_str(),
              format_msec_duration_HMS(
                _connectedStats.getLastOnDuration_ms()).c_str()));
   }

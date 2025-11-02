@@ -10,6 +10,8 @@
 
 # include <IPAddress.h>
 
+#include <ETH.h>
+
 namespace ESPEasy {
 namespace net {
 namespace eth {
@@ -17,9 +19,8 @@ namespace eth {
 bool        ethUseStaticIP();
 void        ethSetupStaticIPconfig();
 bool        ethCheckSettings();
-bool        ethPrepare();
 void        ethPrintSettings();
-bool        ETHConnectRelaxed(NWPluginData_static_runtime& runtimeData);
+bool        ETHConnectRelaxed(ETHClass& iface, NWPluginData_static_runtime& runtimeData);
 bool        ETHConnected();
 void        ethPower(NWPluginData_static_runtime& runtimeData, bool enable);
 void        ethResetGPIOpins();

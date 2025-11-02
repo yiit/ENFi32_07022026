@@ -180,6 +180,7 @@ private:
 
 };
 
+DEF_UP(NWPluginData_static_runtime);
 
 } // namespace net
 } // namespace ESPEasy

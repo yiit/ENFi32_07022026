@@ -24,6 +24,7 @@
 # include "../../src/WebServer/common.h"
 # include "../net/eth/ESPEasyEth.h"
 # include "../net/Globals/NWPlugins.h"
+# include "../net/Globals/NetworkState.h"
 # include "../net/Helpers/_NWPlugin_Helper_webform.h"
 # include "../net/Helpers/_NWPlugin_init.h"
 # include "../net/Helpers/NW_info_writer.h"
@@ -63,8 +64,8 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
 
       ESPEasy_key_value_store kvs;
       ESPEasy::net::eth::NW003_data_struct_ETH_RMII::loadDefaults(
-        &kvs, 
-        event->NetworkIndex, 
+        &kvs,
+        event->NetworkIndex,
         ESPEasy::net::nwpluginID_t(NWPLUGIN_ID_003));
 
       break;
@@ -79,7 +80,7 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
     # ifdef ESP32
     case NWPlugin::Function::NWPLUGIN_GET_INTERFACE:
     {
-      event->networkInterface = &ETH;
+      event->networkInterface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(event->NetworkIndex);
       success                 = event->networkInterface != nullptr;
       break;
     }
@@ -87,25 +88,34 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_WEBSERVER_SHOULD_RUN:
     {
-      success = ETH.connected();
+      auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(event->NetworkIndex);
+
+      if (iface) {
+        success = iface->connected();
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
-      success = write_Eth_Show_Connected(ETH, event->kvWriter);
+      auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(event->NetworkIndex);
+
+      if (iface) {
+        success = write_Eth_Show_Connected(*iface, event->kvWriter);
+      }
       break;
     }
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
     {
+      auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(event->NetworkIndex);
 
-      if (isValid(Settings.ETH_Phy_Type) && !isSPI_EthernetType(Settings.ETH_Phy_Type)) {
-        success = ESPEasy::net::write_Eth_HW_Address(ETH, event->kvWriter);
+      if (iface) {
+        success = ESPEasy::net::write_Eth_HW_Address(*iface, event->kvWriter);
       }
       break;
     }
-#ifndef LIMIT_BUILD_SIZE
+# ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       if (event->kvWriter) {
@@ -123,7 +133,7 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-#endif
+# endif // ifndef LIMIT_BUILD_SIZE
 
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {
@@ -278,11 +288,15 @@ bool NWPlugin_003(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
-      initNWPluginData(event->NetworkIndex, new (std::nothrow) ESPEasy::net::eth::NW003_data_struct_ETH_RMII(event->NetworkIndex));
-      auto *NW_data = getNWPluginData(event->NetworkIndex);
+      auto iface = eth_NWPluginData_static_runtime.init(event->NetworkIndex);
 
-      if (NW_data) {
-        success = NW_data->init(event);
+      if (iface) {
+        initNWPluginData(event->NetworkIndex, new (std::nothrow) ESPEasy::net::eth::NW003_data_struct_ETH_RMII(event->NetworkIndex, iface));
+        auto *NW_data = getNWPluginData(event->NetworkIndex);
+
+        if (NW_data) {
+          success = NW_data->init(event);
+        }
       }
       break;
     }

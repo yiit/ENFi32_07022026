@@ -9,6 +9,9 @@
 #include "../DataTypes/NetworkIndex.h"
 #include "../DataTypes/NetworkDriverIndex.h"
 #include "../DataStructs/NWPluginData_static_runtime.h"
+#if FEATURE_ETHERNET
+#include "../eth/ETH_NWPluginData_static_runtime.h"
+#endif
 
 namespace ESPEasy {
 namespace net {
@@ -46,7 +49,9 @@ String               getNWPluginNameFromNWPluginID(nwpluginID_t nwpluginID);
 
 NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime();
 NWPluginData_static_runtime* getWiFi_AP_NWPluginData_static_runtime();
-NWPluginData_static_runtime* getFirst_ETH_NWPluginData_static_runtime();
+#if FEATURE_ETHERNET
+ETHClass* getFirst_Enabled_ETH_interface();
+#endif
 NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index);
 const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime();
 

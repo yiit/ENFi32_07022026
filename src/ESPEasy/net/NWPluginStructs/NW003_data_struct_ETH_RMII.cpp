@@ -17,13 +17,10 @@
 # include "../eth/ESPEasyEth.h"
 
 # define NW_PLUGIN_ID  3
-# define NW_PLUGIN_INTERFACE   ETH
 
 namespace ESPEasy {
 namespace net {
 namespace eth {
-
-static NWPluginData_static_runtime stats_and_cache(&NW_PLUGIN_INTERFACE);
 
 
 // Keys as used in the Key-value-store
@@ -118,21 +115,13 @@ WebFormItemParams NW003_makeWebFormItemParams(uint32_t key) {
   return WebFormItemParams(label, id, storageType, key);
 }
 
-NW003_data_struct_ETH_RMII::NW003_data_struct_ETH_RMII(networkIndex_t networkIndex)
-  : NWPluginData_base(nwpluginID_t(NW_PLUGIN_ID), networkIndex, &NW_PLUGIN_INTERFACE)
-{
-  stats_and_cache.clear(networkIndex);
-
-  nw_event_id = Network.onEvent(NW003_data_struct_ETH_RMII::onEvent);
-}
+NW003_data_struct_ETH_RMII::NW003_data_struct_ETH_RMII(networkIndex_t networkIndex, NetworkInterface *netif)
+  : NWPluginData_base(nwpluginID_t(NW_PLUGIN_ID), networkIndex, netif)
+{}
 
 NW003_data_struct_ETH_RMII::~NW003_data_struct_ETH_RMII()
 {
-  if (nw_event_id != 0) {
-    Network.removeEvent(nw_event_id);
-  }
-  nw_event_id = 0;
-  stats_and_cache.processEvent_and_clear();
+  ESPEasy::net::eth::ETH_NWPluginData_static_runtime::exit(_networkIndex);
 }
 
 void NW003_data_struct_ETH_RMII::loadDefaults(ESPEasy_key_value_store     *kvs,
@@ -316,54 +305,26 @@ bool NW003_data_struct_ETH_RMII::init(EventStruct *event)
 {
   auto data = getNWPluginData_static_runtime();
 
-  if (data) {
-    ESPEasy::net::eth::ETHConnectRelaxed(*data);
+  auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(_networkIndex);
+
+  if (data && iface) {
+    ESPEasy::net::eth::ETHConnectRelaxed(
+      *iface,
+      *data);
   }
 
   return true;
 }
 
 bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
-  ETH.end();
-  stats_and_cache.processEvents();
   return true;
 }
 
-NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { return &stats_and_cache; }
-
-void                          NW003_data_struct_ETH_RMII::onEvent(
-  arduino_event_id_t   event,
-  arduino_event_info_t info)
-{
-  switch (event)
-  {
-    case ARDUINO_EVENT_ETH_START:
-      stats_and_cache.mark_start();
-      break;
-    case ARDUINO_EVENT_ETH_STOP:
-      stats_and_cache.mark_stop();
-      break;
-    case ARDUINO_EVENT_ETH_CONNECTED:
-      stats_and_cache.mark_connected();
-      break;
-    case ARDUINO_EVENT_ETH_DISCONNECTED:
-      stats_and_cache.mark_disconnected();
-      break;
-    case ARDUINO_EVENT_ETH_GOT_IP:
-      stats_and_cache.mark_got_IP();
-      break;
-# if FEATURE_USE_IPV6
-    case ARDUINO_EVENT_ETH_GOT_IP6:
-      stats_and_cache.mark_got_IPv6(&info.got_ip6);
-      break;
-# endif // if FEATURE_USE_IPV6
-    case ARDUINO_EVENT_ETH_LOST_IP:
-      stats_and_cache.mark_lost_IP();
-      break;
-
-    default: break;
-  }
+NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { 
+  return ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getNWPluginData_static_runtime(_networkIndex);
 }
+
+
 
 } // namespace eth
 } // namespace net

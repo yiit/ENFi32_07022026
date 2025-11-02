@@ -3,6 +3,7 @@
 #include "../_NWPlugin_Helper.h"
 #ifdef USES_NW003
 
+#include "../eth/ETH_NWPluginData_static_runtime.h"
 
 namespace ESPEasy {
 namespace net {
@@ -25,7 +26,7 @@ struct NW003_data_struct_ETH_RMII : public NWPluginData_base {
                               ESPEasy::net::nwpluginID_t   nwPluginID);
 
 
-  NW003_data_struct_ETH_RMII(networkIndex_t networkIndex);
+  NW003_data_struct_ETH_RMII(networkIndex_t networkIndex, NetworkInterface *netif);
   ~NW003_data_struct_ETH_RMII();
 
   void                         webform_load(EventStruct *event);
@@ -41,15 +42,11 @@ struct NW003_data_struct_ETH_RMII : public NWPluginData_base {
 
 private:
 
-  static void   onEvent(arduino_event_id_t   event,
-                        arduino_event_info_t info);
 
   static String formatGpioLabel(uint32_t          key,
                                 PinSelectPurpose& purpose,
                                 bool              shortNotation = false);
 
-
-  network_event_handle_t nw_event_id = 0;
 
 };
 

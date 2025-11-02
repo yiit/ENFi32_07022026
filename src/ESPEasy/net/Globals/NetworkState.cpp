@@ -28,3 +28,7 @@ WiFiUDP portUDP;
 #ifdef ESP32
 bool nonDefaultNetworkInterface_gotIP{};
 #endif
+
+#if FEATURE_ETHERNET
+ESPEasy::net::eth::ETH_NWPluginData_static_runtime eth_NWPluginData_static_runtime{};
+#endif

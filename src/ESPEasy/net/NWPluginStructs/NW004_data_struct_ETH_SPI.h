@@ -3,6 +3,7 @@
 #include "../_NWPlugin_Helper.h"
 #ifdef USES_NW004
 
+#include "../eth/ETH_NWPluginData_static_runtime.h"
 
 namespace ESPEasy {
 namespace net {
@@ -25,7 +26,7 @@ struct NW004_data_struct_ETH_SPI : public NWPluginData_base {
                               ESPEasy::net::nwpluginID_t   nwPluginID);
 
 
-  NW004_data_struct_ETH_SPI(networkIndex_t networkIndex);
+  NW004_data_struct_ETH_SPI(networkIndex_t networkIndex, NetworkInterface *netif);
   ~NW004_data_struct_ETH_SPI();
 
   void                         webform_load(EventStruct *event);

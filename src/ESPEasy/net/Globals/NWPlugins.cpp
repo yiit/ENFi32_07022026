@@ -12,6 +12,11 @@
 #include "../Helpers/NWAccessControl.h"
 #include "../_NWPlugin_Helper.h"
 
+#if FEATURE_ETHERNET
+# include "../eth/ETH_NWPluginData_static_runtime.h"
+#endif
+
+
 namespace ESPEasy {
 namespace net {
 
@@ -311,6 +316,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                     break;
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
+
                     if (event->kvWriter) {
                       event->kvWriter->write({ F("Name"), event->networkInterface->desc() });
                       success = true;
@@ -469,19 +475,23 @@ NWPluginData_static_runtime* getWiFi_STA_NWPluginData_static_runtime() { return 
 
 NWPluginData_static_runtime* getWiFi_AP_NWPluginData_static_runtime()  { return getNWPluginData_static_runtime(NETWORK_INDEX_WIFI_AP); }
 
-NWPluginData_static_runtime* getFirst_ETH_NWPluginData_static_runtime()
+#if FEATURE_ETHERNET
+
+ETHClass* getFirst_Enabled_ETH_interface()
 {
   for (networkIndex_t i = 0; validNetworkIndex(i); ++i) {
     if (Settings.getNetworkEnabled(i)) {
       const auto nwpluginID = Settings.getNWPluginID_for_network(i);
 
       if ((nwpluginID.value == 3) || (nwpluginID.value == 4)) {
-        return getNWPluginData_static_runtime(i);
+        return ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(i);
       }
     }
   }
   return nullptr;
 }
+
+#endif // if FEATURE_ETHERNET
 
 NWPluginData_static_runtime* getNWPluginData_static_runtime(networkIndex_t index)
 {

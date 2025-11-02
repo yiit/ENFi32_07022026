@@ -169,7 +169,7 @@ void NWPluginData_static_runtime::processEvents()
       if (ip != INADDR_NONE) {
         addLog(LOG_LEVEL_INFO, strformat(
                  F("%s: Got IP: %s/%d GW: %s"),
-                 _netif->desc(),
+                 _eventInterfaceName.c_str(),
                  ip.toString().c_str(),
                  _netif->subnetCIDR(),
                  _netif->gatewayIP().toString().c_str()
@@ -207,7 +207,7 @@ void NWPluginData_static_runtime::processEvents()
         if (addr_type < NR_ELEMENTS(addr_types)) {
           addLog(LOG_LEVEL_INFO, strformat(
                    F("%s: Got IPv6: IP Index: %d, Type: %s, Zone: %d, Address: " IPV6STR),
-                   _netif->desc(),
+                   _eventInterfaceName.c_str(),
                    ip6Event.ip_index,
                    addr_types[addr_type],
                    ip6Event.ip6_info.ip.zone,
