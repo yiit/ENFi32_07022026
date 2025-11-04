@@ -108,6 +108,9 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
           }
         }
       }
+      if (Function == NWPlugin::Function::NWPLUGIN_PRIORITY_ROUTE_CHANGED) {
+        CheckRunningServices();
+      }
       return success;
     }
 
