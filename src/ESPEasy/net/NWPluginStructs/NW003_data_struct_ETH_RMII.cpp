@@ -169,6 +169,8 @@ void NW003_data_struct_ETH_RMII::loadDefaults(ESPEasy_key_value_store     *kvs,
 
 void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event)
 {
+  _load();
+  NW003_data_struct_ETH_RMII::loadDefaults(_kvs, event->NetworkIndex, nwpluginID_t(3));
 
   addFormSubHeader(F("Ethernet IP Settings"));
 
@@ -303,6 +305,7 @@ bool NW003_data_struct_ETH_RMII::webform_getPort(KeyValueWriter *writer) { retur
 
 bool NW003_data_struct_ETH_RMII::init(EventStruct *event)
 {
+  _load();
   auto data = getNWPluginData_static_runtime();
 
   auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(_networkIndex);

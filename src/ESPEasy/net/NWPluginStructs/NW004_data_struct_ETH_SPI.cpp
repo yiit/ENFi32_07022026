@@ -166,6 +166,8 @@ void NW004_data_struct_ETH_SPI::loadDefaults(ESPEasy_key_value_store     *kvs,
 
 void NW004_data_struct_ETH_SPI::webform_load(EventStruct *event)
 {
+  _load();
+  NW004_data_struct_ETH_SPI::loadDefaults(_kvs, event->NetworkIndex, nwpluginID_t(4));
   addFormSubHeader(F("Ethernet IP Settings"));
 
   addFormIPBox(F("ESP Ethernet IP"),         F("espethip"),      Settings.ETH_IP);
@@ -243,7 +245,8 @@ void NW004_data_struct_ETH_SPI::webform_load(EventStruct *event)
   }
 }
 
-void NW004_data_struct_ETH_SPI::webform_save(EventStruct *event)        {
+void NW004_data_struct_ETH_SPI::webform_save(EventStruct *event)        
+{
   // TODO TD-er: Move this to a central function, like done with import/export
   int32_t key = getNextKey(-1);
 
@@ -260,6 +263,7 @@ bool NW004_data_struct_ETH_SPI::webform_getPort(KeyValueWriter *writer) { return
 
 bool NW004_data_struct_ETH_SPI::init(EventStruct *event)
 {
+  _load();
   auto data = getNWPluginData_static_runtime();
 
   auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(_networkIndex);
