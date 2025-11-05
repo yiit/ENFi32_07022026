@@ -9,6 +9,10 @@
 #include "../net/DataStructs/NWPluginData_base.h"
 #include "../net/ESPEasyNetwork.h"
 
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
+#include "../../src/Helpers/_ESPEasy_key_value_store.h"
+#endif
+
 namespace ESPEasy {
 namespace net {
 
@@ -34,7 +38,7 @@ bool initNWPluginData(ESPEasy::net::networkIndex_t     networkIndex,
 NWPluginData_base* getNWPluginData(ESPEasy::net::networkIndex_t networkIndex);
 
 bool nwpluginTaskData_initialized(ESPEasy::net::networkIndex_t networkIndex);
-#if FEATURE_ESPEASY_KEY_VALUE_STORE
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 bool load_nwpluginTaskData_KVS(ESPEasy_key_value_store *kvs, ESPEasy::net::networkIndex_t networkIndex, ESPEasy::net::nwpluginID_t nwPluginID);
 bool store_nwpluginTaskData_KVS(ESPEasy_key_value_store *kvs, ESPEasy::net::networkIndex_t networkIndex, ESPEasy::net::nwpluginID_t nwPluginID);
 #endif

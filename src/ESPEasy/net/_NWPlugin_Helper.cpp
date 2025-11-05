@@ -84,7 +84,7 @@ bool nwpluginTaskData_initialized(ESPEasy::net::networkIndex_t networkIndex) {
          (NWPlugin_task_data[networkIndex]->getNWPluginID() == Settings.getNWPluginID_for_network(networkIndex));
 }
 
-#if FEATURE_ESPEASY_KEY_VALUE_STORE
+#if FEATURE_STORE_NETWORK_INTERFACE_SETTINGS
 
 bool load_nwpluginTaskData_KVS(ESPEasy_key_value_store *kvs, ESPEasy::net::networkIndex_t networkIndex, ESPEasy::net::nwpluginID_t nwPluginID)
 {
