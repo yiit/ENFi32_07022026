@@ -558,10 +558,10 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
     }
     case LabelType::IP_ADDRESS_SUBNET:
     {
-      return KeyValueStruct(F("IP / Subnet"), strformat(
-                              F("%s / %s"),
-                              getValue(LabelType::IP_ADDRESS).c_str(),
-                              getValue(LabelType::IP_SUBNET).c_str()));
+      KeyValueStruct kv(F("IP / Subnet"));
+      kv.appendValue(getValue(LabelType::IP_ADDRESS));
+      kv.appendValue(getValue(LabelType::IP_SUBNET));
+      return kv;
     }
     case LabelType::GATEWAY:
     {
@@ -591,9 +591,10 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
     case LabelType::DNS:
     {
       if (!extendedValue) { break; }
-      return KeyValueStruct(F("DNS"), strformat(F("%s / %s"),
-                                                getValue(LabelType::DNS_1).c_str(),
-                                                getValue(LabelType::DNS_2).c_str()));
+      KeyValueStruct kv(F("DNS"));
+      kv.appendValue(getValue(LabelType::DNS_1));
+      kv.appendValue(getValue(LabelType::DNS_2));
+      return kv;
     }
     case LabelType::DNS_1:
     {

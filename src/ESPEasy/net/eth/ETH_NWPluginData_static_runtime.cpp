@@ -28,26 +28,17 @@ struct ETH_stats_and_cache_t {
     _stats_and_cache.processEvent_and_clear();
   }
 
-  void mark_start()
+  void mark_start(esp_eth_handle_t eth_started)
   {
-    if (_eth.getStatusBits() & ESP_NETIF_STARTED_BIT) {
-      // Bit has been set, so it might be for this interface
+    if (_eth.handle() == eth_started) {
       _stats_and_cache.mark_start();
       _eth.enableIPv6(_stats_and_cache._enableIPv6);
     }
   }
 
-  void mark_stop()
+  void mark_stop(esp_eth_handle_t eth_stopped)
   {
-    constexpr int bitmask = ESP_NETIF_STARTED_BIT |
-                            ESP_NETIF_CONNECTED_BIT |
-                            ESP_NETIF_HAS_IP_BIT |
-                            ESP_NETIF_HAS_LOCAL_IP6_BIT |
-                            ESP_NETIF_HAS_GLOBAL_IP6_BIT |
-                            ESP_NETIF_HAS_STATIC_IP_BIT;
-
-    if ((_eth.getStatusBits() & bitmask) == 0) {
-      // Bits have been cleared, so it might be for this interface
+    if (_eth.handle() == eth_stopped) {
       _stats_and_cache.mark_stop();
     }
   }
@@ -72,10 +63,9 @@ struct ETH_stats_and_cache_t {
 
 # endif // if FEATURE_USE_IPV6
 
-  void mark_lost_IP()
+  void mark_lost_IP(ip_event_got_ip_t *event)
   {
-    if ((_eth.getStatusBits() & ESP_NETIF_HAS_IP_BIT) == 0) {
-      // Bit has been cleared, so it might be for this interface
+    if (event && (_eth.netif() == event->esp_netif)) {
       _stats_and_cache.mark_lost_IP();
     }
   }
@@ -87,15 +77,9 @@ struct ETH_stats_and_cache_t {
     }
   }
 
-  void mark_disconnected()
+  void mark_disconnected(esp_eth_handle_t eth_disconnected)
   {
-    constexpr int bitmask = ESP_NETIF_CONNECTED_BIT |
-                            ESP_NETIF_HAS_IP_BIT |
-                            ESP_NETIF_HAS_LOCAL_IP6_BIT |
-                            ESP_NETIF_HAS_GLOBAL_IP6_BIT;
-
-    if ((_eth.getStatusBits() & bitmask) == 0) {
-      // Bits have been cleared, so it might be for this interface
+    if (_eth.handle() == eth_disconnected) {
       _stats_and_cache.mark_disconnected();
     }
   }
@@ -199,13 +183,13 @@ void ETH_NWPluginData_static_runtime::onEvent(
     case ARDUINO_EVENT_ETH_START:
 
       for (size_t i = 0; i < NR_ELEMENTS(ETH_stats_and_cache); ++i) {
-        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_start(); }
+        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_start(info.eth_started); }
       }
       break;
     case ARDUINO_EVENT_ETH_STOP:
 
       for (size_t i = 0; i < NR_ELEMENTS(ETH_stats_and_cache); ++i) {
-        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_stop(); }
+        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_stop(info.eth_stopped); }
       }
       break;
     case ARDUINO_EVENT_ETH_CONNECTED:
@@ -217,7 +201,7 @@ void ETH_NWPluginData_static_runtime::onEvent(
     case ARDUINO_EVENT_ETH_DISCONNECTED:
 
       for (size_t i = 0; i < NR_ELEMENTS(ETH_stats_and_cache); ++i) {
-        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_disconnected(); }
+        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_disconnected(info.eth_disconnected); }
       }
 
       break;
@@ -238,7 +222,7 @@ void ETH_NWPluginData_static_runtime::onEvent(
     case ARDUINO_EVENT_ETH_LOST_IP:
 
       for (size_t i = 0; i < NR_ELEMENTS(ETH_stats_and_cache); ++i) {
-        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_lost_IP(); }
+        if (ETH_stats_and_cache[i]) { ETH_stats_and_cache[i]->mark_lost_IP(&info.lost_ip); }
       }
       break;
 
