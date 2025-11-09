@@ -165,7 +165,7 @@ bool showWebformItem(const ESPEasy_key_value_store& store,
 }
 
 void showFormSelector(const ESPEasy_key_value_store& store,
-                      FormSelectorOptions          & selector,
+                      const FormSelectorOptions    & selector,
                       const WebFormItemParams      & params)
 {
   int64_t value{};

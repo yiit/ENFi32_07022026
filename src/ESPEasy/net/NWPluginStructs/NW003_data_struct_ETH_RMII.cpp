@@ -2,9 +2,13 @@
 
 #ifdef USES_NW003
 
+
+# include "../../../src/ESPEasyCore/ESPEasyGPIO.h"
+
 # include "../../../src/Globals/Settings.h"
 
 # include "../../../src/Helpers/ESPEasy_time_calc.h"
+# include "../../../src/Helpers/Hardware_GPIO.h"
 # include "../../../src/Helpers/LongTermOnOffTimer.h"
 # include "../../../src/Helpers/StringConverter.h"
 
@@ -216,7 +220,7 @@ void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event)
       static_cast<int>(EthPhyType_t::KSZ8081),
 
     };
-    FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
+    const FormSelectorOptions selector(NR_ELEMENTS(ids), options, ids);
     auto params = NW003_makeWebFormItemParams(NW003_KEY_ETH_PHY_TYPE);
     params._defaultIntValue = static_cast<int>(EthPhyType_t::notSet);
     showFormSelector(*_kvs, selector, params);
@@ -284,6 +288,10 @@ void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event)
       NR_ELEMENTS(ethClockOptions),
       ethClockOptions,
       indices);
+    auto params = NW003_makeWebFormItemParams(NW003_KEY_CLOCK_MODE);
+    params._defaultIntValue = static_cast<int>(EthClockMode_t::Ext_crystal_osc);
+    showFormSelector(*_kvs, selector, params);
+
   }
 }
 
@@ -306,28 +314,283 @@ bool NW003_data_struct_ETH_RMII::webform_getPort(KeyValueWriter *writer) { retur
 bool NW003_data_struct_ETH_RMII::init(EventStruct *event)
 {
   _load();
+  ETHConnectRelaxed();
+
+  return true;
+}
+
+bool                          NW003_data_struct_ETH_RMII::exit(EventStruct *event)         { return true; }
+
+NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() {
+  return ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getNWPluginData_static_runtime(_networkIndex);
+}
+
+void NW003_data_struct_ETH_RMII::ethResetGPIOpins() {
+  // fix an disconnection issue after rebooting Olimex POE - this forces a clean state for all GPIO involved in RMII
+  // Thanks to @s-hadinger and @Jason2866
+  // Resetting state of power pin is done in ethPower()
+  addLog(LOG_LEVEL_INFO, F("ethResetGPIOpins()"));
+  gpio_reset_pin((gpio_num_t)_kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDC));
+  gpio_reset_pin((gpio_num_t)_kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDIO));
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+
+  gpio_reset_pin(GPIO_NUM_19); // EMAC_TXD0 - hardcoded
+  gpio_reset_pin(GPIO_NUM_21); // EMAC_TX_EN - hardcoded
+  gpio_reset_pin(GPIO_NUM_22); // EMAC_TXD1 - hardcoded
+  gpio_reset_pin(GPIO_NUM_25); // EMAC_RXD0 - hardcoded
+  gpio_reset_pin(GPIO_NUM_26); // EMAC_RXD1 - hardcoded
+  gpio_reset_pin(GPIO_NUM_27); // EMAC_RX_CRS_DV - hardcoded
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+
+  /*
+     switch (Settings.ETH_Clock_Mode) {
+     case EthClockMode_t::Ext_crystal_osc:       // ETH_CLOCK_GPIO0_IN
+     case EthClockMode_t::Int_50MHz_GPIO_0:      // ETH_CLOCK_GPIO0_OUT
+      gpio_reset_pin(GPIO_NUM_0);
+      break;
+     case EthClockMode_t::Int_50MHz_GPIO_16:     // ETH_CLOCK_GPIO16_OUT
+      gpio_reset_pin(GPIO_NUM_16);
+      break;
+     case EthClockMode_t::Int_50MHz_GPIO_17_inv: // ETH_CLOCK_GPIO17_OUT
+      gpio_reset_pin(GPIO_NUM_17);
+      break;
+     }
+   */
+  delay(1);
+
+}
+
+void NW003_data_struct_ETH_RMII::ethPower(bool enable)
+{
+  const int powerpin = _kvs->getValueAsInt(NW003_KEY_ETH_PIN_POWER);
+
+  if (powerpin == -1) { return; }
+
+  if (GPIO_Internal_Read(powerpin) == enable) {
+    // Already the desired state
+    return;
+  }
+  addLog(LOG_LEVEL_INFO, enable ? F("ETH power ON") : F("ETH power OFF"));
+
+  /*
+      if (!enable) {
+        EthEventData.ethInitSuccess = false;
+        EthEventData.clearAll();
+   # ifdef ESP_IDF_VERSION_MAJOR
+
+        // FIXME TD-er: See: https://github.com/espressif/arduino-esp32/issues/6105
+        // Need to store the last link state, as it will be cleared after destructing the object.
+        EthEventData.setEthDisconnected();
+
+        if (ETH.linkUp()) {
+          EthEventData.setEthConnected();
+        }
+   # endif // ifdef ESP_IDF_VERSION_MAJOR
+
+        //      ETH = ETHClass();
+      }
+   */
+
+  if (enable) {
+    //      ethResetGPIOpins();
+  }
+
+  //    gpio_reset_pin((gpio_num_t)powerpin);
+
+  GPIO_Write(PLUGIN_GPIO, powerpin, enable ? 1 : 0);
+
+  if (!enable) {
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+    const EthClockMode_t ETH_ClockMode = static_cast<EthClockMode_t>(_kvs->getValueAsInt(NW003_KEY_CLOCK_MODE));
+      #  if CONFIG_IDF_TARGET_ESP32P4
+    const bool isExternalCrystal = ETH_ClockMode == EthClockMode_t::Ext_crystal;
+      #  else
+    const bool isExternalCrystal = ETH_ClockMode == EthClockMode_t::Ext_crystal_osc;
+      #  endif // if CONFIG_IDF_TARGET_ESP32P4
+
+    if (isExternalCrystal) {
+      delay(600); // Give some time to discharge any capacitors
+      // Delay is needed to make sure no clock signal remains present which may cause the ESP to boot into flash mode.
+    }
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+  } else {
+    delay(400); // LAN chip needs to initialize before calling Eth.begin()
+  }
+}
+
+bool NW003_data_struct_ETH_RMII::ethCheckSettings() {
+  const EthClockMode_t ETH_ClockMode       = static_cast<EthClockMode_t>(_kvs->getValueAsInt(NW003_KEY_CLOCK_MODE));
+  const ESPEasy::net::EthPhyType_t phyType = static_cast<ESPEasy::net::EthPhyType_t>(_kvs->getValueAsInt(NW003_KEY_ETH_PHY_TYPE));
+
+  const int powerPin = _kvs->getValueAsInt(NW003_KEY_ETH_PIN_POWER);
+
+  return isValid(phyType)
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+         && (isValid(ETH_ClockMode) /* || isSPI_EthernetType(Settings.ETH_Phy_Type)*/)
+# endif
+         && validGpio(_kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDC))
+         && (validGpio(_kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDIO)) &&
+             (validGpio(powerPin) || (powerPin == -1))
+             ); // Some boards have fixed power
+}
+
+void NW003_data_struct_ETH_RMII::ethPrintSettings() {
+  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+    String log;
+
+    if (log.reserve(115)) {
+
+      const EthClockMode_t ETH_ClockMode       = static_cast<EthClockMode_t>(_kvs->getValueAsInt(NW003_KEY_CLOCK_MODE));
+      const ESPEasy::net::EthPhyType_t phyType = static_cast<ESPEasy::net::EthPhyType_t>(_kvs->getValueAsInt(NW003_KEY_ETH_PHY_TYPE));
+
+      log += F("ETH PHY Type: ");
+      log += toString(phyType);
+      log += F(" PHY Addr: ");
+      log += _kvs->getValueAsInt(NW003_KEY_ETH_PHY_ADDR);
+
+      log += F(" Eth Clock mode: ");
+      log += ESPEasy::net::toString(ETH_ClockMode);
+      log += strformat(F(" MDC: %d MIO: %d PWR: %d"),
+                       _kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDC),
+                       _kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDIO),
+                       _kvs->getValueAsInt(NW003_KEY_ETH_PIN_POWER));
+      addLogMove(LOG_LEVEL_INFO, log);
+    }
+  }
+}
+
+bool NW003_data_struct_ETH_RMII::ETHConnectRelaxed() {
   auto data = getNWPluginData_static_runtime();
 
   auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getInterface(_networkIndex);
 
-  if (data && iface) {
-    ESPEasy::net::eth::ETHConnectRelaxed(
-      *iface,
-      *data);
+  if (!(data && iface)) { return false; }
+
+  if (data->started() && data->connected()) {
+    return EthLinkUp();
+  }
+  ethPrintSettings();
+
+  if (!ethCheckSettings())
+  {
+    addLog(LOG_LEVEL_ERROR, F("ETH: Settings not correct!!!"));
+    data->mark_stop();
+    return false;
   }
 
-  return true;
+  ethPower(true);
+  data->mark_begin_establish_connection();
+
+  bool success = data->started();
+
+  if (!success) {
+# if FEATURE_USE_IPV6
+
+    if (Settings.EnableIPv6()) {
+      iface->enableIPv6(true);
+    }
+# endif // if FEATURE_USE_IPV6
+
+  const EthClockMode_t ETH_ClockMode       = static_cast<EthClockMode_t>(_kvs->getValueAsInt(NW003_KEY_CLOCK_MODE));
+  const ESPEasy::net::EthPhyType_t phyType = static_cast<ESPEasy::net::EthPhyType_t>(_kvs->getValueAsInt(NW003_KEY_ETH_PHY_TYPE));
+
+  const int phy_addr = _kvs->getValueAsInt(NW003_KEY_ETH_PHY_ADDR);
+  const int powerPin = _kvs->getValueAsInt(NW003_KEY_ETH_PIN_POWER);
+  const int mdcPin = _kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDC);
+  const int mdioPin = _kvs->getValueAsInt(NW003_KEY_ETH_PIN_MDIO);
+
+
+    if (isSPI_EthernetType(phyType)) {
+      spi_host_device_t SPI_host = Settings.getSPI_host();
+
+      if (SPI_host == spi_host_device_t::SPI_HOST_MAX) {
+        addLog(LOG_LEVEL_ERROR, F("SPI not enabled"));
+        # ifdef ESP32C3
+
+        // FIXME TD-er: Fallback for ETH01-EVO board
+        SPI_host              = spi_host_device_t::SPI2_HOST;
+        Settings.InitSPI      = static_cast<int>(SPI_Options_e::UserDefined);
+        Settings.SPI_SCLK_pin = 7;
+        Settings.SPI_MISO_pin = 3;
+        Settings.SPI_MOSI_pin = 10;
+        # endif // ifdef ESP32C3
+      }
+
+      // else
+      {
+# if ETH_SPI_SUPPORTS_CUSTOM
+        success = iface->begin(
+          to_ESP_phy_type(phyType),
+          phy_addr,
+          mdcPin,
+          mdioPin,
+          powerPin,
+          SPI);
+# else // if ETH_SPI_SUPPORTS_CUSTOM
+        success = iface->begin(
+          to_ESP_phy_type(phyType),
+          phy_addr,
+          mdcPin,
+          mdioPin,
+          powerPin,
+          SPI_host,
+          static_cast<int>(Settings.SPI_SCLK_pin),
+          static_cast<int>(Settings.SPI_MISO_pin),
+          static_cast<int>(Settings.SPI_MOSI_pin));
+# endif // if ETH_SPI_SUPPORTS_CUSTOM
+      }
+    } else {
+# if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+#  ifndef ESP32P4
+      ethResetGPIOpins();
+#  endif
+iface->enableIPv6(true);
+      success = iface->begin(
+        to_ESP_phy_type(phyType),
+        phy_addr,
+        mdcPin,
+        mdioPin,
+        powerPin,
+        (eth_clock_mode_t)Settings.ETH_Clock_Mode);
+iface->enableIPv6(true);
+# endif // if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
+    }
+  }
+
+  if (success) {
+    // FIXME TD-er: Not sure if this is correctly set to false
+    // EthEventData.ethConnectAttemptNeeded = false;
+
+    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+# if ESP_IDF_VERSION_MAJOR < 5
+      addLog(LOG_LEVEL_INFO, strformat(
+               F("ETH  : MAC: %s speed: %dM %s Link: %s"),
+               iface->macAddress().c_str(),
+               iface->linkSpeed(),
+               String(iface->fullDuplex() ? F("Full Duplex") : F("Half Duplex")).c_str(),
+               String(iface->linkUp() ? F("Up") : F("Down")).c_str()));
+# else // if ESP_IDF_VERSION_MAJOR < 5
+      addLog(LOG_LEVEL_INFO, strformat(
+               F("ETH  : MAC: %s phy addr: %d speed: %dM %s Link: %s"),
+               iface->macAddress().c_str(),
+               iface->phyAddr(),
+               iface->linkSpeed(),
+               concat(
+                 iface->fullDuplex() ? F("Full Duplex") : F("Half Duplex"),
+                 iface->autoNegotiation() ? F("(auto)") : F("")).c_str(),
+               String(iface->linkUp() ? F("Up") : F("Down")).c_str()));
+# endif // if ESP_IDF_VERSION_MAJOR < 5
+    }
+
+    if (EthLinkUp()) {
+      // We might miss the connected event, since we are already connected.
+      data->mark_connected();
+    }
+  } else {
+    addLog(LOG_LEVEL_ERROR, F("ETH  : Failed to initialize ETH"));
+  }
+  return success;
 }
-
-bool NW003_data_struct_ETH_RMII::exit(EventStruct *event) {
-  return true;
-}
-
-NWPluginData_static_runtime * NW003_data_struct_ETH_RMII::getNWPluginData_static_runtime() { 
-  return ESPEasy::net::eth::ETH_NWPluginData_static_runtime::getNWPluginData_static_runtime(_networkIndex);
-}
-
-
 
 } // namespace eth
 } // namespace net

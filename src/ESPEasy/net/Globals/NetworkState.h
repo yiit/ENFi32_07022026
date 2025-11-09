@@ -8,9 +8,6 @@
 #include "../../../src/DataTypes/ESPEasy_plugin_functions.h"
 #include "../../../src/DataTypes/NetworkMedium.h"
 
-#if FEATURE_ETHERNET
-#include "../eth/ETH_NWPluginData_static_runtime.h"
-#endif
 
 // Ethernet Connectiopn status
 extern ESPEasy::net::NetworkMedium_t active_network_medium;
@@ -34,8 +31,4 @@ extern IPAddress     apIP;
 extern WiFiUDP portUDP;
 #ifdef ESP32
 extern bool nonDefaultNetworkInterface_gotIP;
-#endif
-
-#if FEATURE_ETHERNET
-extern ESPEasy::net::eth::ETH_NWPluginData_static_runtime eth_NWPluginData_static_runtime;
 #endif

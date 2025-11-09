@@ -190,7 +190,7 @@ bool NWPlugin_004(NWPlugin::Function function, EventStruct *event, String& strin
 
     case NWPlugin::Function::NWPLUGIN_INIT:
     {
-      auto iface = eth_NWPluginData_static_runtime.init(event->NetworkIndex);
+      auto iface = ESPEasy::net::eth::ETH_NWPluginData_static_runtime::init(event->NetworkIndex);
 
       if (iface) {
         initNWPluginData(event->NetworkIndex, new (std::nothrow) ESPEasy::net::eth::NW004_data_struct_ETH_SPI(event->NetworkIndex, iface));

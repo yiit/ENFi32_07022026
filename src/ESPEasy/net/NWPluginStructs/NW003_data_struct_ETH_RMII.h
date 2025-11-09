@@ -47,6 +47,15 @@ private:
                                 PinSelectPurpose& purpose,
                                 bool              shortNotation = false);
 
+void ethResetGPIOpins();
+
+void ethPower(bool enable);
+
+bool ethCheckSettings();
+
+void ethPrintSettings();
+
+bool ETHConnectRelaxed();
 
 };
 
