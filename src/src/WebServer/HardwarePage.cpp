@@ -121,19 +121,6 @@ void handle_hardware() {
       Settings.InitSPI                = isFormItemChecked(F("initspi")); // SPI Init
     #endif
     Settings.Pin_sd_cs                = getFormItemInt(F("sd"));
-#ifndef WEBSERVER_NETWORK
-    #if FEATURE_ETHERNET
-    Settings.ETH_Phy_Addr             = getFormItemInt(F("ethphy"));
-    Settings.ETH_Pin_mdc_cs              = getFormItemInt(F("ethmdc"));
-    Settings.ETH_Pin_mdio_irq             = getFormItemInt(F("ethmdio"));
-    Settings.ETH_Pin_power_rst            = getFormItemInt(F("ethpower"));
-    Settings.ETH_Phy_Type             = static_cast<ESPEasy::net::EthPhyType_t>(getFormItemInt(F("ethtype")));
-#if CONFIG_ETH_USE_ESP32_EMAC && FEATURE_ETHERNET
-    Settings.ETH_Clock_Mode           = static_cast<ESPEasy::net::EthClockMode_t>(getFormItemInt(F("ethclock")));
-#endif
-    Settings.NetworkMedium            = static_cast<ESPEasy::net::NetworkMedium_t>(getFormItemInt(F("ethwifi")));
-    #endif // if FEATURE_ETHERNET
-#endif
     int gpio = 0;
 
     while (gpio <= MAX_GPIO) {

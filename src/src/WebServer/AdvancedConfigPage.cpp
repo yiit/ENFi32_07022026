@@ -115,24 +115,7 @@ void handle_advanced() {
     Settings.TolerantLastArgParse(isFormItemChecked(F("tolerantargparse")));
     Settings.SendToHttp_ack(isFormItemChecked(F("sendtohttp_ack")));
     Settings.SendToHTTP_follow_redirects(isFormItemChecked(F("sendtohttp_redir")));
-#ifndef WEBSERVER_NETWORK
-    Settings.ForceWiFi_bg_mode(isFormItemChecked(LabelType::FORCE_WIFI_BG));
-    Settings.WiFiRestart_connection_lost(isFormItemChecked(LabelType::RESTART_WIFI_LOST_CONN));
-#endif
     Settings.EcoPowerMode(isFormItemChecked(LabelType::CPU_ECO_MODE));
-#ifndef WEBSERVER_NETWORK
-    Settings.WifiNoneSleep(isFormItemChecked(LabelType::FORCE_WIFI_NOSLEEP));
-#ifdef SUPPORT_ARP
-    Settings.gratuitousARP(isFormItemChecked(LabelType::PERIODICAL_GRAT_ARP));
-#endif // ifdef SUPPORT_ARP
-#if FEATURE_SET_WIFI_TX_PWR
-    Settings.setWiFi_TX_power(getFormItemFloat(LabelType::WIFI_TX_MAX_PWR));
-    Settings.WiFi_sensitivity_margin = getFormItemInt(LabelType::WIFI_SENS_MARGIN);
-    Settings.UseMaxTXpowerForSending(isFormItemChecked(LabelType::WIFI_SEND_AT_MAX_TX_PWR));
-#endif
-    Settings.NumberExtraWiFiScans = getFormItemInt(LabelType::WIFI_NR_EXTRA_SCANS);
-    Settings.UseLastWiFiFromRTC(isFormItemChecked(LabelType::WIFI_USE_LAST_CONN_FROM_RTC));
-#endif
     Settings.JSONBoolWithoutQuotes(isFormItemChecked(LabelType::JSON_BOOL_QUOTES));
 #if FEATURE_TIMING_STATS
     Settings.EnableTimingStats(isFormItemChecked(LabelType::ENABLE_TIMING_STATISTICS));
@@ -144,19 +127,6 @@ void handle_advanced() {
     #if FEATURE_I2C_DEVICE_CHECK
     Settings.CheckI2Cdevice(isFormItemChecked(LabelType::ENABLE_I2C_DEVICE_CHECK));
     #endif // if FEATURE_I2C_DEVICE_CHECK
-#ifndef WEBSERVER_NETWORK
-#ifndef ESP32
-    Settings.WaitWiFiConnect(isFormItemChecked(LabelType::WAIT_WIFI_CONNECT));
-#endif
-    Settings.HiddenSSID_SlowConnectPerBSSID(isFormItemChecked(LabelType::HIDDEN_SSID_SLOW_CONNECT));
-    Settings.SDK_WiFi_autoreconnect(isFormItemChecked(LabelType::SDK_WIFI_AUTORECONNECT));
-#ifdef ESP32
-    Settings.PassiveWiFiScan(isFormItemChecked(LabelType::WIFI_PASSIVE_SCAN));
-#endif
-#if CONFIG_SOC_WIFI_SUPPORT_5G
-    Settings.WiFi_band_mode(static_cast<wifi_band_mode_t>(getFormItemInt(getInternalLabel(LabelType::WIFI_BAND_MODE))));
-#endif
-#endif
 #if FEATURE_USE_IPV6
     Settings.EnableIPv6(isFormItemChecked(LabelType::ENABLE_IPV6));
 #endif
@@ -413,55 +383,7 @@ void handle_advanced() {
   #endif // if FEATURE_SSDP
 
   addFormNumericBox(LabelType::CONNECTION_FAIL_THRESH, Settings.ConnectionFailuresThreshold, 0, 100);
-#ifndef WEBSERVER_NETWORK
-  addFormCheckBox(LabelType::FORCE_WIFI_BG, Settings.ForceWiFi_bg_mode());
-
-  addFormCheckBox(LabelType::RESTART_WIFI_LOST_CONN, Settings.WiFiRestart_connection_lost());
-  addFormCheckBox(LabelType::FORCE_WIFI_NOSLEEP,     Settings.WifiNoneSleep());
-#ifdef SUPPORT_ARP
-  addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP, Settings.gratuitousARP());
-#endif // ifdef SUPPORT_ARP
-#endif
   addFormCheckBox(LabelType::CPU_ECO_MODE,        Settings.EcoPowerMode());
-#ifndef WEBSERVER_NETWORK
-#if FEATURE_SET_WIFI_TX_PWR
-  addFormFloatNumberBox(LabelType::WIFI_TX_MAX_PWR, Settings.getWiFi_TX_power(), 0.0f, MAX_TX_PWR_DBM_11b, 2, 0.25f);
-  addFormNumericBox(LabelType::WIFI_SENS_MARGIN, Settings.WiFi_sensitivity_margin, -20, 30);
-  addFormCheckBox(LabelType::WIFI_SEND_AT_MAX_TX_PWR, Settings.UseMaxTXpowerForSending());
-#endif
-  {
-    addFormNumericBox(LabelType::WIFI_NR_EXTRA_SCANS, Settings.NumberExtraWiFiScans, 0, 5);
-  }
-  addFormCheckBox(LabelType::WIFI_USE_LAST_CONN_FROM_RTC, Settings.UseLastWiFiFromRTC());
-
-#ifndef ESP32
-  addFormCheckBox(LabelType::WAIT_WIFI_CONNECT,        Settings.WaitWiFiConnect());
-#endif
-  addFormCheckBox(LabelType::SDK_WIFI_AUTORECONNECT,   Settings.SDK_WiFi_autoreconnect());
-  addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT, Settings.HiddenSSID_SlowConnectPerBSSID());
-#ifdef ESP32
-  addFormCheckBox(LabelType::WIFI_PASSIVE_SCAN,        Settings.PassiveWiFiScan());
-#endif
-#if CONFIG_SOC_WIFI_SUPPORT_5G
-  {
-    const __FlashStringHelper * wifiModeNames[] = {
-      ESPEasy::net::wifi::getWifiBandModeString(WIFI_BAND_MODE_2G_ONLY),
-      ESPEasy::net::wifi::getWifiBandModeString(WIFI_BAND_MODE_5G_ONLY),
-      ESPEasy::net::wifi::getWifiBandModeString(WIFI_BAND_MODE_AUTO),
-    };
-    const int wifiModeOptions[] = { WIFI_BAND_MODE_2G_ONLY, WIFI_BAND_MODE_5G_ONLY, WIFI_BAND_MODE_AUTO};
-    constexpr int nrWifiModeOptions = NR_ELEMENTS(wifiModeNames);
-    const FormSelectorOptions selector(
-      nrWifiModeOptions,
-      wifiModeNames,
-      wifiModeOptions);
-    selector.addFormSelector(
-      getLabel(LabelType::WIFI_BAND_MODE),
-      getInternalLabel(LabelType::WIFI_BAND_MODE),
-      Settings.WiFi_band_mode());
-  }
-#endif
-#endif
 
 #if FEATURE_USE_IPV6
   addFormCheckBox(LabelType::ENABLE_IPV6,      Settings.EnableIPv6());

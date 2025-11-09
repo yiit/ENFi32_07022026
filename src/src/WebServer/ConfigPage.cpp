@@ -73,32 +73,6 @@ void handle_config() {
 
     // Password
     copyFormPassword(F("password"), SecuritySettings.Password, sizeof(SecuritySettings.Password));
-#ifndef WEBSERVER_NETWORK
-    // SSID 1
-    safe_strncpy(SecuritySettings.WifiSSID, webArg(F("ssid")).c_str(), sizeof(SecuritySettings.WifiSSID));
-    copyFormPassword(F("key"), SecuritySettings.WifiKey, sizeof(SecuritySettings.WifiKey));
-
-    // SSID 2
-    strncpy_webserver_arg(SecuritySettings.WifiSSID2, F("ssid2"));
-    copyFormPassword(F("key2"),  SecuritySettings.WifiKey2,  sizeof(SecuritySettings.WifiKey2));
-
-    // Hidden SSID
-    Settings.IncludeHiddenSSID(isFormItemChecked(LabelType::CONNECT_HIDDEN_SSID));
-    Settings.HiddenSSID_SlowConnectPerBSSID(isFormItemChecked(LabelType::HIDDEN_SSID_SLOW_CONNECT));
-
-#ifdef ESP32
-    Settings.PassiveWiFiScan(isFormItemChecked(LabelType::WIFI_PASSIVE_SCAN));
-#endif
-
-    // Access point password.
-    copyFormPassword(F("apkey"), SecuritySettings.WifiAPKey, sizeof(SecuritySettings.WifiAPKey));
-
-    // When set, user will be redirected to /setup or root page when connecting to this AP
-    Settings.ApCaptivePortal(isFormItemChecked(F("captiveportal")));
-
-    // Usually the AP will be started when no WiFi is defined, or the defined one cannot be found. This flag may prevent it.
-    Settings.DoNotStartAP(isFormItemChecked(F("DoNotStartAP")));
-#endif
 
     // TD-er Read access control from form.
     SecuritySettings.IPblockLevel = getFormItemInt(F("ipblocklevel"));
@@ -134,18 +108,6 @@ void handle_config() {
     #endif
 
     Settings.deepSleepOnFail = isFormItemChecked(F("deepsleeponfail"));
-#ifndef WEBSERVER_NETWORK
-    webArg2ip(F("espip"),      Settings.IP);
-    webArg2ip(F("espgateway"), Settings.Gateway);
-    webArg2ip(F("espsubnet"),  Settings.Subnet);
-    webArg2ip(F("espdns"),     Settings.DNS);
-#if FEATURE_ETHERNET
-    webArg2ip(F("espethip"),      Settings.ETH_IP);
-    webArg2ip(F("espethgateway"), Settings.ETH_Gateway);
-    webArg2ip(F("espethsubnet"),  Settings.ETH_Subnet);
-    webArg2ip(F("espethdns"),     Settings.ETH_DNS);
-#endif // if FEATURE_ETHERNET
-#endif
     #if FEATURE_ALTERNATIVE_CDN_URL
     set_CDN_url_custom(webArg(F("alturl")));
     #endif // if FEATURE_ALTERNATIVE_CDN_URL
@@ -165,38 +127,6 @@ void handle_config() {
   addFormCheckBox(F("Append Unit Number to hostname"), F("appendunittohostname"), Settings.appendUnitToHostname());
   addFormPasswordBox(F("Admin Password"), F("password"), SecuritySettings.Password, 25);
 
-#ifndef WEBSERVER_NETWORK
-  addFormSubHeader(F("Wifi Settings"));
-
-  addFormTextBox(getLabel(LabelType::SSID), F("ssid"), SecuritySettings.WifiSSID, 31);
-  addFormPasswordBox(F("WPA Key"), F("key"), SecuritySettings.WifiKey, 63);
-  addFormTextBox(F("Fallback SSID"), F("ssid2"), SecuritySettings.WifiSSID2, 31);
-  addFormPasswordBox(F("Fallback WPA Key"), F("key2"), SecuritySettings.WifiKey2, 63);
-  addFormNote(F("WPA Key must be at least 8 characters long"));
-
-  addFormCheckBox(LabelType::CONNECT_HIDDEN_SSID,      Settings.IncludeHiddenSSID());
-
-#ifdef ESP32
-  addFormCheckBox(LabelType::WIFI_PASSIVE_SCAN, Settings.PassiveWiFiScan());
-#endif
-  
-  addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT,      Settings.HiddenSSID_SlowConnectPerBSSID());
-
-  addFormSeparator(2);
-  addFormPasswordBox(F("WPA AP Mode Key"), F("apkey"), SecuritySettings.WifiAPKey, 63);
-  addFormNote(F("WPA Key must be at least 8 characters long"));
-
-  addFormCheckBox(F("Force /setup in AP-Mode"), F("captiveportal"), Settings.ApCaptivePortal());
-  addFormNote(F("When set, user will be redirected to /setup or root page when connecting to this AP. /setup can still be called when disabled"));
-
-  addFormCheckBox(F("Do Not Start AP"), F("DoNotStartAP"), Settings.DoNotStartAP());
-  #if FEATURE_ETHERNET
-  addFormNote(F("Do not allow to start an AP when unable to connect to configured LAN/WiFi"));
-  #else // if FEATURE_ETHERNET
-  addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
-  #endif // if FEATURE_ETHERNET
-#endif
-
   // TD-er add IP access box F("ipblocklevel")
   addFormSubHeader(F("Client IP filtering"));
   {
@@ -207,24 +137,6 @@ void handle_config() {
       addFormIPBox(F("Access IP upper range"), F("iprangehigh"), SecuritySettings.AllowedIPrangeHigh);
     }
   }
-#ifndef WEBSERVER_NETWORK
-  addFormSubHeader(F("WiFi IP Settings"));
-
-  addFormIPBox(F("ESP WiFi IP"),         F("espip"),      Settings.IP);
-  addFormIPBox(F("ESP WiFi Gateway"),    F("espgateway"), Settings.Gateway);
-  addFormIPBox(F("ESP WiFi Subnetmask"), F("espsubnet"),  Settings.Subnet);
-  addFormIPBox(F("ESP WiFi DNS"),        F("espdns"),     Settings.DNS);
-  addFormNote(F("Leave empty for DHCP"));
-#if FEATURE_ETHERNET
-  addFormSubHeader(F("Ethernet IP Settings"));
-
-  addFormIPBox(F("ESP Ethernet IP"),         F("espethip"),      Settings.ETH_IP);
-  addFormIPBox(F("ESP Ethernet Gateway"),    F("espethgateway"), Settings.ETH_Gateway);
-  addFormIPBox(F("ESP Ethernet Subnetmask"), F("espethsubnet"),  Settings.ETH_Subnet);
-  addFormIPBox(F("ESP Ethernet DNS"),        F("espethdns"),     Settings.ETH_DNS);
-  addFormNote(F("Leave empty for DHCP"));
-#endif // if FEATURE_ETHERNET
-#endif
 
 #ifdef USES_ESPEASY_NOW
   addFormSubHeader(F("ESPEasy-NOW"));
