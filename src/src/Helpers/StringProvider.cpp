@@ -1122,6 +1122,7 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
     }
     case LabelType::ETH_CHIP:
     {
+      // FIXME TD-er: Might no longer be needed? Otherwise need to query ETH Network interface, not settings.
       KeyValueStruct kv(F("Eth chip"), toString(Settings.ETH_Phy_Type));
       KV_SETID(F("ethchip"));
       return kv;

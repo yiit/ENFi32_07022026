@@ -134,11 +134,11 @@ void addPinSelector_Item(PinSelectPurpose purpose, const String& gpio_label, int
             return;
           }
           break;
+#if FEATURE_ETHERNET
         case PinSelectPurpose::Ethernet:
-          #if FEATURE_ETHERNET
           includeEthernet = false;
-          #endif // if FEATURE_ETHERNET
           break;
+#endif
         case PinSelectPurpose::Generic:
 
           if (!input && !output) {

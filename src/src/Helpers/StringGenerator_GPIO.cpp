@@ -257,7 +257,9 @@ const __FlashStringHelper* getConflictingUse_flashstr(int gpio, PinSelectPurpose
     case PinSelectPurpose::Serial_output:
       includeSerial = false;
       break;
+#if FEATURE_ETHERNET
     case PinSelectPurpose::Ethernet:
+#endif
     case PinSelectPurpose::Generic:
     case PinSelectPurpose::Generic_input:
     case PinSelectPurpose::Generic_output:
@@ -314,10 +316,12 @@ const __FlashStringHelper* getConflictingUse_flashstr(int gpio, PinSelectPurpose
     }
   }
 #ifdef ESP8266
+
   if (includeSPI && Settings.isSPI_pin(gpio)) {
     return F("SPI");
   }
-#endif
+#endif // ifdef ESP8266
+
   if (includeStatusLed && (Settings.Pin_status_led == gpio) && (-1 != gpio)) {
     return F("Wifi Status LED");
   }
@@ -381,106 +385,119 @@ const __FlashStringHelper* getConflictingUse_flashstr(int gpio, PinSelectPurpose
   return F("");
 }
 
-String getConflictingUse(int gpio, PinSelectPurpose purpose, bool ignorePSRAMpins)
-{
-  String conflict = getConflictingUse_flashstr(gpio, purpose, ignorePSRAMpins);
-
 #ifdef ESP32
 
-  if (conflict.isEmpty()) {
-    peripheral_bus_type_t bus_type = ESP32_BUS_TYPE_INIT;
-    String gpio_str, typeName;
-    int    bus_number{};
-    int    bus_channel{};
+String getConflictingUse_fromPeriman(int gpio, PinSelectPurpose purpose, bool ignorePSRAMpins)
+{
+  String conflict;
 
-    if (getPeriman_gpio_info(gpio, bus_type, gpio_str, typeName, bus_number, bus_channel))
+  peripheral_bus_type_t bus_type = ESP32_BUS_TYPE_INIT;
+  String gpio_str, typeName;
+  int    bus_number{};
+  int    bus_channel{};
+
+  if (getPeriman_gpio_info(gpio, bus_type, gpio_str, typeName, bus_number, bus_channel))
+  {
+    switch (purpose)
     {
-      switch (purpose)
-      {
-        case PinSelectPurpose::I2C:
+      case PinSelectPurpose::I2C:
 # if FEATURE_I2C_MULTIPLE
-        case PinSelectPurpose::I2C_2:
+      case PinSelectPurpose::I2C_2:
 #  if FEATURE_I2C_INTERFACE_3
-        case PinSelectPurpose::I2C_3:
+      case PinSelectPurpose::I2C_3:
 #  endif
 # endif // if FEATURE_I2C_MULTIPLE
 
-          if ((bus_type == ESP32_BUS_TYPE_I2C_MASTER_SDA) ||
-              (bus_type == ESP32_BUS_TYPE_I2C_MASTER_SCL) ||
-              (bus_type == ESP32_BUS_TYPE_I2C_SLAVE_SDA) ||
-              (bus_type == ESP32_BUS_TYPE_I2C_SLAVE_SCL))
-          { return conflict; }
-          break;
-        case PinSelectPurpose::SPI:
-        case PinSelectPurpose::SPI_MISO:
+        if ((bus_type == ESP32_BUS_TYPE_I2C_MASTER_SDA) ||
+            (bus_type == ESP32_BUS_TYPE_I2C_MASTER_SCL) ||
+            (bus_type == ESP32_BUS_TYPE_I2C_SLAVE_SDA) ||
+            (bus_type == ESP32_BUS_TYPE_I2C_SLAVE_SCL))
+        { return conflict; }
+        break;
+      case PinSelectPurpose::SPI:
+      case PinSelectPurpose::SPI_MISO:
 
-          if ((bus_type == ESP32_BUS_TYPE_SPI_MASTER_SCK) ||
-              (bus_type == ESP32_BUS_TYPE_SPI_MASTER_MISO) ||
-              (bus_type == ESP32_BUS_TYPE_SPI_MASTER_MOSI) ||
-              (bus_type == ESP32_BUS_TYPE_SPI_MASTER_SS))
-          { return conflict; }
-          break;
-        case PinSelectPurpose::Serial_input:
-        case PinSelectPurpose::Serial_output:
+        if ((bus_type == ESP32_BUS_TYPE_SPI_MASTER_SCK) ||
+            (bus_type == ESP32_BUS_TYPE_SPI_MASTER_MISO) ||
+            (bus_type == ESP32_BUS_TYPE_SPI_MASTER_MOSI) ||
+            (bus_type == ESP32_BUS_TYPE_SPI_MASTER_SS))
+        { return conflict; }
+        break;
+      case PinSelectPurpose::Serial_input:
+      case PinSelectPurpose::Serial_output:
 
-          if ((bus_type == ESP32_BUS_TYPE_UART_RX) ||
-              (bus_type == ESP32_BUS_TYPE_UART_TX) ||
-              (bus_type == ESP32_BUS_TYPE_UART_CTS) ||
-              (bus_type == ESP32_BUS_TYPE_UART_RTS))
-          { return conflict; }
-          break;
-        case PinSelectPurpose::Ethernet:
+        if ((bus_type == ESP32_BUS_TYPE_UART_RX) ||
+            (bus_type == ESP32_BUS_TYPE_UART_TX) ||
+            (bus_type == ESP32_BUS_TYPE_UART_CTS) ||
+            (bus_type == ESP32_BUS_TYPE_UART_RTS))
+        { return conflict; }
+        break;
+#if FEATURE_ETHERNET
+      case PinSelectPurpose::Ethernet:
 # if CONFIG_ETH_USE_ESP32_EMAC
 
-          if (//(bus_type == ESP32_BUS_TYPE_ETHERNET_RMII) ||
-              (bus_type == ESP32_BUS_TYPE_ETHERNET_CLK) ||
-              (bus_type == ESP32_BUS_TYPE_ETHERNET_MCD) ||
-              (bus_type == ESP32_BUS_TYPE_ETHERNET_MDIO) ||
-              (bus_type == ESP32_BUS_TYPE_ETHERNET_PWR))
-          { return conflict; }
+        if ( // (bus_type == ESP32_BUS_TYPE_ETHERNET_RMII) ||
+          (bus_type == ESP32_BUS_TYPE_ETHERNET_CLK) ||
+          (bus_type == ESP32_BUS_TYPE_ETHERNET_MCD) ||
+          (bus_type == ESP32_BUS_TYPE_ETHERNET_MDIO) ||
+          (bus_type == ESP32_BUS_TYPE_ETHERNET_PWR))
+        { return conflict; }
 # endif // if CONFIG_ETH_USE_ESP32_EMAC
 # if SOC_GPSPI_SUPPORTED
 
-          if (bus_type == ESP32_BUS_TYPE_ETHERNET_SPI)
-          { return conflict; }
+        if (bus_type == ESP32_BUS_TYPE_ETHERNET_SPI)
+        { return conflict; }
 # endif // if SOC_GPSPI_SUPPORTED
-          break;
-        case PinSelectPurpose::Generic:
-        case PinSelectPurpose::Generic_input:
-        case PinSelectPurpose::Generic_output:
-        case PinSelectPurpose::Generic_bidir:
-        case PinSelectPurpose::DAC:
-          break;
+        break;
+#endif
+      case PinSelectPurpose::Generic:
+      case PinSelectPurpose::Generic_input:
+      case PinSelectPurpose::Generic_output:
+      case PinSelectPurpose::Generic_bidir:
+      case PinSelectPurpose::DAC:
+        break;
 # if FEATURE_SD
-        case PinSelectPurpose::SD_Card:
-          break;
+      case PinSelectPurpose::SD_Card:
+        break;
 # endif // if FEATURE_SD
-        case PinSelectPurpose::Status_led:
+      case PinSelectPurpose::Status_led:
 # if SOC_LEDC_SUPPORTED
 
-          if (bus_type == ESP32_BUS_TYPE_LEDC) { return conflict; }
+        if (bus_type == ESP32_BUS_TYPE_LEDC) { return conflict; }
 # endif // if SOC_LEDC_SUPPORTED
-          break;
-        case PinSelectPurpose::Reset_pin:
-          break;
+        break;
+      case PinSelectPurpose::Reset_pin:
+        break;
+    }
+
+    conflict = typeName;
+
+    if (bus_number != -1) {
+      conflict += '(';
+      conflict += bus_number;
+
+      if (bus_channel != -1) {
+        conflict += ',';
+        conflict += bus_channel;
       }
-
-      conflict = typeName;
-
-      if (bus_number != -1) {
-        conflict += '(';
-        conflict += bus_number;
-
-        if (bus_channel != -1) {
-          conflict += ',';
-          conflict += bus_channel;
-        }
-        conflict += ')';
-      }
+      conflict += ')';
     }
   }
-#endif // ifdef ESP32
   return conflict;
+}
+
+#endif // ifdef ESP32
+
+String getConflictingUse(int gpio, PinSelectPurpose purpose, bool ignorePSRAMpins)
+{
+  String conflict;
+
+  #ifdef ESP32
+  conflict = getConflictingUse_fromPeriman(gpio, purpose, ignorePSRAMpins);
+
+  if (!conflict.isEmpty()) { return conflict; }
+  #endif // ifdef ESP32
+  return getConflictingUse_flashstr(gpio, purpose, ignorePSRAMpins);
 }
 
 String getConflictingUse_wrapped(int gpio, PinSelectPurpose purpose, bool ignorePSRAMpins)

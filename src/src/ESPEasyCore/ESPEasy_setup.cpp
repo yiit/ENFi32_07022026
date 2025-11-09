@@ -590,19 +590,6 @@ void ESPEasy_setup()
   }
   #endif // ifdef ESP32
 
-  #if FEATURE_ETHERNET
-
-  if (Settings.ETH_Pin_power_rst != -1) {
-    GPIO_Write(PLUGIN_GPIO, Settings.ETH_Pin_power_rst, 1);
-  }
-
-  #endif // if FEATURE_ETHERNET
-
-//  ESPEasy::net::NetworkConnectRelaxed();
-  #ifndef BUILD_NO_RAM_TRACKER
-  logMemUsageAfter(F("NetworkConnectRelaxed()"));
-  #endif // ifndef BUILD_NO_RAM_TRACKER
-
   #if FEATURE_REPORTING
   ReportStatus();
   #endif // if FEATURE_REPORTING

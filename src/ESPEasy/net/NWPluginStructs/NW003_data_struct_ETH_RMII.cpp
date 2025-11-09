@@ -291,7 +291,13 @@ void NW003_data_struct_ETH_RMII::webform_load(EventStruct *event)
       ethClockOptions,
       indices);
     auto params = NW003_makeWebFormItemParams(NW003_KEY_CLOCK_MODE);
+# if CONFIG_IDF_TARGET_ESP32
     params._defaultIntValue = static_cast<int>(EthClockMode_t::Ext_crystal_osc);
+#endif
+# if CONFIG_IDF_TARGET_ESP32P4
+    params._defaultIntValue = static_cast<int>(EthClockMode_t::Ext_crystal);
+#endif
+
     showFormSelector(*_kvs, selector, params);
 
   }

@@ -215,6 +215,7 @@ void hardwareInit()
 
   bool tryInitSPI = true;
 #if FEATURE_ETHERNET
+// FIXME TD-er: Is this still needed?
   if ((Settings.NetworkMedium == ESPEasy::net::NetworkMedium_t::Ethernet) &&
       isValid(Settings.ETH_Phy_Type) && 
       ESPEasy::net::isSPI_EthernetType(Settings.ETH_Phy_Type)) 
