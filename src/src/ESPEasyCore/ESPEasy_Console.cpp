@@ -16,6 +16,10 @@
 
 #include <ESPEasySerialPort.h>
 
+#ifdef ESP32
+#include <esp32-hal-periman.h>
+#endif
+
 
 EspEasy_Console_t::EspEasy_Console_t() :
   _mainSerial(LOG_TO_SERIAL)
@@ -236,6 +240,13 @@ void EspEasy_Console_t::begin(uint32_t baudrate)
 
   if (_fallbackSerial._serial != nullptr) {
     _fallbackSerial._serial->begin(baudrate);
+
+#ifdef ESP32
+    // Need to have this string as C-string, not F-string
+    perimanSetPinBusExtraType(SOC_RX0, "Console");
+    perimanSetPinBusExtraType(SOC_TX0, "Console");
+#endif
+
     addLog(LOG_LEVEL_INFO, F("ESPEasy console fallback enabled"));
   }
 #endif // if USES_ESPEASY_CONSOLE_FALLBACK_PORT

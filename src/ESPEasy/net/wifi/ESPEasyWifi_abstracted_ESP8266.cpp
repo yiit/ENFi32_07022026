@@ -30,6 +30,9 @@ bool WiFi_pre_setup() {
 bool WiFi_pre_STA_setup() {
   if (!doSetSTA(true)) { return false; }
 
+  // FIXME TD-er: Should ESP8266 first disable autoconnect/autoreconnect?
+  // On ESP32 this does clear the last used credentials, so it will be able to accept different credentials to connect to.
+
   // Assign to 2 separate bools to make sure both are executed.
   const bool autoConnect   = WiFi.setAutoConnect(true);
   const bool autoReconnect = WiFi.setAutoReconnect(true);

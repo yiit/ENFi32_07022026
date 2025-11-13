@@ -23,6 +23,8 @@
     #include <esp32c5/rom/rtc.h>
   #elif defined(ESP32C6)
     #include <esp32c6/rom/rtc.h>
+  #elif defined(ESP32C61)
+    #include <esp32c61/rom/rtc.h>
   #elif defined(ESP32P4)
     #include <esp32p4/rom/rtc.h>
   # elif defined(ESP32_CLASSIC)
@@ -217,6 +219,31 @@ const __FlashStringHelper * getResetReasonString_f(uint8_t icore, bool& isDEEPSL
     case DEEPSLEEP_RESET        : isDEEPSLEEP_RESET = true; break;
     //case DEEPSLEEP_RESET        : return F("Deep Sleep reset digital core (hp system)");
     case SDIO_RESET             : return F("Reset by SLC module, reset digital core (hp system)");
+    case TG0WDT_SYS_RESET       : return F("Timer Group0 Watch dog reset digital core (hp system)");
+    case TG1WDT_SYS_RESET       : return F("Timer Group1 Watch dog reset digital core (hp system)");
+    case RTCWDT_SYS_RESET       : return F("RTC Watch dog Reset digital core (hp system)");
+    case TG0WDT_CPU_RESET       : return F("Time Group0 reset CPU");
+    case RTC_SW_CPU_RESET       : return F("Software reset CPU");
+    case RTCWDT_CPU_RESET       : return F("RTC Watch dog Reset CPU");
+    case RTCWDT_BROWN_OUT_RESET : return F("Reset when the vdd voltage is not stable");
+    case RTCWDT_RTC_RESET       : return F("RTC Watch dog reset digital core and rtc module");
+    case TG1WDT_CPU_RESET       : return F("Time Group1 reset CPU");
+    case SUPER_WDT_RESET        : return F("super watchdog reset digital core and rtc module");
+    case EFUSE_RESET            : return F("efuse reset digital core (hp system)");
+    case USB_UART_CHIP_RESET    : return F("usb uart reset digital core (hp system)");
+    case USB_JTAG_CHIP_RESET    : return F("usb jtag reset digital core (hp system)");
+    case JTAG_RESET             : return F("jtag reset CPU");
+  }
+
+  #elif defined(ESP32C61)
+
+  // See tools\sdk\esp32\include\esp_rom\include\esp32c61\rom\rtc.h
+  switch (rtc_get_reset_reason(icore)) {
+    case NO_MEAN                : break;
+    case POWERON_RESET          : return F("Vbat power on reset");
+    case RTC_SW_SYS_RESET       : return F("Software reset digital core (hp system)");
+    case DEEPSLEEP_RESET        : isDEEPSLEEP_RESET = true; break;
+    //case DEEPSLEEP_RESET        : return F("Deep Sleep reset digital core (hp system)");
     case TG0WDT_SYS_RESET       : return F("Timer Group0 Watch dog reset digital core (hp system)");
     case TG1WDT_SYS_RESET       : return F("Timer Group1 Watch dog reset digital core (hp system)");
     case RTCWDT_SYS_RESET       : return F("RTC Watch dog Reset digital core (hp system)");

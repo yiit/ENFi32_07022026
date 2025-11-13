@@ -86,6 +86,8 @@ static_assert(false, "Implement processor architecture");
 #  define SOC_RX0 44
 # elif CONFIG_IDF_TARGET_ESP32C6
 #  define SOC_RX0 17
+# elif CONFIG_IDF_TARGET_ESP32C61
+#  define SOC_RX0 17
 # elif CONFIG_IDF_TARGET_ESP32C5
 #  define SOC_RX0 12
 # elif CONFIG_IDF_TARGET_ESP32C3
@@ -103,6 +105,8 @@ static_assert(false, "Implement processor architecture");
 # elif CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
 #  define SOC_TX0 43
 # elif CONFIG_IDF_TARGET_ESP32C6
+#  define SOC_TX0 16
+# elif CONFIG_IDF_TARGET_ESP32C61
 #  define SOC_TX0 16
 # elif CONFIG_IDF_TARGET_ESP32C5
 #  define SOC_TX0 11
@@ -126,6 +130,9 @@ static_assert(false, "Implement processor architecture");
 #ifdef ESP32C6
 #define PIN_USB_D_MIN  12
 #endif
+#ifdef ESP32C61
+#define PIN_USB_D_MIN  12  // TODO TD-er: Check
+#endif
 #ifdef ESP32C5
 #define PIN_USB_D_MIN  13
 #endif
@@ -144,6 +151,9 @@ static_assert(false, "Implement processor architecture");
 #endif
 #ifdef ESP32C6
 #define PIN_USB_D_PLUS 13
+#endif
+#ifdef ESP32C61
+#define PIN_USB_D_PLUS 13  // TODO TD-er: Check
 #endif
 #ifdef ESP32C5
 #define PIN_USB_D_PLUS 14

@@ -212,6 +212,10 @@ const __FlashStringHelper* getConflictingUse_flashstr(int gpio, PinSelectPurpose
     return F("Flash Vdd");
   }
 
+#elif defined(ESP32C61)
+
+  // TODO TD-er: Must check if C61 has conflicts here
+
 #elif defined(ESP32C2) || defined(ESP32C3)
 
   if (gpio == 11) {

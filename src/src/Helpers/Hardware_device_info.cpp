@@ -223,7 +223,7 @@ String getChipFeaturesString() {
 }
 
 bool getFlashChipOPI_wired() {
-  # if defined(ESP32_CLASSIC) || defined(ESP32C2)
+  # if defined(ESP32_CLASSIC) || defined(ESP32C2) || defined(ESP32C61)
   return false;
 
   # else // ifdef ESP32_CLASSIC
@@ -247,7 +247,7 @@ uint32_t getFlashChipSpeed() {
   // for which patches have been submitted and somehow they managed to merge it completely wrong.
   return ESP.getFlashChipSpeed();
 # else // if ESP_IDF_STILL_NEEDS_SPI_REGISTERS_FIXED
-#ifdef ESP32P4
+#if defined(ESP32P4) || defined(ESP32C61)
   // TODO TD-er: Implement
 //  return 80000000;
   return ESP.getFlashChipSpeed();

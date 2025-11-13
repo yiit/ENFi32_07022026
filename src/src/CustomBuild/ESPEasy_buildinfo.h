@@ -71,7 +71,7 @@
 #ifdef ESP32
 
 /*
- #if CONFIG_IDF_TARGET_ESP32C6 ||  // support USB via HWCDC using JTAG interface
+ #if CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32C61 ||  // support USB via HWCDC using JTAG interface
      CONFIG_IDF_TARGET_ESP32C3 ||  // support USB via HWCDC using JTAG interface
      CONFIG_IDF_TARGET_ESP32S2 ||  // support USB via USBCDC
      CONFIG_IDF_TARGET_ESP32S3     // support USB via HWCDC using JTAG interface or USBCDC

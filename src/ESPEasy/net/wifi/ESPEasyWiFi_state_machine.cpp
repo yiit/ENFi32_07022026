@@ -477,7 +477,7 @@ bool ESPEasyWiFi_t::connectSTA()
 
      WiFiEventData.warnedNoValidWiFiSettings = false;
    */
-  setSTA(true);
+  WiFi_pre_STA_setup();
 # if defined(ESP8266)
   wifi_station_set_hostname(NetworkCreateRFCCompliantHostname().c_str());
 
