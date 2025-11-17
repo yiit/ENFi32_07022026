@@ -289,7 +289,7 @@ bool P169_data_struct::plugin_init(struct EventStruct *event)
       addLogMove(LOG_LEVEL_DEBUG, log);
     }
   }
-#  endif // ifndef BUILD_NO_DEBUG
+  #  endif // ifndef BUILD_NO_DEBUG
 # endif // ifdef ESP32
 
 
