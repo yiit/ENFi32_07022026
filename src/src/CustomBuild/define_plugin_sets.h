@@ -3972,6 +3972,15 @@ To create/register a plugin, you have to :
   #endif
 #endif // if FEATURE_TASKVALUE_ATTRIBUTES
 
+#ifndef FEATURE_PLUGIN_LIST
+  #ifdef ESP32
+    #define FEATURE_PLUGIN_LIST           1
+  #endif
+  #ifdef ESP8266
+    #define FEATURE_PLUGIN_LIST           0 // Disabled by default on ESP8266
+  #endif
+#endif // ifndef FEATURE_PLUGIN_LIST
+
 #ifndef FEATURE_MQTT_CONNECT_BACKGROUND
   #ifdef ESP32
     #define FEATURE_MQTT_CONNECT_BACKGROUND   1
