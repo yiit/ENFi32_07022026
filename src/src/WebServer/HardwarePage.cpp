@@ -129,9 +129,9 @@ void handle_hardware() {
     #else //for ESP8266 we keep the old UI
     Settings.InitSPI = isFormItemChecked(F("initspi")); // SPI Init
     #endif
-    #ifdef ESP32
+    #if defined(ESP32) && FEATURE_SD
     Settings.setSPIBusForSDCard(getFormItemInt(F("sdspibus"), 0));
-    #endif // ifdef ESP32
+    #endif // if defined(ESP32) && FEATURE_SD
     Settings.Pin_sd_cs                = getFormItemInt(F("sd"));
     #if FEATURE_ETHERNET
     Settings.ETH_Phy_Addr             = getFormItemInt(F("ethphy"));
