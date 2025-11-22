@@ -896,8 +896,13 @@ void handle_devicess_ShowAllTasksTable(uint8_t page)
                   }
                   if (!it->second.isEmpty()) {
                     String value(it->second);
-                    value = parseTemplateAndCalculate(value);
-                    String presentation = getCustomStringVar(strformat(F(TASK_VALUE_PRESENTATION_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str()));
+                    String presentation;
+                    if (Settings.TaskDeviceEnabled[x]) {
+                      value = parseTemplateAndCalculate(value);
+                      presentation = getCustomStringVar(strformat(F(TASK_VALUE_PRESENTATION_PREFIX_TEMPLATE), taskName.c_str(), valueName.c_str()));
+                    } else {
+                      value = F("0");
+                    }
                     if (!uom.isEmpty()) {
                       value = strformat(F("%s %s"), value.c_str(), uom.c_str());
                     }
