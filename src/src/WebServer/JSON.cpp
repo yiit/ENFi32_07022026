@@ -506,17 +506,11 @@ void handle_json()
               }
               if (!it->second.isEmpty()) {
                 String value(it->second);
+                stripEscapeCharacters(value);
+                value = parseTemplate(value);
                 uint8_t nrDecimals = 255; // FIXME Use the minimal number of decimals needed
-                String presentation;
-                if (Settings.TaskDeviceEnabled[TaskIndex]) {
-                  stripEscapeCharacters(value);
-                  value = parseTemplate(value);
-                  bool hasPresentation;
-                  presentation = formatUserVarForPresentation(&TempEvent, INVALID_TASKVAR_INDEX, hasPresentation, value, DeviceIndex, valueName);
-                } else {
-                  value = F("0");
-                  nrDecimals = 0;
-                }
+                bool hasPresentation;
+                const String presentation = formatUserVarForPresentation(&TempEvent, INVALID_TASKVAR_INDEX, hasPresentation, value, DeviceIndex, valueName);
 
                 stream_comma_newline(); // Push out a comma and newline
                 handle_json_stream_task_value_data(varNr + 1,
