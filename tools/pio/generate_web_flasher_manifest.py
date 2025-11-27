@@ -58,6 +58,7 @@ def parse_filename(file, version, variant, file_suffix):
     #print("{} : {} {} {}".format(file, version, variant, file_suffix))
 
     chipFamily = 'NotSet'
+    chipVariant = ''
     manifest_suff = ''
     add_improv = True
 
@@ -94,6 +95,10 @@ def parse_filename(file, version, variant, file_suffix):
                 chipFamily = 'ESP32-H2'
             elif 'ESP32p4' in variant:
                 chipFamily = 'ESP32-P4'
+                if 'rev300' in variant:
+                    chipVariant = 'rev300'
+                else:
+                    chipVariant = 'rev0'
             else:
                 chipFamily = 'ESP32'
 
@@ -240,17 +245,17 @@ def parse_filename(file, version, variant, file_suffix):
             manifest['build_flags'] = build_flags
             parts = dict([('path', file), ('offset', 0)])
             if add_improv:
-                builds = dict([('chipFamily', chipFamily), ('improv', False), ('parts', [parts])])
+                builds = dict([('chipFamily', chipFamily), ('chipVariant', chipVariant), ('improv', False), ('parts', [parts])])
             else:
-                builds = dict([('chipFamily', chipFamily), ('parts', [parts])])
+                builds = dict([('chipFamily', chipFamily), ('chipVariant', chipVariant), ('parts', [parts])])
             manifest['builds'] = [builds]
             manifest_binfiles[main_group][sub_group] = manifest
         else:
             parts = dict([('path', file), ('offset', 0)])
             if add_improv:
-                builds = dict([('chipFamily', chipFamily), ('improv', False), ('parts', [parts])])
+                builds = dict([('chipFamily', chipFamily), ('chipVariant', chipVariant), ('improv', False), ('parts', [parts])])
             else:
-                builds = dict([('chipFamily', chipFamily), ('parts', [parts])])
+                builds = dict([('chipFamily', chipFamily), ('chipVariant', chipVariant), ('parts', [parts])])
             manifest_binfiles[main_group][sub_group]['builds'].append(builds)
             manifest_binfiles[main_group][sub_group]['families'].append(chipFamily)
 
