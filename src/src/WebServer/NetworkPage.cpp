@@ -230,8 +230,11 @@ void handle_networks_ShowAllNetworksTable()
       for (uint8_t i = 0; i < NR_ELEMENTS(functions); ++i) {
         html_TD();
 
-        if (Settings.getNetworkEnabled(x) ||
-            (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT)) {
+        if (Settings.getNetworkEnabled(x) 
+# ifndef LIMIT_BUILD_SIZE
+        || (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT)
+# endif
+      ) {
           KeyValueWriter_WebForm webFormWriter;
           webFormWriter.setSummaryValueOnly();
           struct EventStruct TempEvent;
