@@ -62,6 +62,10 @@ bool KeyValueWriter::plainText() const {
   return _plainText;
 }
 
+bool KeyValueWriter::allowHTML() const {
+  return false;
+}
+
 bool KeyValueWriter::summaryValueOnly() const {
   if (_parent && _parent->summaryValueOnly()) { return true; }
 

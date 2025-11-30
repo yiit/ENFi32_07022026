@@ -219,15 +219,20 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
           {
             auto runtime_data = NW_data->getNWPluginData_static_runtime();
 
-            if (runtime_data) {
-              auto duration = runtime_data->_connectedStats.getLastOnDuration_ms();
+            if (runtime_data && runtime_data->_connectedStats.isSet()) {
+              const bool connected = runtime_data->_connectedStats.isOn();
+              auto duration = connected 
+              ? runtime_data->_connectedStats.getLastOnDuration_ms()
+              : runtime_data->_connectedStats.getLastOffDuration_ms();
 
               if (duration > 0) {
                 event->Par64_1 = duration;
                 event->Par64_2 = runtime_data->_connectedStats.getCycleCount();
 
                 if (event->kvWriter) {
-                  event->kvWriter->write({ F("Connection Duration"), format_msec_duration_HMS(duration) });
+                  event->kvWriter->write({ 
+                    connected ? F("Connection Duration") : F("Disconnected Duration"), 
+                    format_msec_duration_HMS(duration) });
 
                   if (!event->kvWriter->summaryValueOnly()) {
                     event->kvWriter->write({ F("Number of Reconnects"), event->Par64_2 });
@@ -250,6 +255,7 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
     case NWPlugin::Function::NWPLUGIN_INIT:
     case NWPlugin::Function::NWPLUGIN_CONNECT_SUCCESS:
     case NWPlugin::Function::NWPLUGIN_CONNECT_FAIL:
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_EXTENDED:
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS:
@@ -319,6 +325,12 @@ bool NWPluginCall(NWPlugin::Function Function, EventStruct *event, String& str)
                     event->Par2 = event->networkInterface->isDefault();
                     success     = true;
                     break;
+
+                  case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE:
+                  {
+                    success = event->networkInterface->started();
+                    break;
+                  }                    
 
                   case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME:
 

@@ -49,8 +49,9 @@ void addFormCheckBox(const String& label,
                      #endif // if FEATURE_TOOLTIPS
                      );
 
+void addFormCheckBoxes(const LabelType::Enum* label, size_t nrLabels);
+
 void addFormCheckBox(LabelType::Enum label,
-                     bool         checked,
                      bool            disabled = false
                      #if FEATURE_TOOLTIPS
                      ,
@@ -58,8 +59,7 @@ void addFormCheckBox(LabelType::Enum label,
                      #endif // if FEATURE_TOOLTIPS
                      );
 
-void addFormCheckBox_disabled(LabelType::Enum label,
-                              bool         checked);
+void addFormCheckBox_disabled(LabelType::Enum label);
 void addFormCheckBox(const __FlashStringHelper * label, const __FlashStringHelper * id, bool checked, bool disabled = false);
 void addFormCheckBox(const __FlashStringHelper * label, const String& id, bool checked, bool disabled = false);
 

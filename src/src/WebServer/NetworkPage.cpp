@@ -164,10 +164,10 @@ void handle_networks_CopySubmittedSettings_NWPluginCall(ESPEasy::net::networkInd
 # endif // ifdef ESP32
 # if FEATURE_USE_IPV6
     Settings.setNetworkEnabled_IPv6(networkindex, isFormItemChecked(F("en_ipv6")));
-#endif
+# endif
     Settings.setNetworkInterfaceStartupDelayAtBoot(networkindex, getFormItemInt(F("delay_start")));
     String dummy;
-    NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
+    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE, &TempEvent, dummy);
   }
 
 }
@@ -180,6 +180,7 @@ void handle_networks_ShowAllNetworksTable()
   html_table_header(F("Nr"),         50);
   html_table_header(F("Enabled"),    100);
   html_table_header(F("Network Adapter"));
+  html_table_header(F("Active"),     100);
   html_table_header(F("Name"),       50);
   # ifdef ESP32
   html_table_header(F("Route Prio"), 50);
@@ -188,9 +189,9 @@ void handle_networks_ShowAllNetworksTable()
   html_table_header(F("Hostname/SSID"));
   html_table_header(F("HW Address"));
   html_table_header(F("IP"));
-#ifndef LIMIT_BUILD_SIZE
+# ifndef LIMIT_BUILD_SIZE
   html_table_header(F("Port"));
-#endif
+# endif
 
   for (ESPEasy::net::networkIndex_t x = 0; x < MAX_NR_NETWORKS_IN_TABLE; x++)
   {
@@ -210,6 +211,7 @@ void handle_networks_ShowAllNetworksTable()
       addHtml(getNWPluginNameFromNWPluginID(Settings.getNWPluginID_for_network(x)));
 
       const NWPlugin::Function functions[] {
+        NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_NAME,
 # ifdef ESP32
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO,
@@ -218,46 +220,61 @@ void handle_networks_ShowAllNetworksTable()
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HW_ADDRESS,
         NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_IP
-#ifndef LIMIT_BUILD_SIZE
-        ,NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
-#endif
+# ifndef LIMIT_BUILD_SIZE
+        , NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT
+# endif
       };
 
       //      const networkDriverIndex_t NetworkDriverIndex = getNetworkDriverIndex_from_NetworkIndex(x);
 
       for (uint8_t i = 0; i < NR_ELEMENTS(functions); ++i) {
         html_TD();
-        KeyValueWriter_WebForm webFormWriter;
-        webFormWriter.setSummaryValueOnly();
-        struct EventStruct TempEvent;
-        TempEvent.kvWriter = &webFormWriter;
 
-        TempEvent.NetworkIndex = x;
+        if (Settings.getNetworkEnabled(x) ||
+            (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT)) {
+          KeyValueWriter_WebForm webFormWriter;
+          webFormWriter.setSummaryValueOnly();
+          struct EventStruct TempEvent;
+          TempEvent.kvWriter = &webFormWriter;
 
-        String str;
+          TempEvent.NetworkIndex = x;
 
-        const bool res = NWPluginCall(functions[i], &TempEvent);
+          String str;
+
+          const bool res = ESPEasy::net::NWPluginCall(functions[i], &TempEvent);
+
+          switch (functions[i])
+          {
 # ifdef ESP32
 
-        if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO) {
-          if (TempEvent.Par1 > 0) {
-            addHtmlInt(TempEvent.Par1);
+            case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ROUTE_PRIO:
 
-            if (TempEvent.Par2) {
-              addHtml(F("(*)"));
-            }
-          }
-        } else
+              if (TempEvent.Par1 > 0) {
+                addHtmlInt(TempEvent.Par1);
+
+                if (TempEvent.Par2) {
+                  addHtml(F("(*)"));
+                }
+              }
+              break;
 # endif // ifdef ESP32
 
-        if (functions[i] == NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED) {
-          NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent);
+            case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE:
+              addEnabled(res);
+              break;
+            case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
 
-          if (!res) {
-            addEnabled(res);
+              ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_CONNECTED_DURATION, &TempEvent);
+
+              if (!res) {
+                addEnabled(res);
+              }
+              break;
+            default: break;
           }
         }
       }
+
 
       /*
          const NetworkDriverStruct& driver = ESPEasy::net::getNetworkDriverStruct(NetworkDriverIndex);
@@ -269,11 +286,11 @@ void handle_networks_ShowAllNetworksTable()
 
     }
     else {
-#ifndef LIMIT_BUILD_SIZE
+# ifndef LIMIT_BUILD_SIZE
+      html_TD(9);
+# else
       html_TD(8);
-#else
-      html_TD(7);
-#endif
+# endif // ifndef LIMIT_BUILD_SIZE
     }
   }
 
@@ -361,15 +378,16 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
     addFormNumericBox(F("Delay Startup At Boot"), F("delay_start"), Settings.getNetworkInterfaceStartupDelayAtBoot(networkindex), 0, 60000);
     addUnit(F("ms"));
 
-#if FEATURE_USE_IPV6
+# if FEATURE_USE_IPV6
     addFormCheckBox(F("Enable IPv6"), F("en_ipv6"), Settings.getNetworkEnabled_IPv6(networkindex));
+
     if (!Settings.EnableIPv6()) {
       addFormNote(F("IPv6 is disabled on tools->Advanced page"));
     }
-#endif
+# endif // if FEATURE_USE_IPV6
 
     String str;
-    NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
+    ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_WEBFORM_LOAD, &TempEvent, str);
 
 # if FEATURE_NETWORK_STATS
 
@@ -407,14 +425,14 @@ void handle_networks_NetworkSettingsPage(ESPEasy::net::networkIndex_t networkind
 
 # ifdef ESP32
 
-    if (NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
+    if (ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_GET_INTERFACE, &TempEvent, str))
     {
       KeyValueWriter_WebForm writer(true);
-      
+
       ESPEasy::net::write_NetworkAdapterFlags(networkindex, writer.createChild(F("Network Interface")).get());
-#ifndef LIMIT_BUILD_SIZE
+#  ifndef LIMIT_BUILD_SIZE
       ESPEasy::net::write_NetworkAdapterPort(networkindex, writer.createChild(F("Port")).get());
-#endif
+#  endif
       ESPEasy::net::write_IP_config(networkindex, writer.createChild(F("IP Config")).get());
       ESPEasy::net::write_NetworkConnectionInfo(networkindex, writer.createChild(F("Connection Information")).get());
     }

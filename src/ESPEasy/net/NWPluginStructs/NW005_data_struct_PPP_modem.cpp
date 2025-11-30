@@ -646,7 +646,7 @@ bool NW005_data_struct_PPP_modem::webform_getPort(KeyValueWriter *writer)
                                      label.c_str(),
                                      pin));
           } else {
-            if (writer->plainText()) {
+            if (writer->plainText() || !writer->allowHTML()) {
               KVS_StorageType::Enum storageType;
               writer->write({ getLabelString(keys[i], false, storageType), pin });
             } else {

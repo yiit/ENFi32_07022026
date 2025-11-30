@@ -106,6 +106,12 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       break;
     }
 
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE:
+    {
+      success = ESPEasy::net::wifi::WifiIsSTA(WiFi.getMode());
+      break;
+    }
+
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_CONNECTED:
     {
 # ifdef ESP32
@@ -298,7 +304,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-#ifndef LIMIT_BUILD_SIZE
+#  ifndef LIMIT_BUILD_SIZE
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_PORT:
     {
       if (event->kvWriter) {
@@ -306,7 +312,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       }
       break;
     }
-#endif
+#  endif // ifndef LIMIT_BUILD_SIZE
 # endif // ifdef BOARD_HAS_SDIO_ESP_HOSTED
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SAVE:
     {
@@ -354,7 +360,7 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       Settings.WiFi_sensitivity_margin = getFormItemInt(LabelType::WIFI_SENS_MARGIN);
       Settings.UseMaxTXpowerForSending(isFormItemChecked(LabelType::WIFI_SEND_AT_MAX_TX_PWR));
 # endif // if FEATURE_SET_WIFI_TX_PWR
-      Settings.NumberExtraWiFiScans = getFormItemInt(LabelType::WIFI_NR_EXTRA_SCANS);
+      Settings.ConnectFailRetryCount = getFormItemInt(LabelType::WIFI_NR_RECONNECT_ATTEMPTS);
       Settings.UseLastWiFiFromRTC(isFormItemChecked(LabelType::WIFI_USE_LAST_CONN_FROM_RTC));
 
 # ifndef ESP32
@@ -405,12 +411,16 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
       addFormNote(F("These credentials will be stored in a separate file: <tt>devsecurity.dat</tt>"));
 # endif // if FEATURE_STORE_CREDENTIALS_SEPARATE_FILE
       addFormSubHeader(F("Wifi Settings"));
-
-      addFormCheckBox(LabelType::CONNECT_HIDDEN_SSID,      Settings.IncludeHiddenSSID());
-      addFormCheckBox(LabelType::HIDDEN_SSID_SLOW_CONNECT, Settings.HiddenSSID_SlowConnectPerBSSID());
+      {
+        LabelType::Enum labels[]{
+          LabelType::CONNECT_HIDDEN_SSID
+          , LabelType::HIDDEN_SSID_SLOW_CONNECT
 # ifdef ESP32
-      addFormCheckBox(LabelType::WIFI_PASSIVE_SCAN,        Settings.PassiveWiFiScan());
+          , LabelType::WIFI_PASSIVE_SCAN
 # endif
+        };
+        addFormCheckBoxes(labels, NR_ELEMENTS(labels));
+      }
 
       addFormSubHeader(F("WiFi IP Settings"));
 
@@ -422,12 +432,12 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
 
       /*
        # if FEATURE_USE_IPV6
-            addFormCheckBox(LabelType::ENABLE_IPV6, Settings.EnableIPv6());
+            addFormCheckBox(LabelType::ENABLE_IPV6);
        # endif
        */
 
       addFormSubHeader(F("WiFi Mode"));
-      addFormCheckBox(LabelType::FORCE_WIFI_BG, Settings.ForceWiFi_bg_mode());
+      addFormCheckBox(LabelType::FORCE_WIFI_BG);
 # if CONFIG_SOC_WIFI_SUPPORT_5G
       {
         const __FlashStringHelper *wifiModeNames[] = {
@@ -442,36 +452,38 @@ bool NWPlugin_001(NWPlugin::Function function, EventStruct *event, String& strin
           wifiModeNames,
           wifiModeOptions);
         selector.addFormSelector(
-          getLabel(LabelType::WIFI_BAND_MODE),
-          getInternalLabel(LabelType::WIFI_BAND_MODE),
+          LabelType::WIFI_BAND_MODE,
           Settings.WiFi_band_mode());
       }
 # endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 
 
       addFormSubHeader(F("WiFi Power"));
-      addFormCheckBox(LabelType::FORCE_WIFI_NOSLEEP, Settings.WifiNoneSleep());
+      addFormCheckBox(LabelType::FORCE_WIFI_NOSLEEP);
 # if FEATURE_SET_WIFI_TX_PWR
       addFormFloatNumberBox(LabelType::WIFI_TX_MAX_PWR, Settings.getWiFi_TX_power(), 0.0f, MAX_TX_PWR_DBM_11b, 2, 0.25f);
       addFormNumericBox(LabelType::WIFI_SENS_MARGIN, Settings.WiFi_sensitivity_margin, -20, 30);
-      addFormCheckBox(LabelType::WIFI_SEND_AT_MAX_TX_PWR, Settings.UseMaxTXpowerForSending());
+      addFormCheckBox(LabelType::WIFI_SEND_AT_MAX_TX_PWR);
 # endif // if FEATURE_SET_WIFI_TX_PWR
 
       addFormSubHeader(F("WiFi Tweaks"));
 
-      addFormCheckBox(LabelType::RESTART_WIFI_LOST_CONN, Settings.WiFiRestart_connection_lost());
-
-      addFormNumericBox(LabelType::WIFI_NR_EXTRA_SCANS, Settings.NumberExtraWiFiScans, 0, 5);
-      addFormCheckBox(LabelType::WIFI_USE_LAST_CONN_FROM_RTC, Settings.UseLastWiFiFromRTC());
-
+      addFormNumericBox(LabelType::WIFI_NR_RECONNECT_ATTEMPTS, Settings.ConnectFailRetryCount, 0, 255);
+      {
+        LabelType::Enum labels[]{
+          LabelType::RESTART_WIFI_LOST_CONN
+          , LabelType::WIFI_USE_LAST_CONN_FROM_RTC
 # ifndef ESP32
-      addFormCheckBox(LabelType::WAIT_WIFI_CONNECT,           Settings.WaitWiFiConnect());
+          , LabelType::WAIT_WIFI_CONNECT
 # endif
-      addFormCheckBox(LabelType::SDK_WIFI_AUTORECONNECT,      Settings.SDK_WiFi_autoreconnect());
-
+          , LabelType::SDK_WIFI_AUTORECONNECT
 # ifdef SUPPORT_ARP
-      addFormCheckBox(LabelType::PERIODICAL_GRAT_ARP,         Settings.gratuitousARP());
+          , LabelType::PERIODICAL_GRAT_ARP
 # endif // ifdef SUPPORT_ARP
+        };
+
+        addFormCheckBoxes(labels, NR_ELEMENTS(labels));
+      }
 
       break;
     }

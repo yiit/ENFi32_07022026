@@ -70,6 +70,8 @@ public:
 
   virtual bool plainText() const;
 
+  virtual bool allowHTML() const; 
+
   // 'summaryValueOnly' means the key will not be output and this is also a hint to generate a summary of data.
   // Typically this is intended for human readable texts.
   // When set to true, any child writer will also have this set to true

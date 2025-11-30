@@ -49,10 +49,10 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
     case NWPlugin::Function::NWPLUGIN_DRIVER_ADD:
     {
       NetworkDriverStruct& nw = getNetworkDriverStruct(networkDriverIndex_t::toNetworkDriverIndex(event->idx));
-      nw.onlySingleInstance = true;
-      nw.alwaysPresent      = true;
+      nw.onlySingleInstance    = true;
+      nw.alwaysPresent         = true;
       nw.enabledOnFactoryReset = false;
-      nw.fixedNetworkIndex  = NWPLUGIN_ID_002 - 1; // Start counting at 0
+      nw.fixedNetworkIndex     = NWPLUGIN_ID_002 - 1; // Start counting at 0
       break;
     }
 
@@ -85,6 +85,12 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
     {
       success = ESPEasy::net::wifi::wifiAPmodeActivelyUsed();
 
+      break;
+    }
+
+    case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_ACTIVE:
+    {
+      success = ESPEasy::net::wifi::WifiIsAP(WiFi.getMode());
       break;
     }
 
@@ -168,13 +174,13 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
     case NWPlugin::Function::NWPLUGIN_WEBFORM_SHOW_HOSTNAME:
     {
       if (event->kvWriter) {
-        event->kvWriter->write({ F("Hostname"), 
+        event->kvWriter->write({ F("Hostname"),
 # ifdef ESP32
-      WiFi.AP.SSID()
+                                 WiFi.AP.SSID()
 # else
-      WiFi.softAPSSID()
+                                 WiFi.softAPSSID()
 # endif // ifdef ESP32
-         });
+                               });
         success = true;
       }
       break;
@@ -227,16 +233,20 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
       // Access point password.
       copyFormPassword(F("apkey"), SecuritySettings.WifiAPKey, sizeof(SecuritySettings.WifiAPKey));
 
-      Settings.WiFiAP_channel = getFormItemInt(F("apchannel"));
+      Settings.WiFiAP_channel = getFormItemInt(LabelType::WIFI_AP_CHANNEL);
 
       // When set, user will be redirected to /setup or root page when connecting to this AP
-      Settings.ApCaptivePortal(isFormItemChecked(F("captiveportal")));
+      Settings.ApCaptivePortal(isFormItemChecked(LabelType::WIFI_ENABLE_CAPTIVE_PORTAL));
 
       // Usually the AP will be started when no WiFi is defined, or the defined one cannot be found. This flag may prevent it.
-      Settings.DoNotStartAP(isFormItemChecked(F("DoNotStartAP")));
+      Settings.StartAPfallback_NoCredentials(!isFormItemChecked(LabelType::WIFI_START_AP_NO_CREDENTIALS));
+      Settings.DoNotStartAPfallback_ConnectFail(!isFormItemChecked(LabelType::WIFI_START_AP_ON_CONNECT_FAIL));
+      Settings.APfallback_autostart_max_uptime_m(getFormItemInt(LabelType::WIFI_MAX_UPTIME_AUTO_START_AP));
+      Settings.APfallback_minimal_on_time_sec(getFormItemInt(LabelType::WIFI_AP_MINIMAL_ON_TIME));
+
 
 # ifdef ESP32
-      Settings.WiFi_AP_enable_NAPT(isFormItemChecked(F("napt")));
+      Settings.WiFi_AP_enable_NAPT(isFormItemChecked(LabelType::WIFI_AP_ENABLE_NAPT));
 # endif
 
       break;
@@ -254,48 +264,43 @@ bool NWPlugin_002(NWPlugin::Function function, EventStruct *event, String& strin
 
         // See wifi_5g_channel_bit_t for all supported channels
         const int wifiChannels[] =
-        { 1, 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12, 13, 14   // 2.4 GHz
-          ,  36,  40,  44,  48                                              // 5 GHz U-NII-1
-          ,  52,  56,  60,  64,  68                                         // 5 GHz U-NII-2A
-          // ,72, 76, 80, 84, 88 /* , 92 */                                 // 5 GHz U-NII-2B
-          , /* 96,*/  100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140 // 5 GHz U-NII-2C
-          ,  144                                                            // 5 GHz U-NII-2C/3
-          ,  149, 153, 157, 161, 165                                        // 5 GHz U-NII-3
-          ,  169                                                            // 5 GHz U-NII-3/4
-          ,  173, 177                                                       // 5 GHz U-NII-4
+        { 1,   2,  3,   4,   5,   6,   7,   8,   9,   10,   11,  12,  13, 14 // 2.4 GHz
+          ,36,   40,  44,  48                                                // 5 GHz U-NII-1
+          ,52,   56,  60,  64,  68                                           // 5 GHz U-NII-2A
+          // ,72, 76, 80, 84, 88 /* , 92 */                                  // 5 GHz U-NII-2B
+          ,/* 96,*/ 100,104, 108, 112, 116, 120, 124, 128, 132,  136, 140    // 5 GHz U-NII-2C
+          ,144                                                               // 5 GHz U-NII-2C/3
+          ,149,  153, 157, 161, 165                                          // 5 GHz U-NII-3
+          ,169                                                               // 5 GHz U-NII-3/4
+          ,173,  177                                                         // 5 GHz U-NII-4
         };
         constexpr int nrwifiChannels = NR_ELEMENTS(wifiChannels);
         const FormSelectorOptions selector(
           nrwifiChannels,
           wifiChannels);
         selector.addFormSelector(
-          F("Wifi AP channel"), F("apchannel"),
+          LabelType::WIFI_AP_CHANNEL,
           Settings.WiFiAP_channel);
 # else // if CONFIG_SOC_WIFI_SUPPORT_5G
-        addFormNumericBox(F("Wifi AP channel"), F("apchannel"), Settings.WiFiAP_channel, 1, 14);
+        addFormNumericBox(LabelType::WIFI_AP_CHANNEL, Settings.WiFiAP_channel, 1, 14);
 # endif // if CONFIG_SOC_WIFI_SUPPORT_5G
 
-        addFormNote(F("WiFi channel to be used when only WiFi AP is active"));
+      }
+      {
+        LabelType::Enum labels[]{
+          LabelType::WIFI_ENABLE_CAPTIVE_PORTAL
+  # ifdef ESP32
+          , LabelType::WIFI_AP_ENABLE_NAPT
+  # endif // ifdef ESP32
+          , LabelType::WIFI_START_AP_NO_CREDENTIALS
+          , LabelType::WIFI_START_AP_ON_CONNECT_FAIL
+        };
+
+        addFormCheckBoxes(labels, NR_ELEMENTS(labels));
       }
 
-
-      addFormCheckBox(F("Force /setup in AP-Mode"), F("captiveportal"), Settings.ApCaptivePortal());
-      addFormNote(F(
-                    "When set, user will be redirected to /setup or root page when connecting to this AP. /setup can still be called when disabled."));
-
-      addFormCheckBox(F("Do Not Start AP"), F("DoNotStartAP"), Settings.DoNotStartAP());
-  # if FEATURE_ETHERNET
-      addFormNote(F("Do not allow to start an AP when unable to connect to configured LAN/WiFi"));
-  # else // if FEATURE_ETHERNET
-#ifndef LIMIT_BUILD_SIZE
-      addFormNote(F("Do not allow to start an AP when configured WiFi cannot be found"));
-#endif
-  # endif // if FEATURE_ETHERNET
-  # ifdef ESP32
-      addFormCheckBox(F("Enable NAPT"), F("napt"), Settings.WiFi_AP_enable_NAPT());
-      addFormNote(F("NAPT will have no effect when 'force /setup' is enabled"));
-  # endif // ifdef ESP32
-
+      addFormNumericBox(LabelType::WIFI_MAX_UPTIME_AUTO_START_AP, Settings.APfallback_autostart_max_uptime_m(), 0, 255);
+      addFormNumericBox(LabelType::WIFI_AP_MINIMAL_ON_TIME,       Settings.APfallback_minimal_on_time_sec(),    0, 255);
       break;
     }
 

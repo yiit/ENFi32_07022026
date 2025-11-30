@@ -168,6 +168,10 @@ void run_compiletime_checks() {
     #endif
   }
 
+  constexpr size_t offset_WireClockStretchLimit = offsetof(SettingsStruct, WireClockStretchLimit);
+  constexpr size_t offset_ConnectionFailuresThreshold = offsetof(SettingsStruct, ConnectionFailuresThreshold);
+  static_assert(184 == offset_ConnectionFailuresThreshold, "");
+
 
   static_assert(192u == offsetof(SettingsStruct, Protocol), "");
   static_assert(195u == offsetof(SettingsStruct, Notification), "CONTROLLER_MAX has changed?");

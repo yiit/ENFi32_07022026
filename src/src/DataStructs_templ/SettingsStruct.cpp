@@ -270,12 +270,12 @@ void SettingsStruct_tmpl<N_TASKS>::SendDerivedTaskValues(taskIndex_t taskIndex, 
 #endif // if FEATURE_STRING_VARIABLES
 /*
 template<uint32_t N_TASKS>
-bool SettingsStruct_tmpl<N_TASKS>::DoNotStartAP() const {
+bool SettingsStruct_tmpl<N_TASKS>::DoNotStartAPfallback_ConnectFail() const {
   return bitRead(VariousBits1, 17);
 }
 
 template<uint32_t N_TASKS>
-void SettingsStruct_tmpl<N_TASKS>::DoNotStartAP(bool value) {
+void SettingsStruct_tmpl<N_TASKS>::DoNotStartAPfallback_ConnectFail(bool value) {
   bitWrite(VariousBits1, 17, value);
 }
 
@@ -745,7 +745,7 @@ void SettingsStruct_tmpl<N_TASKS>::clearMisc() {
   I2C_clockSpeed                   = DEFAULT_I2C_CLOCK_SPEED;
   WebserverPort                    = 80;
   SyslogPort                       = 514;
-  GlobalSync_unused                = false;
+  VariousBits_3._all_bits          = 0;
   ConnectionFailuresThreshold      = 0;
   MQTTRetainFlag_unused            = false;
   InitSPI                          = DEFAULT_SPI;
@@ -778,7 +778,7 @@ void SettingsStruct_tmpl<N_TASKS>::clearMisc() {
   UseESPEasyNow(false);
   #endif
   ApCaptivePortal(DEFAULT_AP_FORCE_SETUP);
-  DoNotStartAP(DEFAULT_DONT_ALLOW_START_AP);
+  DoNotStartAPfallback_ConnectFail(DEFAULT_DONT_ALLOW_START_AP);
 }
 
 

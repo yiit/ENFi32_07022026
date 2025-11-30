@@ -204,10 +204,50 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
       return KeyValueStruct(F("Send With Max TX Power"), Settings.UseMaxTXpowerForSending());
     }
 #endif // if FEATURE_SET_WIFI_TX_PWR
-    case LabelType::WIFI_NR_EXTRA_SCANS:
+    case LabelType::WIFI_AP_CHANNEL:
     {
-      return KeyValueStruct(F("Extra WiFi scan loops"), Settings.NumberExtraWiFiScans);
+      return KeyValueStruct(F("Wifi AP channel"), Settings.WiFiAP_channel);
     }
+    case LabelType::WIFI_ENABLE_CAPTIVE_PORTAL:
+    {
+      return KeyValueStruct(F("Force /setup in AP-Mode"), Settings.ApCaptivePortal());
+    }
+    case LabelType::WIFI_START_AP_NO_CREDENTIALS:
+    {
+      return KeyValueStruct(F("Start AP on No Credentials"), Settings.StartAPfallback_NoCredentials());
+    }
+    case LabelType::WIFI_START_AP_ON_CONNECT_FAIL:
+    {
+      return KeyValueStruct(F("Start AP on Connect Fail"), !Settings.DoNotStartAPfallback_ConnectFail());
+    }
+    
+    case LabelType::WIFI_NR_RECONNECT_ATTEMPTS:
+    {
+      return KeyValueStruct(F("Connect Retry Attempts"), Settings.ConnectFailRetryCount);
+    }
+    case LabelType::WIFI_MAX_UPTIME_AUTO_START_AP:
+    {
+      KeyValueStruct kv(F("Max. Uptime to Start AP"), Settings.APfallback_autostart_max_uptime_m());
+# if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+      KV_SETUNIT(UOM_min);
+# endif
+      return kv;
+    }
+    case LabelType::WIFI_AP_MINIMAL_ON_TIME:
+    {
+      KeyValueStruct kv(F("AP Minimal 'on' Time"), Settings.APfallback_minimal_on_time_sec());
+# if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+      KV_SETUNIT(UOM_sec);
+# endif
+      return kv;
+    }
+#ifdef ESP32
+    case LabelType::WIFI_AP_ENABLE_NAPT:
+    {
+      return KeyValueStruct(F("Enable NAPT"), Settings.WiFi_AP_enable_NAPT());
+    }
+#endif
+
     case LabelType::WIFI_USE_LAST_CONN_FROM_RTC:
     {
       return KeyValueStruct(F("Use Last Connected AP from RTC"), Settings.UseLastWiFiFromRTC());
@@ -1188,26 +1228,66 @@ KeyValueStruct getKeyValue(LabelType::Enum label, bool extendedValue)
   return KeyValueStruct();
 }
 
-String getInternalLabel(LabelType::Enum label, char replaceSpace) {
+String getLabel(
+    LabelType::Enum label, 
+    String&         internalLabel,
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    String&         unit,
+#endif
+    String&         note,
+    char            replaceSpace)
+{
   auto kv = getKeyValue(label);
+  internalLabel = kv.getID();
+  if (replaceSpace != '\0') internalLabel.replace(" ", String(replaceSpace));
 
-  return kv.getID();
+  if (kv._key.isEmpty()) {
+    return F("MissingString");
+  }
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  unit = kv.getUnit();
+#endif
+#ifndef MINIMAL_OTA
+  note = getFormNote(label);
+#endif
+  return kv._key.toString();
 }
 
-String getLabel(LabelType::Enum label) {
-  auto kv = getKeyValue(label);
+String getInternalLabel(const KeyValueStruct& kv,
+                        char            replaceSpace)
+{
+  String res = kv.getID();
+  if (replaceSpace != '\0') res.replace(" ", String(replaceSpace));
 
+  return res;
+}
+
+
+String getInternalLabel(LabelType::Enum label, char replaceSpace) {
+  return getInternalLabel(getKeyValue(label), replaceSpace);
+}
+
+String getLabel(const KeyValueStruct& kv)
+{
   if (kv._key.isEmpty()) {
     return F("MissingString");
   }
   return kv._key.toString();
 }
 
-String getValue(LabelType::Enum label) {
-  auto kv = getKeyValue(label);
+String getLabel(LabelType::Enum label) {
+  return getLabel(getKeyValue(label));
+}
 
+
+String getValue(const KeyValueStruct& kv)
+{
   if (kv._values.size() && kv._values[0].isSet()) { return kv._values[0].toString(); }
   return EMPTY_STRING;
+}
+
+String getValue(LabelType::Enum label) {
+  return getValue(getKeyValue(label));
 }
 
 #if FEATURE_ETHERNET
@@ -1289,14 +1369,33 @@ String getFormNote(LabelType::Enum label)
       flash_str = F("Node may miss receiving packets with Eco mode enabled");
       break;
 
-    case LabelType::WIFI_NR_EXTRA_SCANS:
-      flash_str = F("Number of extra times to scan all channels to have higher chance of finding the desired AP");
+    case LabelType::WIFI_AP_CHANNEL:
+      flash_str = F("WiFi channel to be used when only WiFi AP is active");
+      break;
+    case LabelType::WIFI_ENABLE_CAPTIVE_PORTAL:
+      flash_str = F("When set, user will be redirected to /setup or root page when connecting to this AP. /setup can still be called when disabled.");
+      break;
+
+    case LabelType::WIFI_NR_RECONNECT_ATTEMPTS:
+      flash_str = F("Number of retry attempts before counting as 'failed'");
+      break;
+    case LabelType::WIFI_MAX_UPTIME_AUTO_START_AP:
+      flash_str = F("Only start AP automatically when system uptime is less than set minutes (0 = allow always)");
+      break;
+    case LabelType::WIFI_AP_MINIMAL_ON_TIME:
+      flash_str = F("Minimal time to have the AP actively waiting for a user to connect");
       break;
 # ifndef ESP32
     case LabelType::WAIT_WIFI_CONNECT:
       flash_str = F("Wait for 1000 msec right after connecting to WiFi.<BR>May improve success on some APs like Fritz!Box");
       break;
 # endif // ifndef ESP32
+#ifdef ESP32
+    case LabelType::WIFI_AP_ENABLE_NAPT:
+      flash_str = F("NAPT will have no effect when 'force /setup' is enabled");
+      break;
+
+#endif
 
 #endif // ifndef MINIMAL_OTA
 
@@ -1325,7 +1424,6 @@ String getFormNote(LabelType::Enum label)
 }
 
 #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-
 String getFormUnit(LabelType::Enum label)
 {
   auto kv = getKeyValue(label);

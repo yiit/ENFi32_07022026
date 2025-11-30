@@ -99,21 +99,36 @@ void addFormCheckBox(const String& label, const String& id, bool checked, bool d
               );
 }
 
-void addFormCheckBox(LabelType::Enum label, bool checked, bool disabled
+void addFormCheckBoxes(const LabelType::Enum* label, size_t nrLabels)
+{
+  if (label == nullptr) return;
+  for (size_t i = 0; i < nrLabels; ++i) {
+    addFormCheckBox(*label);
+    ++label;
+  }    
+}
+
+void addFormCheckBox(LabelType::Enum label, bool disabled
                      #if FEATURE_TOOLTIPS
                      , const String& tooltip
                      #endif // if FEATURE_TOOLTIPS
                      ) {
-  addFormCheckBox(getLabel(label), getInternalLabel(label), checked, disabled
+  auto kv = getKeyValue(label);
+  const bool checked = !getValue(kv).equals("0");
+
+  addFormCheckBox(getLabel(kv), getInternalLabel(kv), checked, disabled
                   #if FEATURE_TOOLTIPS
                   , tooltip
                   #endif // if FEATURE_TOOLTIPS
                   );
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  addUnit(kv.getUnit());
+  #endif
   addFormNote(label);
 }
 
-void addFormCheckBox_disabled(LabelType::Enum label, bool checked) {
-  addFormCheckBox(label, checked, true);
+void addFormCheckBox_disabled(LabelType::Enum label) {
+  addFormCheckBox(label, true);
 }
 
 // ********************************************************************************
@@ -126,13 +141,26 @@ void addFormNumericBox(LabelType::Enum label, int value, int min, int max
                        , bool disabled
                        )
 {
-  addFormNumericBox(getLabel(label), getInternalLabel(label), value, min, max
+  String internalLabel;
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  String unit;
+  #endif
+  String note;
+  const String labelStr = getLabel(label, internalLabel
+    #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    , unit
+    #endif
+    ,note);
+  addFormNumericBox(labelStr, internalLabel, value, min, max
                     #if FEATURE_TOOLTIPS
                     , tooltip
                     #endif // if FEATURE_TOOLTIPS
                     , disabled
                     );
-  addFormNote(label);
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  addUnit(unit);
+  #endif
+  addFormNote(note);
 }
 
 void addFormNumericBox(const __FlashStringHelper * label, 
@@ -179,12 +207,25 @@ void addFormFloatNumberBox(LabelType::Enum label, float value, float min, float 
                            , const String& tooltip
                            #endif // if FEATURE_TOOLTIPS
                            ) {
-  addFormFloatNumberBox(getLabel(label), getInternalLabel(label), value, min, max, nrDecimals, stepsize
+  String internalLabel;
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  String unit;
+  #endif
+  String note;
+  const String labelStr = getLabel(label, internalLabel
+    #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    , unit
+    #endif
+    ,note);
+  addFormFloatNumberBox(labelStr, internalLabel, value, min, max, nrDecimals, stepsize
                         #if FEATURE_TOOLTIPS
                         , tooltip
                         #endif // if FEATURE_TOOLTIPS
                         );
-  addFormNote(label);
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  addUnit(unit);
+  #endif
+  addFormNote(note);
 }
 
 void addFormFloatNumberBox(const String& label,

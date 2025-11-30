@@ -337,7 +337,9 @@ void handle_json()
                   LabelType::WIFI_SENS_MARGIN,
                   LabelType::WIFI_SEND_AT_MAX_TX_PWR,
 #endif // if FEATURE_SET_WIFI_TX_PWR
-                  LabelType::WIFI_NR_EXTRA_SCANS,
+                  LabelType::WIFI_NR_RECONNECT_ATTEMPTS,
+                  LabelType::WIFI_MAX_UPTIME_AUTO_START_AP,
+                  LabelType::WIFI_AP_MINIMAL_ON_TIME,
 #ifdef ESP32
                   LabelType::WIFI_PASSIVE_SCAN,
 #endif

@@ -91,6 +91,25 @@ void FormSelectorOptions::clearClassName()
   classname = F("");
 }
 
+void FormSelectorOptions::addFormSelector(LabelType::Enum label, int selectedIndex) const
+{
+  String internalLabel;
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  String unit;
+  #endif
+  String note;
+  const String labelStr = getLabel(label, internalLabel
+    #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    , unit
+    #endif
+    ,note);
+  addFormSelector(labelStr, internalLabel, selectedIndex);
+  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+  addUnit(unit);
+  #endif
+  addFormNote(note);
+}
+
 void FormSelectorOptions::addFormSelector(
   const __FlashStringHelper *label,
   const __FlashStringHelper *id,

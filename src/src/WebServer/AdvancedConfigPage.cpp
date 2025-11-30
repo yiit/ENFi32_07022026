@@ -182,8 +182,8 @@ void handle_advanced() {
   #ifdef WEBSERVER_NEW_RULES
   addFormCheckBox(F("Old Engine"), F("oldrulesengine"), Settings.OldRulesEngine());
   #endif // WEBSERVER_NEW_RULES
-  addFormCheckBox(LabelType::ENABLE_RULES_CACHING, Settings.EnableRulesCaching());
-//  addFormCheckBox(LabelType::ENABLE_RULES_EVENT_REORDER, Settings.EnableRulesEventReorder()); // TD-er: Disabled for now
+  addFormCheckBox(LabelType::ENABLE_RULES_CACHING);
+//  addFormCheckBox(LabelType::ENABLE_RULES_EVENT_REORDER); // TD-er: Disabled for now
 
   addFormCheckBox(F("Tolerant last parameter"), F("tolerantargparse"), Settings.TolerantLastArgParse());
   addFormNote(F("Perform less strict parsing on last argument of some commands (e.g. publish and sendToHttp)"));
@@ -254,7 +254,7 @@ void handle_advanced() {
 
 
   addFormSubHeader(F("Serial Console Settings"));
-  addFormCheckBox(LabelType::ENABLE_SERIAL_PORT_CONSOLE, Settings.UseSerial);
+  addFormCheckBox(LabelType::ENABLE_SERIAL_PORT_CONSOLE);
   addFormNumericBox(F("Baud Rate"), F("baudrate"), Settings.BaudRate, 0, 1000000);
 
 #if FEATURE_DEFINE_SERIAL_CONSOLE_PORT
@@ -278,7 +278,7 @@ void handle_advanced() {
 
   html_add_script(F("document.getElementById('serPort').onchange();"), false);
 #if USES_ESPEASY_CONSOLE_FALLBACK_PORT
-  addFormCheckBox(LabelType::CONSOLE_FALLBACK_TO_SERIAL0, Settings.console_serial0_fallback);
+  addFormCheckBox(LabelType::CONSOLE_FALLBACK_TO_SERIAL0);
 #endif
 
 #endif
@@ -318,34 +318,40 @@ void handle_advanced() {
   #if defined(ESP32)
   addFormCheckBox_disabled(F("Enable RTOS Multitasking"), F("usertosmultitasking"), Settings.UseRTOSMultitasking);
   #endif // if defined(ESP32)
+  {
+    LabelType::Enum labels[]{
 
-  addFormCheckBox(LabelType::JSON_BOOL_QUOTES, Settings.JSONBoolWithoutQuotes());
-#if FEATURE_TIMING_STATS
-  addFormCheckBox(LabelType::ENABLE_TIMING_STATISTICS, Settings.EnableTimingStats());
-#endif // if FEATURE_TIMING_STATS
-#ifndef BUILD_NO_RAM_TRACKER
-  addFormCheckBox(LabelType::ENABLE_RAM_TRACKING, Settings.EnableRAMTracking());
-#endif
+      LabelType::JSON_BOOL_QUOTES
+    #if FEATURE_TIMING_STATS
+      ,LabelType::ENABLE_TIMING_STATISTICS
+    #endif // if FEATURE_TIMING_STATS
+    #ifndef BUILD_NO_RAM_TRACKER
+      ,LabelType::ENABLE_RAM_TRACKING
+    #endif
 
-  addFormCheckBox(LabelType::TASKVALUESET_ALL_PLUGINS, Settings.AllowTaskValueSetAllPlugins());
-#if FEATURE_CLEAR_I2C_STUCK
-  addFormCheckBox(LabelType::ENABLE_CLEAR_HUNG_I2C_BUS, Settings.EnableClearHangingI2Cbus());
-#endif
-  #if FEATURE_I2C_DEVICE_CHECK
-  addFormCheckBox(LabelType::ENABLE_I2C_DEVICE_CHECK, Settings.CheckI2Cdevice());
-  #endif // if FEATURE_I2C_DEVICE_CHECK
+      ,LabelType::TASKVALUESET_ALL_PLUGINS
+    #if FEATURE_CLEAR_I2C_STUCK
+      ,LabelType::ENABLE_CLEAR_HUNG_I2C_BUS
+    #endif
+      #if FEATURE_I2C_DEVICE_CHECK
+      ,LabelType::ENABLE_I2C_DEVICE_CHECK
+      #endif // if FEATURE_I2C_DEVICE_CHECK
 
-  #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
-  addFormCheckBox(LabelType::SHOW_UOM_ON_DEVICES_PAGE, Settings.ShowUnitOfMeasureOnDevicesPage());
-  #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+      #if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+      ,LabelType::SHOW_UOM_ON_DEVICES_PAGE
+      #endif // if FEATURE_TASKVALUE_UNIT_OF_MEASURE
 
-  #if FEATURE_MQTT_CONNECT_BACKGROUND
-  addFormCheckBox(LabelType::MQTT_CONNECT_IN_BACKGROUND, Settings.MQTTConnectInBackground());
-  #endif // if FEATURE_MQTT_CONNECT_BACKGROUND
+      #if FEATURE_MQTT_CONNECT_BACKGROUND
+      ,LabelType::MQTT_CONNECT_IN_BACKGROUND
+      #endif // if FEATURE_MQTT_CONNECT_BACKGROUND
 
-  # ifndef NO_HTTP_UPDATER
-  addFormCheckBox(LabelType::ALLOW_OTA_UNLIMITED, Settings.AllowOTAUnlimited());
-  # endif // ifndef NO_HTTP_UPDATER
+      # ifndef NO_HTTP_UPDATER
+      ,LabelType::ALLOW_OTA_UNLIMITED
+      # endif // ifndef NO_HTTP_UPDATER
+    };
+
+    addFormCheckBoxes(labels, NR_ELEMENTS(labels));
+  }
   #if FEATURE_AUTO_DARK_MODE
   {
     const __FlashStringHelper * cssModeNames[] = {
@@ -365,29 +371,31 @@ void handle_advanced() {
       Settings.getCssMode());
   }
   #endif // FEATURE_AUTO_DARK_MODE
+{
+  LabelType::Enum labels[]{
 
+  LabelType::CPU_ECO_MODE
+  #ifdef ESP8266
+  ,LabelType::DEEP_SLEEP_ALTERNATIVE_CALL
+  #endif
   #if FEATURE_RULES_EASY_COLOR_CODE
-  addFormCheckBox(LabelType::DISABLE_RULES_AUTOCOMPLETE, Settings.DisableRulesCodeCompletion());
+  ,LabelType::DISABLE_RULES_AUTOCOMPLETE
   #endif // if FEATURE_RULES_EASY_COLOR_CODE
   #if FEATURE_TARSTREAM_SUPPORT
-  addFormCheckBox(LabelType::DISABLE_SAVE_CONFIG_AS_TAR, Settings.DisableSaveConfigAsTar());
+  ,LabelType::DISABLE_SAVE_CONFIG_AS_TAR
   #endif // if FEATURE_TARSTREAM_SUPPORT
 
-  #ifdef ESP8266
-  addFormCheckBox(LabelType::DEEP_SLEEP_ALTERNATIVE_CALL, Settings.UseAlternativeDeepSleep());
-  #endif
-
-
+#if FEATURE_USE_IPV6
+  ,LabelType::ENABLE_IPV6
+#endif
+        };
+  addFormCheckBoxes(labels, NR_ELEMENTS(labels));
+}
   #if FEATURE_SSDP
   addFormCheckBox_disabled(F("Use SSDP"), F("usessdp"), Settings.UseSSDP);
   #endif // if FEATURE_SSDP
 
   addFormNumericBox(LabelType::CONNECTION_FAIL_THRESH, Settings.ConnectionFailuresThreshold, 0, 100);
-  addFormCheckBox(LabelType::CPU_ECO_MODE,        Settings.EcoPowerMode());
-
-#if FEATURE_USE_IPV6
-  addFormCheckBox(LabelType::ENABLE_IPV6,      Settings.EnableIPv6());
-#endif
 
 
 

@@ -448,7 +448,7 @@ bool BuildFixes()
   }
 
   if (Settings.Build < 20113) {
-    Settings.NumberExtraWiFiScans = 0;
+    Settings.ConnectFailRetryCount = 0;
   }
 
   if (Settings.Build < 20114) {

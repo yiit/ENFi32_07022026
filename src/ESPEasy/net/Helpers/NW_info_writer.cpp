@@ -222,7 +222,7 @@ bool write_NetworkPort(const __FlashStringHelper*labels[], const int pins[], siz
       if (pins[i] >= 0) {
         success = true;
         writer->write({
-              concat(labels[i], F(" GPIO")),
+              labels[i],
               pins[i],
               KeyValueStruct::Format::PreFormatted });
       }

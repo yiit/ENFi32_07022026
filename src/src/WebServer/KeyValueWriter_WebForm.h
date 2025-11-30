@@ -47,6 +47,8 @@ public:
   virtual UP_KeyValueWriter createNew();
   virtual UP_KeyValueWriter createNew(const String& header);
 
+  virtual bool allowHTML() const override;
+
 
 }; // class KeyValueWriter_WebForm
 

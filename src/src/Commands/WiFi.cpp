@@ -139,7 +139,7 @@ String Command_Wifi_Mode(struct EventStruct *event, const char *Line)
 
 const __FlashStringHelper* Command_Wifi_AllowAP(struct EventStruct *event, const char *Line)
 {
-  Settings.DoNotStartAP(false);
+  Settings.DoNotStartAPfallback_ConnectFail(false);
   return return_command_success_flashstr();
 }
 

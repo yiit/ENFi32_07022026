@@ -192,6 +192,7 @@ public:
     NWPLUGIN_WEBFORM_LOAD_SHOW_STATS,
 #endif
     NWPLUGIN_WEBFORM_SHOW_NAME,       // Name like "ppp", "eth0", etc.
+    NWPLUGIN_WEBFORM_SHOW_ACTIVE,     // Check whether interface is active and if not, return some error value
     NWPLUGIN_WEBFORM_SHOW_CONNECTED,  // Used for showing connected state/speed
     NWPLUGIN_WEBFORM_SHOW_EXTENDED,   // Used for showing all connection info
     NWPLUGIN_WEBFORM_SHOW_HOSTNAME,   // Used for showing hostname

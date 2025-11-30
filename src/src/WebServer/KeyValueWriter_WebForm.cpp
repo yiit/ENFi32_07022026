@@ -192,3 +192,7 @@ UP_KeyValueWriter KeyValueWriter_WebForm::createNew(const String& header)
 
   // return std::make_unique<KeyValueWriter_WebForm>(header);
 }
+
+bool KeyValueWriter_WebForm::allowHTML() const {
+  return true;
+}

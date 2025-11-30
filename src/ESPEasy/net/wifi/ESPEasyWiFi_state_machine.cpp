@@ -52,7 +52,7 @@ void ESPEasyWiFi_t::begin()   {
   if (WiFi_AP_Candidates.hasCandidates()) {
     setState(WiFiState_e::IdleWaiting, 100);
   } else {
-//    if (!Settings.DoNotStartAP()) {
+//    if (!Settings.DoNotStartAPfallback_ConnectFail()) {
 //      setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
 //    } else 
     {
@@ -133,7 +133,7 @@ void ESPEasyWiFi_t::loop()
 
           // Move up?
         } else if (!WiFi_AP_Candidates.hasCandidateCredentials() ||
-                   !Settings.DoNotStartAP()) {
+                   !Settings.DoNotStartAPfallback_ConnectFail()) {
           if (!WiFi_AP_Candidates.hasCandidateCredentials()
 
               //  && !WiFiEventData.warnedNoValidWiFiSettings
@@ -183,7 +183,7 @@ void ESPEasyWiFi_t::loop()
         if (WiFi_AP_Candidates.hasCandidates()) {
           setState(WiFiState_e::WiFiOFF, 100);
         } else {
-          if (!Settings.DoNotStartAP()) {
+          if (!Settings.DoNotStartAPfallback_ConnectFail()) {
             setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
           } else {
             setState(WiFiState_e::WiFiOFF, 1000);
@@ -227,7 +227,7 @@ void ESPEasyWiFi_t::loop()
           _scan_channel = 0;
 
           if (!WiFi_AP_Candidates.hasCandidateCredentials() &&
-              !Settings.DoNotStartAP()) {
+              !Settings.DoNotStartAPfallback_ConnectFail()) {
             setState(WiFiState_e::AP_only, WIFI_STATE_MACHINE_AP_ONLY_TIMEOUT);
           } else {
             setState(WiFiState_e::WiFiOFF, 100);
@@ -458,7 +458,7 @@ bool ESPEasyWiFi_t::connectSTA()
      */
 
     // No need to wait longer to start AP mode.
-    if (!Settings.DoNotStartAP())
+    if (!Settings.DoNotStartAPfallback_ConnectFail())
     {
       //      setAPinternal(true);
     }

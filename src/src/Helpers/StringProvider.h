@@ -32,7 +32,16 @@ struct LabelType {
     WIFI_SENS_MARGIN,    // Margin in dB on top of sensitivity
     WIFI_SEND_AT_MAX_TX_PWR,
 #endif
-    WIFI_NR_EXTRA_SCANS,    
+    WIFI_AP_CHANNEL,
+    WIFI_ENABLE_CAPTIVE_PORTAL,
+    WIFI_START_AP_NO_CREDENTIALS,
+    WIFI_START_AP_ON_CONNECT_FAIL,
+    WIFI_NR_RECONNECT_ATTEMPTS,    
+    WIFI_MAX_UPTIME_AUTO_START_AP,
+    WIFI_AP_MINIMAL_ON_TIME,
+#ifdef ESP32
+    WIFI_AP_ENABLE_NAPT,
+#endif
     WIFI_USE_LAST_CONN_FROM_RTC,
 
     FREE_MEM,            // 9876
@@ -261,9 +270,25 @@ String getEthSpeed();
 String getEthLinkSpeedState();
 #endif // if FEATURE_ETHERNET
 
+
+String getLabel(
+    LabelType::Enum label, 
+    String&         internalLabel,
+#if FEATURE_TASKVALUE_UNIT_OF_MEASURE
+    String&         unit,
+#endif
+    String&         note,
+    char            replaceSpace = '_');
+
+String getInternalLabel(const KeyValueStruct& kv,
+                        char            replaceSpace = '_');
 String getInternalLabel(LabelType::Enum label,
                         char            replaceSpace = '_');
+
+String getLabel(const KeyValueStruct& kv);
 String getLabel(LabelType::Enum label);
+
+String getValue(const KeyValueStruct& kv);
 String getValue(LabelType::Enum label);
 String getExtendedValue(LabelType::Enum label);
 
