@@ -16,7 +16,6 @@
 
 #  include "../wifi/ESPEasyWifi_abstracted.h"
 
-#  include "../../../src/Globals/SecuritySettings.h"
 #  include "../../../src/Globals/Settings.h"
 
 
@@ -82,22 +81,6 @@ STA_connected_state ESPEasyWiFi_t::getSTA_connected_state() const
   return STA_connected_state::Idle;
 }
 
-bool ESPEasyWiFi_t::shouldStartAP_fallback() const
-{
-  if ((Settings.APfallback_autostart_max_uptime_m() * 1000) > millis()) {
-    return false;
-  }
-
-  if (Settings.StartAPfallback_NoCredentials() && !SecuritySettings.hasWiFiCredentials()) {
-    return true;
-  }
-
-  if (Settings.DoNotStartAPfallback_ConnectFail()) {
-    return false;
-  }
-
-  return _connect_attempt > Settings.ConnectFailRetryCount;
-}
 
 } // namespace wifi
 } // namespace net
