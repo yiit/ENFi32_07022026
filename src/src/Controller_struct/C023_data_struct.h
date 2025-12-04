@@ -5,9 +5,7 @@
 
 #ifdef USES_C023
 
-#include <rn2xx3_status.h>
 
-class rn2xx3;
 class ESPeasySerial;
 
 
@@ -34,7 +32,7 @@ public:
             int8_t        reset_pin);
 
   bool isInitialized() const {
-    return ((C023_easySerial != nullptr) && (myLora != nullptr) && autobaud_success);
+    return (C023_easySerial != nullptr);
   }
 
   bool hasJoined() const;
@@ -52,11 +50,6 @@ public:
 
   bool txUncnf(const String& data,
                uint8_t       port);
-
-  bool setTTNstack(RN2xx3_datatypes::TTN_stack_version version);
-
-  bool setFrequencyPlan(RN2xx3_datatypes::Freq_plan plan,
-                        uint32_t                    rx2_freq);
 
   bool setSF(uint8_t sf);
 
@@ -84,8 +77,7 @@ public:
 
   uint32_t      getRawStatus();
 
-  RN2xx3_status getStatus() const;
-
+  
   bool          getFrameCounters(uint32_t& dnctr,
                                  uint32_t& upctr);
 
@@ -113,15 +105,13 @@ private:
   void triggerAutobaud();
 
   ESPeasySerial *C023_easySerial = nullptr;
-  rn2xx3        *myLora          = nullptr;
   String         cacheDevAddr;
   String         cacheHWEUI;
   String         cacheSysVer;
-  unsigned long  _baudrate          = 57600;
+  unsigned long  _baudrate          = 9600;
   uint8_t        sampleSetCounter   = 0;
   taskIndex_t    sampleSetInitiator = INVALID_TASK_INDEX;
   int8_t         _resetPin          = -1;
-  bool           autobaud_success   = false;
 };
 
 #endif // ifdef USES_C023

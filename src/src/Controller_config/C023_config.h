@@ -8,7 +8,6 @@
 // Forward declaration
 struct C023_data_struct;
 
-#include <rn2xx3_datatypes.h>
 
 # define C023_DEVICE_EUI_LEN          17
 # define C023_DEVICE_ADDR_LEN         33
@@ -40,10 +39,10 @@ struct C023_ConfigStruct
   int8_t        txpin                                           = -1;
   int8_t        resetpin                                        = -1;
   uint8_t       sf                                              = 7;
-  uint8_t       frequencyplan                                   = RN2xx3_datatypes::Freq_plan::TTN_EU;
+  uint8_t       frequencyplan;//                                   = RN2xx3_datatypes::Freq_plan::TTN_EU;
   uint8_t       joinmethod                                      = C023_USE_OTAA;
   uint8_t       serialPort                                      = 0;
-  uint8_t       stackVersion                                    = RN2xx3_datatypes::TTN_stack_version::TTN_v2;
+  uint8_t       stackVersion;//                                    = RN2xx3_datatypes::TTN_stack_version::TTN_v2;
   uint8_t       adr                                             = 0;
   uint32_t      rx2_freq                                        = 0;
 };

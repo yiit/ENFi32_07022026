@@ -15,7 +15,7 @@ void C023_ConfigStruct::validate() {
   if ((baudrate < 2400) || (baudrate > 115200)) {
     reset();
   }
-
+/*
   if (stackVersion >= RN2xx3_datatypes::TTN_stack_version::TTN_NOT_SET) {
     stackVersion = RN2xx3_datatypes::TTN_stack_version::TTN_v3;
   }
@@ -36,6 +36,7 @@ void C023_ConfigStruct::validate() {
       rx2_freq = 0;
       break;
   }
+      */
 }
 
 void C023_ConfigStruct::reset() {
@@ -48,9 +49,9 @@ void C023_ConfigStruct::reset() {
   txpin         = -1;
   resetpin      = -1;
   sf            = 7;
-  frequencyplan = RN2xx3_datatypes::Freq_plan::TTN_EU;
+//  frequencyplan = RN2xx3_datatypes::Freq_plan::TTN_EU;
   rx2_freq      = 0;
-  stackVersion  = RN2xx3_datatypes::TTN_stack_version::TTN_v3;
+//  stackVersion  = RN2xx3_datatypes::TTN_stack_version::TTN_v3;
   joinmethod    = C023_USE_OTAA;
 }
 
@@ -84,6 +85,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
   html_add_script(F("document.getElementById('joinmethod').onchange();"), false);
 
   addTableSeparator(F("Connection Configuration"), 2, 3);
+  /*
   {
     const __FlashStringHelper *options[] = { F("SINGLE_CHANNEL_EU"), F("TTN_EU"), F("TTN_US"), F("DEFAULT_EU") };
     int values[]                         =
@@ -108,7 +110,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
     const FormSelectorOptions selector(NR_ELEMENTS(options), options, values);
     selector.addFormSelector(F("TTN Stack"), F("ttnstack"), stackVersion);
   }
-
+*/
   addFormNumericBox(F("Spread Factor"), F("sf"), sf, 7, 12);
   addFormCheckBox(F("Adaptive Data Rate (ADR)"), F("adr"), adr);
 
@@ -164,6 +166,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
     addRowLabel(F("Data Rate"));
     addHtml(C023_data->getDataRate());
 
+    /*
     {
       RN2xx3_status status = C023_data->getStatus();
 
@@ -176,6 +179,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
       addRowLabel(F("Silent Immediately"));
       addHtmlInt(static_cast<uint32_t>(status.SilentImmediately ? 1 : 0));
     }
+      */
   }
 }
 

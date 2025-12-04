@@ -3,24 +3,17 @@
 #ifdef USES_C023
 
 
-# include <rn2xx3.h>
 # include <ESPeasySerial.h>
 
 
 C023_data_struct::C023_data_struct() :
-  C023_easySerial(nullptr),
-  myLora(nullptr) {}
+  C023_easySerial(nullptr) {}
 
 C023_data_struct::~C023_data_struct() {
   reset();
 }
 
 void C023_data_struct::reset() {
-  if (myLora != nullptr) {
-    delete myLora;
-    myLora = nullptr;
-  }
-
   if (C023_easySerial != nullptr) {
     delete C023_easySerial;
     C023_easySerial = nullptr;
@@ -28,7 +21,6 @@ void C023_data_struct::reset() {
   free_string(cacheDevAddr);
   free_string(cacheHWEUI);
   free_string(cacheSysVer);
-  autobaud_success = false;
 }
 
 bool C023_data_struct::init(const uint8_t port, const int8_t serial_rx, const int8_t serial_tx, unsigned long baudrate,
@@ -50,8 +42,6 @@ bool C023_data_struct::init(const uint8_t port, const int8_t serial_rx, const in
     notChanged &= C023_easySerial->getRxPin() == serial_rx;
     notChanged &= C023_easySerial->getTxPin() == serial_tx;
     notChanged &= C023_easySerial->getBaudRate() == static_cast<int>(baudrate);
-    notChanged &= myLora->useOTAA() == joinIsOTAA;
-
     if (notChanged) { return true; }
   }
   reset();
@@ -66,80 +56,53 @@ bool C023_data_struct::init(const uint8_t port, const int8_t serial_rx, const in
   C023_easySerial = new (std::nothrow) ESPeasySerial(static_cast<ESPEasySerialPort>(port), serial_rx, serial_tx, false, 64);
 
   if (C023_easySerial != nullptr) {
-    if (myLora != nullptr) {
-      delete myLora;
-    }
-    myLora = new (std::nothrow) rn2xx3(*C023_easySerial);
 
-    if (myLora == nullptr) {
-      delete C023_easySerial;
-      C023_easySerial = nullptr;
-    } else {
-      myLora->setAsyncMode(true);
-      myLora->setLastUsedJoinMode(joinIsOTAA);
-      triggerAutobaud();
-    }
   }
   return isInitialized();
 }
 
 bool C023_data_struct::hasJoined() const {
   if (!isInitialized()) { return false; }
-  return myLora->hasJoined();
+  return true; // myLora->hasJoined();
 }
 
 bool C023_data_struct::useOTAA() const {
   if (!isInitialized()) { return true; }
-  bool res = myLora->useOTAA();
+  bool res = true;// = myLora->useOTAA();
 
   C023_logError(F("useOTA()"));
   return res;
 }
 
 bool C023_data_struct::command_finished() const {
-  return myLora->command_finished();
+  return true;// myLora->command_finished();
 }
 
 bool C023_data_struct::txUncnfBytes(const uint8_t *data, uint8_t size, uint8_t port) {
-  bool res = myLora->txBytes(data, size, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
+  bool res = true;// myLora->txBytes(data, size, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
 
   C023_logError(F("txUncnfBytes()"));
   return res;
 }
 
 bool C023_data_struct::txHexBytes(const String& data, uint8_t port) {
-  bool res = myLora->txHexBytes(data, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
+  bool res = true;// myLora->txHexBytes(data, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
 
   C023_logError(F("txHexBytes()"));
   return res;
 }
 
 bool C023_data_struct::txUncnf(const String& data, uint8_t port) {
-  bool res = myLora->tx(data, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
+  bool res = true;// myLora->tx(data, port) != RN2xx3_datatypes::TX_return_type::TX_FAIL;
 
   C023_logError(F("txUncnf()"));
   return res;
 }
 
-bool C023_data_struct::setTTNstack(RN2xx3_datatypes::TTN_stack_version version) {
-  if (!isInitialized()) { return false; }
-  bool res = myLora->setTTNstack(version);
-
-  C023_logError(F("setTTNstack"));
-  return res;
-}
-
-bool C023_data_struct::setFrequencyPlan(RN2xx3_datatypes::Freq_plan plan, uint32_t rx2_freq) {
-  if (!isInitialized()) { return false; }
-  bool res = myLora->setFrequencyPlan(plan, rx2_freq);
-
-  C023_logError(F("setFrequencyPlan()"));
-  return res;
-}
 
 bool C023_data_struct::setSF(uint8_t sf) {
   if (!isInitialized()) { return false; }
-  bool res = myLora->setSF(sf);
+  bool res = true;// myLora->setSF(sf);
 
   C023_logError(F("setSF()"));
   return res;
@@ -147,15 +110,15 @@ bool C023_data_struct::setSF(uint8_t sf) {
 
 bool C023_data_struct::setAdaptiveDataRate(bool enabled) {
   if (!isInitialized()) { return false; }
-  bool res = myLora->setAdaptiveDataRate(enabled);
+  bool res = true;// myLora->setAdaptiveDataRate(enabled);
 
   C023_logError(F("setAdaptiveDataRate()"));
   return res;
 }
 
 bool C023_data_struct::initOTAA(const String& AppEUI, const String& AppKey, const String& DevEUI) {
-  if (myLora == nullptr) { return false; }
-  bool success = myLora->initOTAA(AppEUI, AppKey, DevEUI);
+//  if (myLora == nullptr) { return false; }
+  bool success = true;// myLora->initOTAA(AppEUI, AppKey, DevEUI);
 
   free_string(cacheDevAddr);
 
@@ -165,8 +128,8 @@ bool C023_data_struct::initOTAA(const String& AppEUI, const String& AppKey, cons
 }
 
 bool C023_data_struct::initABP(const String& addr, const String& AppSKey, const String& NwkSKey) {
-  if (myLora == nullptr) { return false; }
-  bool success = myLora->initABP(addr, AppSKey, NwkSKey);
+//  if (myLora == nullptr) { return false; }
+  bool success = true;// myLora->initABP(addr, AppSKey, NwkSKey);
 
   cacheDevAddr = addr;
 
@@ -183,7 +146,7 @@ String C023_data_struct::sendRawCommand(const String& command) {
     log += command;
     addLogMove(LOG_LEVEL_INFO, log);
   }
-  String res = myLora->sendRawCommand(command);
+  String res;// = myLora->sendRawCommand(command);
 
   C023_logError(F("sendRawCommand()"));
   return res;
@@ -191,22 +154,22 @@ String C023_data_struct::sendRawCommand(const String& command) {
 
 int C023_data_struct::getVbat() {
   if (!isInitialized()) { return -1; }
-  return myLora->getVbat();
+  return -1; //myLora->getVbat();
 }
 
 String C023_data_struct::peekLastError() {
   if (!isInitialized()) { return EMPTY_STRING; }
-  return myLora->peekLastError();
+  return EMPTY_STRING; // myLora->peekLastError();
 }
 
 String C023_data_struct::getLastError() {
   if (!isInitialized()) { return EMPTY_STRING; }
-  return myLora->getLastError();
+  return  EMPTY_STRING; //myLora->getLastError();
 }
 
 String C023_data_struct::getDataRate() {
   if (!isInitialized()) { return EMPTY_STRING; }
-  String res = myLora->getDataRate();
+  String res; // = myLora->getDataRate();
 
   C023_logError(F("getDataRate()"));
   return res;
@@ -214,22 +177,18 @@ String C023_data_struct::getDataRate() {
 
 int C023_data_struct::getRSSI() {
   if (!isInitialized()) { return 0; }
-  return myLora->getRSSI();
+  return 0; //myLora->getRSSI();
 }
 
 uint32_t C023_data_struct::getRawStatus() {
   if (!isInitialized()) { return 0; }
-  return myLora->getStatus().getRawStatus();
+  return 0; // myLora->getStatus().getRawStatus();
 }
 
-RN2xx3_status C023_data_struct::getStatus() const {
-  if (!isInitialized()) { return RN2xx3_status(); }
-  return myLora->getStatus();
-}
 
 bool C023_data_struct::getFrameCounters(uint32_t& dnctr, uint32_t& upctr) {
   if (!isInitialized()) { return false; }
-  bool res = myLora->getFrameCounters(dnctr, upctr);
+  bool res = true; // myLora->getFrameCounters(dnctr, upctr);
 
   C023_logError(F("getFrameCounters()"));
   return res;
@@ -237,7 +196,7 @@ bool C023_data_struct::getFrameCounters(uint32_t& dnctr, uint32_t& upctr) {
 
 bool C023_data_struct::setFrameCounters(uint32_t dnctr, uint32_t upctr) {
   if (!isInitialized()) { return false; }
-  bool res = myLora->setFrameCounters(dnctr, upctr);
+  bool res = true; //myLora->setFrameCounters(dnctr, upctr);
 
   C023_logError(F("setFrameCounters()"));
   return res;
@@ -256,7 +215,7 @@ String C023_data_struct::getDevaddr() {
 String C023_data_struct::hweui() {
   if (cacheHWEUI.isEmpty()) {
     if (isInitialized()) {
-      cacheHWEUI = myLora->hweui();
+      //cacheHWEUI = myLora->hweui();
     }
   }
   return cacheHWEUI;
@@ -265,7 +224,7 @@ String C023_data_struct::hweui() {
 String C023_data_struct::sysver() {
   if (cacheSysVer.isEmpty()) {
     if (isInitialized()) {
-      cacheSysVer = myLora->sysver();
+      //cacheSysVer = myLora->sysver();
     }
   }
   return cacheSysVer;
@@ -285,13 +244,14 @@ uint8_t C023_data_struct::getSampleSetCount(taskIndex_t taskIndex) {
 
 float C023_data_struct::getLoRaAirTime(uint8_t pl) const {
   if (isInitialized()) {
-    return myLora->getLoRaAirTime(pl + 13); // We have a LoRaWAN header of 13 bytes.
+    return 0.0f;// myLora->getLoRaAirTime(pl + 13); // We have a LoRaWAN header of 13 bytes.
   }
-  return -1.0;
+  return -1.0f;
 }
 
 void C023_data_struct::async_loop() {
   if (isInitialized()) {
+    /*
     rn2xx3_handler::RN_state state = myLora->async_loop();
 
     if (rn2xx3_handler::RN_state::must_perform_init == state) {
@@ -308,12 +268,13 @@ void C023_data_struct::async_loop() {
         //          triggerAutobaud();
       }
     }
+      */
   }
 }
 
 void C023_data_struct::C023_logError(const __FlashStringHelper *command) const {
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    String error = myLora->peekLastError();
+    String error;// = myLora->peekLastError();
 
     //    String error = myLora->getLastError();
 
@@ -329,9 +290,9 @@ void C023_data_struct::C023_logError(const __FlashStringHelper *command) const {
 
 void C023_data_struct::updateCacheOnInit() {
   if (isInitialized()) {
-    if (cacheDevAddr.isEmpty() && myLora->getStatus().Joined)
+    if (cacheDevAddr.isEmpty()/* && myLora->getStatus().Joined*/)
     {
-      cacheDevAddr = myLora->sendRawCommand(F("mac get devaddr"));
+      //cacheDevAddr = myLora->sendRawCommand(F("mac get devaddr"));
 
       if (cacheDevAddr == F("00000000")) {
         free_string(cacheDevAddr);
@@ -341,12 +302,12 @@ void C023_data_struct::updateCacheOnInit() {
 }
 
 void C023_data_struct::triggerAutobaud() {
-  if ((C023_easySerial == nullptr) || (myLora == nullptr)) {
+  if ((C023_easySerial == nullptr)) {
     return;
   }
   int retries = 2;
 
-  while (retries > 0 && !autobaud_success) {
+  while (retries > 0) {
     if (retries == 1) {
       if (validGpio(_resetPin)) {
         pinMode(_resetPin, OUTPUT);
@@ -371,18 +332,18 @@ void C023_data_struct::triggerAutobaud() {
     C023_easySerial->println();
     delay(100);
 
-    String response = myLora->sysver();
+    String response;// = myLora->sysver();
 
     // we could use sendRawCommand(F("sys get ver")); here
     //      C023_easySerial->println(F("sys get ver"));
     //      String response = C023_easySerial->readStringUntil('\n');
-    autobaud_success = response.length() > 10;
+    //autobaud_success = response.length() > 10;
 
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       String log = F("C023 AutoBaud: ");
       log += response;
       log += F(" status: ");
-      log += myLora->sendRawCommand(F("mac get status"));
+      //log += myLora->sendRawCommand(F("mac get status"));
       addLogMove(LOG_LEVEL_INFO, log);
       C023_logError(F("autobaud check"));
     }

@@ -344,7 +344,7 @@ bool C023_init(struct EventStruct *event) {
     return false;
   }
 
-  C023_data->setFrequencyPlan(static_cast<RN2xx3_datatypes::Freq_plan>(customConfig->frequencyplan), customConfig->rx2_freq);
+  //C023_data->setFrequencyPlan(static_cast<RN2xx3_datatypes::Freq_plan>(customConfig->frequencyplan), customConfig->rx2_freq);
 
   if (!C023_data->setSF(customConfig->sf)) {
     return false;
@@ -354,9 +354,11 @@ bool C023_init(struct EventStruct *event) {
     return false;
   }
 
+  /*
   if (!C023_data->setTTNstack(static_cast<RN2xx3_datatypes::TTN_stack_version>(customConfig->stackVersion))) {
     return false;
   }
+    */
 
   if (customConfig->joinmethod == C023_USE_OTAA) {
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
