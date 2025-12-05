@@ -13,6 +13,10 @@
 // LA66 LoRaWAN Shield User Manual"
 //   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/
 //   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/#H1.6A0Example:JoinTTNnetworkandsendanuplinkmessage2Cgetdownlinkmessage.
+// End Device AT-Commands and Downlink Command
+//   https://wiki.dragino.com/xwiki/bin/view/Main/End%20Device%20AT%20Commands%20and%20Downlink%20Command/
+// Semtech LoRa Calculator:
+//   https://www.semtech.com/design-support/lora-calculator
 
 # define CPLUGIN_023
 # define CPLUGIN_ID_023         23

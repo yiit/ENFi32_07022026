@@ -304,7 +304,7 @@ void C023_data_struct::async_loop() {
             addLog(LOG_LEVEL_INFO, concat(F("LA66 recv: "), _fromLA66));
 
             // TODO TD-er: Process received data
-            set(_fromLA66);
+            processReceived(_fromLA66);
           }
 
           _fromLA66.clear();
@@ -351,7 +351,7 @@ String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd)
   return EMPTY_STRING;
 }
 
-bool C023_data_struct::set(const String& receivedData)
+bool C023_data_struct::processReceived(const String& receivedData)
 {
   String value;
   const C023_AT_commands::AT_cmd at_cmd = C023_AT_commands::decode(receivedData, value);
@@ -360,8 +360,10 @@ bool C023_data_struct::set(const String& receivedData)
     if (receivedData.equals(F("txDone"))) {
       sendQuery(C023_AT_commands::AT_cmd::FCU);
     } else if (receivedData.equals(F("rxDone"))) {
-      sendQuery(C023_AT_commands::AT_cmd::FCU);
+      sendQuery(C023_AT_commands::AT_cmd::FCD);
       sendQuery(C023_AT_commands::AT_cmd::SNR);
+    } else if (receivedData.equals(F("rxTimeout"))) {
+      // Just skip this one, no data received
     } else if (receivedData.startsWith(F("Rssi"))) {
       String value = getValueFromReceivedData(receivedData);
 
@@ -369,15 +371,65 @@ bool C023_data_struct::set(const String& receivedData)
         _cachedValues.emplace(static_cast<size_t>(C023_AT_commands::AT_cmd::RSSI), std::move(value));
       }
     } else if (receivedData.indexOf(F("AT+RECVB=?")) != -1) {
-      if (C023_easySerial) {
-        C023_easySerial->println(F("AT+RECVB=?"));
+      sendQuery(C023_AT_commands::AT_cmd::RECVB);
+    } else if (receivedData.startsWith(F("*****")) ||
+               receivedData.startsWith(F("TX on")) ||
+               receivedData.startsWith(F("RX on")))
+    {
+      // Ignore these lines for now.
+      // Maybe those "***** UpLinkCounter= 51 *****" could be parsed
+    }
+
+    else if (
+      receivedData.equals(F("AT_ERROR")) ||               // Generic error
+      receivedData.equals(F("AT_PARAM_ERROR")) ||         // A parameter of the command is wrong
+      receivedData.equals(F("AT_BUSY_ERROR")) ||          // the LoRa® network is busy, so the command could not completed
+      receivedData.equals(F("AT_TEST_PARAM_OVERFLOW")) || // the parameter is too long
+      receivedData.equals(F("AT_NO_NETWORK_JOINED")) ||   // the LoRa® network has not been joined yet
+      receivedData.equals(F("AT_RX_ERROR")))              // error detection during the reception of the command
+    {
+      if (_queuedQueries.empty()) {
+        addLog(LOG_LEVEL_ERROR, strformat(
+                 F("LA66   : %s"),
+                 receivedData.c_str()));
+      } else {
+        addLog(LOG_LEVEL_ERROR, strformat(
+                 F("LA66   : %s while processing %s"),
+                 receivedData.c_str(),
+                 C023_AT_commands::toString(static_cast<C023_AT_commands::AT_cmd>(_queuedQueries.front())).c_str()));
+        _queuedQueries.pop_front();
+      }
+    }
+
+    else if (receivedData.equals(F("OK"))) {
+//      if (!_queuedQueries.empty()) {
+//        _queuedQueries.pop_front();
+//      }
+    } else {
+      if (!_queuedQueries.empty()) {
+        String tmp(receivedData);
+
+        //        C023_timestamped_value ts_value(std::move(tmp));
+        //        _cachedValues[_queuedQueries.front()] = ts_value;
+        auto it = _cachedValues.find(_queuedQueries.front());
+
+        if (it != _cachedValues.end()) {
+          _cachedValues.erase(it);
+        }
+        _cachedValues.emplace(_queuedQueries.front(), std::move(tmp));
+        addLog(LOG_LEVEL_INFO, strformat(
+                 F("LA66 : Process Query: %s -> %s"),
+                 C023_AT_commands::toString(static_cast<C023_AT_commands::AT_cmd>(_queuedQueries.front())).c_str(),
+                 receivedData.c_str()));
+
+        _queuedQueries.pop_front();
       }
     }
 
     return false;
   }
 
-  addLog(LOG_LEVEL_INFO, concat(C023_AT_commands::toString(at_cmd), receivedData));
+  //  addLog(LOG_LEVEL_INFO, concat(C023_AT_commands::toString(at_cmd), receivedData));
 
   _cachedValues.emplace(static_cast<size_t>(at_cmd), std::move(value));
 
@@ -389,7 +441,11 @@ bool C023_data_struct::set(const String& receivedData)
 void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd)
 {
   if (C023_easySerial) {
-    C023_easySerial->println(concat(C023_AT_commands::toString(at_cmd), F("=?")));
+    _queuedQueries.push_back(static_cast<size_t>(at_cmd));
+    const String query = concat(C023_AT_commands::toString(at_cmd), F("=?"));
+    addLog(LOG_LEVEL_INFO, concat(F("LA66 : Queried "), query));
+    C023_easySerial->println(query);
+
     // TODO: Wait for result and store in cached value.
   }
 }

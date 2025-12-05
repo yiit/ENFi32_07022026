@@ -62,6 +62,7 @@ const __FlashStringHelper * C023_AT_commands::toFlashString(C023_AT_commands::AT
   C023_AT_STR(SYNCTDC);
   C023_AT_STR(DDETECT);
   C023_AT_STR(SETMAXNBTRANS);
+  case C023_AT_commands::AT_cmd::Unknown: break;
   }
   return F("Unknown");
 #undef C023_AT_STR

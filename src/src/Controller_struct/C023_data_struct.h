@@ -5,7 +5,7 @@
 
 #ifdef USES_C023
 
-#include "../Controller_config/C023_AT_commands.h"
+# include "../Controller_config/C023_AT_commands.h"
 
 
 class ESPeasySerial;
@@ -34,7 +34,7 @@ public:
             int8_t        reset_pin);
 
   bool isInitialized() const {
-    return (C023_easySerial != nullptr);
+    return C023_easySerial != nullptr;
   }
 
   bool hasJoined() const;
@@ -65,26 +65,26 @@ public:
                const String& AppSKey,
                const String& NwkSKey);
 
-  String        sendRawCommand(const String& command);
+  String   sendRawCommand(const String& command);
 
-  int           getVbat();
+  int      getVbat();
 
-  String        peekLastError();
+  String   peekLastError();
 
-  String        getLastError();
+  String   getLastError();
 
-  String        getDataRate();
+  String   getDataRate();
 
-  int           getRSSI();
+  int      getRSSI();
 
-  uint32_t      getRawStatus();
+  uint32_t getRawStatus();
 
-  
-  bool          getFrameCounters(uint32_t& dnctr,
-                                 uint32_t& upctr);
 
-  bool          setFrameCounters(uint32_t dnctr,
-                                 uint32_t upctr);
+  bool     getFrameCounters(uint32_t& dnctr,
+                            uint32_t& upctr);
+
+  bool     setFrameCounters(uint32_t dnctr,
+                            uint32_t upctr);
 
   // Cached data, only changing occasionally.
 
@@ -102,18 +102,19 @@ public:
 
   void    async_loop();
 
-  bool writeCachedValues(KeyValueWriter*writer);
+  bool    writeCachedValues(KeyValueWriter*writer);
 
 private:
 
-String get(C023_AT_commands::AT_cmd at_cmd);
-bool set(const String& receivedData);
+  String        get(C023_AT_commands::AT_cmd at_cmd);
+  bool          processReceived(const String& receivedData);
 
-void sendQuery(C023_AT_commands::AT_cmd at_cmd);
+  void          sendQuery(C023_AT_commands::AT_cmd at_cmd);
 
-static String getValueFromReceivedData(const String& receivedData);
+  static String getValueFromReceivedData(const String& receivedData);
 
-std::map<size_t, C023_timestamped_value> _cachedValues;
+  std::map<size_t, C023_timestamped_value>_cachedValues;
+  std::list<size_t> _queuedQueries;
 
 
   ESPeasySerial *C023_easySerial = nullptr;
@@ -126,6 +127,7 @@ std::map<size_t, C023_timestamped_value> _cachedValues;
   int8_t         _resetPin          = -1;
 
   String _fromLA66;
+
 };
 
 #endif // ifdef USES_C023
