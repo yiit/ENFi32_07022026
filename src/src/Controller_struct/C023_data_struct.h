@@ -5,6 +5,8 @@
 
 #ifdef USES_C023
 
+#include "../Controller_config/C023_AT_commands.h"
+
 
 class ESPeasySerial;
 
@@ -100,9 +102,19 @@ public:
 
   void    async_loop();
 
+  bool writeCachedValues(KeyValueWriter*writer);
+
 private:
 
-  void triggerAutobaud();
+String get(C023_AT_commands::AT_cmd at_cmd);
+bool set(const String& receivedData);
+
+void sendQuery(C023_AT_commands::AT_cmd at_cmd);
+
+static String getValueFromReceivedData(const String& receivedData);
+
+std::map<size_t, C023_timestamped_value> _cachedValues;
+
 
   ESPeasySerial *C023_easySerial = nullptr;
   String         cacheDevAddr;
@@ -112,6 +124,8 @@ private:
   uint8_t        sampleSetCounter   = 0;
   taskIndex_t    sampleSetInitiator = INVALID_TASK_INDEX;
   int8_t         _resetPin          = -1;
+
+  String _fromLA66;
 };
 
 #endif // ifdef USES_C023

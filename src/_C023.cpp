@@ -6,6 +6,14 @@
 // ########################### Controller Plugin 023: LoRa TTN - Dragino LA66 LoRaWAN ####################
 // #######################################################################################################
 
+
+// Useful links:
+// Notes for TTN: https://wiki.dragino.com/xwiki/bin/view/Main/Notes%20for%20TTN/#H4.A0ConfigurenodeconnectiontoTTNv3
+// Dragino WiKi LA66 User Manual:
+// LA66 LoRaWAN Shield User Manual"
+//   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/
+//   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/#H1.6A0Example:JoinTTNnetworkandsendanuplinkmessage2Cgetdownlinkmessage.
+
 # define CPLUGIN_023
 # define CPLUGIN_ID_023         23
 # define CPLUGIN_NAME_023       "LoRa TTN - Dragino LA66 LoRaWAN"
@@ -23,6 +31,7 @@
 # include "src/WebServer/Markup.h"
 # include "src/WebServer/Markup_Forms.h"
 # include "src/WebServer/HTML_wrappers.h"
+# include "src/WebServer/KeyValueWriter_WebForm.h"
 
 
 // Have this define after the includes, so we can set it in Custom.h
@@ -141,6 +150,11 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
         }
         LoadCustomControllerSettings(event->ControllerIndex, reinterpret_cast<uint8_t *>(customConfig.get()), sizeof(C023_ConfigStruct));
         customConfig->webform_load(C023_data);
+      }
+      if (C023_data)
+      {
+        KeyValueWriter_WebForm writer(true);
+        C023_data->writeCachedValues(writer.createChild(F("Device Status")).get()); 
       }
 
       break;
