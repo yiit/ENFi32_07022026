@@ -472,6 +472,72 @@ This command sequence is nearly the same as with the Continuous measurement, exc
 
 |
 
+TF-Luna Lidar distance sensor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The somewhat popular laser-distance sensor, with a range of 0.2 to 8 meter, TF-Luna, can be configured to use I2C as the communication protocol, instead of the default RS232 serial protocol, by connecting pin 5 of the sensor to GND on startup.
+
+The command sequence is based on documentation from this `WaveShare page <https://www.waveshare.com/wiki/TF-Luna_LiDAR_Range_Sensor>`_
+
+.. note:: The checksum available from the sensor measurements is ignored!
+
+When only retrieving the ``distance`` from the sensor:
+
+The plugin should be configured with these settings:
+
+* **I2C Address (Hex)**: ``0x10``
+
+* **Output Data Type**: ``Single``
+
+* **Interval**: can be set to 1 second to retrieve a measurement every second.
+
+* **Values**: the name can be changed to Distance, and the number of decimals 0. Stats can be enabled, as desired. The Unit of Measure should he set to ``cm``, and the Value Type to ``Distance``
+
+* **Cache-Name 1 (optional)**: Fill with a useable name, f.e. ``distance``, so the I2C Command sequence is cached for much improved execution-performance.
+
+* **I2C Commands 1**:
+
+``put.u8.0;delay.5;get.b.7;eval;calc.0x{substring:4:6:%h%}*256+0x{substring:2:4:%h%}``
+
+Command sequence explanation:
+
+* ``put.u8.0`` : Announce data fetch
+* ``delay.5`` : Give the sensor a few msec to prepare
+* ``get.b.7`` : Read 7 bytes (entire available buffer)
+* ``eval`` : Make data available for processing
+* ``calc.0x{substring:4:6:%h%}*256+0x{substring:2:4:%h%}`` : Fetch byte 1 (* 256) + byte 0 to calculate distance in cm, value is set to Values 1 field
+
+When retrieving both ``distance`` and ``signal strength`` from the sensor:
+
+The plugin should be configured with these settings:
+
+* **I2C Address (Hex)**: ``0x10``
+
+* **Output Data Type**: ``Dual``
+
+* **Interval**: can be set to 1 second to retrieve a measurement every second.
+
+* **Values**: the first name can be changed to ``Distance``, and the number of decimals 0. Stats can be enabled, as desired. The Unit of Measure should he set to ``cm``, and the Value Type to ``Distance``, the second name can be changed to ``SignalStrength``, and number of decimals to 0. Stats can be enabled, as desired. No further settings for this value, as it has an undefined unit and value type.
+
+* **Cache-Name 1 (optional)**: Fill with a useable name, f.e. ``distance``, so the I2C Command sequence is cached for much improved execution-performance.
+
+* **I2C Commands 1**:
+
+``put.u8.0;delay.5;get.b.7;eval;calc.0x{substring:4:6:%h%}*256+0x{substring:2:4:%h%};value.1;calc.0x{substring:8:10:%h%}*256+0x{substring:6:8:%h%};value.2``
+
+Command sequence explanation:
+
+* ``put.u8.0`` : Announce data fetch
+* ``delay.5`` : Give the sensor a few msec to prepare
+* ``get.b.7`` : Read 7 bytes (entire available buffer)
+* ``eval`` : Make data available for processing
+* ``calc.0x{substring:4:6:%h%}*256+0x{substring:2:4:%h%}`` : Fetch byte 1 (* 256) + byte 0 to calculate distance in cm
+* ``value.1`` : current value, Distance, set to Values 1 field
+* ``calc.0x{substring:8:10:%h%}*256+0x{substring:6:8:%h%}`` : Fetch byte 3 (* 256) + byte 2 to calculate signal strength (unknown unit)
+* ``value.2`` : current value, Signal strength, set to Values 2 field
+
+|
+
 Change log
 ----------
 
