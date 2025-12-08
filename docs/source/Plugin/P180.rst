@@ -30,6 +30,17 @@ This enables the implementation of yet unsupported I2C devices or use I2C device
 
 .. warning:: This plugin is in the 'pro' category of plugins (i.o.w. not really *Easy* to use), and requires in-depth studying of the datasheet for the device, extracting the required commands and calculation(s) for implementing correct usage. (Some examples available below)
 
+Example device configurations
+-----------------------------
+
+* :ref:`aht2x-temperature-humidity-sensor`
+* :ref:`m5stack-ain4-20ma-unit-module`
+* :ref:`bosch-bmp58x-temp-baro`
+* :ref:`tiny-code-reader-qr-code-reader`
+* :ref:`sensirion-sdp-810-differential-pressure-sensor`
+* :ref:`tf-luna-lidar-distance-sensor`
+* :ref:`qmc6310-3-axis-magnetic-sensor`
+
 Configuration
 -------------
 
@@ -189,6 +200,8 @@ A few warnings though:
 Example I2C command sequences
 -----------------------------
 
+.. _aht2x-temperature-humidity-sensor:
+
 AHT2x Temperature / Humidity sensor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -230,6 +243,8 @@ Command sequence explanation:
 * ``value.1``: Assign the last result to Value1 field (Temp)
 
 |
+
+.. _m5stack-ain4-20ma-unit-module:
 
 M5Stack AIN4-20mA Unit / Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -276,6 +291,8 @@ This device supports adjusting the calibration to the current current that is fl
 * Similar to reading another than input 0, 2 should be added to the register for writing the calibration, so 0x30 for port 0, 0x32 for port 1, 0x34 for port 2 and 0x36 for port 3.
 
 |
+
+.. _bosch-bmp58x-temp-baro:
 
 Bosch BMP58x Temp/Baro
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -340,6 +357,8 @@ Command sequence explanation:
 * ``calc.%value%/6400``: Divide the read value by 6400 as the right-most 6 bits are the fraction part, and we are used to hPa, so a factor 100 is applied too
 
 |
+
+.. _tiny-code-reader-qr-code-reader:
 
 Tiny Code Reader (QR-code reader)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -409,6 +428,8 @@ This device needs a Rule to handle the result, as we can't store string values i
 
 |
 
+.. _sensirion-sdp-810-differential-pressure-sensor:
+
 Sensirion SDP-810 Differential pressure sensor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -471,6 +492,8 @@ This command sequence is nearly the same as with the Continuous measurement, exc
 * The rest of the commands is already explained in the Continuous measurement description, above this paragraph.
 
 |
+
+.. _tf-luna-lidar-distance-sensor:
 
 TF-Luna Lidar distance sensor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -542,11 +565,54 @@ Command sequence explanation:
 
 |
 
+.. _qmc6310-3-axis-magnetic-sensor:
+
+QMC6310 3-axis magnetic sensor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This sensor provides a 3-axis directional signal, as documented in the QST Corp `QMC6310 Datasheet <https://www.qstcorp.com/upload/pdf/202202/%EF%BC%88%E5%B7%B2%E4%BC%A0%EF%BC%8913-52-17%20QMC6310%20Datasheet%20Rev.C(1).pdf>`_ (url includes some Chinese characters).
+
+The plugin should be configured with these settings:
+
+* **I2C Address (Hex)**: ``0x1C``
+
+* **Output Data Type**: ``Triple`` To activate this setting, the page must be submitted to show the extra input fields.
+
+* **Interval**: Can be set in the seconds range to retrieve a measurement often.
+
+* **Values**: The names can be changed to ``x``, ``y`` and ``z``, and the number of decimals to 0. Stats can be enabled, as desired. The Unit of Measure is undocumented.
+
+* **I2C Init Commands** sequence for initializing the sensor:
+
+``write.u8.0x29.0x06;write.u8.0x0B.0x00;write.u8.0x0A.0xCD``: Initialize the sensor according to the datasheet, Normal mode, field range 8 Gauss, output data rate 200 Hz, over-sample ratio 8, down-sample ratio 8.
+
+* **I2C Exit Commands** sequence for shutting down the sensor:
+
+``write.u8.0x0A.0x00``: Set sensor in Suspend mode.
+
+* **Cache-Name 1 (optional)**: Fill with a useable name, f.e. ``x``, so the I2C Command sequence is cached for much improved execution-performance.
+
+* **I2C Commands 1**: ``read.16le.0x01`` Read 2 bytes starting at register 1, the ``x`` value, and store in first Value field.
+
+* **Cache-Name 2 (optional)**: Fill with a useable name, f.e. ``y``.
+
+* **I2C Commands 2**: ``read.16le.0x03`` Read 2 bytes starting at register 3, the ``y`` value, and store in second Value field.
+
+* **Cache-Name 3 (optional)**: Fill with a useable name, f.e. ``z``.
+
+* **I2C Commands 3**: ``read.16le.0x05`` Read 2 bytes starting at register 5, the ``z`` value, and store in third Value field.
+
+To reduce the logging content, **Single event with all values** can be enabled, to generate a single event ``<task-name>#All`` with all values as argument, and thus reduce the logging from 3 lines per Interval to a single line per Interval.
+
+|
+
 Change log
 ----------
 
 .. versionchanged:: 2.0
   ...
+
+  |added| 2025-12-08 Add index to example configurations.
 
   |added|
   2025-04-19 Initial release version.
