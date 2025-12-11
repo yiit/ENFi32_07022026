@@ -26,7 +26,7 @@ public:
     taskIndex_t              sampleSet_Initiator);
 
   bool isInitialized() const {
-    return C023_easySerial != nullptr;
+    return _easySerial != nullptr;
   }
 
   bool hasJoined();
@@ -94,7 +94,9 @@ public:
 
   void    async_loop();
 
-  bool    writeCachedValues(KeyValueWriter*writer);
+  bool    writeCachedValues(KeyValueWriter          *writer,
+                            C023_AT_commands::AT_cmd start,
+                            C023_AT_commands::AT_cmd end);
 
 private:
 
@@ -111,7 +113,13 @@ private:
   void   sendNextQueuedQuery();
 
   bool   queryPending() const {
-    return _queryPending != C023_AT_commands::AT_cmd::Unknown;
+    return _queryPending != C023_AT_commands::AT_cmd::Unknown &&
+           _querySent != 0 && timePassedSince(_querySent) < 2000;
+  }
+
+  void clearQueryPending() {
+    _queryPending = C023_AT_commands::AT_cmd::Unknown;
+    _querySent = 0;
   }
 
   void          cacheValue(C023_AT_commands::AT_cmd at_cmd,
@@ -128,13 +136,15 @@ private:
   std::map<size_t, C023_timestamped_value>_cachedValues;
   std::list<size_t>                       _queuedQueries;
   C023_AT_commands::AT_cmd                _queryPending = C023_AT_commands::AT_cmd::Unknown;
+  uint32_t                                _querySent{};
 
 
-  ESPeasySerial *C023_easySerial    = nullptr;
+  ESPeasySerial *_easySerial        = nullptr;
   unsigned long  _baudrate          = 9600;
   uint8_t        sampleSetCounter   = 0;
   taskIndex_t    sampleSetInitiator = INVALID_TASK_INDEX;
   int8_t         _resetPin          = -1;
+  bool           _isClassA{};
 
   C023_ConfigStruct::EventFormatStructure_e _eventFormatStructure = C023_ConfigStruct::EventFormatStructure_e::PortNr_in_eventPar;
 

@@ -616,7 +616,7 @@ static const char DATA_ESPEASY_DEFAULT_MIN_CSS[] PROGMEM = {
 // #define USES_C016   // Cache controller
 // #define USES_C017   // Zabbix
 // #define USES_C018   // TTN/RN2483
-// #define USES_C023   // LoRa TTN - Dragino LA66 LoRaWAN
+// #define USES_C023   // AT-command LoRaWAN
 
 /*
  #######################################################################################################

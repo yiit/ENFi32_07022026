@@ -7,25 +7,25 @@
 
 
 C023_data_struct::C023_data_struct() :
-  C023_easySerial(nullptr) {}
+  _easySerial(nullptr) {}
 
 C023_data_struct::~C023_data_struct() {
-  if (C023_easySerial != nullptr) {
-    C023_easySerial->end();
-    delete C023_easySerial;
-    C023_easySerial = nullptr;
+  if (_easySerial != nullptr) {
+    _easySerial->end();
+    delete _easySerial;
+    _easySerial = nullptr;
   }
 }
 
 void C023_data_struct::reset() {
-  if (C023_easySerial != nullptr) {
-    C023_easySerial->end();
-    delete C023_easySerial;
-    C023_easySerial = nullptr;
+  if (_easySerial != nullptr) {
+    _easySerial->end();
+    delete _easySerial;
+    _easySerial = nullptr;
   }
   _cachedValues.clear();
   _queuedQueries.clear();
-  _queryPending = C023_AT_commands::AT_cmd::Unknown;
+  clearQueryPending();
 }
 
 bool C023_data_struct::init(
@@ -55,34 +55,34 @@ bool C023_data_struct::init(
   if (isInitialized()) {
     // Check to see if serial parameters have changed.
     bool notChanged = true;
-    notChanged &= C023_easySerial->getRxPin() == serial_rx;
-    notChanged &= C023_easySerial->getTxPin() == serial_tx;
-    notChanged &= C023_easySerial->getBaudRate() == static_cast<int>(baudrate);
+    notChanged &= _easySerial->getRxPin() == serial_rx;
+    notChanged &= _easySerial->getTxPin() == serial_tx;
+    notChanged &= _easySerial->getBaudRate() == static_cast<int>(baudrate);
 
     if (notChanged) { return true; }
   }
   reset();
   _resetPin = reset_pin;
   _baudrate = baudrate;
+  _isClassA = config.getClass() == C023_ConfigStruct::LoRaWANclass_e::A;
 
   // FIXME TD-er: Make force SW serial a proper setting.
-  if (C023_easySerial != nullptr) {
-    delete C023_easySerial;
+  if (_easySerial != nullptr) {
+    delete _easySerial;
   }
+    // When calling "AT+CFG", we may get quite a lot of data at once at a relatively low baud rate.
+    // This requires quite a lot of calls to read it, so it is much more likely to have some other call inbetween taking way longer than 20
+    // msec and thus we will miss some data
 
-  C023_easySerial = new (std::nothrow) ESPeasySerial(static_cast<ESPEasySerialPort>(port), serial_rx, serial_tx, false, 64);
+  _easySerial = new (std::nothrow) ESPeasySerial(static_cast<ESPEasySerialPort>(port), serial_rx, serial_tx, false, 1024);
 
-  if (C023_easySerial != nullptr) {
-    C023_easySerial->begin(baudrate);
+  if (_easySerial != nullptr) {
+    _easySerial->begin(baudrate);
 
-    const bool isClassA = config.getClass() == C023_ConfigStruct::LoRaWANclass_e::A;
-    C023_easySerial->println(F("ATZ")); // Reset LA66
+    _easySerial->println(F("ATZ"));    // Reset LoRa
     delay(1000);
 
-    C023_easySerial->println(concat(F("AT+CLASS="), isClassA ? 'A' : 'C'));
-    delay(1000);
-
-    C023_easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
+    _easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
   }
   return isInitialized();
 }
@@ -117,13 +117,18 @@ bool C023_data_struct::txHexBytes(const String& data, uint8_t port) {
   // "AT+SENDB=0,2,4,11223344"
   // confirm status,Fport,payload length,payload(HEX)
 
-  C023_easySerial->println(
+  _easySerial->println(
     strformat(
       F("AT+SENDB=%d,%d,%d,%s"),
       0,                     // confirm status
       port,                  // Fport
       sendData.length() / 2, // payload length
       sendData.c_str()));    // payload(HEX)
+
+  // TODO TD-er: Must wait for either "OK" or "AT_BUSY_ERROR"
+  // This 'busy error' may occur in case the previous send is
+  // not completed, because of the duty cycle restriction,
+  // or because RX windows are not completed
 
   return res;
 }
@@ -184,9 +189,16 @@ String C023_data_struct::getLastError() {
   return EMPTY_STRING; // myLora->getLastError();
 }
 
-String   C023_data_struct::getDataRate() { return get(C023_AT_commands::AT_cmd::DR); }
+String C023_data_struct::getDataRate() {
+  const int dr_int = getInt(C023_AT_commands::AT_cmd::DR, -1);
 
-int      C023_data_struct::getRSSI()     { return getInt(C023_AT_commands::AT_cmd::RSSI, 0); }
+  if (dr_int == -1) { return F("-"); }
+  C023_ConfigStruct::LoRaWAN_DR dr =
+    static_cast<C023_ConfigStruct::LoRaWAN_DR>(getInt(C023_AT_commands::AT_cmd::DR, 0));
+  return strformat(F("%d: %s"), dr_int, FsP(C023_ConfigStruct::toString(dr)));
+}
+
+int      C023_data_struct::getRSSI() { return getInt(C023_AT_commands::AT_cmd::RSSI, 0); }
 
 uint32_t C023_data_struct::getRawStatus() {
   if (!isInitialized()) { return 0; }
@@ -254,8 +266,8 @@ void C023_data_struct::async_loop() {
        }
        }
      */
-    while (C023_easySerial->available()) {
-      const int ret = C023_easySerial->read();
+    while (_easySerial->available()) {
+      const int ret = _easySerial->read();
 
       if (ret >= 0) {
         const char c = static_cast<char>(ret);
@@ -267,7 +279,7 @@ void C023_data_struct::async_loop() {
           {
             // End of line
             if (!_fromLA66.isEmpty()) {
-              addLog(LOG_LEVEL_INFO, concat(F("LA66 recv: "), _fromLA66));
+              addLog(LOG_LEVEL_INFO, concat(F("LoRa recv: "), _fromLA66));
 
               // TODO TD-er: Process received data
               processReceived(_fromLA66);
@@ -287,14 +299,14 @@ void C023_data_struct::async_loop() {
   }
 }
 
-bool C023_data_struct::writeCachedValues(KeyValueWriter*writer)
+bool C023_data_struct::writeCachedValues(KeyValueWriter*writer, C023_AT_commands::AT_cmd start, C023_AT_commands::AT_cmd end)
 {
   if (writer == nullptr) { return false; }
 
-  for (size_t i = 0; i < static_cast<size_t>(C023_AT_commands::AT_cmd::Unknown); ++i) {
+  for (size_t i = static_cast<size_t>(start); i < static_cast<size_t>(end); ++i) {
     const C023_AT_commands::AT_cmd cmd = static_cast<C023_AT_commands::AT_cmd>(i);
 
-    String value = get(cmd);
+    const String value = get(cmd);
 
     if (!value.isEmpty()) {
       auto kv = C023_AT_commands::getKeyValue(cmd, value, true /*!writer->dataOnlyOutput()*/);
@@ -310,10 +322,10 @@ String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd)
     auto it = _cachedValues.find(static_cast<size_t>(at_cmd));
 
     if (it != _cachedValues.end()) {
-      if (!it->second.expired()) {
-        return it->second.value;
+      if (it->second.expired()) {
+        sendQuery(at_cmd);
       }
-      _cachedValues.erase(it);
+      return it->second.value;
     }
     sendQuery(at_cmd);
   }
@@ -341,14 +353,19 @@ bool C023_data_struct::processReceived(const String& receivedData)
     } else if (receivedData.equals(F("rxDone"))) {
       sendQuery(C023_AT_commands::AT_cmd::FCD);
       sendQuery(C023_AT_commands::AT_cmd::SNR);
-    } else if (receivedData.equals(F("ADR Message"))) {
+    } else if (receivedData.indexOf(F("ADR Message")) != -1) {
       sendQuery(C023_AT_commands::AT_cmd::ADR);
-      sendQuery(C023_AT_commands::AT_cmd::DR, true);
+      sendQuery(C023_AT_commands::AT_cmd::DR);
     } else if (receivedData.equals(F("JOINED"))) {
-      C023_easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
+      _easySerial->println(concat(F("AT+CLASS="), _isClassA ? 'A' : 'C'));
+
+      // Enable Sync system time via LoRaWAN MAC Command (DeviceTimeReq), LoRaWAN server must support v1.0.3 protocol to reply this command.
+      _easySerial->println(F("AT+SYNCMOD=1"));
+
+      _easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
       //      sendQuery(C023_AT_commands::AT_cmd::NJM);
       //      sendQuery(C023_AT_commands::AT_cmd::NJS);
-      eventQueue.add(F("LA66#joined"));
+      eventQueue.add(F("LoRa#joined"));
     } else if (receivedData.equals(F("rxTimeout"))) {
       // Just skip this one, no data received
     } else if (receivedData.startsWith(F("Rssi"))) {
@@ -375,14 +392,14 @@ bool C023_data_struct::processReceived(const String& receivedData)
     {
       if (!queryPending()) {
         addLog(LOG_LEVEL_ERROR, strformat(
-                 F("LA66   : %s"),
+                 F("LoRa   : %s"),
                  receivedData.c_str()));
       } else {
         addLog(LOG_LEVEL_ERROR, strformat(
-                 F("LA66   : %s while processing %s"),
+                 F("LoRa   : %s while processing %s"),
                  receivedData.c_str(),
                  C023_AT_commands::toString(_queryPending).c_str()));
-        _queryPending = C023_AT_commands::AT_cmd::Unknown;
+        clearQueryPending();
       }
     }
 
@@ -413,13 +430,13 @@ bool C023_data_struct::processPendingQuery(const String& receivedData)
       switch (_eventFormatStructure)
       {
         case C023_ConfigStruct::EventFormatStructure_e::PortNr_in_eventPar:
-          eventQueue.addMove(strformat(F("LA66#received%d=%s"), port, value.c_str()));
+          eventQueue.addMove(strformat(F("LoRa#received%d=%s"), port, value.c_str()));
           break;
         case C023_ConfigStruct::EventFormatStructure_e::PortNr_as_first_eventvalue:
-          eventQueue.addMove(strformat(F("LA66#received=%d,%s"), port, value.c_str()));
+          eventQueue.addMove(strformat(F("LoRa#received=%d,%s"), port, value.c_str()));
           break;
         case C023_ConfigStruct::EventFormatStructure_e::PortNr_both_eventPar_eventvalue:
-          eventQueue.addMove(strformat(F("LA66#received%d=%d,%s"), port, port, value.c_str()));
+          eventQueue.addMove(strformat(F("LoRa#received%d=%d,%s"), port, port, value.c_str()));
           break;
       }
     }
@@ -430,18 +447,18 @@ bool C023_data_struct::processPendingQuery(const String& receivedData)
     cacheValue(_queryPending, receivedData);
   }
   addLog(LOG_LEVEL_INFO, strformat(
-           F("LA66 : Process Query: %s -> %s"),
+           F("LoRa : Process Query: %s -> %s"),
            C023_AT_commands::toString(_queryPending).c_str(),
            receivedData.c_str()));
 
-  _queryPending = C023_AT_commands::AT_cmd::Unknown;
+  clearQueryPending();
   return true;
 
 }
 
 void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd, bool prioritize)
 {
-  if (C023_easySerial) {
+  if (_easySerial) {
     if (prioritize) {
       _queuedQueries.push_front(static_cast<size_t>(at_cmd));
     } else {
@@ -450,7 +467,7 @@ void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd, bool prioritiz
 
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       const String query = concat(C023_AT_commands::toString(at_cmd), F("=?"));
-      addLog(LOG_LEVEL_INFO, concat(F("LA66 : Add to queue: "), query));
+      addLog(LOG_LEVEL_INFO, concat(F("LoRa : Add to queue: "), query));
     }
   }
 }
@@ -461,9 +478,10 @@ void C023_data_struct::sendNextQueuedQuery()
     _queryPending = static_cast<C023_AT_commands::AT_cmd>(_queuedQueries.front());
     _queuedQueries.pop_front();
     const String query = concat(C023_AT_commands::toString(_queryPending), F("=?"));
-    addLog(LOG_LEVEL_INFO, concat(F("LA66 : Queried "), query));
+    addLog(LOG_LEVEL_INFO, concat(F("LoRa : Queried "), query));
 
-    C023_easySerial->println(query);
+    _easySerial->println(query);
+    _querySent = millis();
   }
 }
 
@@ -482,6 +500,7 @@ void C023_data_struct::cacheValue(C023_AT_commands::AT_cmd at_cmd, String&& valu
 
   if (it != _cachedValues.end()) {
     it->second.value = std::move(value);
+    it->second.timestamp = millis();
   } else {
     _cachedValues.emplace(key, std::move(value));
   }
@@ -506,7 +525,7 @@ String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String&
   port = receivedData.substring(0, pos).toInt();
 
   addLog(LOG_LEVEL_INFO, concat(
-           F("LA66 fromHex: "), receivedData.substring(pos + 1)));
+           F("LoRa fromHex: "), receivedData.substring(pos + 1)));
 
   return stringFromHexArray(receivedData.substring(pos + 1));
 }

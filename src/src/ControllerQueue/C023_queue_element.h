@@ -14,7 +14,7 @@ struct EventStruct;
 struct UnitMessageCount_t;
 
 /*********************************************************************************************\
-* C023_queue_element for queueing requests for C023: LoRa TTN - Dragino LA66 LoRaWAN
+* C023_queue_element for queueing requests for C023: AT-command LoRaWAN
 \*********************************************************************************************/
 
 

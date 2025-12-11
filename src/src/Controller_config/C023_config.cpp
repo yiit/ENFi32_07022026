@@ -6,6 +6,22 @@
 
 # define C023_BAUDRATE_LABEL     "baudrate"
 
+
+const __FlashStringHelper * C023_ConfigStruct::toString(LoRaWAN_DR dr)
+{
+  switch(dr) {
+    case LoRaWAN_DR::SF12_BW125: return F("SF12 BW125");
+    case LoRaWAN_DR::SF11_BW125: return F("SF11 BW125");
+    case LoRaWAN_DR::SF10_BW125: return F("SF10 BW125");
+    case LoRaWAN_DR::SF9_BW125: return F("SF9 BW125");
+    case LoRaWAN_DR::SF8_BW125: return F("SF8 BW125");
+    case LoRaWAN_DR::SF7_BW125: return F("SF7 BW125");
+    case LoRaWAN_DR::SF7_BW250: return F("SF7 BW250");
+    case LoRaWAN_DR::FSK: return F("FSK");
+  }
+  return F("");
+}
+
 void C023_ConfigStruct::validate() {
   ZERO_TERMINATE(DeviceEUI);
   ZERO_TERMINATE(DeviceAddr);
@@ -49,7 +65,7 @@ void C023_ConfigStruct::reset() {
   rxpin         = -1;
   txpin         = -1;
   resetpin      = -1;
-  sf            = 7;
+  dr            = 5;
 //  frequencyplan = RN2xx3_datatypes::Freq_plan::TTN_EU;
   rx2_freq      = 0;
 //  stackVersion  = RN2xx3_datatypes::TTN_stack_version::TTN_v3;
@@ -113,7 +129,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
     selector.addFormSelector(F("LoRaWAN Class"), F("loraclass"), LoRaWAN_Class);
   }
 
-  addFormNumericBox(F("Spread Factor"), F("sf"), sf, 7, 12);
+//  addFormNumericBox(F("Spread Factor"), F("sf"), sf, 7, 12);
   addFormCheckBox(F("Adaptive Data Rate (ADR)"), F("adr"), adr);
 
 
@@ -212,7 +228,7 @@ void C023_ConfigStruct::webform_save() {
   rxpin         = getFormItemInt(F("taskdevicepin1"), rxpin);
   txpin         = getFormItemInt(F("taskdevicepin2"), txpin);
   resetpin      = getFormItemInt(F("taskdevicepin3"), resetpin);
-  sf            = getFormItemInt(F("sf"), sf);
+//  sf            = getFormItemInt(F("sf"), sf);
   eventFormat   = getFormItemInt(F("eventformat"), eventFormat);
   rx2_freq      = getFormItemInt(F("rx2freq"), rx2_freq);
   joinmethod    = getFormItemInt(F("joinmethod"), joinmethod);

@@ -2335,7 +2335,7 @@ To create/register a plugin, you have to :
 //      #define USES_C018 // TTN RN2483
     #endif
     #ifndef USES_C023
-      #define USES_C023 // LoRa TTN - Dragino LA66 LoRaWAN
+      #define USES_C023 // AT-command LoRaWAN
     #endif
   #endif
 
@@ -2430,7 +2430,7 @@ To create/register a plugin, you have to :
 //      #define USES_C018 // TTN RN2483
     #endif
     #ifndef USES_C023
-      #define USES_C023 // LoRa TTN - Dragino LA66 LoRaWAN
+      #define USES_C023 // AT-command LoRaWAN
     #endif
   #endif
 #endif // ifdef PLUGIN_CLIMATE_B_COLLECTION
@@ -2531,7 +2531,7 @@ To create/register a plugin, you have to :
       #define USES_C018 // TTN RN2483
     #endif
     #ifndef USES_C023
-      #define USES_C023 // LoRa TTN - Dragino LA66 LoRaWAN
+      #define USES_C023 // AT-command LoRaWAN
     #endif
   #endif
   #ifndef USES_C019
@@ -2984,7 +2984,7 @@ To create/register a plugin, you have to :
     #define USES_C018 // TTN RN2483
   #endif
   #ifndef USES_C023
-    #define USES_C023 // LoRa TTN - Dragino LA66 LoRaWAN
+    #define USES_C023 // AT-command LoRaWAN
   #endif
 
 
@@ -3295,7 +3295,7 @@ To create/register a plugin, you have to :
     #undef USES_C018 // LoRa TTN - RN2483/RN2903
   #endif
   #ifdef USES_C023
-    #undef USES_C023 // LoRa TTN - Dragino LA66 LoRaWAN
+    #undef USES_C023 // AT-command LoRaWAN
   #endif
 
   #if defined(FEATURE_TRIGONOMETRIC_FUNCTIONS_RULES) && !defined(KEEP_TRIGONOMETRIC_FUNCTIONS_RULES)

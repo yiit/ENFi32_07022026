@@ -32,6 +32,20 @@ struct C023_ConfigStruct
 
   };
 
+  enum class LoRaWAN_DR {
+    SF12_BW125 = 0, // (KR920, AS923, EU868)
+    SF11_BW125 = 1, // (KR920, AS923, EU868)
+    SF10_BW125 = 2, // (KR920, AS923, EU868)
+    SF9_BW125  = 3, // (KR920, AS923, EU868)
+    SF8_BW125  = 4, // (KR920, AS923, EU868)
+    SF7_BW125  = 5, // (KR920, AS923, EU868)
+    SF7_BW250  = 6, // (AS923, EU868)
+    FSK        = 7  // (AS923, EU868)
+
+  };
+
+  static const __FlashStringHelper * toString(LoRaWAN_DR dr);
+
   C023_ConfigStruct() = default;
 
   void                   validate();
@@ -48,6 +62,8 @@ struct C023_ConfigStruct
 
   EventFormatStructure_e getEventFormat() const { return static_cast<EventFormatStructure_e>(eventFormat); }
 
+  LoRaWAN_DR             getDR() const          { return static_cast<LoRaWAN_DR>(dr); }
+
   char          DeviceEUI[C023_DEVICE_EUI_LEN]                  = { 0 };
   char          DeviceAddr[C023_DEVICE_ADDR_LEN]                = { 0 };
   char          NetworkSessionKey[C023_NETWORK_SESSION_KEY_LEN] = { 0 };
@@ -56,7 +72,7 @@ struct C023_ConfigStruct
   int8_t        rxpin                                           = -1;
   int8_t        txpin                                           = -1;
   int8_t        resetpin                                        = -1;
-  uint8_t       sf                                              = 7;
+  uint8_t       dr                                              = 5;
   uint8_t       eventFormat                                     = static_cast<uint8_t>(EventFormatStructure_e::PortNr_in_eventPar);
   uint8_t       joinmethod                                      = C023_USE_OTAA;
   uint8_t       serialPort                                      = 0;

@@ -54,6 +54,19 @@ public:
     RX2DR,         // 5.12 AT+RX2DR: Rx2 Window Data Rate
     RX2FQ,         // 5.13 AT+RX2FQ: Rx2 Window Frequency
     TXP,           // 5.14 AT+TXP: Transmit Power
+                   // TxPower(dBM) offset from Max. ERP.
+                   // Region      | 0   1   2   3   4    5    6    7    8    9   10
+                   // ------------|------------------------------------------------
+                   // AS923       | 0  -2  -4  -6  -8  -10  -12  -14
+                   // AU915       | 0  -2  -4  -6  -8  -10  -14  -14  -16  -18  -20
+                   // CN470       | 0  -2  -4  -6  -8  -10  -14  -14
+                   // CN779       | 0  -2  -4  -6  -8  -10
+                   // EU433       | 0  -2  -4  -6  -8  -10
+                   // EU868       | 0  -2  -4  -6  -8  -10  -14  -14
+                   // IN865       | 0  -2  -4  -6  -8  -10  -14  -14  -16  -18  -20
+                   // KR920       | 0  -2  -4  -6  -8  -10  -14  -14
+                   // US915       | 0  -2  -4  -6  -8  -10  -16  -16  -16  -16  -10
+                   // US915_HYBRID| 0  -2  -4  -6  -8  -10  -16  -16  -16  -16  -10
     RSSI,          // 5.15 AT+RSSI: RSSI of the Last Received Packet
     SNR,           // 5.16 AT+SNR: SNR of the Last Received Packet
     PORT,          // 5.17 AT+PORT: Application Port

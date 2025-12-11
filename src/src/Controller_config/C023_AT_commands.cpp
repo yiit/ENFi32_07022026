@@ -1,12 +1,13 @@
 #include "../Controller_config/C023_AT_commands.h"
 
+#include "../Helpers/ESPEasy_time_calc.h"
 #include "../Helpers/StringConverter.h"
-
 
 bool C023_timestamped_value::expired() const
 {
-    // TODO TD-er: Implement
-    return false;    
+  // TODO TD-er: Implement based on type of value
+//  return false;
+  return timePassedSince(timestamp) > 60000;
 }
 
 const __FlashStringHelper * C023_AT_commands::toFlashString(C023_AT_commands::AT_cmd at_cmd)
@@ -62,7 +63,7 @@ const __FlashStringHelper * C023_AT_commands::toFlashString(C023_AT_commands::AT
   C023_AT_STR(SYNCTDC);
   C023_AT_STR(DDETECT);
   C023_AT_STR(SETMAXNBTRANS);
-  case C023_AT_commands::AT_cmd::Unknown: break;
+    case C023_AT_commands::AT_cmd::Unknown: break;
   }
   return F("Unknown");
 #undef C023_AT_STR
@@ -109,13 +110,13 @@ const __FlashStringHelper * C023_AT_commands::toDisplayString(C023_AT_commands::
     case C023_AT_commands::AT_cmd::PORT:          return F("Application Port");                          // 5.17 AT+PORT
     case C023_AT_commands::AT_cmd::CHS:           return F("Single Channel Mode");                       // 5.18 AT+ CHS
     case C023_AT_commands::AT_cmd::SLEEP:         return F("Sleep mode");                                // 5.20 AT+SLEEP
-    case C023_AT_commands::AT_cmd::BAT:           return F("Current battery voltage in Mv");             // 5.22 AT+BAT
-    case C023_AT_commands::AT_cmd::RJTDC:         return F("ReJoin data transmission interval in min");  // 5.23 AT+RJTDC
+    case C023_AT_commands::AT_cmd::BAT:           return F("Current battery voltage [mV]");              // 5.22 AT+BAT
+    case C023_AT_commands::AT_cmd::RJTDC:         return F("ReJoin data transmission interval [min]");   // 5.23 AT+RJTDC
     case C023_AT_commands::AT_cmd::RPL:           return F("Response level");                            // 5.24 AT+RPL
-    case C023_AT_commands::AT_cmd::TIMESTAMP:     return F("UNIX timestamp in second");                  // 5.25 AT+TIMESTAMP
+    case C023_AT_commands::AT_cmd::TIMESTAMP:     return F("UNIX timestamp [s]");                        // 5.25 AT+TIMESTAMP
     case C023_AT_commands::AT_cmd::LEAPSEC:       return F("Leap Second");                               // 5.26 AT+LEAPSEC
     case C023_AT_commands::AT_cmd::SYNCMOD:       return F("Time synchronization method");               // 5.27 AT+SYNCMOD
-    case C023_AT_commands::AT_cmd::SYNCTDC:       return F("Time synchronization interval in day");      // 5.28 AT+SYNCTDC
+    case C023_AT_commands::AT_cmd::SYNCTDC:       return F("Time synchronization interval [days]");      // 5.28 AT+SYNCTDC
     case C023_AT_commands::AT_cmd::DDETECT:       return F("Downlink detection");                        // 5.29 AT+DDETECT
     case C023_AT_commands::AT_cmd::SETMAXNBTRANS: return F("Max nbtrans in LinkADR");                    // 5.30 AT+SETMAXNBTRANS
   }
@@ -231,12 +232,14 @@ C023_AT_commands::AT_cmd C023_AT_commands::decode(const String& receivedData, St
 
 KeyValueStruct C023_AT_commands::getKeyValue(C023_AT_commands::AT_cmd at_cmd, const String& value, bool extendedValue)
 {
-  if (at_cmd != C023_AT_commands::AT_cmd::Unknown && !value.isEmpty()) {
+  if ((at_cmd != C023_AT_commands::AT_cmd::Unknown) && !value.isEmpty()) {
     if ((at_cmd == C023_AT_commands::AT_cmd::NJS) ||
         (at_cmd == C023_AT_commands::AT_cmd::ADR) ||
         (at_cmd == C023_AT_commands::AT_cmd::DCS) ||
         (at_cmd == C023_AT_commands::AT_cmd::PNM) ||
-        (at_cmd == C023_AT_commands::AT_cmd::CHS) ||        
+        (at_cmd == C023_AT_commands::AT_cmd::CHS) ||
+
+        //        (at_cmd == C023_AT_commands::AT_cmd::CFM) ||
         (at_cmd == C023_AT_commands::AT_cmd::SLEEP) ||
         (at_cmd == C023_AT_commands::AT_cmd::SYNCMOD))
     {
@@ -258,4 +261,3 @@ KeyValueStruct C023_AT_commands::getKeyValue(C023_AT_commands::AT_cmd at_cmd, co
   }
   return KeyValueStruct();
 }
-

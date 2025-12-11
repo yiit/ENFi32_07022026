@@ -3,9 +3,12 @@
 #ifdef USES_C023
 
 // #######################################################################################################
-// ########################### Controller Plugin 023: LoRa TTN - Dragino LA66 LoRaWAN ####################
+// ########################### Controller Plugin 023: AT-command LoRaWAN ####################
 // #######################################################################################################
 
+
+// Mainly tested on Dragino LA66
+// However nearly all LoRaWAN modules supporting AT-commands will very likely work just fine.
 
 // Useful links:
 // Notes for TTN: https://wiki.dragino.com/xwiki/bin/view/Main/Notes%20for%20TTN/#H4.A0ConfigurenodeconnectiontoTTNv3
@@ -17,10 +20,18 @@
 //   https://wiki.dragino.com/xwiki/bin/view/Main/End%20Device%20AT%20Commands%20and%20Downlink%20Command/
 // Semtech LoRa Calculator:
 //   https://www.semtech.com/design-support/lora-calculator
+// Examples of AT commands on I-Cube-LRWAN
+//   https://www.thethingsnetwork.org/forum/uploads/short-url/a5S0svOkbG9bTkvHkcfTNqRDlsq.pdf
+
+// Dragino LGT92_AT_Commands: https://www.dragino.com/downloads/downloads/LGT_92/DRAGINO_LGT92_AT_Commands_v1.5.3.pdf
+// Dragino LT IO Controller AT Command Sets:
+//  https://www.digikey.nl/htmldatasheets/production/5521267/0/0/1/114992158.pdf
+
+// eWBM LoRa AT command: https://www.tme.eu/Document/6fd083ba11ae9feedaadc9c7221ab46e/eWBM_LoRa_AT_Command_v0.6.pdf
 
 # define CPLUGIN_023
 # define CPLUGIN_ID_023         23
-# define CPLUGIN_NAME_023       "LoRa TTN - Dragino LA66 LoRaWAN"
+# define CPLUGIN_NAME_023       "AT-command LoRaWAN"
 
 
 # include <ESPeasySerial.h>
@@ -158,7 +169,28 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
       if (C023_data)
       {
         KeyValueWriter_WebForm writer(true);
-        C023_data->writeCachedValues(writer.createChild(F("Device Status")).get()); 
+
+        const __FlashStringHelper * separators[] = {
+          F("Keys, IDs and EUIs"),
+          F("Access LoRa Network"),
+          F("LoRa Network Management"),
+          F("Information")
+        };
+
+        const C023_AT_commands::AT_cmd commands[] = {
+          C023_AT_commands::AT_cmd::UUID,
+          C023_AT_commands::AT_cmd::CFM,
+          C023_AT_commands::AT_cmd::ADR,
+          C023_AT_commands::AT_cmd::RSSI,
+
+          C023_AT_commands::AT_cmd::Unknown
+        };
+
+        for (size_t i = 0; i < NR_ELEMENTS(separators); ++i) {
+          C023_data->writeCachedValues(
+            writer.createChild(separators[i]).get(), 
+            commands[i], commands[i+1]); 
+        }
       }
 
       break;
@@ -363,9 +395,9 @@ bool C023_init(struct EventStruct *event) {
 
   //C023_data->setFrequencyPlan(static_cast<RN2xx3_datatypes::Freq_plan>(customConfig->frequencyplan), customConfig->rx2_freq);
 
-  if (!C023_data->setSF(customConfig->sf)) {
-    return false;
-  }
+//  if (!C023_data->setSF(customConfig->sf)) {
+//    return false;
+//  }
 
   if (!C023_data->setAdaptiveDataRate(customConfig->adr != 0)) {
     return false;
