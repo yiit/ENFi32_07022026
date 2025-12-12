@@ -6,8 +6,36 @@
 bool C023_timestamped_value::expired() const
 {
   // TODO TD-er: Implement based on type of value
-//  return false;
-  return timePassedSince(timestamp) > 60000;
+  //  return false;
+  return timePassedSince(lastCheck) > 60000;
+}
+
+void C023_timestamped_value::set(const String& val) {
+  lastCheck = millis();
+
+  if (!value.equals(val)) { 
+    lastChange = millis(); 
+    value = val;
+  }
+}
+
+bool C023_AT_commands::isVolatileValue(C023_AT_commands::AT_cmd at_cmd)
+{
+  switch (at_cmd)
+  {
+    case C023_AT_commands::AT_cmd::NJS:
+    case C023_AT_commands::AT_cmd::DR:
+    case C023_AT_commands::AT_cmd::RX2DR:
+    //    case C023_AT_commands::AT_cmd::FCD:
+    //    case C023_AT_commands::AT_cmd::FCU:
+    //    case C023_AT_commands::AT_cmd::RSSI:
+    //    case C023_AT_commands::AT_cmd::SNR:
+    case C023_AT_commands::AT_cmd::BAT:
+    case C023_AT_commands::AT_cmd::TIMESTAMP:
+      return true;
+    default:
+      return false;
+  }
 }
 
 const __FlashStringHelper * C023_AT_commands::toFlashString(C023_AT_commands::AT_cmd at_cmd)
@@ -87,12 +115,12 @@ const __FlashStringHelper * C023_AT_commands::toDisplayString(C023_AT_commands::
     case C023_AT_commands::AT_cmd::NWKID:         return F("Network ID");                                // 3.6 AT+NWKID
     case C023_AT_commands::AT_cmd::NWKSKEY:       return F("Network Session Key");                       // 3.7 AT+NWKSKEY
     case C023_AT_commands::AT_cmd::CFM:           return F("Confirm Mode");                              // 4.1 AT+CFM
-    case C023_AT_commands::AT_cmd::NJM:           return F("LoRa® Network Join Mode");                   // 4.3 AT+NJM
-    case C023_AT_commands::AT_cmd::NJS:           return F("LoRa® Network Join Status");                 // 4.4 AT+NJS
+    case C023_AT_commands::AT_cmd::NJM:           return F("LoRa Network Join Mode");                    // 4.3 AT+NJM
+    case C023_AT_commands::AT_cmd::NJS:           return F("LoRa Network Join Status");                  // 4.4 AT+NJS
     case C023_AT_commands::AT_cmd::RECV:          return F("Print Last Received Data in Raw Format");    // 4.5 AT+RECV
     case C023_AT_commands::AT_cmd::RECVB:         return F("Print Last Received Data in Binary Format"); // 4.6 AT+RECVB
     case C023_AT_commands::AT_cmd::ADR:           return F("Adaptive Rate");                             // 5.1 AT+ADR
-    case C023_AT_commands::AT_cmd::CLASS:         return F("LoRa® Class");                               // 5.2 AT+CLASS
+    case C023_AT_commands::AT_cmd::CLASS:         return F("LoRa Class");                                // 5.2 AT+CLASS
     case C023_AT_commands::AT_cmd::DCS:           return F("Duty Cycle Setting");                        // 5.3 AT+DCS
     case C023_AT_commands::AT_cmd::DR:            return F("Data Rate");                                 // 5.4 AT+DR
     case C023_AT_commands::AT_cmd::FCD:           return F("Frame Counter Downlink");                    // 5.5 AT+FCD

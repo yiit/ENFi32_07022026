@@ -45,9 +45,8 @@ public:
   bool txUncnf(const String& data,
                uint8_t       port);
 
-  bool setSF(uint8_t sf);
+  bool setDR(LoRa_Helper::LoRaWAN_DR dr);
 
-  bool setAdaptiveDataRate(bool enabled);
 
   bool initOTAA(const String& AppEUI,
                 const String& AppKey,
@@ -57,26 +56,27 @@ public:
                const String& AppSKey,
                const String& NwkSKey);
 
-  String   sendRawCommand(const String& command);
+  String                  sendRawCommand(const String& command);
 
-  int      getVbat();
+  int                     getVbat();
 
-  String   peekLastError();
+  String                  peekLastError();
 
-  String   getLastError();
+  String                  getLastError();
 
-  String   getDataRate();
+  LoRa_Helper::LoRaWAN_DR getDataRate();
+  String                  getDataRate_str();
 
-  int      getRSSI();
+  int                     getRSSI();
 
-  uint32_t getRawStatus();
+  uint32_t                getRawStatus();
 
 
-  bool     getFrameCounters(uint32_t& dnctr,
-                            uint32_t& upctr);
+  bool                    getFrameCounters(uint32_t& dnctr,
+                                           uint32_t& upctr);
 
-  bool     setFrameCounters(uint32_t dnctr,
-                            uint32_t upctr);
+  bool                    setFrameCounters(uint32_t dnctr,
+                                           uint32_t upctr);
 
   // Cached data, only changing occasionally.
 
@@ -90,7 +90,7 @@ public:
 
   uint8_t getSampleSetCount(taskIndex_t taskIndex);
 
-  float   getLoRaAirTime(uint8_t pl) const;
+  float   getLoRaAirTime(uint8_t pl);
 
   void    async_loop();
 
@@ -99,6 +99,11 @@ public:
                             C023_AT_commands::AT_cmd end);
 
 private:
+
+  String get(C023_AT_commands::AT_cmd at_cmd, uint32_t& lastChange);
+  int    getInt(C023_AT_commands::AT_cmd at_cmd,
+                int                      errorvalue, 
+                uint32_t& lastChange);
 
   String get(C023_AT_commands::AT_cmd at_cmd);
   int    getInt(C023_AT_commands::AT_cmd at_cmd,
@@ -119,7 +124,7 @@ private:
 
   void clearQueryPending() {
     _queryPending = C023_AT_commands::AT_cmd::Unknown;
-    _querySent = 0;
+    _querySent    = 0;
   }
 
   void          cacheValue(C023_AT_commands::AT_cmd at_cmd,
@@ -131,7 +136,8 @@ private:
 
   // Decode HEX stream
   static String getValueFromReceivedBinaryData(int         & port,
-                                               const String& receivedData);
+                                               const String& receivedData,
+                                               bool          hexEncoded);
 
   std::map<size_t, C023_timestamped_value>_cachedValues;
   std::list<size_t>                       _queuedQueries;
@@ -139,14 +145,15 @@ private:
   uint32_t                                _querySent{};
 
 
-  ESPeasySerial *_easySerial        = nullptr;
-  unsigned long  _baudrate          = 9600;
-  uint8_t        sampleSetCounter   = 0;
-  taskIndex_t    sampleSetInitiator = INVALID_TASK_INDEX;
-  int8_t         _resetPin          = -1;
-  bool           _isClassA{};
+  ESPeasySerial          *_easySerial        = nullptr;
+  unsigned long           _baudrate          = 9600;
+  uint8_t                 sampleSetCounter   = 0;
+  taskIndex_t             sampleSetInitiator = INVALID_TASK_INDEX;
+  int8_t                  _resetPin          = -1;
+  bool                    _isClassA{};
+  LoRa_Helper::LoRaWAN_DR _dr = LoRa_Helper::LoRaWAN_DR::ADR;
 
-  C023_ConfigStruct::EventFormatStructure_e _eventFormatStructure = C023_ConfigStruct::EventFormatStructure_e::PortNr_in_eventPar;
+  LoRa_Helper::DownlinkEventFormat_e _eventFormatStructure = LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar;
 
 
   String _fromLA66;

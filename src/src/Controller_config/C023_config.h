@@ -5,6 +5,8 @@
 
 #ifdef USES_C023
 
+#include "../Helpers/_CPlugin_Helper_LoRa.h"
+
 // Forward declaration
 struct C023_data_struct;
 
@@ -18,33 +20,6 @@ struct C023_data_struct;
 
 struct C023_ConfigStruct
 {
-  enum class LoRaWANclass_e {
-    A,
-    B,
-    C
-
-  };
-
-  enum class EventFormatStructure_e {
-    PortNr_in_eventPar,
-    PortNr_as_first_eventvalue,
-    PortNr_both_eventPar_eventvalue
-
-  };
-
-  enum class LoRaWAN_DR {
-    SF12_BW125 = 0, // (KR920, AS923, EU868)
-    SF11_BW125 = 1, // (KR920, AS923, EU868)
-    SF10_BW125 = 2, // (KR920, AS923, EU868)
-    SF9_BW125  = 3, // (KR920, AS923, EU868)
-    SF8_BW125  = 4, // (KR920, AS923, EU868)
-    SF7_BW125  = 5, // (KR920, AS923, EU868)
-    SF7_BW250  = 6, // (AS923, EU868)
-    FSK        = 7  // (AS923, EU868)
-
-  };
-
-  static const __FlashStringHelper * toString(LoRaWAN_DR dr);
 
   C023_ConfigStruct() = default;
 
@@ -58,11 +33,11 @@ struct C023_ConfigStruct
   // Collect all data from the web interface
   void                   webform_save();
 
-  LoRaWANclass_e         getClass() const       { return static_cast<LoRaWANclass_e>(LoRaWAN_Class); }
+  LoRa_Helper::LoRaWANclass_e         getClass() const       { return static_cast<LoRa_Helper::LoRaWANclass_e>(LoRaWAN_Class); }
 
-  EventFormatStructure_e getEventFormat() const { return static_cast<EventFormatStructure_e>(eventFormat); }
+  LoRa_Helper::DownlinkEventFormat_e getEventFormat() const { return static_cast<LoRa_Helper::DownlinkEventFormat_e>(eventFormat); }
 
-  LoRaWAN_DR             getDR() const          { return static_cast<LoRaWAN_DR>(dr); }
+  LoRa_Helper::LoRaWAN_DR             getDR() const          { return static_cast<LoRa_Helper::LoRaWAN_DR>(dr); }
 
   char          DeviceEUI[C023_DEVICE_EUI_LEN]                  = { 0 };
   char          DeviceAddr[C023_DEVICE_ADDR_LEN]                = { 0 };
@@ -72,12 +47,12 @@ struct C023_ConfigStruct
   int8_t        rxpin                                           = -1;
   int8_t        txpin                                           = -1;
   int8_t        resetpin                                        = -1;
-  uint8_t       dr                                              = 5;
-  uint8_t       eventFormat                                     = static_cast<uint8_t>(EventFormatStructure_e::PortNr_in_eventPar);
+  uint8_t       dr                                              = static_cast<uint8_t>(LoRa_Helper::LoRaWAN_DR::ADR);
+  uint8_t       eventFormat                                     = static_cast<uint8_t>(LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar);
   uint8_t       joinmethod                                      = C023_USE_OTAA;
   uint8_t       serialPort                                      = 0;
-  uint8_t       LoRaWAN_Class                                   = static_cast<uint8_t>(LoRaWANclass_e::A);
-  uint8_t       adr                                             = 0;
+  uint8_t       LoRaWAN_Class                                   = static_cast<uint8_t>(LoRa_Helper::LoRaWANclass_e::A);
+  uint8_t       adr_unused                                      = 0;
   uint32_t      rx2_freq                                        = 0;
 
 };

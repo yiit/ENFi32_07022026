@@ -64,15 +64,17 @@ bool C023_data_struct::init(
   reset();
   _resetPin = reset_pin;
   _baudrate = baudrate;
-  _isClassA = config.getClass() == C023_ConfigStruct::LoRaWANclass_e::A;
+  _isClassA = config.getClass() == LoRa_Helper::LoRaWANclass_e::A;
+  _dr       = config.getDR();
 
   // FIXME TD-er: Make force SW serial a proper setting.
   if (_easySerial != nullptr) {
     delete _easySerial;
   }
-    // When calling "AT+CFG", we may get quite a lot of data at once at a relatively low baud rate.
-    // This requires quite a lot of calls to read it, so it is much more likely to have some other call inbetween taking way longer than 20
-    // msec and thus we will miss some data
+
+  // When calling "AT+CFG", we may get quite a lot of data at once at a relatively low baud rate.
+  // This requires quite a lot of calls to read it, so it is much more likely to have some other call inbetween taking way longer than 20
+  // msec and thus we will miss some data
 
   _easySerial = new (std::nothrow) ESPeasySerial(static_cast<ESPEasySerialPort>(port), serial_rx, serial_tx, false, 1024);
 
@@ -82,20 +84,16 @@ bool C023_data_struct::init(
     _easySerial->println(F("ATZ"));    // Reset LoRa
     delay(1000);
 
+    setDR(_dr);                        // TODO TD-er: Must this be called after join?
+
     _easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
   }
   return isInitialized();
 }
 
-bool C023_data_struct::hasJoined() {
-  if (!isInitialized()) { return false; }
-  return getInt(C023_AT_commands::AT_cmd::NJS, 0) != 0;
-}
+bool C023_data_struct::hasJoined() { return getInt(C023_AT_commands::AT_cmd::NJS, 0) != 0; }
 
-bool C023_data_struct::useOTAA() {
-  if (!isInitialized()) { return true; }
-  return getInt(C023_AT_commands::AT_cmd::NJM, 1) == 1;
-}
+bool C023_data_struct::useOTAA()   { return getInt(C023_AT_commands::AT_cmd::NJM, 1) == 1; }
 
 bool C023_data_struct::command_finished() const {
   return true; // myLora->command_finished();
@@ -139,16 +137,19 @@ bool C023_data_struct::txUncnf(const String& data, uint8_t port) {
   return res;
 }
 
-bool C023_data_struct::setSF(uint8_t sf) {
+bool C023_data_struct::setDR(LoRa_Helper::LoRaWAN_DR dr)
+{
   if (!isInitialized()) { return false; }
-  bool res = true; // myLora->setSF(sf);
-  return res;
-}
 
-bool C023_data_struct::setAdaptiveDataRate(bool enabled) {
-  if (!isInitialized()) { return false; }
-  bool res = true; // myLora->setAdaptiveDataRate(enabled);
-  return res;
+  if (dr == LoRa_Helper::LoRaWAN_DR::ADR) {
+    _easySerial->println(F("AT+ADR=1"));
+  } else {
+    _easySerial->println(F("AT+ADR=0"));
+    _easySerial->println(concat(F("AT+DR="), static_cast<int>(dr)));
+  }
+  get(C023_AT_commands::AT_cmd::ADR);
+  get(C023_AT_commands::AT_cmd::DR);
+  return true;
 }
 
 bool C023_data_struct::initOTAA(const String& AppEUI, const String& AppKey, const String& DevEUI) {
@@ -189,13 +190,23 @@ String C023_data_struct::getLastError() {
   return EMPTY_STRING; // myLora->getLastError();
 }
 
-String C023_data_struct::getDataRate() {
+LoRa_Helper::LoRaWAN_DR C023_data_struct::getDataRate()
+{
+  const int dr_int = getInt(C023_AT_commands::AT_cmd::DR, -1);
+
+  if (dr_int == -1) {
+    return LoRa_Helper::LoRaWAN_DR::ADR;
+  }
+  return static_cast<LoRa_Helper::LoRaWAN_DR>(dr_int);
+}
+
+String C023_data_struct::getDataRate_str() {
   const int dr_int = getInt(C023_AT_commands::AT_cmd::DR, -1);
 
   if (dr_int == -1) { return F("-"); }
-  C023_ConfigStruct::LoRaWAN_DR dr =
-    static_cast<C023_ConfigStruct::LoRaWAN_DR>(getInt(C023_AT_commands::AT_cmd::DR, 0));
-  return strformat(F("%d: %s"), dr_int, FsP(C023_ConfigStruct::toString(dr)));
+  LoRa_Helper::LoRaWAN_DR dr =
+    static_cast<LoRa_Helper::LoRaWAN_DR>(dr_int);
+  return strformat(F("%d: %s"), dr_int, FsP(LoRa_Helper::toString(dr)));
 }
 
 int      C023_data_struct::getRSSI() { return getInt(C023_AT_commands::AT_cmd::RSSI, 0); }
@@ -239,9 +250,9 @@ uint8_t C023_data_struct::getSampleSetCount(taskIndex_t taskIndex) {
   return sampleSetCounter;
 }
 
-float C023_data_struct::getLoRaAirTime(uint8_t pl) const {
+float C023_data_struct::getLoRaAirTime(uint8_t pl) {
   if (isInitialized()) {
-    return 0.0f; // myLora->getLoRaAirTime(pl + 13); // We have a LoRaWAN header of 13 bytes.
+    return LoRa_Helper::getLoRaAirTime(pl, getDataRate());
   }
   return -1.0f;
 }
@@ -316,30 +327,50 @@ bool C023_data_struct::writeCachedValues(KeyValueWriter*writer, C023_AT_commands
   return true;
 }
 
-String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd)
+String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd, uint32_t& lastChange)
 {
+  lastChange = 0;
+
   if (isInitialized() && (at_cmd != C023_AT_commands::AT_cmd::Unknown)) {
     auto it = _cachedValues.find(static_cast<size_t>(at_cmd));
 
     if (it != _cachedValues.end()) {
-      if (it->second.expired()) {
-        sendQuery(at_cmd);
+      if (C023_AT_commands::isVolatileValue(at_cmd) && it->second.expired()) {
+        sendQuery(at_cmd, true);
       }
+      lastChange = it->second.lastChange;
       return it->second.value;
     }
     sendQuery(at_cmd);
   }
   return EMPTY_STRING;
+
 }
 
-int C023_data_struct::getInt(C023_AT_commands::AT_cmd at_cmd, int errorvalue)
+int C023_data_struct::getInt(C023_AT_commands::AT_cmd at_cmd,
+                             int                      errorvalue,
+                             uint32_t               & lastChange)
 {
-  String value = get(at_cmd);
+  String value = get(at_cmd, lastChange);
 
   if (value.isEmpty()) {
     return errorvalue;
   }
   return value.toInt();
+}
+
+String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd)
+{
+  uint32_t lastChange{};
+
+  return get(at_cmd, lastChange);
+}
+
+int C023_data_struct::getInt(C023_AT_commands::AT_cmd at_cmd, int errorvalue)
+{
+  uint32_t lastChange{};
+
+  return getInt(at_cmd, errorvalue, lastChange);
 }
 
 bool C023_data_struct::processReceived(const String& receivedData)
@@ -374,12 +405,22 @@ bool C023_data_struct::processReceived(const String& receivedData)
       cacheValue(C023_AT_commands::AT_cmd::DEUI, getValueFromReceivedData(receivedData));
     } else if (receivedData.indexOf(F("AT+RECVB=?")) != -1) {
       sendQuery(C023_AT_commands::AT_cmd::RECVB, true);
+    } else if (receivedData.indexOf(F("AT+RECV=?")) != -1) {
+      sendQuery(C023_AT_commands::AT_cmd::RECV, true);
     } else if (receivedData.startsWith(F("*****")) ||
                receivedData.startsWith(F("TX on")) ||
                receivedData.startsWith(F("RX on")))
     {
       // Ignore these lines for now.
       // Maybe those "***** UpLinkCounter= 51 *****" could be parsed
+      // also:
+      //   TX on freq 867.100 MHz at DR 5
+      //   RX on freq 869.525 MHz at DR 3
+    } else if (receivedData.indexOf(F("Tx events")) != -1) {
+      // Ignore replies like these:
+      //   Stop Tx events,Please wait for the erase to complete
+      //   Start Tx events
+      // TODO TD-er: Maybe use these to ignore/pause parsing possible pending queries?
     }
 
     else if (
@@ -422,20 +463,23 @@ bool C023_data_struct::processPendingQuery(const String& receivedData)
     return false;
   }
 
-  if (_queryPending == C023_AT_commands::AT_cmd::RECVB) {
+  if ((_queryPending == C023_AT_commands::AT_cmd::RECVB) ||
+      (_queryPending == C023_AT_commands::AT_cmd::RECV)) {
+    const bool hexEncoded = _queryPending == C023_AT_commands::AT_cmd::RECVB;
     int port{};
-    String value = getValueFromReceivedBinaryData(port, receivedData);
+    const String value = getValueFromReceivedBinaryData(
+      port, receivedData, hexEncoded);
 
     if ((port > 0) && (value.length() != 0)) {
       switch (_eventFormatStructure)
       {
-        case C023_ConfigStruct::EventFormatStructure_e::PortNr_in_eventPar:
+        case LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar:
           eventQueue.addMove(strformat(F("LoRa#received%d=%s"), port, value.c_str()));
           break;
-        case C023_ConfigStruct::EventFormatStructure_e::PortNr_as_first_eventvalue:
+        case LoRa_Helper::DownlinkEventFormat_e::PortNr_as_first_eventvalue:
           eventQueue.addMove(strformat(F("LoRa#received=%d,%s"), port, value.c_str()));
           break;
-        case C023_ConfigStruct::EventFormatStructure_e::PortNr_both_eventPar_eventvalue:
+        case LoRa_Helper::DownlinkEventFormat_e::PortNr_both_eventPar_eventvalue:
           eventQueue.addMove(strformat(F("LoRa#received%d=%d,%s"), port, port, value.c_str()));
           break;
       }
@@ -460,14 +504,23 @@ void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd, bool prioritiz
 {
   if (_easySerial) {
     if (prioritize) {
-      _queuedQueries.push_front(static_cast<size_t>(at_cmd));
+      if (_queuedQueries.front() != static_cast<size_t>(at_cmd)) {
+        _queuedQueries.push_front(static_cast<size_t>(at_cmd));
+      }
+      async_loop();
     } else {
+      auto it = _queuedQueries.remove(static_cast<size_t>(at_cmd));
       _queuedQueries.push_back(static_cast<size_t>(at_cmd));
     }
 
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
       const String query = concat(C023_AT_commands::toString(at_cmd), F("=?"));
       addLog(LOG_LEVEL_INFO, concat(F("LoRa : Add to queue: "), query));
+    }
+
+    if (prioritize) {
+      delay(10);
+      async_loop();
     }
   }
 }
@@ -499,8 +552,7 @@ void C023_data_struct::cacheValue(C023_AT_commands::AT_cmd at_cmd, String&& valu
   auto it          = _cachedValues.find(key);
 
   if (it != _cachedValues.end()) {
-    it->second.value = std::move(value);
-    it->second.timestamp = millis();
+    it->second.set(value);
   } else {
     _cachedValues.emplace(key, std::move(value));
   }
@@ -516,7 +568,7 @@ String C023_data_struct::getValueFromReceivedData(const String& receivedData)
   return res;
 }
 
-String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String& receivedData)
+String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String& receivedData, bool hexEncoded)
 {
   port = -1;
   int pos = receivedData.indexOf(':');
@@ -527,7 +579,10 @@ String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String&
   addLog(LOG_LEVEL_INFO, concat(
            F("LoRa fromHex: "), receivedData.substring(pos + 1)));
 
-  return stringFromHexArray(receivedData.substring(pos + 1));
+  if (hexEncoded) {
+    return stringFromHexArray(receivedData.substring(pos + 1));
+  }
+  return receivedData.substring(pos + 1);
 }
 
 #endif // ifdef USES_C023

@@ -6,12 +6,15 @@
 
 struct C023_timestamped_value {
   C023_timestamped_value(String&& val) :
-    timestamp(millis()),
+    lastCheck(millis()),
     value(std::move(val)) {}
+
+  void set(const String& val);
 
   bool expired() const;
 
-  uint32_t timestamp{};
+  uint32_t lastChange{};
+  uint32_t lastCheck{};
   String   value;
 
 };
@@ -113,6 +116,8 @@ public:
     Unknown
 
   };
+
+  static bool isVolatileValue(AT_cmd at_cmd);
 
   static const __FlashStringHelper* toFlashString(AT_cmd at_cmd);
 

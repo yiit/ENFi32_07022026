@@ -15,7 +15,8 @@
 // Dragino WiKi LA66 User Manual:
 // LA66 LoRaWAN Shield User Manual"
 //   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/
-//   https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/#H1.6A0Example:JoinTTNnetworkandsendanuplinkmessage2Cgetdownlinkmessage.
+//
+// https://wiki.dragino.com/xwiki/bin/view/Main/User%20Manual%20for%20LoRaWAN%20End%20Nodes/LA66%20LoRaWAN%20Shield%20User%20Manual/#H1.6A0Example:JoinTTNnetworkandsendanuplinkmessage2Cgetdownlinkmessage.
 // End Device AT-Commands and Downlink Command
 //   https://wiki.dragino.com/xwiki/bin/view/Main/End%20Device%20AT%20Commands%20and%20Downlink%20Command/
 // Semtech LoRa Calculator:
@@ -60,10 +61,7 @@ C023_data_struct *C023_data = nullptr;
 
 
 // Forward declarations
-bool   C023_init(struct EventStruct *event);
-String c023_add_joinChanged_script_element_line(const String& id,
-                                                bool          forOTAA);
-
+bool C023_init(struct EventStruct *event);
 
 bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& string)
 {
@@ -132,19 +130,20 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
         // Script to toggle visibility of OTAA/ABP field, based on the activation method selector.
         protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(event->ControllerIndex);
         html_add_script(false);
-        addHtml(F("function joinChanged(elem){ var styleOTAA = elem.value == 0 ? '' : 'none'; var styleABP = elem.value == 1 ? '' : 'none';"));
-        addHtml(c023_add_joinChanged_script_element_line(getControllerParameterInternalName(ProtocolIndex,
+        addHtml(F(
+                  "function joinChanged(elem){ var styleOTAA = elem.value == 0 ? '' : 'none'; var styleABP = elem.value == 1 ? '' : 'none';"));
+        LoRa_Helper::add_joinChanged_script_element_line(getControllerParameterInternalName(ProtocolIndex,
                                                                                             ControllerSettingsStruct::CONTROLLER_USER),
-                                                         true));
-        addHtml(c023_add_joinChanged_script_element_line(getControllerParameterInternalName(ProtocolIndex,
+                                                         LoRa_Helper::LoRaWAN_JoinMethod::OTAA);
+        LoRa_Helper::add_joinChanged_script_element_line(getControllerParameterInternalName(ProtocolIndex,
                                                                                             ControllerSettingsStruct::CONTROLLER_PASS),
-                                                         true));
-        addHtml(c023_add_joinChanged_script_element_line(F("deveui"), true));
-        addHtml(c023_add_joinChanged_script_element_line(F("deveui_note"), true));
+                                                         LoRa_Helper::LoRaWAN_JoinMethod::OTAA);
+        LoRa_Helper::add_joinChanged_script_element_line(F("deveui"),      LoRa_Helper::LoRaWAN_JoinMethod::OTAA);
+        LoRa_Helper::add_joinChanged_script_element_line(F("deveui_note"), LoRa_Helper::LoRaWAN_JoinMethod::OTAA);
 
-        addHtml(c023_add_joinChanged_script_element_line(F("devaddr"), false));
-        addHtml(c023_add_joinChanged_script_element_line(F("nskey"), false));
-        addHtml(c023_add_joinChanged_script_element_line(F("appskey"), false));
+        LoRa_Helper::add_joinChanged_script_element_line(F("devaddr"),     LoRa_Helper::LoRaWAN_JoinMethod::ABP);
+        LoRa_Helper::add_joinChanged_script_element_line(F("nskey"),       LoRa_Helper::LoRaWAN_JoinMethod::ABP);
+        LoRa_Helper::add_joinChanged_script_element_line(F("appskey"),     LoRa_Helper::LoRaWAN_JoinMethod::ABP);
         addHtml('}');
         html_add_script_end();
       }
@@ -154,11 +153,11 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
 
         constexpr unsigned size = sizeof(C023_ConfigStruct);
         void *ptr               = special_calloc(1, size);
-      
+
         if (ptr == nullptr) {
           break;
         }
-        UP_C023_ConfigStruct  customConfig(new (ptr) C023_ConfigStruct);
+        UP_C023_ConfigStruct customConfig(new (ptr) C023_ConfigStruct);
 
         if (!customConfig) {
           break;
@@ -166,11 +165,12 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
         LoadCustomControllerSettings(event->ControllerIndex, reinterpret_cast<uint8_t *>(customConfig.get()), sizeof(C023_ConfigStruct));
         customConfig->webform_load(C023_data);
       }
+
       if (C023_data)
       {
         KeyValueWriter_WebForm writer(true);
 
-        const __FlashStringHelper * separators[] = {
+        const __FlashStringHelper *separators[] = {
           F("Keys, IDs and EUIs"),
           F("Access LoRa Network"),
           F("LoRa Network Management"),
@@ -188,8 +188,8 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
 
         for (size_t i = 0; i < NR_ELEMENTS(separators); ++i) {
           C023_data->writeCachedValues(
-            writer.createChild(separators[i]).get(), 
-            commands[i], commands[i+1]); 
+            writer.createChild(separators[i]).get(),
+            commands[i], commands[i + 1]);
         }
       }
 
@@ -199,11 +199,11 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
     {
       constexpr unsigned size = sizeof(C023_ConfigStruct);
       void *ptr               = special_calloc(1, size);
-    
+
       if (ptr == nullptr) {
         break;
       }
-      UP_C023_ConfigStruct  customConfig(new (ptr) C023_ConfigStruct);
+      UP_C023_ConfigStruct customConfig(new (ptr) C023_ConfigStruct);
 
       if (customConfig) {
         customConfig->webform_save();
@@ -217,7 +217,8 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
     {
       success = true;
 
-      switch (event->idx) {
+      switch (event->idx)
+      {
         case ControllerSettingsStruct::CONTROLLER_USER:
           string = F("AppEUI");
           break;
@@ -251,12 +252,12 @@ bool CPlugin_023(CPlugin::Function function, struct EventStruct *event, String& 
         {
           constexpr unsigned size = sizeof(C023_queue_element);
           void *ptr               = special_calloc(1, size);
-        
+
           if (ptr == nullptr) {
             break;
           }
-    
-          UP_C023_queue_element  element(new (ptr) C023_queue_element(event, C023_data->getSampleSetCount(event->TaskIndex)));
+
+          UP_C023_queue_element element(new (ptr) C023_queue_element(event, C023_data->getSampleSetCount(event->TaskIndex)));
           success = C023_DelayHandler->addToQueue(std::move(element));
           Scheduler.scheduleNextDelayQueue(SchedulerIntervalTimer_e::TIMER_C023_DELAY_QUEUE,
                                            C023_DelayHandler->getNextScheduleTime());
@@ -379,7 +380,7 @@ bool C023_init(struct EventStruct *event) {
   if (ptr == nullptr) {
     return false;
   }
-  UP_C023_ConfigStruct  customConfig(new (ptr) C023_ConfigStruct);
+  UP_C023_ConfigStruct customConfig(new (ptr) C023_ConfigStruct);
 
   if (!customConfig) {
     return false;
@@ -393,21 +394,17 @@ bool C023_init(struct EventStruct *event) {
     return false;
   }
 
-  //C023_data->setFrequencyPlan(static_cast<RN2xx3_datatypes::Freq_plan>(customConfig->frequencyplan), customConfig->rx2_freq);
+  // C023_data->setFrequencyPlan(static_cast<RN2xx3_datatypes::Freq_plan>(customConfig->frequencyplan), customConfig->rx2_freq);
 
-//  if (!C023_data->setSF(customConfig->sf)) {
-//    return false;
-//  }
-
-  if (!C023_data->setAdaptiveDataRate(customConfig->adr != 0)) {
-    return false;
-  }
+  //  if (!C023_data->setSF(customConfig->sf)) {
+  //    return false;
+  //  }
 
   /*
-  if (!C023_data->setTTNstack(static_cast<RN2xx3_datatypes::TTN_stack_version>(customConfig->stackVersion))) {
-    return false;
-  }
-    */
+     if (!C023_data->setTTNstack(static_cast<RN2xx3_datatypes::TTN_stack_version>(customConfig->stackVersion))) {
+     return false;
+     }
+   */
 
   if (customConfig->joinmethod == C023_USE_OTAA) {
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
@@ -502,16 +499,6 @@ bool do_process_c023_delay_queue(cpluginID_t cpluginID, const Queue_element_base
   }
 
   return success;
-}
-
-String c023_add_joinChanged_script_element_line(const String& id, bool forOTAA) {
-  String result = F("document.getElementById('tr_");
-
-  result += id;
-  result += F("').style.display = style");
-  result += forOTAA ? F("OTAA") : F("ABP");
-  result += ';';
-  return result;
 }
 
 #endif // ifdef USES_C023
