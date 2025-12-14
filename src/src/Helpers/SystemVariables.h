@@ -29,6 +29,9 @@ public:
     ETHSTATE,
     ETHWIFIMODE,
 #endif // if FEATURE_ETHERNET
+    #ifndef LIMIT_BUILD_SIZE
+    S_E,
+    #endif // ifndef LIMIT_BUILD_SIZE
 
     FLASH_CHIP_MODEL,
     FLASH_CHIP_VENDOR,
@@ -67,6 +70,9 @@ public:
     SUNSET_M,
     MAC,
     MAC_INT,
+    #ifndef LIMIT_BUILD_SIZE
+    S_PI,
+    #endif // ifndef LIMIT_BUILD_SIZE
     S_LF,
     S_CR,
     RSSI,
