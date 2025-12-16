@@ -33,11 +33,12 @@
 // M5Stack LoRaWAN Atom DTU RAK 3172  AT-commands:
 //  https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/docs/products/unit/Unit%20LoRaWAN-CN470/AT%20command%20manual.pdf
 //  https://github.com/m5stack/M5-LoRaWAN-RAK
-// RAK RUI3 AT Command Manual  
+// RAK RUI3 AT Command Manual
 //  https://docs.rakwireless.com/product-categories/software-apis-and-libraries/rui3/at-command-manual/
 // RAK AT Command Migration Guide to RUI3
 //  https://learn.rakwireless.com/hc/en-us/articles/26687498449559-AT-Command-Migration-Guide-of-RAK3172-to-RUI3-RAKwireless-Unified-Interface-V3?_gl=1*kgdaj4*_gcl_au*MTI0NDgyNDMyMy4xNzY1ODQzMTg4
-
+// RAK3172 Overlooked but Useful LoRaWAN® AT Commands
+//  https://news.rakwireless.com/rak3172-overlooked-but-useful-lorawan-at-commands/
 
 
 # define CPLUGIN_023
@@ -450,65 +451,65 @@ bool C023_init(struct EventStruct *event) {
 bool do_process_c023_delay_queue(cpluginID_t cpluginID, const Queue_element_base& element_base, ControllerSettingsStruct& ControllerSettings) {
   const C023_queue_element& element = static_cast<const C023_queue_element&>(element_base);
 // *INDENT-ON*
-  uint8_t pl           = (element.packed.length() / 2);
-  float   airtime_ms   = C023_data->getLoRaAirTime(pl);
-  bool    mustSetDelay = false;
-  bool    success      = false;
+uint8_t pl           = (element.packed.length() / 2);
+float   airtime_ms   = C023_data->getLoRaAirTime(pl);
+bool    mustSetDelay = false;
+bool    success      = false;
 
-  if (!C023_data->command_finished()) {
-    mustSetDelay = true;
-  } else {
-    success = C023_data->txHexBytes(element.packed, ControllerSettings.Port);
+if (!C023_data->command_finished()) {
+  mustSetDelay = true;
+} else {
+  success = C023_data->txHexBytes(element.packed, ControllerSettings.Port);
 
-    if (success) {
-      if (airtime_ms > 0.0f) {
-        ADD_TIMER_STAT(C023_AIR_TIME, static_cast<unsigned long>(airtime_ms * 1000));
+  if (success) {
+    if (airtime_ms > 0.0f) {
+      ADD_TIMER_STAT(C023_AIR_TIME, static_cast<unsigned long>(airtime_ms * 1000));
 
-        if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-          String log = F("LoRaWAN : Payload Length: ");
-          log += pl + 13; // We have a LoRaWAN header of 13 bytes.
-          log += F(" Air Time: ");
-          log += toString(airtime_ms, 3);
-          log += F(" ms");
-          addLogMove(LOG_LEVEL_INFO, log);
-        }
+      if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+        String log = F("LoRaWAN : Payload Length: ");
+        log += pl + 13; // We have a LoRaWAN header of 13 bytes.
+        log += F(" Air Time: ");
+        log += toString(airtime_ms, 3);
+        log += F(" ms");
+        addLogMove(LOG_LEVEL_INFO, log);
       }
     }
   }
-  String error = C023_data->getLastError(); // Clear the error string.
+}
+String error = C023_data->getLastError(); // Clear the error string.
 
-  if (error.indexOf(F("no_free_ch")) != -1) {
-    mustSetDelay = true;
+if (error.indexOf(F("no_free_ch")) != -1) {
+  mustSetDelay = true;
+}
+
+if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+  String log = F("C023 : Sent: ");
+  log += element.packed;
+  log += F(" length: ");
+  log += String(element.packed.length());
+
+  if (success) {
+    log += F(" (success) ");
   }
+  log += error;
+  addLogMove(LOG_LEVEL_INFO, log);
+}
+
+if (mustSetDelay) {
+  // Module is still sending, delay for 10x expected air time, which is equivalent of 10% air time duty cycle.
+  // This can be retried a few times, so at most 10 retries like these are needed to get below 1% air time again.
+  // Very likely only 2 - 3 of these delays are needed, as we have 8 channels to send from and messages are likely sent in bursts.
+  C023_DelayHandler->setAdditionalDelay(10 * airtime_ms);
 
   if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-    String log = F("C023 : Sent: ");
-    log += element.packed;
-    log += F(" length: ");
-    log += String(element.packed.length());
-
-    if (success) {
-      log += F(" (success) ");
-    }
-    log += error;
+    String log = F("LoRaWAN : Unable to send. Delay for ");
+    log += 10 * airtime_ms;
+    log += F(" ms");
     addLogMove(LOG_LEVEL_INFO, log);
   }
+}
 
-  if (mustSetDelay) {
-    // Module is still sending, delay for 10x expected air time, which is equivalent of 10% air time duty cycle.
-    // This can be retried a few times, so at most 10 retries like these are needed to get below 1% air time again.
-    // Very likely only 2 - 3 of these delays are needed, as we have 8 channels to send from and messages are likely sent in bursts.
-    C023_DelayHandler->setAdditionalDelay(10 * airtime_ms);
-
-    if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-      String log = F("LoRaWAN : Unable to send. Delay for ");
-      log += 10 * airtime_ms;
-      log += F(" ms");
-      addLogMove(LOG_LEVEL_INFO, log);
-    }
-  }
-
-  return success;
+return success;
 }
 
 #endif // ifdef USES_C023

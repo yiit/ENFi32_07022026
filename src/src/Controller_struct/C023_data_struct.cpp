@@ -531,9 +531,12 @@ bool C023_data_struct::processReceived_RAK_3172(const String& receivedData, C023
     sendQuery(C023_AT_commands::AT_cmd::DR);
   } else if (receivedData.indexOf(F("+EVT:JOINED")) != -1) {
     _easySerial->println(concat(F("AT+CLASS="), _isClassA ? 'A' : 'C'));
+    _easySerial->println(F("AT+TIMEREQ=1")); // Request time from network
     sendQuery(C023_AT_commands::AT_cmd::NJM);
     sendQuery(C023_AT_commands::AT_cmd::NJS);
     eventQueue.add(F("LoRa#joined"));
+  } else if (receivedData.indexOf(F("+EVT:TIMEREQ")) != -1) {
+    sendQuery(C023_AT_commands::AT_cmd::LTIME);
   } else if (receivedData.equals(F("rxTimeout"))) {
     // Just skip this one, no data received
   } else if (receivedData.startsWith(F("Rssi"))) {

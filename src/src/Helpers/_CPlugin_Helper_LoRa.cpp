@@ -175,7 +175,7 @@ void LoRa_Helper::addLoRaWAN_DR_FormSelector(
 *************************************************/
 float LoRa_Helper::getLoRaAirTime(uint8_t pl, LoRaWAN_DR dr)
 {
-  if (dr == LoRa_Helper::LoRaWAN_DR::ADR) return -1.0f;
+  if (dr == LoRa_Helper::LoRaWAN_DR::ADR) { return -1.0f; }
   uint8_t sf               = getSF(dr); // Spreading factor 7 - 12
   const uint16_t bw        = getBW(dr); // Bandwidth 125 kHz default for LoRaWAN. 250 kHz also supported.
   uint8_t cr               = 1;         // Code Rate 4 / (CR + 4) = 4/5.  4/5 default for LoRaWAN

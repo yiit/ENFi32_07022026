@@ -26,13 +26,14 @@ public:
   // Value is stored, so do not change numerical values
   enum class LoRaModule_e : uint8_t {
     Dragino_LA66 = 0,
-    RAK_3172 = 1,
+    RAK_3172     = 1,
 
 
-    MAX_TYPE  // Leave as last, used to iterate over all enum values
+    MAX_TYPE // Leave as last, used to iterate over all enum values
+
   };
 
-  static const __FlashStringHelper * toString(LoRaModule_e module);
+  static const __FlashStringHelper* toString(LoRaModule_e module);
 
 
   // Received types.
@@ -40,6 +41,9 @@ public:
   enum class AT_cmd : size_t {
     UUID,          //
     VER,           // 2.4 AT+VER: Image Version and Frequency Band
+    CLIVER,        // RAK: CLI Version, AT Command Version
+    HWMODEL,       // RAK: HW Model
+    SN,            // RAK: Serial Number
     APPEUI,        // 3.1 AT+APPEUI: Application EUI
     APPKEY,        // 3.2 AT+APPKEY: Application Key
     APPSKEY,       // 3.3 AT+APPSKEY: Application Session Key
@@ -112,6 +116,7 @@ public:
                    //  For Class C devices used in TTI, need to set AT+RPL=4 because TTI require immediately reply message to Confirmed Data
                    //   Down & MAC Command.
     TIMESTAMP,     // 5.25 AT+TIMESTAMP: Get or Set UNIX timestamp in second
+    LTIME,         // RAK: Get Local time
     LEAPSEC,       // 5.26 AT+LEAPSEC: Get or Set Leap Second
     SYNCMOD,       // 5.27 AT+SYNCMOD: Get or Set time synchronization method
     SYNCTDC,       // 5.28 AT+SYNCTDC: Get or Set time synchronization interval in day
@@ -132,13 +137,16 @@ public:
 
   };
 
-  static bool isVolatileValue(AT_cmd at_cmd);
+  static bool                       isVolatileValue(AT_cmd at_cmd);
 
-  static bool supported(AT_cmd at_cmd, LoRaModule_e module);
+  static bool                       supported(AT_cmd       at_cmd,
+                                              LoRaModule_e module);
 
-  static const __FlashStringHelper* toFlashString(AT_cmd at_cmd, LoRaModule_e module);
+  static const __FlashStringHelper* toFlashString(AT_cmd       at_cmd,
+                                                  LoRaModule_e module);
 
-  static String                     toString(AT_cmd at_cmd, LoRaModule_e module);
+  static String                     toString(AT_cmd       at_cmd,
+                                             LoRaModule_e module);
   static const __FlashStringHelper* toDisplayString(AT_cmd at_cmd);
 
   static AT_cmd                     determineReceivedDataType(const String& receivedData);
@@ -147,7 +155,7 @@ public:
                                            String      & value);
 
   static KeyValueStruct             getKeyValue(AT_cmd        at_cmd,
-     LoRaModule_e module,
+                                                LoRaModule_e  module,
                                                 const String& value,
                                                 bool          extendedValue);
 

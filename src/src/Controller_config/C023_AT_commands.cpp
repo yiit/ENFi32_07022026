@@ -43,6 +43,7 @@ bool C023_AT_commands::isVolatileValue(C023_AT_commands::AT_cmd at_cmd)
     //    case C023_AT_commands::AT_cmd::SNR:
     case C023_AT_commands::AT_cmd::BAT:
     case C023_AT_commands::AT_cmd::TIMESTAMP:
+    case C023_AT_commands::AT_cmd::LTIME:
       return true;
     default:
       return false;
@@ -59,6 +60,10 @@ bool C023_AT_commands::supported(AT_cmd at_cmd, LoRaModule_e module)
       case C023_AT_commands::AT_cmd::DEVADDR:
       case C023_AT_commands::AT_cmd::DEVEUI:
       case C023_AT_commands::AT_cmd::NETID:
+      case C023_AT_commands::AT_cmd::LTIME:
+      case C023_AT_commands::AT_cmd::CLIVER:
+      case C023_AT_commands::AT_cmd::HWMODEL:
+      case C023_AT_commands::AT_cmd::SN:
         return false;
 
       default: return true;
@@ -108,6 +113,9 @@ const __FlashStringHelper * C023_AT_commands::toFlashString(
     {
     C023_AT_STR(UUID);
     C023_AT_STR(VER);
+    C023_AT_STR(CLIVER);
+    C023_AT_STR(HWMODEL);
+    C023_AT_STR(SN);
     C023_AT_STR(APPEUI);
     C023_AT_STR(APPKEY);
     C023_AT_STR(APPSKEY);
@@ -146,6 +154,7 @@ const __FlashStringHelper * C023_AT_commands::toFlashString(
     C023_AT_STR(RJTDC);
     C023_AT_STR(RPL);
     C023_AT_STR(TIMESTAMP);
+    C023_AT_STR(LTIME);
     C023_AT_STR(LEAPSEC);
     C023_AT_STR(SYNCMOD);
     C023_AT_STR(SYNCTDC);
@@ -168,7 +177,10 @@ const __FlashStringHelper * C023_AT_commands::toDisplayString(C023_AT_commands::
     case C023_AT_commands::AT_cmd::Unknown: break;
 
     case C023_AT_commands::AT_cmd::UUID:          return F("UUID");
-    case C023_AT_commands::AT_cmd::VER:           return F("Firmware Version");                          // 2.4 AT+VER
+    case C023_AT_commands::AT_cmd::VER:           return F("Firmware Version"); // 2.4 AT+VER
+    case C023_AT_commands::AT_cmd::CLIVER:        return F("CLI Version");
+    case C023_AT_commands::AT_cmd::HWMODEL:       return F("Hardware Model");
+    case C023_AT_commands::AT_cmd::SN:            return F("Serial Number");
     case C023_AT_commands::AT_cmd::APPEUI:        return F("Application EUI");                           // 3.1 AT+APPEUI
     case C023_AT_commands::AT_cmd::APPKEY:        return F("Application Key");                           // 3.2 AT+APPKEY
     case C023_AT_commands::AT_cmd::APPSKEY:       return F("Application Session Key");                   // 3.3 AT+APPSKEY
@@ -207,6 +219,7 @@ const __FlashStringHelper * C023_AT_commands::toDisplayString(C023_AT_commands::
     case C023_AT_commands::AT_cmd::RJTDC:         return F("ReJoin data transmission interval [min]");   // 5.23 AT+RJTDC
     case C023_AT_commands::AT_cmd::RPL:           return F("Response level");                            // 5.24 AT+RPL
     case C023_AT_commands::AT_cmd::TIMESTAMP:     return F("UNIX timestamp [s]");                        // 5.25 AT+TIMESTAMP
+    case C023_AT_commands::AT_cmd::LTIME:         return F("Local Time");                                // RAK: AT+TIMESTAMP
     case C023_AT_commands::AT_cmd::LEAPSEC:       return F("Leap Second");                               // 5.26 AT+LEAPSEC
     case C023_AT_commands::AT_cmd::SYNCMOD:       return F("Time synchronization method");               // 5.27 AT+SYNCMOD
     case C023_AT_commands::AT_cmd::SYNCTDC:       return F("Time synchronization interval [days]");      // 5.28 AT+SYNCTDC
@@ -244,6 +257,7 @@ C023_AT_commands::AT_cmd C023_AT_commands::determineReceivedDataType(const Strin
         MATCH_STRING(CFM);
         MATCH_STRING(CHS);
         MATCH_STRING(CLASS);
+        MATCH_STRING(CLIVER);
         break;
       case 'D':
         MATCH_STRING(DADDR);
@@ -258,12 +272,16 @@ C023_AT_commands::AT_cmd C023_AT_commands::determineReceivedDataType(const Strin
         MATCH_STRING(FCD);
         MATCH_STRING(FCU);
         break;
+      case 'H':
+        MATCH_STRING(HWMODEL);
+        break;
       case 'J':
         MATCH_STRING(JN1DL);
         MATCH_STRING(JN2DL);
         break;
       case 'L':
         MATCH_STRING(LEAPSEC);
+        MATCH_STRING(LTIME);
         break;
       case 'N':
         MATCH_STRING(NJM);
@@ -290,6 +308,7 @@ C023_AT_commands::AT_cmd C023_AT_commands::determineReceivedDataType(const Strin
       case 'S':
         MATCH_STRING(SETMAXNBTRANS);
         MATCH_STRING(SLEEP);
+        MATCH_STRING(SN);
         MATCH_STRING(SNR);
         MATCH_STRING(SYNCMOD);
         MATCH_STRING(SYNCTDC);
