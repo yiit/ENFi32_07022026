@@ -1566,7 +1566,7 @@ bool AdafruitGFX_helper::processCommand(const String& string) {
       break;
     case adagfx_commands_e::tpm: // tpm: Text Print Mode
 
-      if ((argCount == 1) && ((nParams[0] < 0) || (nParams[0] >= static_cast<int>(AdaGFXTextPrintMode::MAX)))) {
+      if ((argCount == 1) && !((nParams[0] < 0) || (nParams[0] >= static_cast<int>(AdaGFXTextPrintMode::MAX)))) {
         _textPrintMode = static_cast<AdaGFXTextPrintMode>(nParams[0]);
         _display->setTextWrap(_textPrintMode == AdaGFXTextPrintMode::ContinueToNextLine);
         success = true;
