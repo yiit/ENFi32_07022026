@@ -152,6 +152,8 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
           ST77xx_type_toString(ST77xx_type_e::ST7735s_135x240),
           ST77xx_type_toString(ST77xx_type_e::ST7735s_172x320),
           ST77xx_type_toString(ST77xx_type_e::ST77xxs_170x320),
+          ST77xx_type_toString(ST77xx_type_e::ST77xxs_240x320),
+          ST77xx_type_toString(ST77xx_type_e::ST77xxs_240x280),
           # endif // if P116_EXTRA_ST7735
           ST77xx_type_toString(ST77xx_type_e::ST7789vw_240x320),
           ST77xx_type_toString(ST77xx_type_e::ST7789vw_240x240),
@@ -173,6 +175,8 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
           static_cast<int>(ST77xx_type_e::ST7735s_135x240),
           static_cast<int>(ST77xx_type_e::ST7735s_172x320),
           static_cast<int>(ST77xx_type_e::ST77xxs_170x320),
+          static_cast<int>(ST77xx_type_e::ST77xxs_240x320),
+          static_cast<int>(ST77xx_type_e::ST77xxs_240x280),
           # endif // if P116_EXTRA_ST7735
           static_cast<int>(ST77xx_type_e::ST7789vw_240x320),
           static_cast<int>(ST77xx_type_e::ST7789vw_240x240),
@@ -188,8 +192,8 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
         constexpr int optCount4 = NR_ELEMENTS(optionValues4);
         const FormSelectorOptions selector(optCount4, options4, optionValues4);
         selector.addFormSelector(F("TFT display model"),
-                        F("type"),
-                        P116_CONFIG_FLAG_GET_TYPE);
+                                 F("type"),
+                                 P116_CONFIG_FLAG_GET_TYPE);
       }
 
       addFormSubHeader(F("Layout"));
