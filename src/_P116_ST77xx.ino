@@ -281,16 +281,18 @@ boolean Plugin_116(uint8_t function, struct EventStruct *event, String& string)
       # endif // if ADAGFX_FONTS_INCLUDED
 
       uint32_t lSettings = 0;
+      uint16_t _type     = getFormItemInt(F("type"));
       bitWrite(lSettings, P116_CONFIG_FLAG_NO_WAKE,       !isFormItemChecked(F("NoDisplay")));    // Bit 0 NoDisplayOnReceivingText,
                                                                                                   // reverse logic, default=checked!
       bitWrite(lSettings, P116_CONFIG_FLAG_INVERT_BUTTON, isFormItemChecked(F("buttonInverse"))); // Bit 1 buttonInverse
       bitWrite(lSettings, P116_CONFIG_FLAG_CLEAR_ON_EXIT, isFormItemChecked(F("clearOnExit")));   // Bit 2 ClearOnExit
       bitWrite(lSettings, P116_CONFIG_FLAG_USE_COL_ROW,   isFormItemChecked(F("colrow")));        // Bit 3 Col/Row addressing
 
-      set4BitToUL(lSettings, P116_CONFIG_FLAG_MODE,        getFormItemInt(F("mode")));            // Bit 4..7 Text print mode
-      set4BitToUL(lSettings, P116_CONFIG_FLAG_ROTATION,    getFormItemInt(F("rotate")));          // Bit 8..11 Rotation
-      set4BitToUL(lSettings, P116_CONFIG_FLAG_FONTSCALE,   getFormItemInt(F("fontscale")));       // Bit 12..15 Font scale
-      set4BitToUL(lSettings, P116_CONFIG_FLAG_TYPE,        getFormItemInt(F("type")));            // Bit 16..19 Hardwaretype
+      set4BitToUL(lSettings, P116_CONFIG_FLAG_MODE,      getFormItemInt(F("mode")));              // Bit 4..7 Text print mode
+      set4BitToUL(lSettings, P116_CONFIG_FLAG_ROTATION,  getFormItemInt(F("rotate")));            // Bit 8..11 Rotation
+      set4BitToUL(lSettings, P116_CONFIG_FLAG_FONTSCALE, getFormItemInt(F("fontscale")));         // Bit 12..15 Font scale
+      set4BitToUL(lSettings, P116_CONFIG_FLAG_TYPE,      _type);                                  // Bit 16..19 Hardwaretype
+      set2BitToUL(lSettings, P116_CONFIG_FLAG_TYPE2, (_type >> 4));                               // Bit 29..30 Hardwaretype extension
       set4BitToUL(lSettings, P116_CONFIG_FLAG_CMD_TRIGGER, getFormItemInt(F("commandtrigger")));  // Bit 20..23 Command trigger
 
       bitWrite(lSettings, P116_CONFIG_FLAG_BACK_FILL, !isFormItemChecked(F("backfill")));         // Bit 28 Back fill text (inv)
