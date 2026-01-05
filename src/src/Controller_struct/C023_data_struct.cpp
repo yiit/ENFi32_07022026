@@ -848,9 +848,6 @@ String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String&
 
       port    = parseString(receivedData, 6, ':', true).toInt();
       payload = parseString(receivedData, 7, ':', true);
-
-      addLog(LOG_LEVEL_INFO, concat(F("LoRa RAW fromHex: "), payload));
-
       break;
     }
     default:
