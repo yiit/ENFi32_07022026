@@ -364,9 +364,9 @@ String formatULLtoHex_decimal(const uint64_t& value)
 String formatToHex_wordarray(const uint16_t* data, size_t size)
 {
   String res;
-  res.reserve(2 * size);
+  res.reserve(4 * size);
   for (size_t i = 0; i < size; ++i) {
-    appendHexChar(data[i] << 8, res);
+    appendHexChar(data[i] >> 8, res);
     appendHexChar(data[i] & 0xFF, res);
   }
   return res;
