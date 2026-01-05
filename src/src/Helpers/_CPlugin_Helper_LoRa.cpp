@@ -13,8 +13,8 @@ const __FlashStringHelper * LoRa_Helper::toString(LoRaWAN_JoinMethod joinMethod)
 {
   switch (joinMethod)
   {
-    case LoRaWAN_JoinMethod::ABP:  return F("ABP");
     case LoRaWAN_JoinMethod::OTAA: return F("OTAA");
+    case LoRaWAN_JoinMethod::ABP:  return F("ABP");
   }
   return F("");
 }
@@ -25,12 +25,12 @@ void LoRa_Helper::addLoRaWAN_JoinMethod_FormSelector(
   LoRaWAN_JoinMethod         selectedIndex)
 {
   const __FlashStringHelper *options[] = {
-    toString(LoRaWAN_JoinMethod::ABP),
-    toString(LoRaWAN_JoinMethod::OTAA)
+    toString(LoRaWAN_JoinMethod::OTAA),
+    toString(LoRaWAN_JoinMethod::ABP)
   };
   constexpr int values[] {
-    static_cast<int>(LoRaWAN_JoinMethod::ABP),
-    static_cast<int>(LoRaWAN_JoinMethod::OTAA)
+    static_cast<int>(LoRaWAN_JoinMethod::OTAA),
+    static_cast<int>(LoRaWAN_JoinMethod::ABP)
   };
   FormSelectorOptions selector(NR_ELEMENTS(options), options, values);
 

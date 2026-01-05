@@ -15,8 +15,10 @@ struct C023_data_struct;
 # define C023_DEVICE_ADDR_LEN         33
 # define C023_NETWORK_SESSION_KEY_LEN 33
 # define C023_APP_SESSION_KEY_LEN     33
-# define C023_USE_OTAA                0
-# define C023_USE_ABP                 1
+
+// N.B. numerical value for OTAA/ABP differs from the enum value
+# define C023_USE_ABP                 0
+# define C023_USE_OTAA                1
 
 struct C023_ConfigStruct
 {
@@ -40,6 +42,10 @@ struct C023_ConfigStruct
 
   LoRa_Helper::LoRaWAN_DR            getDR() const          { return static_cast<LoRa_Helper::LoRaWAN_DR>(dr); }
 
+  LoRa_Helper::LoRaWAN_JoinMethod    getJoinMethod() const  { 
+    return static_cast<LoRa_Helper::LoRaWAN_JoinMethod>(joinmethod);
+   }
+
   char          DeviceEUI[C023_DEVICE_EUI_LEN]                  = { 0 };
   char          DeviceAddr[C023_DEVICE_ADDR_LEN]                = { 0 };
   char          NetworkSessionKey[C023_NETWORK_SESSION_KEY_LEN] = { 0 };
@@ -51,7 +57,7 @@ struct C023_ConfigStruct
   uint8_t       dr                                              = static_cast<uint8_t>(LoRa_Helper::LoRaWAN_DR::ADR);
   uint8_t       eventFormat                                     =
     static_cast<uint8_t>(LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar);
-  uint8_t  joinmethod    = C023_USE_OTAA;
+  uint8_t  joinmethod    = 0; // LoRa_Helper::LoRaWAN_JoinMethod::OTAA
   uint8_t  serialPort    = 0;
   uint8_t  LoRaWAN_Class = static_cast<uint8_t>(LoRa_Helper::LoRaWANclass_e::A);
   uint8_t  LoRa_module   = 0; // static_cast<uint8_t>(C023_AT_commands::LoRaModule_e::Dragino_LA66);

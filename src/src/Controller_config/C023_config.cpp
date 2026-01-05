@@ -78,8 +78,7 @@ void C023_ConfigStruct::webform_load(C023_data_struct *C023_data) {
   addFormTextBox(F("Network Session Key"), F("nskey"),   NetworkSessionKey, C023_NETWORK_SESSION_KEY_LEN - 1);
   addFormTextBox(F("App Session Key"),     F("appskey"), AppSessionKey,     C023_APP_SESSION_KEY_LEN - 1);
 
-  LoRa_Helper::addLoRaWAN_JoinMethod_FormSelector(F("Activation Method"), F("joinmethod"),
-                                                  static_cast<LoRa_Helper::LoRaWAN_JoinMethod>(joinmethod));
+  LoRa_Helper::addLoRaWAN_JoinMethod_FormSelector(F("Activation Method"), F("joinmethod"), getJoinMethod());
 
   addTableSeparator(F("Connection Configuration"), 2, 3);
 

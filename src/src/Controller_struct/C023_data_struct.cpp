@@ -36,7 +36,7 @@ bool C023_data_struct::init(
   const int8_t  serial_rx = config.rxpin;
   const int8_t  serial_tx = config.txpin;
   unsigned long baudrate  = config.baudrate;
-  bool   joinIsOTAA       = (config.joinmethod == C023_USE_OTAA);
+  bool   joinIsOTAA       = (config.getJoinMethod() == LoRa_Helper::LoRaWAN_JoinMethod::OTAA);
   int8_t reset_pin        = config.resetpin;
 
   _eventFormatStructure = config.getEventFormat();
@@ -82,22 +82,12 @@ bool C023_data_struct::init(
   if (_easySerial != nullptr) {
     _easySerial->begin(baudrate);
 
-    _easySerial->println(F("ATZ")); // Reset LoRa
-    delay(1000);
+    sendSetValue(F("ATZ"));        // Reset LoRa
 
     if (_loraModule == C023_AT_commands::LoRaModule_e::RAK_3172) {
-      _easySerial->println(F("AT+NWM=1")); // Set to LoRaWAN mode (M5-LoRaWAN-RAK)
+      sendSetValue(F("AT+NWM=1")); // Set to LoRaWAN mode (M5-LoRaWAN-RAK)
     }
-    setDR(_dr);                            // TODO TD-er: Must this be called after join?
-
-    if (_loraModule == C023_AT_commands::LoRaModule_e::Dragino_LA66) {
-      _easySerial->println(F("AT+CFG"));   // AT+CFG: Print all configurations
-    } else {
-      for (size_t i = 0; i != static_cast<size_t>(C023_AT_commands::AT_cmd::Unknown); ++i) {
-        const C023_AT_commands::AT_cmd cmd = static_cast<C023_AT_commands::AT_cmd>(i);
-        sendQuery(cmd);
-      }
-    }
+    setDR(_dr);                    // TODO TD-er: Must this be called after join?
   }
   return isInitialized();
 }
@@ -123,18 +113,30 @@ bool C023_data_struct::txHexBytes(const String& data, uint8_t port) {
   sendData.replace(F(" "), F(""));
   sendData.trim();
 
-  // "AT+SENDB=0,2,4,11223344"
-  // confirm status,Fport,payload length,payload(HEX)
+  if (_loraModule == C023_AT_commands::LoRaModule_e::Dragino_LA66) {
+    // "AT+SENDB=0,2,4,11223344"
+    // confirm status,Fport,payload length,payload(HEX)
+    sendSetValue(
+      strformat(
+        F("AT+SENDB=%d,%d,%d,%s"),
+        0,                     // confirm status
+        port,                  // Fport
+        sendData.length() / 2, // payload length
+        sendData.c_str()));    // payload(HEX)
+  } else {
+    // RUI3
+    // "AT+SEND=12:112233"
+    //       Fport:payload(HEX)
+    sendSetValue(
+      strformat(
+        F("AT+SEND=%d:%s"),
+        port,               // Fport
+        sendData.c_str())); // payload(HEX)
 
-  _easySerial->println(
-    strformat(
-      F("AT+SENDB=%d,%d,%d,%s"),
-      0,                     // confirm status
-      port,                  // Fport
-      sendData.length() / 2, // payload length
-      sendData.c_str()));    // payload(HEX)
 
-  // TODO TD-er: Must wait for either "OK" or "AT_BUSY_ERROR"
+  }
+
+  // TODO TD-er: Must wait for either "OK", "AT_NO_NETWORK_JOINED" or "AT_BUSY_ERROR"
   // This 'busy error' may occur in case the previous send is
   // not completed, because of the duty cycle restriction,
   // or because RX windows are not completed
@@ -153,10 +155,10 @@ bool C023_data_struct::setDR(LoRa_Helper::LoRaWAN_DR dr)
   if (!isInitialized()) { return false; }
 
   if (dr == LoRa_Helper::LoRaWAN_DR::ADR) {
-    _easySerial->println(F("AT+ADR=1"));
+    sendSetValue(C023_AT_commands::AT_cmd::ADR, 1);
   } else {
-    _easySerial->println(F("AT+ADR=0"));
-    _easySerial->println(concat(F("AT+DR="), static_cast<int>(dr)));
+    sendSetValue(C023_AT_commands::AT_cmd::ADR, 0);
+    sendSetValue(C023_AT_commands::AT_cmd::DR,  static_cast<int>(dr));
   }
   get(C023_AT_commands::AT_cmd::ADR);
   get(C023_AT_commands::AT_cmd::DR);
@@ -164,17 +166,59 @@ bool C023_data_struct::setDR(LoRa_Helper::LoRaWAN_DR dr)
 }
 
 bool C023_data_struct::initOTAA(const String& AppEUI, const String& AppKey, const String& DevEUI) {
-  //  if (myLora == nullptr) { return false; }
-  bool success = true; // myLora->initOTAA(AppEUI, AppKey, DevEUI);
+  const C023_AT_commands::AT_cmd deveui_cmd =
+    C023_AT_commands::supported(C023_AT_commands::AT_cmd::DEUI, _loraModule)
+  ?  C023_AT_commands::AT_cmd::DEUI
+  :  C023_AT_commands::AT_cmd::DEVEUI;
 
-  return success;
+  if (sendSetValue(C023_AT_commands::AT_cmd::NJM, 1) &&
+      sendSetValue(C023_AT_commands::AT_cmd::APPEUI, AppEUI) &&
+      sendSetValue(C023_AT_commands::AT_cmd::APPKEY, AppKey) &&
+      sendSetValue(deveui_cmd,                       DevEUI))
+  {
+    return true;
+  }
+  return false;
 }
 
 bool C023_data_struct::initABP(const String& addr, const String& AppSKey, const String& NwkSKey) {
-  //  if (myLora == nullptr) { return false; }
-  bool success = true; // myLora->initABP(addr, AppSKey, NwkSKey);
+  const C023_AT_commands::AT_cmd devaddr_cmd =
+    C023_AT_commands::supported(C023_AT_commands::AT_cmd::DADDR, _loraModule)
+  ?  C023_AT_commands::AT_cmd::DADDR
+  :  C023_AT_commands::AT_cmd::DEVADDR;
 
-  return success;
+  return sendSetValue(C023_AT_commands::AT_cmd::NJM, 0) &&
+         sendSetValue(C023_AT_commands::AT_cmd::NWKSKEY, NwkSKey) &&
+         sendSetValue(C023_AT_commands::AT_cmd::APPSKEY, AppSKey) &&
+         sendSetValue(devaddr_cmd,                       addr);
+}
+
+bool C023_data_struct::join(bool    enable,
+                            bool    autoJoin,
+                            uint8_t reattemptInterval,
+                            uint8_t nrJoinAttempts)
+{
+  if (!isInitialized()) { return false; }
+
+  if (reattemptInterval < 7) { reattemptInterval = 7; }
+  sendSetValue(
+    strformat(
+      F("AT+JOIN=%d:%d:%d:%d"),
+      enable ? 1 : 0,
+      autoJoin ? 1 : 0,
+      reattemptInterval,
+      nrJoinAttempts));
+
+  if (_loraModule == C023_AT_commands::LoRaModule_e::Dragino_LA66) {
+    sendSetValue(F("AT+CFG")); // AT+CFG: Print all configurations
+  } else {
+    for (size_t i = 0; i != static_cast<size_t>(C023_AT_commands::AT_cmd::Unknown); ++i) {
+      const C023_AT_commands::AT_cmd cmd = static_cast<C023_AT_commands::AT_cmd>(i);
+      sendQuery(cmd);
+    }
+  }
+
+  return true;
 }
 
 String C023_data_struct::sendRawCommand(const String& command) {
@@ -268,26 +312,15 @@ float C023_data_struct::getLoRaAirTime(uint8_t pl) {
   return -1.0f;
 }
 
-void C023_data_struct::async_loop() {
-  if (isInitialized()) {
-    /*
-       rn2xx3_handler::RN_state state = myLora->async_loop();
+bool C023_data_struct::async_loop(bool processingSetCommand) {
+  if (!isInitialized()) { return false; }
+  bool res = false;
 
-       if (rn2xx3_handler::RN_state::must_perform_init == state) {
-       if (myLora->get_busy_count() > 10) {
-        if (validGpio(_resetPin)) {
-          pinMode(_resetPin, OUTPUT);
-          digitalWrite(_resetPin, LOW);
-          delay(50);
-          digitalWrite(_resetPin, HIGH);
-          delay(200);
-        }
-        autobaud_success = false;
+  if (!_in_async_loop) {
+    _in_async_loop = true;
 
-        //          triggerAutobaud();
-       }
-       }
-     */
+    sendNextQueuedQuery();
+
     while (_easySerial->available()) {
       const int ret = _easySerial->read();
 
@@ -304,7 +337,14 @@ void C023_data_struct::async_loop() {
               addLog(LOG_LEVEL_INFO, concat(F("LoRa recv: "), _fromLA66));
 
               // TODO TD-er: Process received data
-              processReceived(_fromLA66);
+              if ((_fromLA66.indexOf(F("OK")) != -1) ||
+                  (_fromLA66.indexOf(F("AT_COMMAND_NOT_FOUND")) != -1)) {
+                res = true;
+              }
+
+              if (processReceived(_fromLA66, processingSetCommand) && !processingSetCommand) {
+                sendNextQueuedQuery();
+              }
             }
 
             _fromLA66.clear();
@@ -316,9 +356,10 @@ void C023_data_struct::async_loop() {
         }
       }
     }
-
-    sendNextQueuedQuery();
+    _in_async_loop = false;
   }
+
+  return res;
 }
 
 bool C023_data_struct::writeCachedValues(KeyValueWriter*writer, C023_AT_commands::AT_cmd start, C023_AT_commands::AT_cmd end)
@@ -336,6 +377,48 @@ bool C023_data_struct::writeCachedValues(KeyValueWriter*writer, C023_AT_commands
     }
   }
   return true;
+}
+
+bool C023_data_struct::sendSetValue(
+  C023_AT_commands::AT_cmd at_cmd,
+  const String           & value)
+{
+  if (!isInitialized() ||
+      !C023_AT_commands::supported(at_cmd, _loraModule) ||
+      (at_cmd == C023_AT_commands::AT_cmd::Unknown) ||
+      value.isEmpty()) { return false; }
+
+  const String str = strformat(F("AT+%s=%s"),
+                               FsP(C023_AT_commands::toFlashString(at_cmd, _loraModule)),
+                               value.c_str());
+
+  if (!sendSetValue(str)) { return false; }
+  sendQuery(at_cmd);
+  return true;
+}
+
+bool C023_data_struct::sendSetValue(
+  C023_AT_commands::AT_cmd at_cmd,
+  int                      value) { return sendSetValue(at_cmd, String(value)); }
+
+bool C023_data_struct::sendSetValue(const String& str)
+{
+  if (!isInitialized() ||
+      str.isEmpty()) { return false; }
+
+  if (loglevelActiveFor(LOG_LEVEL_INFO)) {
+    addLog(LOG_LEVEL_INFO, concat(F("LoRa Send: "), str));
+  }
+  async_loop(true);
+  _easySerial->println(str);
+
+  uint32_t start = millis();
+  bool     res   = false;
+
+  while (timePassedSince(start) < 2000 && !res) {
+    if (async_loop(true)) { res = true; }
+  }
+  return res;
 }
 
 String C023_data_struct::get(C023_AT_commands::AT_cmd at_cmd, uint32_t& lastChange)
@@ -407,7 +490,7 @@ float C023_data_struct::getFloat(C023_AT_commands::AT_cmd at_cmd,
   return getFloat(at_cmd, errorvalue, lastChange);
 }
 
-bool C023_data_struct::processReceived(const String& receivedData)
+bool C023_data_struct::processReceived(const String& receivedData, bool processingSetCommand)
 {
   String value;
   const C023_AT_commands::AT_cmd at_cmd = C023_AT_commands::decode(receivedData, value);
@@ -416,10 +499,10 @@ bool C023_data_struct::processReceived(const String& receivedData)
     switch (_loraModule)
     {
       case C023_AT_commands::LoRaModule_e::Dragino_LA66:
-        processReceived_Dragino_LA66(receivedData, at_cmd);
+        processReceived_Dragino_LA66(receivedData, at_cmd, processingSetCommand);
         break;
       case C023_AT_commands::LoRaModule_e::RAK_3172:
-        processReceived_RAK_3172(receivedData, at_cmd);
+        processReceived_RAK_3172(receivedData, at_cmd, processingSetCommand);
         break;
 
       case C023_AT_commands::LoRaModule_e::MAX_TYPE:
@@ -431,13 +514,14 @@ bool C023_data_struct::processReceived(const String& receivedData)
 
   if (_queryPending == at_cmd) {
     clearQueryPending();
-    sendNextQueuedQuery();
+
+    //    sendNextQueuedQuery();
   }
 
   return true;
 }
 
-bool C023_data_struct::processReceived_Dragino_LA66(const String& receivedData, C023_AT_commands::AT_cmd at_cmd)
+bool C023_data_struct::processReceived_Dragino_LA66(const String& receivedData, C023_AT_commands::AT_cmd at_cmd, bool processingSetCommand)
 {
   if (receivedData.equals(F("txDone"))) {
     sendQuery(C023_AT_commands::AT_cmd::FCU);
@@ -448,12 +532,12 @@ bool C023_data_struct::processReceived_Dragino_LA66(const String& receivedData, 
     sendQuery(C023_AT_commands::AT_cmd::ADR);
     sendQuery(C023_AT_commands::AT_cmd::DR);
   } else if (receivedData.equals(F("JOINED"))) {
-    _easySerial->println(concat(F("AT+CLASS="), _isClassA ? 'A' : 'C'));
+    sendSetValue(C023_AT_commands::AT_cmd::CLASS, String(_isClassA ? 'A' : 'C'));
 
     // Enable Sync system time via LoRaWAN MAC Command (DeviceTimeReq), LoRaWAN server must support v1.0.3 protocol to reply this command.
-    _easySerial->println(F("AT+SYNCMOD=1"));
+    sendSetValue(F("AT+SYNCMOD=1"));
 
-    _easySerial->println(F("AT+CFG")); // AT+CFG: Print all configurations
+    sendSetValue(F("AT+CFG")); // AT+CFG: Print all configurations
     //      sendQuery(C023_AT_commands::AT_cmd::NJM);
     //      sendQuery(C023_AT_commands::AT_cmd::NJS);
     eventQueue.add(F("LoRa#joined"));
@@ -513,25 +597,19 @@ bool C023_data_struct::processReceived_Dragino_LA66(const String& receivedData, 
   return true;
 }
 
-bool C023_data_struct::processReceived_RAK_3172(const String& receivedData, C023_AT_commands::AT_cmd at_cmd)
+bool C023_data_struct::processReceived_RAK_3172(const String& receivedData, C023_AT_commands::AT_cmd at_cmd, bool processingSetCommand)
 {
   // See: https://docs.rakwireless.com/product-categories/software-apis-and-libraries/rui3/at-command-manual/#asynchronous-events
   if (receivedData.indexOf(F("+EVT:TX_DONE")) != -1) {
     sendQuery(C023_AT_commands::AT_cmd::FCU);
   } else if (receivedData.indexOf(F("+EVT:RX_")) != -1) {
-    // TODO TD-er: Must parse received data
-    // Example for class B/C:
-    //  RX_B:-47:3:UNICAST:2:4321 -47 is RSSI, 3 is SNR, Unicast for B / Multicast for C, 2 is Fport, 4321 is payload.
-    // Class A:
-    //  RX_1:-70:8:UNICAST:1:1234 -70 is RSSI, 8 is SNR, 1 is Fport, 1234 is payload.
-    sendQuery(C023_AT_commands::AT_cmd::FCD);
-    sendQuery(C023_AT_commands::AT_cmd::SNR);
+    processDownlinkMessage(receivedData, true);
   } else if (receivedData.indexOf(F("ADR Message")) != -1) {
     sendQuery(C023_AT_commands::AT_cmd::ADR);
     sendQuery(C023_AT_commands::AT_cmd::DR);
   } else if (receivedData.indexOf(F("+EVT:JOINED")) != -1) {
-    _easySerial->println(concat(F("AT+CLASS="), _isClassA ? 'A' : 'C'));
-    _easySerial->println(F("AT+TIMEREQ=1")); // Request time from network
+    sendSetValue(C023_AT_commands::AT_cmd::CLASS, String(_isClassA ? 'A' : 'C'));
+    sendSetValue(F("AT+TIMEREQ=1")); // Request time from network
     sendQuery(C023_AT_commands::AT_cmd::NJM);
     sendQuery(C023_AT_commands::AT_cmd::NJS);
     eventQueue.add(F("LoRa#joined"));
@@ -601,34 +679,14 @@ bool C023_data_struct::processReceived_RAK_3172(const String& receivedData, C023
 bool C023_data_struct::processPendingQuery(const String& receivedData)
 {
   if (!queryPending()) {
-    sendNextQueuedQuery();
+    //    sendNextQueuedQuery();
     return false;
   }
 
   if ((_queryPending == C023_AT_commands::AT_cmd::RECVB) ||
       (_queryPending == C023_AT_commands::AT_cmd::RECV)) {
     const bool hexEncoded = _queryPending == C023_AT_commands::AT_cmd::RECVB;
-    int port{};
-    const String value = getValueFromReceivedBinaryData(
-      port, receivedData, hexEncoded);
-
-    if ((port > 0) && (value.length() != 0)) {
-      switch (_eventFormatStructure)
-      {
-        case LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar:
-          eventQueue.addMove(strformat(F("LoRa#received%d=%s"), port, value.c_str()));
-          break;
-        case LoRa_Helper::DownlinkEventFormat_e::PortNr_as_first_eventvalue:
-          eventQueue.addMove(strformat(F("LoRa#received=%d,%s"), port, value.c_str()));
-          break;
-        case LoRa_Helper::DownlinkEventFormat_e::PortNr_both_eventPar_eventvalue:
-          eventQueue.addMove(strformat(F("LoRa#received%d=%d,%s"), port, port, value.c_str()));
-          break;
-      }
-    }
-
-    cacheValue(_queryPending, strformat(
-                 F("%s -> %d : %s"), receivedData.c_str(), port, value.c_str()));
+    processDownlinkMessage(receivedData, hexEncoded);
   } else {
     cacheValue(_queryPending, receivedData);
   }
@@ -638,9 +696,36 @@ bool C023_data_struct::processPendingQuery(const String& receivedData)
            receivedData.c_str()));
 
   clearQueryPending();
-  sendNextQueuedQuery();
-  return true;
 
+  //  sendNextQueuedQuery();
+  return true;
+}
+
+bool C023_data_struct::processDownlinkMessage(const String& receivedData, bool hexEncoded)
+{
+  int port{};
+  const String value = getValueFromReceivedBinaryData(
+    port, receivedData, hexEncoded);
+
+  if ((port > 0) && (value.length() != 0)) {
+    switch (_eventFormatStructure)
+    {
+      case LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar:
+        eventQueue.addMove(strformat(F("LoRa#received%d=%s"), port, value.c_str()));
+        break;
+      case LoRa_Helper::DownlinkEventFormat_e::PortNr_as_first_eventvalue:
+        eventQueue.addMove(strformat(F("LoRa#received=%d,%s"), port, value.c_str()));
+        break;
+      case LoRa_Helper::DownlinkEventFormat_e::PortNr_both_eventPar_eventvalue:
+        eventQueue.addMove(strformat(F("LoRa#received%d=%d,%s"), port, port, value.c_str()));
+        break;
+    }
+  }
+
+  cacheValue(
+    hexEncoded ? C023_AT_commands::AT_cmd::RECVB : C023_AT_commands::AT_cmd::RECV,
+    strformat(F("%s -> %d : %s"), receivedData.c_str(), port, value.c_str()));
+  return true;
 }
 
 void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd, bool prioritize)
@@ -672,6 +757,13 @@ void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd, bool prioritiz
   }
 }
 
+void C023_data_struct::sendQuery(C023_AT_commands::AT_cmd at_cmd[], size_t count)
+{
+  for (size_t i = 0; i < count; ++i) {
+    sendQuery(at_cmd[i]);
+  }
+}
+
 void C023_data_struct::sendNextQueuedQuery()
 {
   if (!queryPending() && !_queuedQueries.empty()) {
@@ -685,6 +777,9 @@ void C023_data_struct::sendNextQueuedQuery()
     _querySent = millis();
   }
 }
+
+bool sendSetValue(C023_AT_commands::AT_cmd at_cmd,
+                  const String           & value);
 
 void C023_data_struct::cacheValue(C023_AT_commands::AT_cmd at_cmd, const String& value)
 {
@@ -719,18 +814,56 @@ String C023_data_struct::getValueFromReceivedData(const String& receivedData)
 String C023_data_struct::getValueFromReceivedBinaryData(int& port, const String& receivedData, bool hexEncoded)
 {
   port = -1;
-  int pos = receivedData.indexOf(':');
+  String payload;
 
-  if (pos == -1) { return EMPTY_STRING; }
-  port = receivedData.substring(0, pos).toInt();
+  switch (_loraModule)
+  {
+    case C023_AT_commands::LoRaModule_e::Dragino_LA66:
+    {
+      int pos = receivedData.indexOf(':');
 
-  addLog(LOG_LEVEL_INFO, concat(
-           F("LoRa fromHex: "), receivedData.substring(pos + 1)));
+      if (pos == -1) { return EMPTY_STRING; }
+      port    = receivedData.substring(0, pos).toInt();
+      payload = receivedData.substring(pos + 1);
+      break;
+    }
+    case C023_AT_commands::LoRaModule_e::RAK_3172:
+    {
+      // Receiving  Class A downlink
+      // Example:
+      // +EVT:RX_1:-51:15:UNICAST:1:312c322c332e343536
+      // +EVT:RX_1:-70:8:UNICAST:1:1234
+      //   -70 is RSSI, 8 is SNR, 1 is Fport, 1234 is payload.
+      //
+      // Class B downlink:
+      // +EVT:RX_B:-47:3:UNICAST:2:4321
+      //   -47 is RSSI, 3 is SNR, Unicast for B / Multicast for C, 2 is Fport, 4321 is payload.
+      //
+      // Class C downlink:
+      //  +EVT:RX_C:-39:12:UNICAST:6:312c322c332e343536
 
-  if (hexEncoded) {
-    return stringFromHexArray(receivedData.substring(pos + 1));
+
+      cacheValue(C023_AT_commands::AT_cmd::RSSI, parseString(receivedData, 3, ':', true));
+      cacheValue(C023_AT_commands::AT_cmd::SNR,  parseString(receivedData, 4, ':', true));
+
+      port    = parseString(receivedData, 6, ':', true).toInt();
+      payload = parseString(receivedData, 7, ':', true);
+
+      addLog(LOG_LEVEL_INFO, concat(F("LoRa RAW fromHex: "), payload));
+
+      break;
+    }
+    default:
+      break;
   }
-  return receivedData.substring(pos + 1);
+
+  if (!payload.isEmpty()) {
+    if (hexEncoded) {
+      payload = stringFromHexArray(payload);
+    }
+    addLog(LOG_LEVEL_INFO, concat(F("LoRa fromHex: "), payload));
+  }
+  return payload;
 }
 
 #endif // ifdef USES_C023

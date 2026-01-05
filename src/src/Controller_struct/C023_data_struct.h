@@ -56,6 +56,11 @@ public:
                const String& AppSKey,
                const String& NwkSKey);
 
+  bool join(bool    enable            = true, // Set to false for stop joining
+            bool    autoJoin          = 0,    // for Auto-join on power up
+            uint8_t reattemptInterval = 8,    // 7 - 255 seconds
+            uint8_t nrJoinAttempts    = 1);   // No. of join attempts: 0 - 255
+
   String                  sendRawCommand(const String& command);
 
   int                     getVbat();
@@ -92,13 +97,20 @@ public:
 
   float   getLoRaAirTime(uint8_t pl);
 
-  void    async_loop();
+  bool    async_loop(bool processingSetCommand = false);
 
   bool    writeCachedValues(KeyValueWriter          *writer,
                             C023_AT_commands::AT_cmd start,
                             C023_AT_commands::AT_cmd end);
 
 private:
+
+  bool   sendSetValue(C023_AT_commands::AT_cmd at_cmd,
+                      const String           & value);
+  bool   sendSetValue(C023_AT_commands::AT_cmd at_cmd,
+                      int                      value);
+  bool   sendSetValue(const String& value);
+
 
   String get(C023_AT_commands::AT_cmd at_cmd,
              uint32_t               & lastChange);
@@ -115,17 +127,25 @@ private:
   float  getFloat(C023_AT_commands::AT_cmd at_cmd,
                   float                    errorvalue);
 
-  bool   processReceived(const String& receivedData);
+  bool   processReceived(const String& receivedData,
+                         bool          processingSetCommand);
   bool   processReceived_Dragino_LA66(const String           & receivedData,
-                                      C023_AT_commands::AT_cmd at_cmd);
+                                      C023_AT_commands::AT_cmd at_cmd,
+                                      bool                     processingSetCommand);
   bool   processReceived_RAK_3172(const String           & receivedData,
-                                  C023_AT_commands::AT_cmd at_cmd);
-
+                                  C023_AT_commands::AT_cmd at_cmd,
+                                  bool                     processingSetCommand);
 
   bool processPendingQuery(const String& receivedData);
 
+  bool processDownlinkMessage(const String& receivedData,
+                              bool          hexEncoded);
+
   void sendQuery(C023_AT_commands::AT_cmd at_cmd,
                  bool                     prioritize = false);
+
+  void sendQuery(C023_AT_commands::AT_cmd at_cmd[],
+                 size_t                   count);
 
   void sendNextQueuedQuery();
 
@@ -147,7 +167,7 @@ private:
   static String getValueFromReceivedData(const String& receivedData);
 
   // Decode HEX stream
-  static String getValueFromReceivedBinaryData(int         & port,
+  String        getValueFromReceivedBinaryData(int         & port,
                                                const String& receivedData,
                                                bool          hexEncoded);
 
@@ -163,6 +183,7 @@ private:
   taskIndex_t             sampleSetInitiator = INVALID_TASK_INDEX;
   int8_t                  _resetPin          = -1;
   bool                    _isClassA{};
+  bool                    _in_async_loop{}; // Mutex to prevent recursive calls to async_loop()
   LoRa_Helper::LoRaWAN_DR _dr = LoRa_Helper::LoRaWAN_DR::ADR;
 
   LoRa_Helper::DownlinkEventFormat_e _eventFormatStructure = LoRa_Helper::DownlinkEventFormat_e::PortNr_in_eventPar;

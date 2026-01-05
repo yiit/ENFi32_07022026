@@ -46,14 +46,14 @@ public:
     SN,            // RAK: Serial Number
     APPEUI,        // 3.1 AT+APPEUI: Application EUI
     APPKEY,        // 3.2 AT+APPKEY: Application Key
+    DEUI,          // 3.5 AT+DEUI: Device EUI
+    DEVEUI,
     APPSKEY,       // 3.3 AT+APPSKEY: Application Session Key
     DADDR,         // 3.4 AT+DADDR: Device Address
     DEVADDR,
-    DEUI,          // 3.5 AT+DEUI: Device EUI
-    DEVEUI,
+    NWKSKEY,       // 3.7 AT+NWKSKEY: Network Session Key
     NWKID,         // 3.6 AT+NWKID: Network ID(You can enter this command change only after successful network connection)
     NETID,
-    NWKSKEY,       // 3.7 AT+NWKSKEY: Network Session Key
     CFM,           // 4.1 AT+CFM: Confirm Mode
     NJM,           // 4.3 AT+NJM: LoRa® Network Join Mode
                    //  0 = ABP

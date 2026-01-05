@@ -417,16 +417,13 @@ bool C023_init(struct EventStruct *event) {
      }
    */
 
-  if (customConfig->joinmethod == C023_USE_OTAA) {
+  if (customConfig->getJoinMethod() == LoRa_Helper::LoRaWAN_JoinMethod::OTAA) {
     if (loglevelActiveFor(LOG_LEVEL_INFO)) {
-      String log = F("OTAA: AppEUI: ");
-      log += AppEUI;
-      log += F(" AppKey: ");
-      log += AppKey;
-      log += F(" DevEUI: ");
-      log += customConfig->DeviceEUI;
-
-      addLogMove(LOG_LEVEL_INFO, log);
+      addLogMove(LOG_LEVEL_INFO, strformat(
+                   F("OTAA: AppEUI: %s AppKey: %s DevEUI: %s"),
+                   AppEUI.c_str(),
+                   AppKey.c_str(),
+                   customConfig->DeviceEUI));
     }
 
     if (!C023_data->initOTAA(AppEUI, AppKey, customConfig->DeviceEUI)) {
@@ -438,6 +435,9 @@ bool C023_init(struct EventStruct *event) {
       return false;
     }
   }
+  
+
+  if (!C023_data->join()) { return false; }
 
 
   if (!C023_data->txUncnf(F("ESPeasy (TTN)"), Port)) {

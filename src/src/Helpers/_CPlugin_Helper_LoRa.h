@@ -13,8 +13,8 @@ public:
   *************************************************/
 
   enum class LoRaWAN_JoinMethod {
-    ABP = 0, // N.B. C018 (RN2483) uses 0 = OTAA, 1 = ABP
-    OTAA
+    OTAA = 0,
+    ABP = 1, // N.B. C023 (AT-command LoRaWAN) uses 1 = OTAA, 0 = ABP
 
     //    ,P2P
 
