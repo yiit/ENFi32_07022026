@@ -5,6 +5,7 @@
 # include "../ESPEasyNetwork.h"
 
 # include "../../../src/Helpers/StringConverter.h"
+# include "../../../src/Globals/Settings.h"
 
 # include "../Globals/NetworkState.h"
 
@@ -101,8 +102,8 @@ void NWPluginData_static_runtime::mark_start()
 
 # if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
 
-  if (_route_prio > 0) {
-    _netif->setRoutePrio(_route_prio);
+  if (_routePrio > 0) {
+    _netif->setRoutePrio(_routePrio);
   }
 # endif // if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
 # if NW_PLUGIN_LOG_EVENTS
@@ -212,7 +213,18 @@ void NWPluginData_static_runtime::mark_begin_establish_connection()
   _establishConnectStats.forceSet(true);
   _connectedStats.setOff();
   _operationalStats.setOff();
+# if FEATURE_USE_IPV6
 
+  if (_netif) {
+    _enableIPv6 = Settings.EnableIPv6() && Settings.getNetworkEnabled_IPv6(_networkIndex);
+    _netif->enableIPv6(_enableIPv6);
+  } else {
+    _enableIPv6 = false;
+  }
+# endif // if FEATURE_USE_IPV6
+# ifdef ESP32
+  _routePrio = Settings.getRoutePrio_for_network(_networkIndex);
+# endif
 }
 
 void NWPluginData_static_runtime::mark_connected()

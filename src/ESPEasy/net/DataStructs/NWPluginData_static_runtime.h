@@ -28,7 +28,8 @@ struct TX_RX_traffic_count {
   uint32_t _rx_packets{};
 
 };
-#endif
+
+#endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
 struct NWPluginData_static_runtime {
 #ifdef ESP32
@@ -47,9 +48,9 @@ struct NWPluginData_static_runtime {
 #endif // ifdef ESP32
 
 #if FEATURE_NETWORK_TRAFFIC_COUNT
-  void enable_txrx_events();
+  void   enable_txrx_events();
 
-  bool getTrafficCount(TX_RX_traffic_count& traffic) const;
+  bool   getTrafficCount(TX_RX_traffic_count& traffic) const;
 #endif // if FEATURE_NETWORK_TRAFFIC_COUNT
 
   void   clear(networkIndex_t networkIndex = INVALID_NETWORK_INDEX);
@@ -140,7 +141,7 @@ struct NWPluginData_static_runtime {
 #if FEATURE_USE_IPV6
   LongTermOnOffTimer _gotIP6Stats{};
   ip_event_got_ip6_t _gotIP6Events[6]{};
-#endif
+#endif // if FEATURE_USE_IPV6
   LongTermOnOffTimer _operationalStats{}; // is started, connected and had IP
 
   // =============================================
@@ -148,11 +149,11 @@ struct NWPluginData_static_runtime {
   // =============================================
 #ifdef ESP32
   IPAddress _dns_cache[2]{};
-  int       _route_prio = -1;
+  int       _routePrio = -1; // Cached route prio as it is being used from callbacks
 #endif // ifdef ESP32
 
-# if FEATURE_USE_IPV6
-  bool _enableIPv6{};
+#if FEATURE_USE_IPV6
+  bool _enableIPv6{}; // Cached enableIPv6 flag as it is being used from callbacks
 #endif
 
 private:

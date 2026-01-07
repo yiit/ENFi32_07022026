@@ -532,9 +532,10 @@ const NWPluginData_static_runtime* getDefaultRoute_NWPluginData_static_runtime()
     #ifdef ESP32
 
     if (NW_data) {
-      if (NW_data->_route_prio > highest_prio) {
+      const int route_prio = NW_data->_routePrio;
+      if (route_prio > highest_prio) {
         index_highest_prio = i;
-        highest_prio       = NW_data->_route_prio;
+        highest_prio       = route_prio;
       }
     }
     #endif // ifdef ESP32

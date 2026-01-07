@@ -9,7 +9,7 @@
 #include "../wifi/ESPEasyWifi.h"
 
 #ifdef ESP32
-#include <esp_netif.h>
+# include <esp_netif.h>
 #endif
 
 
@@ -109,7 +109,6 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
 
   _networkIndex = networkIndex;
 #ifdef ESP32
-  _route_prio = Settings.getRoutePrio_for_network(_networkIndex);
 
   if (_netif) {
     if ((_eventInterfaceName.length() == 0) && _netif) {
@@ -118,9 +117,6 @@ void NWPluginData_static_runtime::clear(networkIndex_t networkIndex)
     }
   }
 #endif // ifdef ESP32
-# if FEATURE_USE_IPV6
-  _enableIPv6 = Settings.EnableIPv6() && Settings.getNetworkEnabled_IPv6(_networkIndex);
-#endif
 
   _connectionFailures = 0;
 
