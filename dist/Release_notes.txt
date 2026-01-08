@@ -1,4 +1,14 @@
 -------------------------------------------------
+Changes in release mega-20260108 (since mega-20260107)
+-------------------------------------------------
+
+Release date: Thu Jan  8 08:33:12 AM CET 2026
+
+TD-er (1):
+      Add Python version for prepare-dist in release.yml
+
+
+-------------------------------------------------
 Changes in release mega-20260107 (since mega-20250430)
 -------------------------------------------------
 
