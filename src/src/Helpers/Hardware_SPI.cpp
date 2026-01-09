@@ -1,4 +1,5 @@
 
+#include "../ESPEasy/net/DataTypes/NetworkMedium.h"
 #include "../Helpers/Hardware_SPI.h"
 #include "../Globals/Settings.h"
 
@@ -24,7 +25,7 @@ void initializeSPIBuses() {
 
   #if FEATURE_ETHERNET
 
-  if ((Settings.NetworkMedium == NetworkMedium_t::Ethernet) &&
+  if ((Settings.NetworkMedium == ESPEasy::net::NetworkMedium_t::Ethernet) &&
       isValid(Settings.ETH_Phy_Type) &&
       isSPI_EthernetType(Settings.ETH_Phy_Type))
   {
