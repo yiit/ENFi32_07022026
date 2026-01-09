@@ -30,6 +30,7 @@ enum class P111_initPhases : uint8_t {
   ResetDelay1 = 0x01,
   ResetDelay2 = 0x02,
   Undefined   = 0xFF
+
 };
 
 struct P111_data_struct : public PluginTaskData_base {
@@ -55,7 +56,7 @@ private:
   uint8_t counter = 0;
 
   String      getCardName();
-  uint8_t     readCardStatus(uint32_t *key,
+  uint8_t     readCardStatus(uint64_t *key,
                              bool     *removedTag);
   bool        reset(int8_t csPin,
                     int8_t resetPin);
@@ -78,6 +79,7 @@ private:
   int64_t _last_served_irq_pin_time_micros{};
 
   ESPEASY_VOLATILE(int64_t) _irq_pin_time_micros = -1;
+
 };
 
 #endif // ifdef USES_P111
