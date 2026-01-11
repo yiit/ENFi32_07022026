@@ -50,7 +50,7 @@
 // Stored in Settings.I2C_SPI_bus_Flags !!!
 #define SPI_FLAGS_TASK_BUS_NUMBER           0 // 2 bit, stores the configured bus for a task
 // Stored in Settings.I2C_SPI_bus_Flags for Task 1 settings
-#define SPI_FLAGS_ETH_BUS_NUMBER            2 // 2 bit, stores the configured bus for the Ethernet interface
+// #define SPI_FLAGS_xxx_unused            2 // 2 bit, available
 #define SPI_FLAGS_SDCARD_BUS_NUMBER         4 // 2 bit, stores the configured bus for the SDCard
 
 /*********************************************************************************************\

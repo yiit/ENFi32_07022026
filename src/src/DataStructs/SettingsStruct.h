@@ -388,11 +388,6 @@ public:
   uint8_t getSPIBusForTask(taskIndex_t TaskIndex) const;
   void    setSPIBusForTask(taskIndex_t TaskIndex, uint8_t spi_bus);
 
-  #if FEATURE_ETHERNET
-  uint8_t getSPIBusForEth() const;
-  void    setSPIBusForEth(uint8_t spi_bus);
-  #endif // if FEATURE_ETHERNET
-
   #if FEATURE_SD
   uint8_t getSPIBusForSDCard() const;
   void    setSPIBusForSDCard(uint8_t spi_bus);
