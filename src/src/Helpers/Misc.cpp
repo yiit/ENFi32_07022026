@@ -7,6 +7,7 @@
 #include "../ESPEasyCore/Serial.h"
 #include "../Globals/ESPEasy_time.h"
 #include "../Globals/Statistics.h"
+#include "../Helpers/_CPlugin_init.h"
 #include "../Helpers/ESPEasy_FactoryDefault.h"
 #include "../Helpers/ESPEasy_Storage.h"
 #include "../Helpers/Numerical.h"
@@ -69,6 +70,37 @@ void delayBackground(unsigned long dsdelay)
 }
 
 /********************************************************************************************\
+   Toggle network enabled state
+ \*********************************************************************************************/
+bool setNetworkEnableStatus(ESPEasy::net::networkIndex_t networkIndex, bool enabled)
+{
+  if (!validNetworkIndex(networkIndex)) { return false; }
+  #ifndef BUILD_NO_RAM_TRACKER
+  checkRAM(F("setNetworkEnableStatus"));
+  #endif // ifndef BUILD_NO_RAM_TRACKER
+
+  // Only enable network if it has a network interface configured
+  if (Settings.getNWPluginID_for_network(networkIndex) != ESPEasy::net::INVALID_NW_PLUGIN_ID || !enabled) {
+    struct EventStruct TempEvent;
+    TempEvent.NetworkIndex = networkIndex;
+    String dummy;
+
+    if (!enabled) {
+      ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_EXIT, &TempEvent, dummy);
+    }
+    Settings.setNetworkEnabled(networkIndex, enabled);
+    if (enabled) {
+      if (!ESPEasy::net::NWPluginCall(NWPlugin::Function::NWPLUGIN_INIT, &TempEvent, dummy))
+        return false;
+    }
+
+    return true;
+  }
+  return false;
+}
+
+
+/********************************************************************************************\
    Toggle controller enabled state
  \*********************************************************************************************/
 bool setControllerEnableStatus(controllerIndex_t controllerIndex, bool enabled)
@@ -80,8 +112,24 @@ bool setControllerEnableStatus(controllerIndex_t controllerIndex, bool enabled)
 
   // Only enable controller if it has a protocol configured
   if ((Settings.Protocol[controllerIndex] != 0) || !enabled) {
+    struct EventStruct TempEvent;
+    TempEvent.ControllerIndex = controllerIndex;
+    String dummy;
+    if (!enabled) {
+      CPluginCall(CPlugin::Function::CPLUGIN_EXIT, &TempEvent, dummy);
+    }
+
     Settings.ControllerEnabled[controllerIndex] = enabled;
-    return true;
+    const protocolIndex_t ProtocolIndex = getProtocolIndex_from_ControllerIndex(controllerIndex);
+
+    if (validProtocolIndex(ProtocolIndex)) {
+      struct EventStruct TempEvent;
+      TempEvent.ControllerIndex = controllerIndex;
+      String dummy;
+      const CPlugin::Function cfunction =
+        enabled ? CPlugin::Function::CPLUGIN_INIT : CPlugin::Function::CPLUGIN_EXIT;
+      return do_CPluginCall(ProtocolIndex, cfunction, &TempEvent, dummy) || CPlugin::Function::CPLUGIN_EXIT == cfunction;
+    }
   }
   return false;
 }
@@ -98,24 +146,27 @@ bool setTaskEnableStatus(struct EventStruct *event, bool enabled)
 
   // Only enable task if it has a Plugin configured
   if (validPluginID(Settings.getPluginID_for_task(event->TaskIndex)) || !enabled) {
-    String dummy;
+    if (enabled != Settings.TaskDeviceEnabled[event->TaskIndex])
+    {
+      String dummy;
 
-    if (!enabled) {
-      PluginCall(PLUGIN_EXIT, event, dummy);
-    }
+      if (!enabled) {
+        PluginCall(PLUGIN_EXIT, event, dummy);
+      }
 
-    // Toggle enable/disable state via command
-    // FIXME TD-er: Should this be a 'runtime' change, or actually change the intended state?
-    // Settings.TaskDeviceEnabled[event->TaskIndex].enabled = enabled;
-    Settings.TaskDeviceEnabled[event->TaskIndex] = enabled;
+      // Toggle enable/disable state via command
+      // FIXME TD-er: Should this be a 'runtime' change, or actually change the intended state?
+      // Settings.TaskDeviceEnabled[event->TaskIndex].enabled = enabled;
+      Settings.TaskDeviceEnabled[event->TaskIndex] = enabled;
 
-    if (enabled) {
-      // Schedule the plugin to be read.
-      // Do this before actual init, to allow the plugin to schedule a specific first read.
-      Scheduler.schedule_task_device_timer(event->TaskIndex, millis() + 10);
+      if (enabled) {
+        // Schedule the plugin to be read.
+        // Do this before actual init, to allow the plugin to schedule a specific first read.
+        Scheduler.schedule_task_device_timer(event->TaskIndex, millis() + 10);
 
-      if (!PluginCall(PLUGIN_INIT, event, dummy)) {
-        return false;
+        if (!PluginCall(PLUGIN_INIT, event, dummy)) {
+          return false;
+        }
       }
     }
     return true;
@@ -144,7 +195,7 @@ void taskClear(taskIndex_t taskIndex, bool save)
   ExtraTaskSettings.TaskIndex = taskIndex;
 
   if (save) {
-    #ifndef BUILD_MINIMAL_OTA
+    #ifndef LIMIT_BUILD_SIZE
     addLog(LOG_LEVEL_INFO, F("taskClear() save settings"));
     #endif // ifndef BUILD_MINIMAL_OTA
     SaveTaskSettings(taskIndex);

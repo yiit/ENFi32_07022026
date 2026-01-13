@@ -1,6 +1,29 @@
 Supported ESP Chips
 *******************
 
+ESP8266 is Feature Complete!
+============================
+
+(Since 2025-04-30)
+
+The core team has decided to declare the ESP8266 builds (that also support ESP8285) Feature Complete, for multiple reasons:
+
+* **Binary size**: Making (new or enhanced) plugins and growing feature set fit in the limited available binary space of an ESP8266 (1020kB) is getting harder and harder. Many hundreds of hours have been spent already to reduce size as much as possble, and there isn't much room for improvement anymore.
+* **Limited RAM available**: The ESP8266 has only 80 kB of RAM available, and with the core of ESPEasy loaded, that leaves only between 15 and 25 kB of free memory for plugins to work with. This is a major cause for crashes when some complicated tasks are handling data of some size.
+* **Chip development progress**: New features for ESP chips are being developed, but the ESP8266 platform, while still being manufactured, does not get technical improvements anymore.
+* **Software support by Espressif**: New software development in the framework for supporting the ESP platform is only directed at the ESP32 line of MCUs. No new development for ESP8266 is being done.
+
+The consequences of this decision are that:
+
+* New plugins and features are **not** included in the regularly made available ESP8266 builds.
+* To enable some of the new features (many are still useable) for ESP8266, a Custom build can be configured and built by the user, as documented in :ref:`PlatformIO_page`.
+* A notable exception is support for TLS: That's *not* possible to enable on ESPEasy in ESP8266 builds as it doesn't fit in the limited available RAM memory.
+
+For new projects, it is strongly advised to select one of the many available ESP32 boards, or chips when designing a custom board. Some of the ESP32 variants are available with 16 MB Flash (ESP32 Classic, ESP32-C3, ESP32-C6 and ESP32-S3), and have 1 or more MAX builds available in ESPEasy, that include all plugins and features available, and also a larger selection of fonts for displays (TFT/LCD, OLed and 7-segment).
+
+Overview of supported chips
+===========================
+
 ESPEasy does support a number of variants of the processors manufactured by Espressif.
 
 * **ESP8266** The original ESP processor, with external flash.
@@ -593,8 +616,10 @@ Datasheets
 * `DS:ESP32-S3 <https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf>`_
 * `DS:ESP32-C3 <https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf>`_ / `DS:ESP8685 <https://www.espressif.com/sites/default/files/documentation/esp8685_datasheet_en.pdf>`_ 
 * `DS:ESP32-C2 <https://www.espressif.com/sites/default/files/documentation/esp8684_datasheet_en.pdf>`_ / `DS:ESP8684 <https://www.espressif.com/sites/default/files/documentation/esp8684_datasheet_en.pdf>`_ 
+* `DS:ESP32-C5 <https://www.espressif.com/sites/default/files/documentation/esp32-c5_datasheet_en.pdf>`_
 * `DS:ESP32-C6 <https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf>`_
 * `DS:ESP32-H2 <https://cdn-shop.adafruit.com/product-files/5715/esp32-h2_datasheet_en.pdf>`_
+* `DS:ESP32-P4 <https://www.espressif.com/sites/default/files/documentation/esp32-p4_datasheet_en.pdf>`_
 
 
 Technical Reference Manuals
@@ -606,8 +631,10 @@ Technical Reference Manuals
 * `TR:ESP32-S3 <https://www.espressif.com/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf>`_
 * `TR:ESP32-C3 <https://www.espressif.com/sites/default/files/documentation/esp32-c3_technical_reference_manual_en.pdf>`_
 * `TR:ESP32-C2 <https://www.espressif.com/sites/default/files/documentation/esp8684_technical_reference_manual_en.pdf>`_
+* `TR:ESP32-C5 <https://www.espressif.com/sites/default/files/documentation/esp32-c5_technical_reference_manual_en.pdf>`_
 * `TR:ESP32-C6 <https://www.espressif.com/sites/default/files/documentation/esp32-c6_technical_reference_manual_en.pdf>`_
 * `TR:ESP32-H2 <https://www.espressif.com/sites/default/files/documentation/esp32-h2_technical_reference_manual_en.pdf>`_
+* `TR:ESP32-P4 <https://www.espressif.com/sites/default/files/documentation/esp32-p4_technical_reference_manual_en.pdf>`_
 
 
 ESP8266/ESP8285
@@ -854,7 +881,7 @@ ESP32-C5
 
 This will be the first Espressif SoC supporting 5 GHz WiFi.
 
-.. note:: Not yet available (as of Dec 2024)
+.. note:: Beta silicon is available (as of June 2025), which may change in Q3 or Q4 of 2025. So not yet adviced to be used in real products
 
 ESP32-C6
 ========
@@ -897,4 +924,5 @@ The CPU is rather powerful and there are versions with quite a large amount of P
 
 It does have a RMII interface for Ethernet, like the ESP32-classic does.
 
-.. note:: Not yet supported (as of Dec 2024)
+.. note:: Not yet supported. Beta silicon is available (as of June 2025), which may change in Q3 or Q4 of 2025. So not yet adviced to be used in real products
+

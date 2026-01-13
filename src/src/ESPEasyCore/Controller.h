@@ -29,6 +29,11 @@ void MQTTDisconnect();
 /*********************************************************************************************\
 * Connect to MQTT message broker
 \*********************************************************************************************/
+#if FEATURE_MQTT_CONNECT_BACKGROUND
+bool MQTTConnectInBackground(controllerIndex_t controller_idx,
+                             bool              reportOnly);
+#endif // if FEATURE_MQTT_CONNECT_BACKGROUND
+
 bool MQTTConnect(controllerIndex_t controller_idx);
 
 void MQTTparseSystemVariablesAndSubscribe(String subscribeTo);
@@ -53,8 +58,6 @@ String getLWT_messageDisconnect(const ControllerSettingsStruct& ControllerSettin
 * Send status info to request source
 \*********************************************************************************************/
 void SendStatusOnlyIfNeeded(struct EventStruct *event, bool param1, uint32_t key, const String& param2, int16_t param3);
-
-bool SourceNeedsStatusUpdate(EventValueSource::Enum eventSource);
 
 void SendStatus(struct EventStruct *event, const __FlashStringHelper * status);
 void SendStatus(struct EventStruct *event, const String& status);
