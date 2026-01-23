@@ -1,5 +1,5 @@
 function elId(e) {
-  return document.getElementById(e);
+    return document.getElementById(e);
 }
 function getBrowser() {
     var ua = navigator.userAgent,
@@ -96,6 +96,7 @@ function loopDeLoop(timeForNext, activeRequests) {
                             elId(ct1).innerHTML = '';
                         }
                         elId(ct1).innerHTML += logEntriesChunk;
+                        applyLogFilter();
                     }
                     logEntriesChunk = '';
                     autoscroll_on = elId('autoscroll').checked;
@@ -121,4 +122,27 @@ function loopDeLoop(timeForNext, activeRequests) {
         };
         check = 1;
     }, timeForNext);
+}
+
+function applyLogFilter() {
+    const filtername = elId('logfilter').value;
+
+    // prepare filters: "string1;string2"
+    const filters = filtername
+        .split(';')
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean);
+
+    const container = document.getElementById('copyText_1');
+    const entries = container.querySelectorAll('div');
+
+    entries.forEach(entry => {
+        const text = entry.textContent.toLowerCase();
+
+        const matches =
+            filters.length === 0 || filters.some(f => text.includes(f));
+
+        // show only matching entries
+        entry.style.display = matches ? '' : 'none';
+    });
 }
