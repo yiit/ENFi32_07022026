@@ -96,7 +96,6 @@ function loopDeLoop(timeForNext, activeRequests) {
                             elId(ct1).innerHTML = '';
                         }
                         elId(ct1).innerHTML += logEntriesChunk;
-                        applyLogFilter();
                     }
                     logEntriesChunk = '';
                     autoscroll_on = elId('autoscroll').checked;
@@ -105,6 +104,7 @@ function loopDeLoop(timeForNext, activeRequests) {
                             behavior: scrolling_type
                         });
                     }
+                    applyLogFilter();
                     elId('current_loglevel').innerHTML = 'Logging: ' + logLevel[data.Log.SettingsWebLogLevel] + ' (' + data.Log.SettingsWebLogLevel + ')';
                     clearInterval(i);
                     loopDeLoop(timeForNext, 0);
@@ -125,24 +125,128 @@ function loopDeLoop(timeForNext, activeRequests) {
 }
 
 function applyLogFilter() {
-    const filtername = elId('logfilter').value;
+    const filterGroups = elId('logfilter').value
+        .split(';').map(s => s.trim()).filter(Boolean);
 
-    // prepare filters: "string1;string2"
-    const filters = filtername
-        .split(';')
-        .map(s => s.trim().toLowerCase())
-        .filter(Boolean);
+    const entries = document.querySelectorAll('#copyText_1 > div');
+    const hasPositiveFilter = filterGroups.some(g => !g.startsWith('!'));
 
-    const container = document.getElementById('copyText_1');
-    const entries = container.querySelectorAll('div');
+    for (const entry of entries) {
+        if (!entry.dataset.originalHtml) entry.dataset.originalHtml = entry.innerHTML;
+        let html = entry.dataset.originalHtml;
 
-    entries.forEach(entry => {
-        const text = entry.textContent.toLowerCase();
+        const textLower = entry.textContent.toLowerCase();
+        let matched = [];
+        let hiddenByExclusion = false;
 
-        const matches =
-            filters.length === 0 || filters.some(f => text.includes(f));
+        let isMatch = !hasPositiveFilter;
 
-        // show only matching entries
-        entry.style.display = matches ? '' : 'none';
-    });
+        for (const group of filterGroups) {
+
+            // exclusion rule with ordered AND
+            if (group.startsWith('!')) {
+                const g = group.slice(1);
+
+                if (g.includes('&') && !g.startsWith('&') && !g.endsWith('&')) {
+                    const parts = g.split('&').map(s => s.trim()).filter(Boolean);
+                    let lastIndex = -1;
+                    let ok = true;
+
+                    for (const p of parts) {
+                        const idx = textLower.indexOf(p.toLowerCase(), lastIndex + 1);
+                        if (idx === -1) {
+                            ok = false;
+                            break;
+                        }
+                        lastIndex = idx;
+                    }
+
+                    if (ok) {
+                        hiddenByExclusion = true;
+                        break;
+                    }
+                } else {
+                    if (g && textLower.includes(g.toLowerCase())) {
+                        hiddenByExclusion = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // ordered AND: a&b&c
+            if (group.includes('&') && !group.startsWith('&') && !group.endsWith('&')) {
+                const parts = group.split('&').map(s => s.trim()).filter(Boolean);
+                if (parts.length >= 2) {
+                    let lastIndex = -1;
+                    let ok = true;
+
+                    for (const p of parts) {
+                        const idx = textLower.indexOf(p.toLowerCase(), lastIndex + 1);
+                        if (idx === -1) {
+                            ok = false;
+                            break;
+                        }
+                        lastIndex = idx;
+                    }
+                    if (ok) {
+                        matched.push(...parts);
+                        isMatch = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+            // normal include
+            if (textLower.includes(group.toLowerCase())) {
+                matched.push(group);
+                isMatch = true;
+                break;
+            }
+        }
+        if (hiddenByExclusion || !isMatch) {
+            entry.style.display = 'none';
+            continue;
+        }
+        entry.style.display = '';
+        entry.innerHTML = highlightOutsideTags(html, matched);
+    }
 }
+
+function highlightOutsideTags(html, terms) {
+    if (!terms.length) return html;
+    let result = '';
+    let insideTag = false;
+    let i = 0;
+
+    while (i < html.length) {
+        const char = html[i];
+        if (char === '<') insideTag = true;
+        if (char === '>') {
+            insideTag = false;
+            result += char;
+            i++;
+            continue;
+        }
+
+        if (!insideTag) {
+            let matched = false;
+            for (const term of terms) {
+                const slice = html.slice(i, i + term.length);
+                if (slice.toLowerCase() === term.toLowerCase()) {
+                    result += `<span style="background-color: #bb9300;color: black;">${slice}</span>`;
+                    i += term.length;
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) continue;
+        }
+        result += char;
+        i++;
+    }
+    return result;
+}
+
+const input = document.getElementById("logfilter");
+input && (input.placeholder = '"!"=exclude ";"=or "&"=and (e.g. !act)');

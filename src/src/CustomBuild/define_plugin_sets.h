@@ -464,6 +464,9 @@ To create/register a plugin, you have to :
     #ifndef FEATURE_RULES_EASY_COLOR_CODE
         #define FEATURE_RULES_EASY_COLOR_CODE 1
     #endif
+    #ifndef WEBSERVER_INCLUDE_JS
+        #define WEBSERVER_INCLUDE_JS
+    #endif
 #endif
 
 #if FEATURE_FHEM
