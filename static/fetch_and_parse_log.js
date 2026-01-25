@@ -1,3 +1,9 @@
+//---------------no need to be included into WebStaticData.h---------------------------------------------
+// if no filter input exists, create it
+document.getElementById("logfilter") ||
+  (document.querySelector("section").innerHTML +=
+    '<label>Filter: <input id="logfilter" size="35"></label>');
+//------------------------------------------------------------
 function elId(e) {
     return document.getElementById(e);
 }
