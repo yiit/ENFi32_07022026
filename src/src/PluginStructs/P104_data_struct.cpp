@@ -1982,10 +1982,7 @@ bool P104_data_struct::webform_load(struct EventStruct *event) {
     };
     const int    orderOptions[] = { 0, 1 };
     FormSelectorOptions selector_zoneordering(2, orderTypes, orderOptions);
-    selector.reloadonchange = true;
-    #  ifdef P104_USE_TOOLTIPS
-    selector.tooltip = zonetip;
-    #  endif // ifdef P104_USE_TOOLTIPS
+    selector_zoneordering.reloadonchange = true;
     selector_zoneordering.addFormSelector(F("Zone order"), F("zoneorder"),
                                           bitRead(P104_CONFIG_FLAGS, P104_CONFIG_FLAG_ZONE_ORDER) ? 1 : 0);
     selector_zoneordering.reloadonchange = true;
