@@ -406,9 +406,6 @@ static const char DATA_UPDATE_SENSOR_VALUES_DEVICE_PAGE_JS[] PROGMEM = {
 #ifdef WEBSERVER_INCLUDE_JS
 static const char DATA_FETCH_AND_PARSE_LOG_JS[] PROGMEM = {
 "function elId(e){return document.getElementById(e)}"
-"document.getElementById('logfilter')||(document.querySelector('section').innerHTML+="
-"'<label>Filter: <input id=\"logfilter\" size=\"35\"></label>');"
-"const ct1=elId('copyText_1');"
 "window.fetch?ct1.textContent='Fetching log entries...':"
 "ct1.textContent='Error: This browser is not supported. Please use a modern browser.';"
 "const logLevel={0:'Unused',1:'Error',2:'Info',3:'Debug',4:'Debug More',9:'Debug Dev'};"
