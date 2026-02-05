@@ -381,25 +381,30 @@ static const char jsSplitMultipleFields[] PROGMEM = {
 #ifdef WEBSERVER_INCLUDE_JS
 static const char DATA_UPDATE_SENSOR_VALUES_DEVICE_PAGE_JS[] PROGMEM = {
   "function elId(e){return document.getElementById(e)}"
-  "function loopDeLoop(e,s){var o,a,n=0;isNaN(s)&&(s=1),null==e&&(e=1e3),"
-  "i=setInterval(function(){if(n>0){clearInterval(i);return}"
-  "++s>1||fetch('/json?view=sensorupdate').then(function(s){var n;if(200!==s.status){console.log('Looks like there was a problem. Status Code: '+s.status);return}"
-  "s.json().then(function(s){e=s.TTL;"
+  "loopDeLoop(1000);"
+  "const SENSOR_URL='/json?view=sensorupdate';"
+  "function loopDeLoop(e=1000){setTimeout(function(){fetch(SENSOR_URL)"
+  ".then(e=>{if(!e.ok)throw new Error(e.status);return e.json()})"
+  ".then(o=>{e=o.TTL||e;"
   #if (defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE) || (defined(FEATURE_STRING_VARIABLES) && FEATURE_STRING_VARIABLES)
-  "var r=void 0===s.ShowUoM||s.ShowUoM&&'false'!==s.ShowUoM;"
+  "const n=void 0===o.ShowUoM||o.ShowUoM&&'false'!==o.ShowUoM;"
   #endif // if (defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE) || (defined(FEATURE_STRING_VARIABLES) && FEATURE_STRING_VARIABLES)
-  "for(o=0;o<s.Sensors.length;o++)if(s.Sensors[o].hasOwnProperty('TaskValues'))"
-  "for(a=0;a<s.Sensors[o].TaskValues.length;a++)try{n=s.Sensors[o].TaskValues[a].Value}catch(l){n=l.name}"
-  "finally{if('TypeError'!==n){var u=s.Sensors[o].TaskValues[a].Value,t=s.Sensors[o].TaskValues[a].NrDecimals;t<255&&(u=parseFloat(u).toFixed(t));"
+  "for(let i=0;i<o.Sensors.length;i++){const t=o.Sensors[i];"
+  "if(t.TaskValues)for(let j=0;j<t.TaskValues.length;j++){const r=t.TaskValues[j];"
+  "if(!r||null==r.Value)continue;"
+  "let s=r.Value;const d=r.NrDecimals;"
+  "d<255&&(s=parseFloat(s).toFixed(d));"
   #if (defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE) || (defined(FEATURE_STRING_VARIABLES) && FEATURE_STRING_VARIABLES)
-  "var $=s.Sensors[o].TaskValues[a].UoM,T=s.Sensors[o].TaskValues[a].Presentation;T?u=T:$&&r&&(u+=' '+$);"
+  "r.Presentation?s=r.Presentation:"
+  "r.UoM&&n&&(s+=' '+r.UoM);"  
   #endif // if (defined(FEATURE_TASKVALUE_UNIT_OF_MEASURE) && FEATURE_TASKVALUE_UNIT_OF_MEASURE) || (defined(FEATURE_STRING_VARIABLES) && FEATURE_STRING_VARIABLES)
-  "var S='value_'+(s.Sensors[o].TaskNumber-1)+'_'+(s.Sensors[o].TaskValues[a].ValueNumber-1),"
-  "k='valuename_'+(s.Sensors[o].TaskNumber-1)+'_'+(s.Sensors[o].TaskValues[a].ValueNumber-1),"
-  "V=elId(S),f=elId(k);V&&(V.innerHTML=u),"
-  "f&&(f.innerHTML=s.Sensors[o].TaskValues[a].Name+':')}}"
-  "clearInterval(i),loopDeLoop(e,0)})}).catch(function(s){console.log(s.message),e=5e3,clearInterval(i),loopDeLoop(e,0)}),n=1},e)}"
-  "loopDeLoop(1e3,0);"
+  "const l=t.TaskNumber-1+'_'+(r.ValueNumber-1),"
+  "a=elId('value_'+l);"
+  "a&&(a.innerHTML=s);"
+  "const u=elId('valuename_'+l);"
+  "u&&(u.innerHTML=r.Name+':')"
+  "}}loopDeLoop(e)})"
+  ".catch(e=>{loopDeLoop(5000)})},e)}"
 };
 #endif // WEBSERVER_INCLUDE_JS
 
