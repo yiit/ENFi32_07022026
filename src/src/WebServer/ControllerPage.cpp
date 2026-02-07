@@ -1,5 +1,6 @@
 #include "../WebServer/ControllerPage.h"
 
+#include "../DataStructs/ProtocolStruct.h"
 
 #ifdef WEBSERVER_CONTROLLERS
 
@@ -25,10 +26,6 @@
 # include "../Helpers/_Plugin_SensorTypeHelper.h"
 # include "../Helpers/ESPEasy_Storage.h"
 # include "../Helpers/StringConverter.h"
-
-# include "../Helpers/_CPlugin_Helper_webform.h"
-# include "../Helpers/_Plugin_SensorTypeHelper.h"
-# include "../Helpers/ESPEasy_Storage.h"
 
 // ********************************************************************************
 // Web Interface controller page
