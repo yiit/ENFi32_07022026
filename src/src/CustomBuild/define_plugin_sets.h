@@ -2179,6 +2179,10 @@ To create/register a plugin, you have to :
     #define PLUGIN_DESCR  "Climate A"
   #endif
 
+  #ifndef BUILD_NO_DEBUG
+  #define BUILD_NO_DEBUG
+  #endif
+
   // Features and plugins cherry picked from stable set
   #ifndef FEATURE_SERVO
     #define FEATURE_SERVO 1
