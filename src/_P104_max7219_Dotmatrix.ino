@@ -76,6 +76,7 @@
 /** History/Changelog:
  * 2026-02-04 tonhuisman: Add ASCII font with Cyrillic extension characters
  *                        Reformat sources with updated Uncrustify settings, use block-comment for History/Changelog
+ * 2025-08-12 tonhuisman: Enable use of secondary SPI bus
  * 2025-04-03 tonhuisman: Set character spacing correctly when changing fonts
  * 2023-10-15 tonhuisman: Code improvements, now using NR_ELEMENTS macro instead of multiple #ifdefs and increments
  *                        Re-enable use of settings-version V3 after some more testing
@@ -148,6 +149,7 @@ boolean Plugin_104(uint8_t function, struct EventStruct *event, String& string) 
       dev.Type               = DEVICE_TYPE_SPI;
       dev.VType              = Sensor_VType::SENSOR_TYPE_NONE;
       dev.ExitTaskBeforeSave = false;
+      dev.SpiBusSelect       = true;
       break;
     }
 
