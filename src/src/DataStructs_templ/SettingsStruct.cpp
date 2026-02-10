@@ -994,6 +994,17 @@ bool SettingsStruct_tmpl<N_TASKS>::isSPI_enabled(uint8_t spi_bus) const {
 }
 
 template<uint32_t N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getNrConfiguredSPI_buses() const
+{
+  uint8_t res{};
+  if (isSPI_valid(0u)) ++res;
+  #ifdef ESP32
+  if (getSPIBusCount() > 1 && isSPI_valid(1u)) ++res;
+  #endif
+  return res;
+}
+
+template<uint32_t N_TASKS>
 bool SettingsStruct_tmpl<N_TASKS>::getSPI_pins(int8_t spi_gpios[3], uint8_t spi_bus, bool noCheck) const {
   spi_gpios[0] = -1;
   spi_gpios[1] = -1;
@@ -1020,7 +1031,10 @@ bool SettingsStruct_tmpl<N_TASKS>::getSPI_pins(int8_t spi_gpios[3], uint8_t spi_
         break;
       }
 #endif
-      case SPI_Options_e::UserDefined:
+      case SPI_Options_e::UserDefined_VSPI:
+#if SOC_SPI_PERIPH_NUM > 2
+      case SPI_Options_e::UserDefined_HSPI:
+#endif
       {
         #ifdef ESP32
         if (0 == spi_bus)
@@ -1059,6 +1073,7 @@ spi_host_device_t SettingsStruct_tmpl<N_TASKS>::getSPI_host(uint8_t spi_bus) con
     const SPI_Options_e SPI_selection = static_cast<SPI_Options_e>(0 == spi_bus ? InitSPI : InitSPI1);
     switch (SPI_selection) {
       case SPI_Options_e::Vspi_Fspi:
+      case SPI_Options_e::UserDefined_VSPI:
       {
         #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
         return static_cast<spi_host_device_t>(FSPI_HOST);
@@ -1072,14 +1087,12 @@ spi_host_device_t SettingsStruct_tmpl<N_TASKS>::getSPI_host(uint8_t spi_bus) con
         return static_cast<spi_host_device_t>(HSPI_HOST);
       }
 #endif
-      case SPI_Options_e::UserDefined:
+#if SOC_SPI_PERIPH_NUM > 2
+      case SPI_Options_e::UserDefined_HSPI:
       {
-        #if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-        return static_cast<spi_host_device_t>(FSPI_HOST);
-        #else
-        return static_cast<spi_host_device_t>(VSPI_HOST);
-        #endif
+        return static_cast<spi_host_device_t>(HSPI_HOST);
       }
+#endif
       case SPI_Options_e::None:
         break;
     }

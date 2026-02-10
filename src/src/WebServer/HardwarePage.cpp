@@ -303,14 +303,21 @@ void handle_hardware() {
         #ifdef ESP32_CLASSIC
         getSPI_optionToString(SPI_Options_e::Hspi), 
         #endif
-        getSPI_optionToString(SPI_Options_e::UserDefined)};
+        getSPI_optionToString(SPI_Options_e::UserDefined_VSPI)
+#if SOC_SPI_PERIPH_NUM > 2
+        ,getSPI_optionToString(SPI_Options_e::UserDefined_HSPI)
+#endif
+      };
       const int spi_index[] = {
         static_cast<int>(SPI_Options_e::None),
         static_cast<int>(SPI_Options_e::Vspi_Fspi),
         #ifdef ESP32_CLASSIC
         static_cast<int>(SPI_Options_e::Hspi),
         #endif
-        static_cast<int>(SPI_Options_e::UserDefined)
+        static_cast<int>(SPI_Options_e::UserDefined_VSPI)
+#if SOC_SPI_PERIPH_NUM > 2
+       ,static_cast<int>(SPI_Options_e::UserDefined_HSPI)
+#endif
       };
       constexpr size_t nrOptions = NR_ELEMENTS(spi_index);
       FormSelectorOptions selector(nrOptions, spi_options, spi_index);
@@ -337,7 +344,7 @@ void handle_hardware() {
 #if FEATURE_SD
   addFormSubHeader(F("SD Card"));
   #ifdef ESP32
-  if (getSPIBusCount() > 1 && (Settings.isSPI_valid(0u) || Settings.isSPI_valid(1u))) {
+  if (getSPIBusCount() > 1 && (Settings.getNrConfiguredSPI_buses() != 0)) {
     uint8_t spiBus = Settings.getSPIBusForSDCard();
     SPIInterfaceSelector(F("SPI Bus"),
                         F("sdspibus"),

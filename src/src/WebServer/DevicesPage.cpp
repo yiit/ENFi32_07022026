@@ -1409,11 +1409,11 @@ void devicePage_show_serial_config(taskIndex_t taskIndex)
 void devicePage_show_SPI_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex)
 {
   if (Device[DeviceIndex].isSPI()
-      && !(Settings.isSPI_valid(0u) || (getSPIBusCount() > 1 && Settings.isSPI_valid(1u)))) {
+      && Settings.getNrConfiguredSPI_buses() == 0) {
     addFormNote(F("SPI Bus not configured yet (Hardware page)."));
   }
   #ifdef ESP32
-  if (Device[DeviceIndex].SpiBusSelect && getSPIBusCount() > 1 && (Settings.isSPI_valid(0u) || Settings.isSPI_valid(1u))) {
+  if (Device[DeviceIndex].SpiBusSelect && getSPIBusCount() > 1 && (Settings.getNrConfiguredSPI_buses() != 0)) {
     uint8_t spiBus = Settings.getSPIBusForTask(taskIndex);
     SPIInterfaceSelector(F("SPI Bus"),
                         F("pspibus"),
