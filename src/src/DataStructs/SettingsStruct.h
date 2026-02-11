@@ -396,6 +396,8 @@ public:
 
   // Return true if I2C settings are correct
   bool isI2CEnabled(uint8_t i2cBus) const;
+  uint8_t getNrConfiguredI2C_buses() const;
+
 
   uint8_t getI2CInterface(taskIndex_t TaskIndex) const;
   int8_t getI2CSdaPin(uint8_t i2cBus) const;

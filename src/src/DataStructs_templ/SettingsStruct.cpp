@@ -1215,6 +1215,24 @@ bool SettingsStruct_tmpl<N_TASKS>::isI2CEnabled(uint8_t i2cBus) const {
         (getI2CClockSpeedSlow(i2cBus) > 0);
 }
 
+template<uint32_t N_TASKS>
+uint8_t SettingsStruct_tmpl<N_TASKS>::getNrConfiguredI2C_buses() const
+{
+#ifdef ESP32
+  uint8_t res{};
+  if (isI2CEnabled(0)) ++res;
+  if (getI2CBusCount() > 1) {
+    if (isI2CEnabled(1)) ++res;
+#if FEATURE_I2C_INTERFACE_3
+    if (isI2CEnabled(2)) ++res;
+#endif
+  }
+  return res;
+#else
+  return isI2CEnabled(0) ? 1 : 0;
+#endif
+}
+
 // stored in I2C_SPI_bus_Flags per Task
 template<uint32_t N_TASKS>
 uint8_t SettingsStruct_tmpl<N_TASKS>::getSPIBusForTask(taskIndex_t TaskIndex) const {

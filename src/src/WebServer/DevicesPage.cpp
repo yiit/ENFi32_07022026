@@ -1428,14 +1428,7 @@ void devicePage_show_I2C_config(taskIndex_t taskIndex, deviceIndex_t DeviceIndex
 
   addFormSubHeader(F("I2C options"));
 
-  if (!Settings.isI2CEnabled(0)
-     # if FEATURE_I2C_MULTIPLE
-      && (getI2CBusCount() > 1 && !Settings.isI2CEnabled(1))
-     #  if FEATURE_I2C_INTERFACE_3
-      && (getI2CBusCount() > 2 && !Settings.isI2CEnabled(2))
-     #  endif // if FEATURE_I2C_INTERFACE_3
-     # endif // if FEATURE_I2C_MULTIPLE
-      ) {
+  if (Settings.getNrConfiguredI2C_buses() == 0) {
     addFormNote(F("I2C Bus is not configured yet (Hardware page)."));
   }
 

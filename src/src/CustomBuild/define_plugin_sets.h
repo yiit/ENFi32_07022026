@@ -103,6 +103,9 @@ To create/register a plugin, you have to :
     #ifndef WEBSERVER_HARDWARE
         #define WEBSERVER_HARDWARE
     #endif
+    #ifndef WEBSERVER_INTERFACES
+        #define WEBSERVER_INTERFACES
+    #endif
     #ifndef WEBSERVER_PINSTATES
         #define WEBSERVER_PINSTATES
     #endif
