@@ -115,7 +115,7 @@ const __FlashStringHelper* getGpMenuIcon(uint8_t index) {
     case MENU_INDEX_NETWORK:       return ICON("&#127760;"); // Alternative &#128423; (not working on Apple) 
     case MENU_INDEX_CONTROLLERS:   return ICON("&#9990;");
     case MENU_INDEX_HARDWARE:      return ICON("&#9783;");
-    case MENU_INDEX_INTERFACES:    return ICON("&#9783;");
+    case MENU_INDEX_INTERFACES:    return ICON("&#9094;");
     case MENU_INDEX_DEVICES:       return ICON("&#10070;");
     case MENU_INDEX_RULES:         return ICON("&#10740;");
     case MENU_INDEX_NOTIFICATIONS: return ICON("&#9993;");

@@ -27,19 +27,9 @@
 #  include "../Helpers/Hardware_device_info.h"
 # endif // if FEATURE_I2C_MULTIPLE
 
-// ********************************************************************************
-// Web Interface hardware page
-// ********************************************************************************
-void handle_interfaces() {
-# ifndef BUILD_NO_RAM_TRACKER
-  checkRAM(F("handle_interfaces"));
-# endif
 
-  if (!isLoggedIn()) { return; }
-  navMenuIndex = MENU_INDEX_INTERFACES;
-  TXBuffer.startStream();
-  sendHeadandTail_stdtemplate(_HEAD);
-
+void save_interfaces() {
+    
   String error;
   bool   updated{};
 
@@ -176,6 +166,24 @@ void handle_interfaces() {
       initializeSPIBuses();
     }
   }
+}
+
+
+// ********************************************************************************
+// Web Interface hardware page
+// ********************************************************************************
+void handle_interfaces() {
+# ifndef BUILD_NO_RAM_TRACKER
+  checkRAM(F("handle_interfaces"));
+# endif
+
+  if (!isLoggedIn()) { return; }
+  navMenuIndex = MENU_INDEX_INTERFACES;
+  TXBuffer.startStream();
+  sendHeadandTail_stdtemplate(_HEAD);
+
+  save_interfaces();
+
 
   addHtml(F("<form  method='post'>"));
   html_table_class_normal();
