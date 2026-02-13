@@ -287,6 +287,8 @@ void WebServerInit()
   #endif
   web_server.on(F("/log"),             handle_log);
   web_server.on(F("/logjson"),         handle_log_JSON); // Also part of WEBSERVER_NEW_UI
+  
+ 
 #if FEATURE_NOTIFIER
   web_server.on(F("/notifications"),   handle_notifications);
 #endif // if FEATURE_NOTIFIER

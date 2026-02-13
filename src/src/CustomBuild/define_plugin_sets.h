@@ -4216,7 +4216,7 @@ To create/register a plugin, you have to :
 
 // Enable dependencies for custom provisioning
 // FIXME TD-er: What about using this feature on non-Custom builds????
-#if FEATURE_CUSTOM_PROVISIONING 
+#if FEATURE_CUSTOM_PROVISIONING
   #ifdef FEATURE_DOWNLOAD
     #undef FEATURE_DOWNLOAD
   #endif

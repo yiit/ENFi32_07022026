@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 ENFi32 Professional Dashboard</title>
+    <link rel="stylesheet" href="espeasy_default.css">
+    <link rel="stylesheet" href="enfi32_custom.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--bg10) 0%, var(--bg11) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: var(--bg6);
+            border: 1px solid var(--bdc2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover { transform: translateY(-2px); }
+        .chart-container {
+            background: var(--bg6);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-online { background: #10B981; }
+        .status-warning { background: #F59E0B; }
+        .status-offline { background: #EF4444; }
+    </style>
+</head>
+<body class="bodymenu">
+    <!-- Professional Navigation -->
+    <header class="headermenu">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <i data-feather="cpu" style="width: 32px; height: 32px;"></i>
+            <h1>🚀 ENFi32 Professional Dashboard</h1>
+            <div style="margin-left: auto; display: flex; gap: 1rem;">
+                <a href="/" class="button"><i data-feather="home"></i> Ana Sayfa</a>
+                <a href="/dashboard" class="button" style="background: var(--bg8);"><i data-feather="bar-chart-2"></i> Dashboard</a>
+                <a href="/json" class="button"><i data-feather="database"></i> JSON API</a>
+                <a href="/logs" class="button"><i data-feather="file-text"></i> Loglar</a>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <!-- Professional Dashboard Header -->
+        <div class="dashboard-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="margin: 0; font-size: 2.5rem;"><i data-feather="activity"></i> Sistem Durumu</h2>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Gerçek zamanlı IoT cihaz izleme ve kontrol merkezi</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">
+                        <span class="status-indicator status-online"></span>
+                        <span id="connectionStatus">Bağlantı Aktif</span>
+                    </div>
+                    <div style="opacity: 0.8;">Son güncellenme: <span id="lastUpdate">-</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Real-time Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin: 0;"><i data-feather="zap" style="width: 20px; height: 20px;"></i> Sistem Performansı</h3>
+                    <span class="status-indicator status-online"></span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>CPU Yükü: <strong><span id="cpuLoad">-</span>%</strong></div>
+                    <div>Bellek: <strong><span id="freeMemory">-</span>KB</strong></div>
+                    <div>Uptime: <strong><span id="uptimeDisplay">-</span></strong></div>
+                    <div>WiFi RSSI: <strong><span id="wifiRSSI">-</span>dBm</strong></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="thermometer" style="width: 20px; height: 20px;"></i> Çevresel Sensörler</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>Sıcaklık: <strong><span id="temperature">-</span>°C</strong></div>
+                    <div>Nem: <strong><span id="humidity">-</span>%</strong></div>
+                    <div>Basınç: <strong><span id="pressure">-</span>hPa</strong></div>
+                    <div>Işık: <strong><span id="light">-</span>lux</strong></div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="power" style="width: 20px; height: 20px;"></i> Enerji İzleme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>Voltaj: <strong><span id="voltage">-</span>V</strong></div>
+                    <div>Akım: <strong><span id="current">-</span>mA</strong></div>
+                    <div>Güç: <strong><span id="power">-</span>W</strong></div>
+                    <div>Enerji: <strong><span id="energy">-</span>kWh</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Charts Section -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="chart-container">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="trending-up" style="width: 20px; height: 20px;"></i> Sıcaklık & Nem Trendi (Son 24 Saat)</h3>
+                <canvas id="temperatureChart" style="max-height: 400px;"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="pie-chart" style="width: 20px; height: 20px;"></i> Sistem Kaynak Dağılımı</h3>
+                <canvas id="resourceChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="chart-container">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="activity" style="width: 20px; height: 20px;"></i> WiFi Sinyal Gücü</h3>
+                <canvas id="wifiChart" style="max-height: 250px;"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 style="margin: 0 0 1rem 0;"><i data-feather="battery" style="width: 20px; height: 20px;"></i> Enerji Tüketimi</h3>
+                <canvas id="powerChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <script src="enfi32_dashboard.js"></script>
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        // Start dashboard with modern features
+        if (typeof InitializeDashboard === 'function') {
+            InitializeDashboard();
+        }
+    </script>
+</body>
+</html>
+                    <div class="metric">
+                        <span class="metric-label">Ağ:</span>
+                        <span class="metric-value" id="wifi-ssid">--</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Sinyal:</span>
+                        <span class="metric-value" id="wifi-rssi">-- dBm</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">IP Adresi:</span>
+                        <span class="metric-value" id="ip-address">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensör Verileri -->
+            <div class="card wide">
+                <div class="card-header">
+                    <h3>🌡️ Sensör Verileri</h3>
+                </div>
+                <div class="card-body">
+                    <div class="sensor-grid" id="sensor-grid">
+                        <!-- Sensör verileri JavaScript ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı Kontroller -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚙️ Hızlı Kontroller</h3>
+                </div>
+                <div class="card-body">
+                    <div class="control-buttons">
+                        <button class="btn btn-warning" data-cmd="reboot">🔄 Yeniden Başlat</button>
+                        <button class="btn btn-info" data-cmd="wificonnect">📶 WiFi Bağla</button>
+                        <button class="btn btn-success" data-cmd="taskclearall">🧹 Görevleri Temizle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2026 ENFi32 - ESP32 IoT Dashboard | Son Güncelleme: <span id="last-update">--</span></p>
+        </footer>
+    </div>
+
+    <script src="/simple_ui.js"></script>
+</body>
+</html>
