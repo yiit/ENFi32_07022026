@@ -465,6 +465,11 @@ void addFormPinSelect(PinSelectPurpose purpose, const String& label, const __Fla
   addPinSelect(purpose, id, choice);
 }
 
+void addFormPinSelect(PinSelectPurpose purpose, const String& label, const String& id, int choice) {
+  addRowLabel_tr_id(label, id);
+  addPinSelect(purpose, id, choice);
+}
+
 void addFormPinSelect(PinSelectPurpose purpose, const __FlashStringHelper * label, const __FlashStringHelper * id, int choice)
 {
   addRowLabel_tr_id(label, id);
@@ -655,6 +660,16 @@ bool getCheckWebserverArg_int(const String& key, int& value) {
   return res;
 }
 
+bool getCheckWebserverArg_int(const String& key,
+                              uint32_t      & value) {
+  const String valueStr = webArg(key);
+  if (valueStr.isEmpty()) return false;
+  uint32_t tmp{};
+  const bool res = validUIntFromString(valueStr, tmp);
+  value = tmp;
+  return res;
+}
+
 bool update_whenset_FormItemInt(const __FlashStringHelper * key,
                                 int         & value) 
 {
@@ -670,6 +685,25 @@ bool update_whenset_FormItemInt(const String& key, int& value) {
   }
   return false;
 }
+
+bool update_whenset_FormItemInt(const __FlashStringHelper * key,
+                                uint32_t    & value) 
+{
+  return update_whenset_FormItemInt(String(key), value);
+}
+
+bool update_whenset_FormItemInt(const String& key,
+                                uint32_t    & value)
+{
+  uint32_t tmpVal;
+
+  if (getCheckWebserverArg_int(key, tmpVal)) {
+    value = tmpVal;
+    return true;
+  }
+  return false;
+}
+
 
 bool update_whenset_FormItemInt(const __FlashStringHelper * key,
                                 int8_t& value) 

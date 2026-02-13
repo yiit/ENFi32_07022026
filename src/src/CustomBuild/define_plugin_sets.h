@@ -103,6 +103,9 @@ To create/register a plugin, you have to :
     #ifndef WEBSERVER_HARDWARE
         #define WEBSERVER_HARDWARE
     #endif
+    #ifndef WEBSERVER_INTERFACES
+        #define WEBSERVER_INTERFACES
+    #endif
     #ifndef WEBSERVER_PINSTATES
         #define WEBSERVER_PINSTATES
     #endif
@@ -2179,6 +2182,10 @@ To create/register a plugin, you have to :
     #define PLUGIN_DESCR  "Climate A"
   #endif
 
+  #ifndef BUILD_NO_DEBUG
+  #define BUILD_NO_DEBUG
+  #endif
+
   // Features and plugins cherry picked from stable set
   #ifndef FEATURE_SERVO
     #define FEATURE_SERVO 1
@@ -4209,7 +4216,7 @@ To create/register a plugin, you have to :
 
 // Enable dependencies for custom provisioning
 // FIXME TD-er: What about using this feature on non-Custom builds????
-#if FEATURE_CUSTOM_PROVISIONING 
+#if FEATURE_CUSTOM_PROVISIONING
   #ifdef FEATURE_DOWNLOAD
     #undef FEATURE_DOWNLOAD
   #endif

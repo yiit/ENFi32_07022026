@@ -16,6 +16,7 @@
 #include "../WebServer/FileList.h"
 #include "../WebServer/HTML_wrappers.h"
 #include "../WebServer/HardwarePage.h"
+#include "../WebServer/InterfacesPage.h"
 #include "../WebServer/I2C_Scanner.h"
 #include "../WebServer/JSON.h"
 #include "../WebServer/LoadFromFS.h"
@@ -272,6 +273,9 @@ void WebServerInit()
   #ifdef WEBSERVER_HARDWARE
   web_server.on(F("/hardware"),        handle_hardware);
   #endif // ifdef WEBSERVER_HARDWARE
+  #ifdef WEBSERVER_INTERFACES
+  web_server.on(F("/interfaces"),      handle_interfaces);
+  #endif 
   #ifdef WEBSERVER_I2C_SCANNER
   web_server.on(F("/i2cscanner"),      handle_i2cscanner);
   #endif // ifdef WEBSERVER_I2C_SCANNER
@@ -283,6 +287,8 @@ void WebServerInit()
   #endif
   web_server.on(F("/log"),             handle_log);
   web_server.on(F("/logjson"),         handle_log_JSON); // Also part of WEBSERVER_NEW_UI
+  
+ 
 #if FEATURE_NOTIFIER
   web_server.on(F("/notifications"),   handle_notifications);
 #endif // if FEATURE_NOTIFIER

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENFi32 - Kontroller</title>
+    <link rel="stylesheet" href="/enfi32_custom.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><span class="icon">⚙️</span> Sistem Kontrolleri</h1>
+            <nav class="nav">
+                <a href="/dashboard.html" class="nav-link">🏠 Ana Sayfa</a>
+                <a href="/sensors.html" class="nav-link">📊 Sensörler</a>
+                <a href="/controls.html" class="nav-link active">⚙️ Kontroller</a>
+            </nav>
+        </header>
+
+        <div class="controls-grid">
+            <!-- Sistem Kontrolleri -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔧 Sistem</h3>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-danger btn-large" data-cmd="reboot">
+                        🔄 Sistemi Yeniden Başlat
+                    </button>
+                    <button class="btn btn-warning btn-large" data-cmd="reset">
+                        ⚠️ Ayarları Sıfırla
+                    </button>
+                </div>
+            </div>
+
+            <!-- WiFi Kontrolleri -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📶 WiFi</h3>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-info btn-large" data-cmd="wificonnect">
+                        🔌 Yeniden Bağlan
+                    </button>
+                    <button class="btn btn-secondary btn-large" data-cmd="wifidisconnect">
+                        ❌ Bağlantıyı Kes
+                    </button>
+                </div>
+            </div>
+
+            <!-- GPIO Kontrolleri -->
+            <div class="card wide">
+                <div class="card-header">
+                    <h3>🔌 GPIO Kontrolleri</h3>
+                </div>
+                <div class="card-body">
+                    <div class="gpio-controls" id="gpio-controls">
+                        <!-- GPIO kontrolleri JavaScript ile oluşturulacak -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Görev Kontrolleri -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 Görevler</h3>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-success btn-large" data-cmd="taskclearall">
+                        🧹 Tüm Görevleri Temizle
+                    </button>
+                    <button class="btn btn-info btn-large" data-cmd="taskrun,1">
+                        ▶️ Görev 1 Çalıştır
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2026 ENFi32 - ESP32 IoT Dashboard</p>
+        </footer>
+    </div>
+
+    <script src="/controls_ui.js"></script>
+</body>
+</html>
